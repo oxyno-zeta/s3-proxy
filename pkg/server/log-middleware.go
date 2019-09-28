@@ -61,8 +61,15 @@ func (l *StructuredLoggerEntry) Write(status, bytes int, elapsed time.Duration) 
 		"resp_status": status, "resp_bytes_length": bytes,
 		"resp_elapsed_ms": float64(elapsed.Nanoseconds()) / 1000000.0,
 	})
+	logFunc := l.Logger.Infoln
+	if status >= 300 && status < 400 {
+		logFunc = l.Logger.Warnln
+	}
+	if status >= 400 {
+		logFunc = l.Logger.Errorln
+	}
 
-	l.Logger.Infoln("request complete")
+	logFunc("request complete")
 }
 
 // Panic panic log
