@@ -1,6 +1,7 @@
 package s3client
 
 import (
+	"errors"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -23,5 +24,7 @@ type Entry struct {
 	Name         string
 	LastModified time.Time
 	Size         int64
-	Path         string
+	Key          string
 }
+
+var ErrNotFound = errors.New("not found")

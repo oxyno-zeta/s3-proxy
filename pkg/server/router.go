@@ -1,13 +1,12 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/oxyno-zeta/s3-proxy/pkg/bucket"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3client"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,22 +21,20 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
 	r.Use(middleware.Recoverer)
 
 	for i := 0; i < len(cfg.Buckets); i++ {
-		bucket := cfg.Buckets[i]
-		r.Route("/"+bucket.Name, func(r chi.Router) {
+		bcfg := cfg.Buckets[i]
+		mountPath := "/" + bcfg.Name
+		r.Route(mountPath, func(r chi.Router) {
 			r.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
+				requestPath := chi.URLParam(req, "*")
 				logEntry := GetLogEntry(req)
-				s3ctx, err := s3client.NewS3Context(bucket, &logEntry)
-				path := chi.URLParam(req, "*")
-				if err != nil {
-					logger.Errorln((err))
-				} else {
-					res, _ := s3ctx.ListFilesAndDirectories(path)
-					for _, item := range res {
-						fmt.Println(item)
-					}
-				}
+				brctx, err := bucket.NewBucketRequestContext(bcfg, &logEntry, mountPath, requestPath, &rw)
 
-				rw.Write([]byte(path))
+				if err != nil {
+					// ! TODO Need to manage errors
+					logger.Errorln(err)
+				} else {
+					brctx.Proxy()
+				}
 			})
 		})
 	}

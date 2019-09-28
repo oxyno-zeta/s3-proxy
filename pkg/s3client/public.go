@@ -1,9 +1,11 @@
 package s3client
 
 import (
+	"io"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
@@ -18,12 +20,10 @@ func NewS3Context(bcfg *config.BucketConfig, logger *logrus.FieldLogger) (*S3Con
 		return nil, err
 	}
 	svcClient := s3.New(sess)
-	return &S3Context{svcClient: svcClient, BucketConfig: bcfg, logger: logger}, nil
+	return &S3Context{svcClient: svcClient, logger: logger, BucketConfig: bcfg}, nil
 }
 
-func (s3ctx *S3Context) ListFilesAndDirectories(path string) ([]*Entry, error) {
-	// Trim first / if exists
-	key := strings.TrimPrefix(path, "/")
+func (s3ctx *S3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 	// List files on path
 	folders := make([]*Entry, 0)
 	files := make([]*Entry, 0)
@@ -36,16 +36,16 @@ func (s3ctx *S3Context) ListFilesAndDirectories(path string) ([]*Entry, error) {
 		func(page *s3.ListObjectsV2Output, lastPage bool) bool {
 			// Manage folders
 			for _, item := range page.CommonPrefixes {
-				name := strings.TrimPrefix(*item.Prefix, path)
+				name := strings.TrimPrefix(*item.Prefix, key)
 				folders = append(folders, &Entry{
 					Type: FolderType,
-					Path: *item.Prefix,
+					Key:  *item.Prefix,
 					Name: name,
 				})
 			}
 			// Manage files
 			for _, item := range page.Contents {
-				name := strings.TrimPrefix(*item.Key, path)
+				name := strings.TrimPrefix(*item.Key, key)
 				if name != "" {
 					files = append(files, &Entry{
 						Type:         FileType,
@@ -53,7 +53,7 @@ func (s3ctx *S3Context) ListFilesAndDirectories(path string) ([]*Entry, error) {
 						Name:         name,
 						LastModified: *item.LastModified,
 						Size:         *item.Size,
-						Path:         *item.Key,
+						Key:          *item.Key,
 					})
 				}
 			}
@@ -66,4 +66,23 @@ func (s3ctx *S3Context) ListFilesAndDirectories(path string) ([]*Entry, error) {
 	// Concat folders and files
 	all := append(folders, files...)
 	return all, nil
+}
+
+func (s3ctx *S3Context) GetObject(key string) (*io.ReadCloser, error) {
+	obj, err := s3ctx.svcClient.GetObject(&s3.GetObjectInput{
+		Bucket: aws.String(s3ctx.BucketConfig.Bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		// Try to cast error into an AWS Error if possible
+		aerr, ok := err.(awserr.Error)
+		if ok {
+			switch aerr.Code() {
+			case s3.ErrCodeNoSuchBucket, s3.ErrCodeNoSuchKey:
+				return nil, ErrNotFound
+			}
+		}
+		return nil, err
+	}
+	return &obj.Body, nil
 }
