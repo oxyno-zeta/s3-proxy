@@ -9,12 +9,12 @@ import (
 )
 
 type BucketRequestContext struct {
-	s3Context    *s3client.S3Context
-	logger       *logrus.FieldLogger
-	bucketConfig *config.BucketConfig
-	mountPath    string
-	requestPath  string
-	httpRW       *http.ResponseWriter
+	s3Context      *s3client.S3Context
+	logger         *logrus.FieldLogger
+	bucketInstance *config.BucketInstance
+	mountPath      string
+	requestPath    string
+	httpRW         *http.ResponseWriter
 }
 
 type EntryPath struct {

@@ -2,9 +2,9 @@ package config
 
 // Config Application Configuration
 type Config struct {
-	Log     *LogConfig      `koanf:"log"`
-	Server  *ServerConfig   `koanf:"server"`
-	Buckets []*BucketConfig `koanf:"buckets" validate:"gte=0,required,dive,required"`
+	Log     *LogConfig        `koanf:"log"`
+	Server  *ServerConfig     `koanf:"server"`
+	Buckets []*BucketInstance `koanf:"buckets" validate:"gte=0,required,dive,required"`
 }
 
 // ServerConfig Server configuration
@@ -13,13 +13,17 @@ type ServerConfig struct {
 	Port       int    `koanf:"port"`
 }
 
-// BucketConfig Bucket configuration
+// BucketInstance Bucket configuration
+type BucketInstance struct {
+	Name          string        `koanf:"name" validate:"required"`
+	Bucket        *BucketConfig `koanf:"bucket" validate:"required"`
+	IndexDocument string        `koanf:"indexDocument"`
+}
+
 type BucketConfig struct {
-	Name          string `koanf:"name" validate:"required"`
-	Bucket        string `koanf:"bucket" validate:"required"`
-	Prefix        string `koanf:"prefix"`
-	Region        string `koanf:"region"`
-	IndexDocument string `koanf:"indexDocument"`
+	Name   string `koang:"name" validate:"required"`
+	Prefix string `koanf:"prefix"`
+	Region string `koanf:"region"`
 }
 
 // LogConfig Log configuration

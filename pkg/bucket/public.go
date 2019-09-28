@@ -13,19 +13,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewBucketRequestContext(bcfg *config.BucketConfig, logger *logrus.FieldLogger, mountPath string, requestPath string, httpRW *http.ResponseWriter) (*BucketRequestContext, error) {
-	s3ctx, err := s3client.NewS3Context(bcfg, logger)
+func NewBucketRequestContext(binst *config.BucketInstance, logger *logrus.FieldLogger, mountPath string, requestPath string, httpRW *http.ResponseWriter) (*BucketRequestContext, error) {
+	s3ctx, err := s3client.NewS3Context(binst, logger)
 	if err != nil {
 		return nil, err
 	}
 
 	return &BucketRequestContext{
-		s3Context:    s3ctx,
-		logger:       logger,
-		bucketConfig: bcfg,
-		mountPath:    mountPath,
-		requestPath:  requestPath,
-		httpRW:       httpRW,
+		s3Context:      s3ctx,
+		logger:         logger,
+		bucketInstance: binst,
+		mountPath:      mountPath,
+		requestPath:    requestPath,
+		httpRW:         httpRW,
 	}, nil
 }
 
@@ -57,8 +57,8 @@ func (brctx *BucketRequestContext) Proxy() {
 		// Create bucket list data for templating
 		data := &BucketListingData{
 			Entries:    entryPathList,
-			BucketName: brctx.bucketConfig.Bucket,
-			Name:       brctx.bucketConfig.Name,
+			BucketName: brctx.bucketInstance.Bucket.Name,
+			Name:       brctx.bucketInstance.Name,
 			Path:       brctx.mountPath + "/" + brctx.requestPath,
 		}
 		err = tmpl.Execute(*brctx.httpRW, data)

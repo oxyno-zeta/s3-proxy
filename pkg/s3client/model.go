@@ -11,7 +11,7 @@ import (
 
 type S3Context struct {
 	svcClient    *s3.S3
-	BucketConfig *config.BucketConfig
+	BucketInstance *config.BucketInstance
 	logger       *logrus.FieldLogger
 }
 

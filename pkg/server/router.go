@@ -21,13 +21,13 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
 	r.Use(middleware.Recoverer)
 
 	for i := 0; i < len(cfg.Buckets); i++ {
-		bcfg := cfg.Buckets[i]
-		mountPath := "/" + bcfg.Name
+		binst := cfg.Buckets[i]
+		mountPath := "/" + binst.Name
 		r.Route(mountPath, func(r chi.Router) {
 			r.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
 				requestPath := chi.URLParam(req, "*")
 				logEntry := GetLogEntry(req)
-				brctx, err := bucket.NewBucketRequestContext(bcfg, &logEntry, mountPath, requestPath, &rw)
+				brctx, err := bucket.NewBucketRequestContext(binst, &logEntry, mountPath, requestPath, &rw)
 
 				if err != nil {
 					// ! TODO Need to manage errors

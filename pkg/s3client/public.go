@@ -12,15 +12,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewS3Context(bcfg *config.BucketConfig, logger *logrus.FieldLogger) (*S3Context, error) {
+func NewS3Context(binst *config.BucketInstance, logger *logrus.FieldLogger) (*S3Context, error) {
 	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(bcfg.Region)},
+		Region: aws.String(binst.Bucket.Region)},
 	)
 	if err != nil {
 		return nil, err
 	}
 	svcClient := s3.New(sess)
-	return &S3Context{svcClient: svcClient, logger: logger, BucketConfig: bcfg}, nil
+	return &S3Context{svcClient: svcClient, logger: logger, BucketInstance: binst}, nil
 }
 
 func (s3ctx *S3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
@@ -29,7 +29,7 @@ func (s3ctx *S3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 	files := make([]*Entry, 0)
 	err := s3ctx.svcClient.ListObjectsV2Pages(
 		&s3.ListObjectsV2Input{
-			Bucket:    aws.String(s3ctx.BucketConfig.Bucket),
+			Bucket:    aws.String(s3ctx.BucketInstance.Bucket.Name),
 			Prefix:    aws.String(key),
 			Delimiter: aws.String("/"),
 		},
@@ -70,7 +70,7 @@ func (s3ctx *S3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 
 func (s3ctx *S3Context) GetObject(key string) (*io.ReadCloser, error) {
 	obj, err := s3ctx.svcClient.GetObject(&s3.GetObjectInput{
-		Bucket: aws.String(s3ctx.BucketConfig.Bucket),
+		Bucket: aws.String(s3ctx.BucketInstance.Bucket.Name),
 		Key:    aws.String(key),
 	})
 	if err != nil {
