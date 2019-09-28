@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/sprig"
+	"github.com/dustin/go-humanize"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3client"
 	"github.com/sirupsen/logrus"
@@ -41,7 +42,7 @@ func (brctx *BucketRequestContext) Proxy() {
 			return
 		}
 		// Load template
-		tmpl, err := template.New("list.tpl").Funcs(sprig.HtmlFuncMap()).ParseFiles("templates/list.tpl")
+		tmpl, err := template.New("list.tpl").Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).ParseFiles("templates/list.tpl")
 		if err != nil {
 			(*brctx.logger).Errorln(err)
 			return
@@ -79,4 +80,12 @@ func (brctx *BucketRequestContext) Proxy() {
 		}
 	}
 	io.Copy(*brctx.httpRW, *objectIOReadCloser)
+}
+
+func s3ProxyFuncMap() template.FuncMap {
+	funcMap := make(map[string]interface{}, 1)
+	funcMap["humanSize"] = func(fmt int64) string {
+		return humanize.Bytes(uint64(fmt))
+	}
+	return template.FuncMap(funcMap)
 }
