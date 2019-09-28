@@ -58,7 +58,7 @@ func (brctx *BucketRequestContext) Proxy() {
 		}
 
 		// Load template
-		tmpl, err := template.New("list.tpl").Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).ParseFiles("templates/list.tpl")
+		tmpl, err := template.New("folder-list.tpl").Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).ParseFiles("templates/folder-list.tpl")
 		if err != nil {
 			// ! TODO Need to manage internal server error
 			(*brctx.logger).Errorln(err)
