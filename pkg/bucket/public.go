@@ -12,6 +12,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3client"
 	"github.com/sirupsen/logrus"
+	"github.com/thoas/go-funk"
 )
 
 func NewBucketRequestContext(binst *config.BucketInstance, logger *logrus.FieldLogger, mountPath string, requestPath string, httpRW *http.ResponseWriter) (*BucketRequestContext, error) {
@@ -39,11 +40,27 @@ func (brctx *BucketRequestContext) Proxy() {
 		entries, err := brctx.s3Context.ListFilesAndDirectories(key)
 		if err != nil {
 			(*brctx.logger).Errorln(err)
+			// ! TODO Need to manage internal server error
 			return
 		}
+
+		// Check if index document is activated
+		if brctx.bucketInstance.IndexDocument != "" {
+			// Search if the file is present
+			indexDocumentEntry := funk.Find(entries, func(ent *s3client.Entry) bool {
+				return brctx.bucketInstance.IndexDocument == ent.Name
+			})
+			// Check if index document entry exists
+			if indexDocumentEntry != nil {
+				// Get data
+				getFile(brctx, indexDocumentEntry.(*s3client.Entry).Key)
+			}
+		}
+
 		// Load template
 		tmpl, err := template.New("list.tpl").Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).ParseFiles("templates/list.tpl")
 		if err != nil {
+			// ! TODO Need to manage internal server error
 			(*brctx.logger).Errorln(err)
 			return
 		}
@@ -64,12 +81,16 @@ func (brctx *BucketRequestContext) Proxy() {
 		}
 		err = tmpl.Execute(*brctx.httpRW, data)
 
+		// ! TODO Need to manage internal server error
 		fmt.Println(err)
-		fmt.Println(entries)
 		return
 	}
 
 	// Get object case
+	getFile(brctx, key)
+}
+
+func getFile(brctx *BucketRequestContext, key string) {
 	objectIOReadCloser, err := brctx.s3Context.GetObject(key)
 	if err != nil {
 		// Check if it a not found error

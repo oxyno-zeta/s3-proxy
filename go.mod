@@ -17,6 +17,7 @@ require (
 	github.com/knadh/koanf v0.4.4
 	github.com/leodido/go-urn v1.1.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
+	github.com/thoas/go-funk v0.4.0
 	golang.org/x/crypto v0.0.0-20190927123631-a832865fa7ad // indirect
 	gopkg.in/go-playground/validator.v9 v9.29.1
 )
