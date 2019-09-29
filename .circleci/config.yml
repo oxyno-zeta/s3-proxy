@@ -12,7 +12,7 @@ jobs:
       - save_cache:
           key: go-mod-{{ checksum "go.mod"  }}
           paths:
-            - "/go/pkg/mod"
+            - "/go/pkg/"
   build:
     environment:
       GO111MODULE: "on"

@@ -58,7 +58,7 @@ build-cross: clean dep
 
 .PHONY: release
 release: build-cross
-	cp Dockerfile $(DISTDIR)/bin/$(BINARY_VERSION)/linux-amd64
+	cp -R templates/ Dockerfile $(DISTDIR)/bin/$(BINARY_VERSION)/linux-amd64
 	docker build -t oxynozeta/s3-proxy:$(BINARY_VERSION) $(DISTDIR)/bin/$(BINARY_VERSION)/linux-amd64
 
 .PHONY: docker-latest
