@@ -1,33 +1,53 @@
 version: 2
 jobs:
   lint:
+    environment:
+      GO111MODULE: "on"
     docker:
       - image: circleci/golang:1.12
     working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
     steps:
       - checkout
       - run: make lint
-
+      - save_cache:
+          key: go-mod-{{ checksum "go.mod"  }}
+          paths:
+            - "/go/pkg/mod"
   build:
+    environment:
+      GO111MODULE: "on"
     docker:
       - image: circleci/golang:1.12
     working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.mod"  }}
       - run: make build
   test:
+    environment:
+      GO111MODULE: "on"
     docker:
       - image: circleci/golang:1.12
     working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.mod"  }}
       - run: make test
   release:
+    environment:
+      GO111MODULE: "on"
     docker:
       - image: circleci/golang:1.12
     working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.mod"  }}
       - setup_remote_docker
       - run: make release
 workflows:
