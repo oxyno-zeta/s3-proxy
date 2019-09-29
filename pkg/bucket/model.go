@@ -12,6 +12,7 @@ type BucketRequestContext struct {
 	s3Context      *s3client.S3Context
 	logger         *logrus.FieldLogger
 	bucketInstance *config.BucketInstance
+	tplConfig      *config.TemplateConfig
 	mountPath      string
 	requestPath    string
 	httpRW         *http.ResponseWriter

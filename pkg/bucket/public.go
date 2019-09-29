@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/Masterminds/sprig"
@@ -15,7 +16,7 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func NewBucketRequestContext(binst *config.BucketInstance, logger *logrus.FieldLogger, mountPath string, requestPath string, httpRW *http.ResponseWriter) (*BucketRequestContext, error) {
+func NewBucketRequestContext(binst *config.BucketInstance, tplConfig *config.TemplateConfig, logger *logrus.FieldLogger, mountPath string, requestPath string, httpRW *http.ResponseWriter) (*BucketRequestContext, error) {
 	s3ctx, err := s3client.NewS3Context(binst, logger)
 	if err != nil {
 		return nil, err
@@ -28,6 +29,7 @@ func NewBucketRequestContext(binst *config.BucketInstance, logger *logrus.FieldL
 		mountPath:      mountPath,
 		requestPath:    requestPath,
 		httpRW:         httpRW,
+		tplConfig:      tplConfig,
 	}, nil
 }
 
@@ -58,7 +60,8 @@ func (brctx *BucketRequestContext) Proxy() {
 		}
 
 		// Load template
-		tmpl, err := template.New("folder-list.tpl").Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).ParseFiles("templates/folder-list.tpl")
+		tplFileName := filepath.Base(brctx.tplConfig.FolderList)
+		tmpl, err := template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).ParseFiles(brctx.tplConfig.FolderList)
 		if err != nil {
 			// ! TODO Need to manage internal server error
 			(*brctx.logger).Errorln(err)

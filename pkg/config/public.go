@@ -21,6 +21,9 @@ const DefaultLogLevel = "info"
 // DefaultLogFormat Default Log format
 const DefaultLogFormat = "json"
 
+// DefaultTemplateFolderList Default template folder list
+const DefaultTemplateFolderList = "templates/folder-list.tpl"
+
 var k = koanf.New(".")
 var validate = validator.New()
 
@@ -28,9 +31,10 @@ var validate = validator.New()
 func Load() (*Config, error) {
 	// Load default configuration
 	k.Load(confmap.Provider(map[string]interface{}{
-		"log.level":   DefaultLogLevel,
-		"log.format":  DefaultLogFormat,
-		"server.port": DefaultPort,
+		"log.level":            DefaultLogLevel,
+		"log.format":           DefaultLogFormat,
+		"server.port":          DefaultPort,
+		"templates.folderList": DefaultTemplateFolderList,
 	}, "."), nil)
 
 	// Try to load main configuration file

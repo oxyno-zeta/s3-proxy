@@ -2,24 +2,31 @@ package config
 
 // Config Application Configuration
 type Config struct {
-	Log     *LogConfig        `koanf:"log"`
-	Server  *ServerConfig     `koanf:"server"`
-	Buckets []*BucketInstance `koanf:"buckets" validate:"gte=0,required,dive,required"`
+	Log       *LogConfig        `koanf:"log"`
+	Server    *ServerConfig     `koanf:"server"`
+	Buckets   []*BucketInstance `koanf:"buckets" validate:"gte=0,required,dive,required"`
+	Templates *TemplateConfig   `koanf:"templates"`
+}
+
+// TemplateConfig Templates configuration
+type TemplateConfig struct {
+	FolderList string `koanf:"folderList" validate:"required"`
 }
 
 // ServerConfig Server configuration
 type ServerConfig struct {
 	ListenAddr string `koanf:"listenAddr"`
-	Port       int    `koanf:"port"`
+	Port       int    `koanf:"port" validate:"required"`
 }
 
-// BucketInstance Bucket configuration
+// BucketInstance Bucket instance configuration
 type BucketInstance struct {
 	Name          string        `koanf:"name" validate:"required"`
 	Bucket        *BucketConfig `koanf:"bucket" validate:"required"`
 	IndexDocument string        `koanf:"indexDocument"`
 }
 
+// BucketConfig Bucket configuration
 type BucketConfig struct {
 	Name   string `koang:"name" validate:"required"`
 	Prefix string `koanf:"prefix"`
