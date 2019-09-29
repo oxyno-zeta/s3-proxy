@@ -8,7 +8,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type BucketRequestContext struct {
+// RequestContext Bucket request context
+type RequestContext struct {
 	s3Context      *s3client.S3Context
 	logger         *logrus.FieldLogger
 	bucketInstance *config.BucketInstance
@@ -18,12 +19,14 @@ type BucketRequestContext struct {
 	httpRW         *http.ResponseWriter
 }
 
+// EntryPath Entry with path
 type EntryPath struct {
 	Entry *s3client.Entry
 	Path  string
 }
 
-type BucketListingData struct {
+// bucketListingData Bucket listing data for templating
+type bucketListingData struct {
 	Entries    []*EntryPath
 	BucketName string
 	Name       string

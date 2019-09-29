@@ -27,7 +27,7 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
 			r.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
 				requestPath := chi.URLParam(req, "*")
 				logEntry := GetLogEntry(req)
-				brctx, err := bucket.NewBucketRequestContext(binst, cfg.Templates, &logEntry, mountPath, requestPath, &rw)
+				brctx, err := bucket.NewRequestContext(binst, cfg.Templates, &logEntry, mountPath, requestPath, &rw)
 
 				if err != nil {
 					// ! TODO Need to manage errors

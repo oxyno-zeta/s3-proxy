@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// NewS3Context New S3 Context
 func NewS3Context(binst *config.BucketInstance, logger *logrus.FieldLogger) (*S3Context, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(binst.Bucket.Region)},
@@ -22,6 +23,7 @@ func NewS3Context(binst *config.BucketInstance, logger *logrus.FieldLogger) (*S3
 	return &S3Context{svcClient: svcClient, logger: logger, BucketInstance: binst}, nil
 }
 
+// ListFilesAndDirectories List files and directories
 func (s3ctx *S3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 	// List files on path
 	folders := make([]*Entry, 0)
@@ -67,6 +69,7 @@ func (s3ctx *S3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 	return all, nil
 }
 
+// GetObject Get object from S3 bucket
 func (s3ctx *S3Context) GetObject(key string) (*ObjectOutput, error) {
 	obj, err := s3ctx.svcClient.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(s3ctx.BucketInstance.Bucket.Name),

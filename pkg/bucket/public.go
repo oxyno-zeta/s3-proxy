@@ -19,13 +19,14 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func NewBucketRequestContext(binst *config.BucketInstance, tplConfig *config.TemplateConfig, logger *logrus.FieldLogger, mountPath string, requestPath string, httpRW *http.ResponseWriter) (*BucketRequestContext, error) {
+// NewRequestContext New request context
+func NewRequestContext(binst *config.BucketInstance, tplConfig *config.TemplateConfig, logger *logrus.FieldLogger, mountPath string, requestPath string, httpRW *http.ResponseWriter) (*RequestContext, error) {
 	s3ctx, err := s3client.NewS3Context(binst, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	return &BucketRequestContext{
+	return &RequestContext{
 		s3Context:      s3ctx,
 		logger:         logger,
 		bucketInstance: binst,
@@ -36,7 +37,8 @@ func NewBucketRequestContext(binst *config.BucketInstance, tplConfig *config.Tem
 	}, nil
 }
 
-func (brctx *BucketRequestContext) Proxy() {
+// Proxy proxy requests
+func (brctx *RequestContext) Proxy() {
 	// Trim first / if exists
 	key := strings.TrimPrefix(brctx.requestPath, "/")
 	// Check that the path ends with a / for a directory listing or the main path special case (empty path)
@@ -79,7 +81,7 @@ func (brctx *BucketRequestContext) Proxy() {
 			})
 		}
 		// Create bucket list data for templating
-		data := &BucketListingData{
+		data := &bucketListingData{
 			Entries:    entryPathList,
 			BucketName: brctx.bucketInstance.Bucket.Name,
 			Name:       brctx.bucketInstance.Name,
@@ -96,7 +98,7 @@ func (brctx *BucketRequestContext) Proxy() {
 	getFile(brctx, key)
 }
 
-func getFile(brctx *BucketRequestContext, key string) {
+func getFile(brctx *RequestContext, key string) {
 	objOutput, err := brctx.s3Context.GetObject(key)
 	if err != nil {
 		// Check if it a not found error
