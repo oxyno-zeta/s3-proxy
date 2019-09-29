@@ -6,7 +6,10 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"reflect"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Masterminds/sprig"
 	"github.com/dustin/go-humanize"
@@ -94,16 +97,85 @@ func (brctx *BucketRequestContext) Proxy() {
 }
 
 func getFile(brctx *BucketRequestContext, key string) {
-	objectIOReadCloser, err := brctx.s3Context.GetObject(key)
+	objOutput, err := brctx.s3Context.GetObject(key)
 	if err != nil {
 		// Check if it a not found error
 		if err == s3client.ErrNotFound {
+			// ! TODO Need to manage this via templates
 			(*brctx.httpRW).WriteHeader(404)
 			(*brctx.httpRW).Write([]byte("Not found"))
 			return
 		}
 	}
-	io.Copy(*brctx.httpRW, *objectIOReadCloser)
+	setHeadersFromObjectOutput(*brctx.httpRW, objOutput)
+	io.Copy(*brctx.httpRW, *objOutput.Body)
+}
+
+func setHeadersFromObjectOutput(w http.ResponseWriter, obj *s3client.ObjectOutput) {
+	setStrHeader(w, "Cache-Control", obj.CacheControl)
+	setStrHeader(w, "Expires", obj.Expires)
+	setStrHeader(w, "Content-Disposition", obj.ContentDisposition)
+	setStrHeader(w, "Content-Encoding", obj.ContentEncoding)
+	setStrHeader(w, "Content-Language", obj.ContentLanguage)
+	setIntHeader(w, "Content-Length", obj.ContentLength)
+	setStrHeader(w, "Content-Range", obj.ContentRange)
+	setStrHeader(w, "Content-Type", obj.ContentType)
+	setStrHeader(w, "ETag", obj.ETag)
+	setTimeHeader(w, "Last-Modified", obj.LastModified)
+
+	httpStatus := determineHTTPStatus(obj)
+	w.WriteHeader(httpStatus)
+}
+
+func determineHTTPStatus(obj *s3client.ObjectOutput) int {
+	httpStatus := http.StatusOK
+	contentRangeIsGiven := len(obj.ContentRange) > 0
+	if contentRangeIsGiven {
+		httpStatus = http.StatusPartialContent
+		if totalFileSizeEqualToContentRange(obj) {
+			httpStatus = http.StatusOK
+		}
+	}
+	return httpStatus
+}
+
+func totalFileSizeEqualToContentRange(obj *s3client.ObjectOutput) bool {
+	totalSizeIsEqualToContentRange := false
+	totalSize, err := strconv.ParseInt(getFileSizeAsString(obj), 10, 64)
+	if err == nil {
+		if totalSize == (obj.ContentLength) {
+			totalSizeIsEqualToContentRange = true
+		}
+	}
+	return totalSizeIsEqualToContentRange
+}
+
+/**
+See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range
+*/
+func getFileSizeAsString(obj *s3client.ObjectOutput) string {
+	s := strings.Split(obj.ContentRange, "/")
+	totalSizeString := s[1]
+	totalSizeString = strings.TrimSpace(totalSizeString)
+	return totalSizeString
+}
+
+func setStrHeader(w http.ResponseWriter, key string, value string) {
+	if len(value) > 0 {
+		w.Header().Add(key, value)
+	}
+}
+
+func setIntHeader(w http.ResponseWriter, key string, value int64) {
+	if value > 0 {
+		w.Header().Add(key, strconv.FormatInt(value, 10))
+	}
+}
+
+func setTimeHeader(w http.ResponseWriter, key string, value time.Time) {
+	if !reflect.DeepEqual(value, time.Time{}) {
+		w.Header().Add(key, value.UTC().Format(http.TimeFormat))
+	}
 }
 
 func s3ProxyFuncMap() template.FuncMap {

@@ -2,6 +2,7 @@ package s3client
 
 import (
 	"errors"
+	"io"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -10,9 +11,9 @@ import (
 )
 
 type S3Context struct {
-	svcClient    *s3.S3
+	svcClient      *s3.S3
 	BucketInstance *config.BucketInstance
-	logger       *logrus.FieldLogger
+	logger         *logrus.FieldLogger
 }
 
 const FileType = "FILE"
@@ -28,3 +29,17 @@ type Entry struct {
 }
 
 var ErrNotFound = errors.New("not found")
+
+type ObjectOutput struct {
+	Body               *io.ReadCloser
+	CacheControl       string
+	Expires            string
+	ContentDisposition string
+	ContentEncoding    string
+	ContentLanguage    string
+	ContentLength      int64
+	ContentRange       string
+	ContentType        string
+	ETag               string
+	LastModified       time.Time
+}

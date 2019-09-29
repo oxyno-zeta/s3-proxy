@@ -1,7 +1,6 @@
 package s3client
 
 import (
-	"io"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -68,7 +67,7 @@ func (s3ctx *S3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 	return all, nil
 }
 
-func (s3ctx *S3Context) GetObject(key string) (*io.ReadCloser, error) {
+func (s3ctx *S3Context) GetObject(key string) (*ObjectOutput, error) {
 	obj, err := s3ctx.svcClient.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(s3ctx.BucketInstance.Bucket.Name),
 		Key:    aws.String(key),
@@ -84,5 +83,39 @@ func (s3ctx *S3Context) GetObject(key string) (*io.ReadCloser, error) {
 		}
 		return nil, err
 	}
-	return &obj.Body, nil
+	// Build output
+	output := &ObjectOutput{
+		Body: &obj.Body,
+	}
+	if obj.CacheControl != nil {
+		output.CacheControl = *obj.CacheControl
+	}
+	if obj.Expires != nil {
+		output.Expires = *obj.Expires
+	}
+	if obj.ContentDisposition != nil {
+		output.ContentDisposition = *obj.ContentDisposition
+	}
+	if obj.ContentEncoding != nil {
+		output.ContentEncoding = *obj.ContentEncoding
+	}
+	if obj.ContentLanguage != nil {
+		output.ContentLanguage = *obj.ContentLanguage
+	}
+	if obj.ContentLength != nil {
+		output.ContentLength = *obj.ContentLength
+	}
+	if obj.ContentRange != nil {
+		output.ContentRange = *obj.ContentRange
+	}
+	if obj.ContentType != nil {
+		output.ContentType = *obj.ContentType
+	}
+	if obj.ETag != nil {
+		output.ETag = *obj.ETag
+	}
+	if obj.LastModified != nil {
+		output.LastModified = *obj.LastModified
+	}
+	return output, nil
 }
