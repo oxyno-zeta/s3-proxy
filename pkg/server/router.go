@@ -23,7 +23,12 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
 	for i := 0; i < len(cfg.Buckets); i++ {
 		binst := cfg.Buckets[i]
 		mountPath := "/" + binst.Name
-		r.Route(mountPath, func(r chi.Router) {
+		requestMountPath := mountPath
+		if cfg.MainBucketPathSupport {
+			mountPath = ""
+			requestMountPath = "/"
+		}
+		r.Route(requestMountPath, func(r chi.Router) {
 			r.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
 				requestPath := chi.URLParam(req, "*")
 				logEntry := GetLogEntry(req)

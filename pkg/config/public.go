@@ -40,6 +40,10 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Validate main bucket path support option
+	if out.MainBucketPathSupport && len(out.Buckets) > 1 {
+		return nil, ErrMainBucketPathSupportNotValid
+	}
 	return &out, nil
 }
 

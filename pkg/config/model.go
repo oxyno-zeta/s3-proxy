@@ -1,5 +1,7 @@
 package config
 
+import "errors"
+
 // MainConfigPath Configuration path
 const MainConfigPath = "config.yaml"
 
@@ -15,12 +17,16 @@ const DefaultLogFormat = "json"
 // DefaultTemplateFolderList Default template folder list
 const DefaultTemplateFolderList = "templates/folder-list.tpl"
 
+// ErrMainBucketPathSupportNotValid Error thrown when main bucket path support option isn't valid
+var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support option can be enabled only when only one bucket is configured")
+
 // Config Application Configuration
 type Config struct {
-	Log       *LogConfig        `koanf:"log"`
-	Server    *ServerConfig     `koanf:"server"`
-	Buckets   []*BucketInstance `koanf:"buckets" validate:"gte=0,required,dive,required"`
-	Templates *TemplateConfig   `koanf:"templates"`
+	Log                   *LogConfig        `koanf:"log"`
+	Server                *ServerConfig     `koanf:"server"`
+	Buckets               []*BucketInstance `koanf:"buckets" validate:"gte=0,required,dive,required"`
+	Templates             *TemplateConfig   `koanf:"templates"`
+	MainBucketPathSupport bool              `koanf:"mainBucketPathSupport"`
 }
 
 // TemplateConfig Templates configuration
