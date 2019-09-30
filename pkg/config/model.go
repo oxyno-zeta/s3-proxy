@@ -52,9 +52,10 @@ type Target struct {
 
 // BucketConfig Bucket configuration
 type BucketConfig struct {
-	Name   string `koang:"name" validate:"required"`
-	Prefix string `koanf:"prefix"`
-	Region string `koanf:"region"`
+	Name       string `koang:"name" validate:"required"`
+	Prefix     string `koanf:"prefix"`
+	Region     string `koanf:"region"`
+	S3Endpoint string `koanf:"s3Endpoint"`
 }
 
 // LogConfig Log configuration

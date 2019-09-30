@@ -16,6 +16,10 @@ func NewS3Context(tgt *config.Target, logger *logrus.FieldLogger) (*S3Context, e
 	sessionConfig := &aws.Config{
 		Region: aws.String(tgt.Bucket.Region),
 	}
+	if tgt.Bucket.S3Endpoint != "" {
+		sessionConfig.Endpoint = aws.String(tgt.Bucket.S3Endpoint)
+		sessionConfig.S3ForcePathStyle = aws.Bool(true)
+	}
 	sess, err := session.NewSession(sessionConfig)
 	if err != nil {
 		return nil, err
