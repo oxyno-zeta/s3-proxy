@@ -73,6 +73,7 @@ func ConfigureLogger(logger *logrus.Logger, logConfig *LogConfig) error {
 	return nil
 }
 
+// GetRootPrefix Get bucket root prefix
 func (bcfg *BucketConfig) GetRootPrefix() string {
 	key := bcfg.Prefix
 	// Check if key ends with a /, if key exists and don't ends with / add it
