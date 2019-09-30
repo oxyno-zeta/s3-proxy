@@ -12,9 +12,9 @@ import (
 
 // S3Context S3 Context
 type S3Context struct {
-	svcClient      *s3.S3
-	BucketInstance *config.BucketInstance
-	logger         *logrus.FieldLogger
+	svcClient *s3.S3
+	Target    *config.Target
+	logger    *logrus.FieldLogger
 }
 
 // FileType File type

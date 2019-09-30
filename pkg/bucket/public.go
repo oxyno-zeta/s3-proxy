@@ -20,8 +20,8 @@ import (
 )
 
 // NewRequestContext New request context
-func NewRequestContext(binst *config.BucketInstance, tplConfig *config.TemplateConfig, logger *logrus.FieldLogger, mountPath string, requestPath string, httpRW *http.ResponseWriter) (*RequestContext, error) {
-	s3ctx, err := s3client.NewS3Context(binst, logger)
+func NewRequestContext(tgt *config.Target, tplConfig *config.TemplateConfig, logger *logrus.FieldLogger, mountPath string, requestPath string, httpRW *http.ResponseWriter) (*RequestContext, error) {
+	s3ctx, err := s3client.NewS3Context(tgt, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func NewRequestContext(binst *config.BucketInstance, tplConfig *config.TemplateC
 	return &RequestContext{
 		s3Context:      s3ctx,
 		logger:         logger,
-		bucketInstance: binst,
+		bucketInstance: tgt,
 		mountPath:      mountPath,
 		requestPath:    requestPath,
 		httpRW:         httpRW,

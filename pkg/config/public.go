@@ -35,13 +35,20 @@ func Load() (*Config, error) {
 	// Quick unmarshal.
 	k.Unmarshal("", &out)
 
+	// Manage default s3 bucket region
+	for _, item := range out.Targets {
+		if item.Bucket.Region == "" {
+			item.Bucket.Region = DefaultBucketRegion
+		}
+	}
+
 	// Configuration validation
 	err = validate.Struct(out)
 	if err != nil {
 		return nil, err
 	}
 	// Validate main bucket path support option
-	if out.MainBucketPathSupport && len(out.Buckets) > 1 {
+	if out.MainBucketPathSupport && len(out.Targets) > 1 {
 		return nil, ErrMainBucketPathSupportNotValid
 	}
 	return &out, nil

@@ -12,16 +12,16 @@ import (
 )
 
 // NewS3Context New S3 Context
-func NewS3Context(binst *config.BucketInstance, logger *logrus.FieldLogger) (*S3Context, error) {
+func NewS3Context(tgt *config.Target, logger *logrus.FieldLogger) (*S3Context, error) {
 	sessionConfig := &aws.Config{
-		Region: aws.String(binst.Bucket.Region),
+		Region: aws.String(tgt.Bucket.Region),
 	}
 	sess, err := session.NewSession(sessionConfig)
 	if err != nil {
 		return nil, err
 	}
 	svcClient := s3.New(sess)
-	return &S3Context{svcClient: svcClient, logger: logger, BucketInstance: binst}, nil
+	return &S3Context{svcClient: svcClient, logger: logger, Target: tgt}, nil
 }
 
 // ListFilesAndDirectories List files and directories
@@ -31,7 +31,7 @@ func (s3ctx *S3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 	files := make([]*Entry, 0)
 	err := s3ctx.svcClient.ListObjectsV2Pages(
 		&s3.ListObjectsV2Input{
-			Bucket:    aws.String(s3ctx.BucketInstance.Bucket.Name),
+			Bucket:    aws.String(s3ctx.Target.Bucket.Name),
 			Prefix:    aws.String(key),
 			Delimiter: aws.String("/"),
 		},
@@ -73,7 +73,7 @@ func (s3ctx *S3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 // GetObject Get object from S3 bucket
 func (s3ctx *S3Context) GetObject(key string) (*ObjectOutput, error) {
 	obj, err := s3ctx.svcClient.GetObject(&s3.GetObjectInput{
-		Bucket: aws.String(s3ctx.BucketInstance.Bucket.Name),
+		Bucket: aws.String(s3ctx.Target.Bucket.Name),
 		Key:    aws.String(key),
 	})
 	if err != nil {

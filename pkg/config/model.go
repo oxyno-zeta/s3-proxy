@@ -14,6 +14,9 @@ const DefaultLogLevel = "info"
 // DefaultLogFormat Default Log format
 const DefaultLogFormat = "json"
 
+// DefaultBucketRegion Default bucket region
+const DefaultBucketRegion = "us-east-1"
+
 // DefaultTemplateFolderList Default template folder list
 const DefaultTemplateFolderList = "templates/folder-list.tpl"
 
@@ -22,11 +25,11 @@ var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support opti
 
 // Config Application Configuration
 type Config struct {
-	Log                   *LogConfig        `koanf:"log"`
-	Server                *ServerConfig     `koanf:"server"`
-	Buckets               []*BucketInstance `koanf:"buckets" validate:"gte=0,required,dive,required"`
-	Templates             *TemplateConfig   `koanf:"templates"`
-	MainBucketPathSupport bool              `koanf:"mainBucketPathSupport"`
+	Log                   *LogConfig      `koanf:"log"`
+	Server                *ServerConfig   `koanf:"server"`
+	Targets               []*Target       `koanf:"targets" validate:"gte=0,required,dive,required"`
+	Templates             *TemplateConfig `koanf:"templates"`
+	MainBucketPathSupport bool            `koanf:"mainBucketPathSupport"`
 }
 
 // TemplateConfig Templates configuration
@@ -40,8 +43,8 @@ type ServerConfig struct {
 	Port       int    `koanf:"port" validate:"required"`
 }
 
-// BucketInstance Bucket instance configuration
-type BucketInstance struct {
+// Target Bucket instance configuration
+type Target struct {
 	Name          string        `koanf:"name" validate:"required"`
 	Bucket        *BucketConfig `koanf:"bucket" validate:"required"`
 	IndexDocument string        `koanf:"indexDocument"`

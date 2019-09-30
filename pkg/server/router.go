@@ -20,9 +20,9 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
 	r.Use(NewStructuredLogger(logger))
 	r.Use(middleware.Recoverer)
 
-	for i := 0; i < len(cfg.Buckets); i++ {
-		binst := cfg.Buckets[i]
-		mountPath := "/" + binst.Name
+	for i := 0; i < len(cfg.Targets); i++ {
+		tgt := cfg.Targets[i]
+		mountPath := "/" + tgt.Name
 		requestMountPath := mountPath
 		if cfg.MainBucketPathSupport {
 			mountPath = ""
@@ -32,7 +32,7 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
 			r.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
 				requestPath := chi.URLParam(req, "*")
 				logEntry := GetLogEntry(req)
-				brctx, err := bucket.NewRequestContext(binst, cfg.Templates, &logEntry, mountPath, requestPath, &rw)
+				brctx, err := bucket.NewRequestContext(tgt, cfg.Templates, &logEntry, mountPath, requestPath, &rw)
 
 				if err != nil {
 					// ! TODO Need to manage errors

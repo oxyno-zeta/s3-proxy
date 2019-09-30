@@ -13,7 +13,7 @@ import (
 type RequestContext struct {
 	s3Context      *s3client.S3Context
 	logger         *logrus.FieldLogger
-	bucketInstance *config.BucketInstance
+	bucketInstance *config.Target
 	tplConfig      *config.TemplateConfig
 	mountPath      string
 	requestPath    string
