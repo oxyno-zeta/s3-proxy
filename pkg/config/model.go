@@ -1,5 +1,20 @@
 package config
 
+// MainConfigPath Configuration path
+const MainConfigPath = "config.yaml"
+
+// DefaultPort Default port
+const DefaultPort = 8080
+
+// DefaultLogLevel Default log level
+const DefaultLogLevel = "info"
+
+// DefaultLogFormat Default Log format
+const DefaultLogFormat = "json"
+
+// DefaultTemplateFolderList Default template folder list
+const DefaultTemplateFolderList = "templates/folder-list.tpl"
+
 // Config Application Configuration
 type Config struct {
 	Log       *LogConfig        `koanf:"log"`

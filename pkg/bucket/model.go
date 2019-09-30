@@ -2,6 +2,7 @@ package bucket
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3client"
@@ -19,15 +20,20 @@ type RequestContext struct {
 	httpRW         *http.ResponseWriter
 }
 
-// EntryPath Entry with path
-type EntryPath struct {
-	Entry *s3client.Entry
-	Path  string
+// Entry Entry with path
+type Entry struct {
+	Type         string
+	ETag         string
+	Name         string
+	LastModified time.Time
+	Size         int64
+	Key          string
+	Path         string
 }
 
 // bucketListingData Bucket listing data for templating
 type bucketListingData struct {
-	Entries    []*EntryPath
+	Entries    []*Entry
 	BucketName string
 	Name       string
 	Path       string

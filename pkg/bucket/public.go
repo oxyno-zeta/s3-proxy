@@ -38,56 +38,54 @@ func NewRequestContext(binst *config.BucketInstance, tplConfig *config.TemplateC
 }
 
 // Proxy proxy requests
-func (brctx *RequestContext) Proxy() {
+func (rctx *RequestContext) Proxy() {
+	bucketRootPrefixKey := rctx.bucketInstance.Bucket.GetRootPrefix()
+	// Key must begin by bucket prefix
+	key := bucketRootPrefixKey
 	// Trim first / if exists
-	key := strings.TrimPrefix(brctx.requestPath, "/")
+	key += strings.TrimPrefix(rctx.requestPath, "/")
 	// Check that the path ends with a / for a directory listing or the main path special case (empty path)
-	if strings.HasSuffix(brctx.requestPath, "/") || brctx.requestPath == "" {
+	if strings.HasSuffix(rctx.requestPath, "/") || rctx.requestPath == "" {
 		// Directory listing case
-		entries, err := brctx.s3Context.ListFilesAndDirectories(key)
+		s3Entries, err := rctx.s3Context.ListFilesAndDirectories(key)
 		if err != nil {
-			(*brctx.logger).Errorln(err)
+			(*rctx.logger).Errorln(err)
 			// ! TODO Need to manage internal server error
 			return
 		}
 
+		// Transform entries in entry with path objects
+		entries := transformS3Entries(s3Entries, rctx, bucketRootPrefixKey)
+
 		// Check if index document is activated
-		if brctx.bucketInstance.IndexDocument != "" {
+		if rctx.bucketInstance.IndexDocument != "" {
 			// Search if the file is present
-			indexDocumentEntry := funk.Find(entries, func(ent *s3client.Entry) bool {
-				return brctx.bucketInstance.IndexDocument == ent.Name
+			indexDocumentEntry := funk.Find(entries, func(ent *Entry) bool {
+				return rctx.bucketInstance.IndexDocument == ent.Name
 			})
 			// Check if index document entry exists
 			if indexDocumentEntry != nil {
 				// Get data
-				getFile(brctx, indexDocumentEntry.(*s3client.Entry).Key)
+				getFile(rctx, indexDocumentEntry.(*Entry).Key)
 			}
 		}
 
 		// Load template
-		tplFileName := filepath.Base(brctx.tplConfig.FolderList)
-		tmpl, err := template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).ParseFiles(brctx.tplConfig.FolderList)
+		tplFileName := filepath.Base(rctx.tplConfig.FolderList)
+		tmpl, err := template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).ParseFiles(rctx.tplConfig.FolderList)
 		if err != nil {
 			// ! TODO Need to manage internal server error
-			(*brctx.logger).Errorln(err)
+			(*rctx.logger).Errorln(err)
 			return
-		}
-		// Transform entries in entry with path objects
-		entryPathList := make([]*EntryPath, 0)
-		for _, item := range entries {
-			entryPathList = append(entryPathList, &EntryPath{
-				Entry: item,
-				Path:  brctx.mountPath + "/" + item.Key,
-			})
 		}
 		// Create bucket list data for templating
 		data := &bucketListingData{
-			Entries:    entryPathList,
-			BucketName: brctx.bucketInstance.Bucket.Name,
-			Name:       brctx.bucketInstance.Name,
-			Path:       brctx.mountPath + "/" + brctx.requestPath,
+			Entries:    entries,
+			BucketName: rctx.bucketInstance.Bucket.Name,
+			Name:       rctx.bucketInstance.Name,
+			Path:       rctx.mountPath + "/" + rctx.requestPath,
 		}
-		err = tmpl.Execute(*brctx.httpRW, data)
+		err = tmpl.Execute(*rctx.httpRW, data)
 
 		// ! TODO Need to manage internal server error
 		fmt.Println(err)
@@ -95,7 +93,23 @@ func (brctx *RequestContext) Proxy() {
 	}
 
 	// Get object case
-	getFile(brctx, key)
+	getFile(rctx, key)
+}
+
+func transformS3Entries(s3Entries []*s3client.Entry, rctx *RequestContext, bucketRootPrefixKey string) []*Entry {
+	entries := make([]*Entry, 0)
+	for _, item := range s3Entries {
+		entries = append(entries, &Entry{
+			Type:         item.Type,
+			ETag:         item.ETag,
+			Name:         item.Name,
+			LastModified: item.LastModified,
+			Size:         item.Size,
+			Key:          item.Key,
+			Path:         rctx.mountPath + "/" + strings.TrimPrefix(item.Key, bucketRootPrefixKey),
+		})
+	}
+	return entries
 }
 
 func getFile(brctx *RequestContext, key string) {

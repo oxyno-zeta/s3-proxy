@@ -13,9 +13,10 @@ import (
 
 // NewS3Context New S3 Context
 func NewS3Context(binst *config.BucketInstance, logger *logrus.FieldLogger) (*S3Context, error) {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(binst.Bucket.Region)},
-	)
+	sessionConfig := &aws.Config{
+		Region: aws.String(binst.Bucket.Region),
+	}
+	sess, err := session.NewSession(sessionConfig)
 	if err != nil {
 		return nil, err
 	}

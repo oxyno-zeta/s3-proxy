@@ -18,9 +18,9 @@
           </tr>
         {{- range .Entries }}
           <tr>
-              <td style="border-right:1px solid black;padding: 0 5px"><a href="{{ .Path }}">{{ .Entry.Name }}</a></td>
-              <td style="border-right:1px solid black;padding: 0 5px">{{- if eq .Entry.Type "FOLDER" -}} - {{- else -}}{{ .Entry.Size | humanSize }}{{- end -}}</td>
-              <td style="padding: 0 5px">{{ .Entry.LastModified }}</td>
+              <td style="border-right:1px solid black;padding: 0 5px"><a href="{{ .Path }}">{{ .Name }}</a></td>
+              <td style="border-right:1px solid black;padding: 0 5px">{{- if eq .Type "FOLDER" -}} - {{- else -}}{{ .Size | humanSize }}{{- end -}}</td>
+              <td style="padding: 0 5px">{{ .LastModified }}</td>
           </tr>
         {{- end }}
         </tbody>

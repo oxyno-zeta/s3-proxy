@@ -1,6 +1,8 @@
 package config
 
 import (
+	"strings"
+
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/confmap"
@@ -8,21 +10,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/go-playground/validator.v9"
 )
-
-// MainConfigPath Configuration path
-const MainConfigPath = "config.yaml"
-
-// DefaultPort Default port
-const DefaultPort = 8080
-
-// DefaultLogLevel Default log level
-const DefaultLogLevel = "info"
-
-// DefaultLogFormat Default Log format
-const DefaultLogFormat = "json"
-
-// DefaultTemplateFolderList Default template folder list
-const DefaultTemplateFolderList = "templates/folder-list.tpl"
 
 var k = koanf.New(".")
 var validate = validator.New()
@@ -73,4 +60,13 @@ func ConfigureLogger(logger *logrus.Logger, logConfig *LogConfig) error {
 	logger.SetLevel(lvl)
 
 	return nil
+}
+
+func (bcfg *BucketConfig) GetRootPrefix() string {
+	key := bcfg.Prefix
+	// Check if key ends with a /, if key exists and don't ends with / add it
+	if key != "" && !strings.HasSuffix(key, "/") {
+		key += "/"
+	}
+	return key
 }
