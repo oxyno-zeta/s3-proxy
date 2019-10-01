@@ -32,6 +32,7 @@ func main() {
 		logger.Fatal(err)
 		os.Exit(1)
 	}
+	logger.Debug("Configuration successfully loaded and logger configured")
 
 	// Getting version
 	v := version.GetVersion()
