@@ -20,6 +20,9 @@ const DefaultBucketRegion = "us-east-1"
 // DefaultTemplateFolderList Default template folder list
 const DefaultTemplateFolderList = "templates/folder-list.tpl"
 
+// DefaultTemplateTargetList Default template target list
+const DefaultTemplateTargetList = "templates/target-list.tpl"
+
 // ErrMainBucketPathSupportNotValid Error thrown when main bucket path support option isn't valid
 var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support option can be enabled only when only one bucket is configured")
 
@@ -38,6 +41,7 @@ type Config struct {
 // TemplateConfig Templates configuration
 type TemplateConfig struct {
 	FolderList string `koanf:"folderList" validate:"required"`
+	TargetList string `koanf:"targetList" validate:"required"`
 }
 
 // ServerConfig Server configuration

@@ -25,6 +25,7 @@ func Load() (*Config, error) {
 		"log.format":           DefaultLogFormat,
 		"server.port":          DefaultPort,
 		"templates.folderList": DefaultTemplateFolderList,
+		"templates.targetList": DefaultTemplateTargetList,
 	}, "."), nil)
 
 	// Try to load main configuration file
