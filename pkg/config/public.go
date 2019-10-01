@@ -1,6 +1,9 @@
 package config
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/knadh/koanf"
@@ -51,7 +54,43 @@ func Load() (*Config, error) {
 	if out.MainBucketPathSupport && len(out.Targets) > 1 {
 		return nil, ErrMainBucketPathSupportNotValid
 	}
+
+	// Load credentials from declaration
+	for _, item := range out.Targets {
+		if item.Bucket.Credentials != nil && item.Bucket.Credentials.AccessKey != nil && item.Bucket.Credentials.SecretKey != nil {
+			// Manage access key
+			err := loadCredential(item.Bucket.Credentials.AccessKey, item.Name)
+			if err != nil {
+				return nil, err
+			}
+			// Manage secret key
+			err = loadCredential(item.Bucket.Credentials.SecretKey, item.Name)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	return &out, nil
+}
+
+func loadCredential(credKeyCfg *CredentialKeyConfig, targetName string) error {
+	if credKeyCfg.Path != "" {
+		// Secret file
+		databytes, err := ioutil.ReadFile(credKeyCfg.Path)
+		if err != nil {
+			return err
+		}
+		credKeyCfg.Value = string(databytes)
+	} else {
+		// Environment variable
+		envValue := os.Getenv(credKeyCfg.Env)
+		if envValue == "" {
+			return fmt.Errorf(TemplateErrLoadingEnvCredentialEmpty, credKeyCfg.Env, targetName)
+		}
+		credKeyCfg.Value = envValue
+	}
+	return nil
 }
 
 // ConfigureLogger Configure logger instance

@@ -23,6 +23,9 @@ const DefaultTemplateFolderList = "templates/folder-list.tpl"
 // ErrMainBucketPathSupportNotValid Error thrown when main bucket path support option isn't valid
 var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support option can be enabled only when only one bucket is configured")
 
+// TemplateErrLoadingEnvCredentialEmpty Template Error when Loading Environment variable Credentials
+var TemplateErrLoadingEnvCredentialEmpty = "error loading credentials for target %s environment variable %s is empty"
+
 // Config Application Configuration
 type Config struct {
 	Log                   *LogConfig      `koanf:"log"`
@@ -52,10 +55,23 @@ type Target struct {
 
 // BucketConfig Bucket configuration
 type BucketConfig struct {
-	Name       string `koang:"name" validate:"required"`
-	Prefix     string `koanf:"prefix"`
-	Region     string `koanf:"region"`
-	S3Endpoint string `koanf:"s3Endpoint"`
+	Name        string                  `koanf:"name" validate:"required"`
+	Prefix      string                  `koanf:"prefix"`
+	Region      string                  `koanf:"region"`
+	S3Endpoint  string                  `koanf:"s3Endpoint"`
+	Credentials *BucketCredentialConfig `koanf:"credentials" validate:"omitempty,dive"`
+}
+
+// BucketCredentialConfig Bucket Credentials configurations
+type BucketCredentialConfig struct {
+	AccessKey *CredentialKeyConfig `koanf:"accessKey" validate:"omitempty,dive"`
+	SecretKey *CredentialKeyConfig `koanf:"secretKey" validate:"omitempty,dive"`
+}
+
+type CredentialKeyConfig struct {
+	Path  string `koanf:"path" validate:"required_without=Env"`
+	Env   string `koanf:"env" validate:"required_without=Path"`
+	Value string
 }
 
 // LogConfig Log configuration
