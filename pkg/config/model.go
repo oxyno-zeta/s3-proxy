@@ -76,6 +76,7 @@ type BucketCredentialConfig struct {
 	SecretKey *CredentialKeyConfig `koanf:"secretKey" validate:"omitempty,dive"`
 }
 
+// CredentialKeyConfig Credential Key Configurations
 type CredentialKeyConfig struct {
 	Path  string `koanf:"path" validate:"required_without=Env"`
 	Env   string `koanf:"env" validate:"required_without=Path"`
