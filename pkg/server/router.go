@@ -19,6 +19,8 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
 	r := chi.NewRouter()
 
 	// A good base middleware stack
+	r.Use(middleware.DefaultCompress)
+	r.Use(middleware.NoCache)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(NewStructuredLogger(logger))
