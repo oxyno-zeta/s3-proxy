@@ -21,12 +21,13 @@ var validate = validator.New()
 func Load() (*Config, error) {
 	// Load default configuration
 	k.Load(confmap.Provider(map[string]interface{}{
-		"log.level":            DefaultLogLevel,
-		"log.format":           DefaultLogFormat,
-		"server.port":          DefaultPort,
-		"templates.folderList": DefaultTemplateFolderListPath,
-		"templates.targetList": DefaultTemplateTargetListPath,
-		"templates.notFound":   DefaultTemplateNotFoundPath,
+		"log.level":                     DefaultLogLevel,
+		"log.format":                    DefaultLogFormat,
+		"server.port":                   DefaultPort,
+		"templates.folderList":          DefaultTemplateFolderListPath,
+		"templates.targetList":          DefaultTemplateTargetListPath,
+		"templates.notFound":            DefaultTemplateNotFoundPath,
+		"templates.internalServerError": DefaultTemplateInternalServerErrorPath,
 	}, "."), nil)
 
 	// Try to load main configuration file

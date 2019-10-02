@@ -26,6 +26,9 @@ const DefaultTemplateTargetListPath = "templates/target-list.tpl"
 // DefaultTemplateNotFoundPath Default template not found path
 const DefaultTemplateNotFoundPath = "templates/not-found.tpl"
 
+// DefaultTemplateInternalServerErrorPath Default template Internal server error path
+const DefaultTemplateInternalServerErrorPath = "templates/internal-server-error.tpl"
+
 // ErrMainBucketPathSupportNotValid Error thrown when main bucket path support option isn't valid
 var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support option can be enabled only when only one bucket is configured")
 
@@ -43,9 +46,10 @@ type Config struct {
 
 // TemplateConfig Templates configuration
 type TemplateConfig struct {
-	FolderList string `koanf:"folderList" validate:"required"`
-	TargetList string `koanf:"targetList" validate:"required"`
-	NotFound   string `koanf:"notFound" validate:"required"`
+	FolderList          string `koanf:"folderList" validate:"required"`
+	TargetList          string `koanf:"targetList" validate:"required"`
+	NotFound            string `koanf:"notFound" validate:"required"`
+	InternalServerError string `koanf:"internalServerError" validate:"required"`
 }
 
 // ServerConfig Server configuration

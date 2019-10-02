@@ -1,7 +1,6 @@
 package bucket
 
 import (
-	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -24,6 +23,7 @@ func NewRequestContext(
 	tgt *config.Target, tplConfig *config.TemplateConfig, logger *logrus.FieldLogger,
 	mountPath string, requestPath string, httpRW *http.ResponseWriter,
 	handleNotFound func(rw http.ResponseWriter, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig),
+	handleInternalServerError func(rw http.ResponseWriter, err error, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig),
 ) (*RequestContext, error) {
 	s3ctx, err := s3client.NewS3Context(tgt, logger)
 	if err != nil {
@@ -31,14 +31,15 @@ func NewRequestContext(
 	}
 
 	return &RequestContext{
-		s3Context:      s3ctx,
-		logger:         logger,
-		bucketInstance: tgt,
-		mountPath:      mountPath,
-		requestPath:    requestPath,
-		httpRW:         httpRW,
-		tplConfig:      tplConfig,
-		handleNotFound: handleNotFound,
+		s3Context:                 s3ctx,
+		logger:                    logger,
+		bucketInstance:            tgt,
+		mountPath:                 mountPath,
+		requestPath:               requestPath,
+		httpRW:                    httpRW,
+		tplConfig:                 tplConfig,
+		handleNotFound:            handleNotFound,
+		handleInternalServerError: handleInternalServerError,
 	}, nil
 }
 
@@ -55,7 +56,7 @@ func (rctx *RequestContext) Proxy() {
 		s3Entries, err := rctx.s3Context.ListFilesAndDirectories(key)
 		if err != nil {
 			(*rctx.logger).Errorln(err)
-			// ! TODO Need to manage internal server error
+			rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
 			return
 		}
 
@@ -71,7 +72,16 @@ func (rctx *RequestContext) Proxy() {
 			// Check if index document entry exists
 			if indexDocumentEntry != nil {
 				// Get data
-				getFile(rctx, indexDocumentEntry.(*Entry).Key)
+				err := getFile(rctx, indexDocumentEntry.(*Entry).Key)
+				// Check if error is a not found error
+				if err == s3client.ErrNotFound {
+					// Not found
+					rctx.handleNotFound(*rctx.httpRW, rctx.requestPath, rctx.logger, rctx.tplConfig)
+					return
+				}
+				(*rctx.logger).Errorln(err)
+				rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
+				return
 			}
 		}
 
@@ -79,8 +89,8 @@ func (rctx *RequestContext) Proxy() {
 		tplFileName := filepath.Base(rctx.tplConfig.FolderList)
 		tmpl, err := template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).ParseFiles(rctx.tplConfig.FolderList)
 		if err != nil {
-			// ! TODO Need to manage internal server error
 			(*rctx.logger).Errorln(err)
+			rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
 			return
 		}
 		// Create bucket list data for templating
@@ -91,9 +101,11 @@ func (rctx *RequestContext) Proxy() {
 			Path:       rctx.mountPath + "/" + rctx.requestPath,
 		}
 		err = tmpl.Execute(*rctx.httpRW, data)
-
-		// ! TODO Need to manage internal server error
-		fmt.Println(err)
+		if err != nil {
+			(*rctx.logger).Errorln(err)
+			rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
+			return
+		}
 		return
 	}
 
@@ -104,9 +116,11 @@ func (rctx *RequestContext) Proxy() {
 		if err == s3client.ErrNotFound {
 			// Not found
 			rctx.handleNotFound(*rctx.httpRW, rctx.requestPath, rctx.logger, rctx.tplConfig)
+			return
 		}
-		// ! TODO Need to manage internal server error
 		(*rctx.logger).Errorln(err)
+		rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
+		return
 	}
 }
 

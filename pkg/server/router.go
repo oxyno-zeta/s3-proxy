@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -55,11 +56,11 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
 			r.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
 				requestPath := chi.URLParam(req, "*")
 				logEntry := GetLogEntry(req)
-				brctx, err := bucket.NewRequestContext(tgt, cfg.Templates, &logEntry, mountPath, requestPath, &rw, handleNotFound)
+				brctx, err := bucket.NewRequestContext(tgt, cfg.Templates, &logEntry, mountPath, requestPath, &rw, handleNotFound, handleInternalServerError)
 
 				if err != nil {
-					// ! TODO Need to manage errors
 					logger.Errorln(err)
+					handleInternalServerError(rw, err, requestPath, &logEntry, cfg.Templates)
 				} else {
 					brctx.Proxy()
 				}
@@ -70,11 +71,33 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
 	return r
 }
 
+func handleInternalServerError(rw http.ResponseWriter, err error, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	err2 := templateExecution(tplCfg.InternalServerError, logger, rw, struct {
+		Path  string
+		Error error
+	}{Path: requestPath, Error: err})
+	if err2 != nil {
+		// New error
+		(*logger).Errorln(err2)
+		// Template error
+		res := fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+  <body>
+	<h1>Internal Server Error</h1>
+	<p>%s</p>
+  </body>
+</html>
+`, err2)
+		rw.Write([]byte(res))
+	}
+}
+
 func handleNotFound(rw http.ResponseWriter, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig) {
 	err := templateExecution(tplCfg.NotFound, logger, rw, struct{ Path string }{Path: requestPath})
 	if err != nil {
-		// ! TODO Need to manage internal server error
 		(*logger).Errorln(err)
+		handleInternalServerError(rw, err, requestPath, logger, tplCfg)
 		return
 	}
 }
@@ -82,8 +105,8 @@ func handleNotFound(rw http.ResponseWriter, requestPath string, logger *logrus.F
 func generateTargetList(rw http.ResponseWriter, logger *logrus.FieldLogger, cfg *config.Config) {
 	err := templateExecution(cfg.Templates.TargetList, logger, rw, struct{ Targets []*config.Target }{Targets: cfg.Targets})
 	if err != nil {
-		// ! TODO Need to manage internal server error
 		(*logger).Errorln(err)
+		handleInternalServerError(rw, err, "/", logger, cfg.Templates)
 		return
 	}
 }
