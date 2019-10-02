@@ -1,6 +1,7 @@
 package bucket
 
 import (
+	"bytes"
 	"html/template"
 	"io"
 	"net/http"
@@ -100,7 +101,18 @@ func (rctx *RequestContext) Proxy() {
 			Name:       rctx.bucketInstance.Name,
 			Path:       rctx.mountPath + "/" + rctx.requestPath,
 		}
-		err = tmpl.Execute(*rctx.httpRW, data)
+		// Generate template in buffer
+		buf := &bytes.Buffer{}
+		err = tmpl.Execute(buf, data)
+		if err != nil {
+			(*rctx.logger).Errorln(err)
+			rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
+			return
+		}
+		(*rctx.httpRW).WriteHeader(200)
+		// Set the header and write the buffer to the http.ResponseWriter
+		(*rctx.httpRW).Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, err = buf.WriteTo((*rctx.httpRW))
 		if err != nil {
 			(*rctx.logger).Errorln(err)
 			rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)

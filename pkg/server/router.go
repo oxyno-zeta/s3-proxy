@@ -75,7 +75,7 @@ func handleInternalServerError(rw http.ResponseWriter, err error, requestPath st
 	err2 := templateExecution(tplCfg.InternalServerError, logger, rw, struct {
 		Path  string
 		Error error
-	}{Path: requestPath, Error: err})
+	}{Path: requestPath, Error: err}, 500)
 	if err2 != nil {
 		// New error
 		(*logger).Errorln(err2)
@@ -89,12 +89,13 @@ func handleInternalServerError(rw http.ResponseWriter, err error, requestPath st
   </body>
 </html>
 `, err2)
+		rw.WriteHeader(500)
 		rw.Write([]byte(res))
 	}
 }
 
 func handleNotFound(rw http.ResponseWriter, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig) {
-	err := templateExecution(tplCfg.NotFound, logger, rw, struct{ Path string }{Path: requestPath})
+	err := templateExecution(tplCfg.NotFound, logger, rw, struct{ Path string }{Path: requestPath}, 404)
 	if err != nil {
 		(*logger).Errorln(err)
 		handleInternalServerError(rw, err, requestPath, logger, tplCfg)
@@ -103,7 +104,7 @@ func handleNotFound(rw http.ResponseWriter, requestPath string, logger *logrus.F
 }
 
 func generateTargetList(rw http.ResponseWriter, logger *logrus.FieldLogger, cfg *config.Config) {
-	err := templateExecution(cfg.Templates.TargetList, logger, rw, struct{ Targets []*config.Target }{Targets: cfg.Targets})
+	err := templateExecution(cfg.Templates.TargetList, logger, rw, struct{ Targets []*config.Target }{Targets: cfg.Targets}, 200)
 	if err != nil {
 		(*logger).Errorln(err)
 		handleInternalServerError(rw, err, "/", logger, cfg.Templates)
@@ -111,7 +112,7 @@ func generateTargetList(rw http.ResponseWriter, logger *logrus.FieldLogger, cfg 
 	}
 }
 
-func templateExecution(tplPath string, logger *logrus.FieldLogger, rw http.ResponseWriter, data interface{}) error {
+func templateExecution(tplPath string, logger *logrus.FieldLogger, rw http.ResponseWriter, data interface{}, status int) error {
 	// Load template
 	tplFileName := filepath.Base(tplPath)
 	tmpl, err := template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).ParseFiles(tplPath)
@@ -125,8 +126,12 @@ func templateExecution(tplPath string, logger *logrus.FieldLogger, rw http.Respo
 	if err != nil {
 		return err
 	}
+	rw.WriteHeader(status)
 	// Set the header and write the buffer to the http.ResponseWriter
 	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
-	buf.WriteTo(rw)
+	_, err = buf.WriteTo(rw)
+	if err != nil {
+		return err
+	}
 	return nil
 }
