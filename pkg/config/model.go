@@ -17,11 +17,14 @@ const DefaultLogFormat = "json"
 // DefaultBucketRegion Default bucket region
 const DefaultBucketRegion = "us-east-1"
 
-// DefaultTemplateFolderList Default template folder list
-const DefaultTemplateFolderList = "templates/folder-list.tpl"
+// DefaultTemplateFolderListPath Default template folder list path
+const DefaultTemplateFolderListPath = "templates/folder-list.tpl"
 
-// DefaultTemplateTargetList Default template target list
-const DefaultTemplateTargetList = "templates/target-list.tpl"
+// DefaultTemplateTargetListPath Default template target list path
+const DefaultTemplateTargetListPath = "templates/target-list.tpl"
+
+// DefaultTemplateNotFoundPath Default template not found path
+const DefaultTemplateNotFoundPath = "templates/not-found.tpl"
 
 // ErrMainBucketPathSupportNotValid Error thrown when main bucket path support option isn't valid
 var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support option can be enabled only when only one bucket is configured")
@@ -42,6 +45,7 @@ type Config struct {
 type TemplateConfig struct {
 	FolderList string `koanf:"folderList" validate:"required"`
 	TargetList string `koanf:"targetList" validate:"required"`
+	NotFound   string `koanf:"notFound" validate:"required"`
 }
 
 // ServerConfig Server configuration

@@ -18,6 +18,7 @@ type RequestContext struct {
 	mountPath      string
 	requestPath    string
 	httpRW         *http.ResponseWriter
+	handleNotFound func(rw http.ResponseWriter, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig)
 }
 
 // Entry Entry with path

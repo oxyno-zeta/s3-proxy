@@ -20,7 +20,11 @@ import (
 )
 
 // NewRequestContext New request context
-func NewRequestContext(tgt *config.Target, tplConfig *config.TemplateConfig, logger *logrus.FieldLogger, mountPath string, requestPath string, httpRW *http.ResponseWriter) (*RequestContext, error) {
+func NewRequestContext(
+	tgt *config.Target, tplConfig *config.TemplateConfig, logger *logrus.FieldLogger,
+	mountPath string, requestPath string, httpRW *http.ResponseWriter,
+	handleNotFound func(rw http.ResponseWriter, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig),
+) (*RequestContext, error) {
 	s3ctx, err := s3client.NewS3Context(tgt, logger)
 	if err != nil {
 		return nil, err
@@ -34,6 +38,7 @@ func NewRequestContext(tgt *config.Target, tplConfig *config.TemplateConfig, log
 		requestPath:    requestPath,
 		httpRW:         httpRW,
 		tplConfig:      tplConfig,
+		handleNotFound: handleNotFound,
 	}, nil
 }
 
@@ -93,7 +98,16 @@ func (rctx *RequestContext) Proxy() {
 	}
 
 	// Get object case
-	getFile(rctx, key)
+	err := getFile(rctx, key)
+	if err != nil {
+		// Check if error is a not found error
+		if err == s3client.ErrNotFound {
+			// Not found
+			rctx.handleNotFound(*rctx.httpRW, rctx.requestPath, rctx.logger, rctx.tplConfig)
+		}
+		// ! TODO Need to manage internal server error
+		(*rctx.logger).Errorln(err)
+	}
 }
 
 func transformS3Entries(s3Entries []*s3client.Entry, rctx *RequestContext, bucketRootPrefixKey string) []*Entry {
@@ -112,19 +126,14 @@ func transformS3Entries(s3Entries []*s3client.Entry, rctx *RequestContext, bucke
 	return entries
 }
 
-func getFile(brctx *RequestContext, key string) {
+func getFile(brctx *RequestContext, key string) error {
 	objOutput, err := brctx.s3Context.GetObject(key)
 	if err != nil {
-		// Check if it a not found error
-		if err == s3client.ErrNotFound {
-			// ! TODO Need to manage this via templates
-			(*brctx.httpRW).WriteHeader(404)
-			(*brctx.httpRW).Write([]byte("Not found"))
-			return
-		}
+		return err
 	}
 	setHeadersFromObjectOutput(*brctx.httpRW, objOutput)
 	io.Copy(*brctx.httpRW, *objOutput.Body)
+	return nil
 }
 
 func setHeadersFromObjectOutput(w http.ResponseWriter, obj *s3client.ObjectOutput) {

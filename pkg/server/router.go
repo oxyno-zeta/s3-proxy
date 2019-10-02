@@ -26,6 +26,12 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
 	r.Use(NewStructuredLogger(logger))
 	r.Use(middleware.Recoverer)
 
+	r.NotFound(func(rw http.ResponseWriter, req *http.Request) {
+		logEntry := GetLogEntry(req)
+		path := req.URL.RequestURI()
+		handleNotFound(rw, path, &logEntry, cfg.Templates)
+	})
+
 	// Load main route only if main bucket path support option isn't enabled
 	if !cfg.MainBucketPathSupport {
 		r.Route("/", func(r chi.Router) {
@@ -49,7 +55,7 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
 			r.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
 				requestPath := chi.URLParam(req, "*")
 				logEntry := GetLogEntry(req)
-				brctx, err := bucket.NewRequestContext(tgt, cfg.Templates, &logEntry, mountPath, requestPath, &rw)
+				brctx, err := bucket.NewRequestContext(tgt, cfg.Templates, &logEntry, mountPath, requestPath, &rw, handleNotFound)
 
 				if err != nil {
 					// ! TODO Need to manage errors
@@ -64,25 +70,40 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
 	return r
 }
 
-func generateTargetList(rw http.ResponseWriter, logger *logrus.FieldLogger, cfg *config.Config) {
-	// Load template
-	tplFileName := filepath.Base(cfg.Templates.TargetList)
-	tmpl, err := template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).ParseFiles(cfg.Templates.TargetList)
+func handleNotFound(rw http.ResponseWriter, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	err := templateExecution(tplCfg.NotFound, logger, rw, struct{ Path string }{Path: requestPath})
 	if err != nil {
 		// ! TODO Need to manage internal server error
 		(*logger).Errorln(err)
 		return
+	}
+}
+
+func generateTargetList(rw http.ResponseWriter, logger *logrus.FieldLogger, cfg *config.Config) {
+	err := templateExecution(cfg.Templates.TargetList, logger, rw, struct{ Targets []*config.Target }{Targets: cfg.Targets})
+	if err != nil {
+		// ! TODO Need to manage internal server error
+		(*logger).Errorln(err)
+		return
+	}
+}
+
+func templateExecution(tplPath string, logger *logrus.FieldLogger, rw http.ResponseWriter, data interface{}) error {
+	// Load template
+	tplFileName := filepath.Base(tplPath)
+	tmpl, err := template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).ParseFiles(tplPath)
+	if err != nil {
+		return err
 	}
 
 	// Generate template in buffer
 	buf := &bytes.Buffer{}
-	err = tmpl.Execute(buf, struct{ Targets []*config.Target }{Targets: cfg.Targets})
+	err = tmpl.Execute(buf, data)
 	if err != nil {
-		// ! TODO Need to manage internal server error
-		(*logger).Errorln(err)
-		return
+		return err
 	}
 	// Set the header and write the buffer to the http.ResponseWriter
 	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 	buf.WriteTo(rw)
+	return nil
 }
