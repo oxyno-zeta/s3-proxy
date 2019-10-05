@@ -8,6 +8,9 @@ const MainConfigPath = "config.yaml"
 // DefaultPort Default port
 const DefaultPort = 8080
 
+// DefaultInternalPort Default internal port
+const DefaultInternalPort = 9090
+
 // DefaultLogLevel Default log level
 const DefaultLogLevel = "info"
 
@@ -39,6 +42,7 @@ var TemplateErrLoadingEnvCredentialEmpty = "error loading credentials for target
 type Config struct {
 	Log                   *LogConfig      `koanf:"log"`
 	Server                *ServerConfig   `koanf:"server"`
+	InternalServer        *ServerConfig   `koanf:"internalServer"`
 	Targets               []*Target       `koanf:"targets" validate:"gte=0,required,dive,required"`
 	Templates             *TemplateConfig `koanf:"templates"`
 	MainBucketPathSupport bool            `koanf:"mainBucketPathSupport"`

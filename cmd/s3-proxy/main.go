@@ -38,6 +38,28 @@ func main() {
 	v := version.GetVersion()
 	logger.Infof("Starting s3-proxy version: %s (git commit: %s) built on %s", v.Version, v.GitCommit, v.BuildDate)
 
+	// Listen
+	go internalServe(logger, cfg)
+	serve(logger, cfg)
+}
+
+func internalServe(logger *logrus.Logger, cfg *config.Config) {
+	r := server.GenerateInternalRouter(logger, cfg)
+	// Create server
+	addr := cfg.InternalServer.ListenAddr + ":" + strconv.Itoa(cfg.InternalServer.Port)
+	server := &http.Server{
+		Addr:    addr,
+		Handler: r,
+	}
+	logger.Infof("Server listening on %s", addr)
+	err := server.ListenAndServe()
+	if err != nil {
+		logger.Fatalf("Unable to start http server: %v", err)
+		os.Exit(1)
+	}
+}
+
+func serve(logger *logrus.Logger, cfg *config.Config) {
 	// Generate router
 	r := server.GenerateRouter(logger, cfg)
 
@@ -48,8 +70,7 @@ func main() {
 		Handler: r,
 	}
 	logger.Infof("Server listening on %s", addr)
-	err = server.ListenAndServe()
-	// Listen
+	err := server.ListenAndServe()
 	if err != nil {
 		logger.Fatalf("Unable to start http server: %v", err)
 		os.Exit(1)

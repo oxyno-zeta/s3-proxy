@@ -8,6 +8,7 @@ The configuration must be set in a YAML file located in the current working dire
 | --------------------- | ----------------------------------------------- | ------- | ------------------------------------------------------------------------------------------ |
 | log                   | [LogConfiguration](#logconfiguration)           | None    | Log configurations                                                                         |
 | server                | [ServerConfiguration](#serverconfiguration)     | None    | Server configurations                                                                      |
+| internalServer        | [ServerConfiguration](#serverconfiguration)     | None    | Internal Server configurations                                                             |
 | template              | [TemplateConfiguration](#templateconfiguration) | None    | Template configurations                                                                    |
 | mainBucketPathSupport | Boolean                                         | `false` | If only one bucket is in the list, use it as main url and don't mount it on /<BUCKET_NAME> |
 | targets               | [[TargetConfiguration]](#targetconfiguration)   | None    | Targets configuration                                                                      |

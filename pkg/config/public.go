@@ -24,6 +24,7 @@ func Load() (*Config, error) {
 		"log.level":                     DefaultLogLevel,
 		"log.format":                    DefaultLogFormat,
 		"server.port":                   DefaultPort,
+		"internalServer.port":           DefaultInternalPort,
 		"templates.folderList":          DefaultTemplateFolderListPath,
 		"templates.targetList":          DefaultTemplateTargetListPath,
 		"templates.notFound":            DefaultTemplateNotFoundPath,
