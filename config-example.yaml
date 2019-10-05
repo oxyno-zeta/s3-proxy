@@ -1,0 +1,29 @@
+# Log configuration
+log:
+  # Log level
+  level: info
+  # Log format
+  format: text
+
+# Server configurations
+# server:
+#   listenAddr: ""
+#   port: 8080
+
+# If only bucket is in the list, use it as main url and don't mount it on /<BUCKET_NAME>
+# mainBucketPathSupport: true
+
+# Targets
+targets:
+  - name: first-bucket
+    bucket:
+      name: super-bucket
+      prefix:
+      region: eu-west-1
+      s3Endpoint:
+      # credentials:
+      #   accessKey:
+      #     env: AWS_ACCESS_KEY_ID
+      #   secretKey:
+      #     path: secret_key_file
+    # indexDocument: index.html
