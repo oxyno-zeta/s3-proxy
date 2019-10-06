@@ -49,6 +49,16 @@ Variables:
 | ---- | ------ | ------------ |
 | Path | String | Request Path |
 
+## Unauthorized
+
+This template is used for all `Unauthorized` errors.
+
+Variables:
+
+| Name | Type   | Description  |
+| ---- | ------ | ------------ |
+| Path | String | Request Path |
+
 ## Internal Server Error
 
 This template is used for all `Internal server error` errors.

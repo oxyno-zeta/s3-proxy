@@ -12,6 +12,7 @@ The configuration must be set in a YAML file located in the current working dire
 | template              | [TemplateConfiguration](#templateconfiguration) | None    | Template configurations                                                                    |
 | mainBucketPathSupport | Boolean                                         | `false` | If only one bucket is in the list, use it as main url and don't mount it on /<BUCKET_NAME> |
 | targets               | [[TargetConfiguration]](#targetconfiguration)   | None    | Targets configuration                                                                      |
+| auth                  | AuthConfig                                      | None    | Authentication configuration                                                               |
 
 ## LogConfiguration
 
@@ -34,6 +35,7 @@ The configuration must be set in a YAML file located in the current working dire
 | targetList          | String | `templates/target-list.tpl`           | Target list template path           |
 | folderList          | String | `templates/folder-list.tpl`           | Folder list template path           |
 | notFound            | String | `templates/not-found.tpl`             | Not found template path             |
+| unauthorized        | String | `templates/unauthorized.tpl`          | Unauthorized template path          |
 | internalServerError | String | `templates/internal-server-error.tpl` | Internal server error template path |
 
 ## TargetConfiguration
@@ -56,14 +58,34 @@ The configuration must be set in a YAML file located in the current working dire
 
 ## BucketCredentialConfiguration
 
-| Key       | Type                                                      | Default | Description          |
-| --------- | --------------------------------------------------------- | ------- | -------------------- |
-| accessKey | [CredentialKeyConfiguration](#credentialkeyconfiguration) | None    | S3 Access Key ID     |
-| secretKey | [CredentialKeyConfiguration](#credentialkeyconfiguration) | None    | S3 Secret Access Key |
+| Key       | Type                                                | Default | Description          |
+| --------- | --------------------------------------------------- | ------- | -------------------- |
+| accessKey | [CredentialConfiguration](#credentialconfiguration) | None    | S3 Access Key ID     |
+| secretKey | [CredentialConfiguration](#credentialconfiguration) | None    | S3 Secret Access Key |
 
-## CredentialKeyConfiguration
+## CredentialConfiguration
 
 | Key  | Type   | Default | Description                                         |
 | ---- | ------ | ------- | --------------------------------------------------- |
 | path | String | None    | File path contains credential in                    |
 | env  | String | None    | Environment variable name to use to load credential |
+
+## AuthConfiguration
+
+| Key   | Type                                              | Default | Description              |
+| ----- | ------------------------------------------------- | ------- | ------------------------ |
+| basic | [BasicAuthConfiguration](#basicauthconfiguration) | None    | Basic auth configuration |
+
+## BasicAuthConfiguration
+
+| Key         | Type                                                        | Default                              | Description      |
+| ----------- | ----------------------------------------------------------- | ------------------------------------ | ---------------- |
+| realm       | String                                                      | None                                 | Basic Auth Realm |
+| credentials | [[BasicAuthUserConfiguration]](#basicauthuserconfiguration) | List of authorized user and password |
+
+## BasicAuthUserConfiguration
+
+| Key      | Type                                                | Default | Description   |
+| -------- | --------------------------------------------------- | ------- | ------------- |
+| user     | String                                              | None    | User name     |
+| password | [CredentialConfiguration](#credentialconfiguration) | None    | User password |

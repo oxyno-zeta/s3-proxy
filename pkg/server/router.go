@@ -1,13 +1,8 @@
 package server
 
 import (
-	"bytes"
-	"fmt"
-	"html/template"
 	"net/http"
-	"path/filepath"
 
-	"github.com/Masterminds/sprig"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/oxyno-zeta/s3-proxy/pkg/bucket"
@@ -26,6 +21,10 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(NewStructuredLogger(logger))
 	r.Use(middleware.Recoverer)
+
+	if cfg.Auth != nil && cfg.Auth.Basic != nil {
+		r.Use(basicAuthMiddleware(cfg.Auth.Basic, cfg.Templates))
+	}
 
 	r.NotFound(func(rw http.ResponseWriter, req *http.Request) {
 		logEntry := GetLogEntry(req)
@@ -71,38 +70,6 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
 	return r
 }
 
-func handleInternalServerError(rw http.ResponseWriter, err error, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig) {
-	err2 := templateExecution(tplCfg.InternalServerError, logger, rw, struct {
-		Path  string
-		Error error
-	}{Path: requestPath, Error: err}, 500)
-	if err2 != nil {
-		// New error
-		(*logger).Errorln(err2)
-		// Template error
-		res := fmt.Sprintf(`
-<!DOCTYPE html>
-<html>
-  <body>
-	<h1>Internal Server Error</h1>
-	<p>%s</p>
-  </body>
-</html>
-`, err2)
-		rw.WriteHeader(500)
-		rw.Write([]byte(res))
-	}
-}
-
-func handleNotFound(rw http.ResponseWriter, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig) {
-	err := templateExecution(tplCfg.NotFound, logger, rw, struct{ Path string }{Path: requestPath}, 404)
-	if err != nil {
-		(*logger).Errorln(err)
-		handleInternalServerError(rw, err, requestPath, logger, tplCfg)
-		return
-	}
-}
-
 func generateTargetList(rw http.ResponseWriter, logger *logrus.FieldLogger, cfg *config.Config) {
 	err := templateExecution(cfg.Templates.TargetList, logger, rw, struct{ Targets []*config.Target }{Targets: cfg.Targets}, 200)
 	if err != nil {
@@ -110,28 +77,4 @@ func generateTargetList(rw http.ResponseWriter, logger *logrus.FieldLogger, cfg 
 		handleInternalServerError(rw, err, "/", logger, cfg.Templates)
 		return
 	}
-}
-
-func templateExecution(tplPath string, logger *logrus.FieldLogger, rw http.ResponseWriter, data interface{}, status int) error {
-	// Load template
-	tplFileName := filepath.Base(tplPath)
-	tmpl, err := template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).ParseFiles(tplPath)
-	if err != nil {
-		return err
-	}
-
-	// Generate template in buffer
-	buf := &bytes.Buffer{}
-	err = tmpl.Execute(buf, data)
-	if err != nil {
-		return err
-	}
-	rw.WriteHeader(status)
-	// Set the header and write the buffer to the http.ResponseWriter
-	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, err = buf.WriteTo(rw)
-	if err != nil {
-		return err
-	}
-	return nil
 }

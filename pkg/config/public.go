@@ -29,6 +29,7 @@ func Load() (*Config, error) {
 		"templates.targetList":          DefaultTemplateTargetListPath,
 		"templates.notFound":            DefaultTemplateNotFoundPath,
 		"templates.internalServerError": DefaultTemplateInternalServerErrorPath,
+		"templates.unauthorized":        DefaultTemplateUnauthorizedErrorPath,
 	}, "."), nil)
 
 	// Try to load main configuration file
@@ -63,14 +64,26 @@ func Load() (*Config, error) {
 	for _, item := range out.Targets {
 		if item.Bucket.Credentials != nil && item.Bucket.Credentials.AccessKey != nil && item.Bucket.Credentials.SecretKey != nil {
 			// Manage access key
-			err := loadCredential(item.Bucket.Credentials.AccessKey, item.Name)
+			err := loadCredential(item.Bucket.Credentials.AccessKey)
 			if err != nil {
 				return nil, err
 			}
 			// Manage secret key
-			err = loadCredential(item.Bucket.Credentials.SecretKey, item.Name)
+			err = loadCredential(item.Bucket.Credentials.SecretKey)
 			if err != nil {
 				return nil, err
+			}
+		}
+	}
+
+	// Load credential for basic auth if needed
+	if out.Auth != nil && out.Auth.Basic != nil && out.Auth.Basic.Credentials != nil && len(out.Auth.Basic.Credentials) > 0 {
+		for _, item := range out.Auth.Basic.Credentials {
+			if item.User != "" && item.Password != nil {
+				err := loadCredential(item.Password)
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
@@ -78,21 +91,21 @@ func Load() (*Config, error) {
 	return &out, nil
 }
 
-func loadCredential(credKeyCfg *CredentialKeyConfig, targetName string) error {
-	if credKeyCfg.Path != "" {
+func loadCredential(credCfg *CredentialConfig) error {
+	if credCfg.Path != "" {
 		// Secret file
-		databytes, err := ioutil.ReadFile(credKeyCfg.Path)
+		databytes, err := ioutil.ReadFile(credCfg.Path)
 		if err != nil {
 			return err
 		}
-		credKeyCfg.Value = string(databytes)
+		credCfg.Value = string(databytes)
 	} else {
 		// Environment variable
-		envValue := os.Getenv(credKeyCfg.Env)
+		envValue := os.Getenv(credCfg.Env)
 		if envValue == "" {
-			return fmt.Errorf(TemplateErrLoadingEnvCredentialEmpty, credKeyCfg.Env, targetName)
+			return fmt.Errorf(TemplateErrLoadingEnvCredentialEmpty, credCfg.Env)
 		}
-		credKeyCfg.Value = envValue
+		credCfg.Value = envValue
 	}
 	return nil
 }
