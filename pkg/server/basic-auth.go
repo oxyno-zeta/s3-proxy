@@ -32,7 +32,7 @@ func basicAuthMiddleware(basicConfig *config.BasicAuthConfig, templateConfig *co
 			}
 
 			// Check password
-			if cred.(*config.BasicAuthUserConfig).Password.Value == "" || cred.(*config.BasicUserConfig).Password.Value != password {
+			if cred.(*config.BasicAuthUserConfig).Password.Value == "" || cred.(*config.BasicAuthUserConfig).Password.Value != password {
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
 				handleUnauthorized(w, path, &logEntry, templateConfig)
 				return
