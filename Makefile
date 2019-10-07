@@ -1,5 +1,4 @@
-# All possible values : darwin/amd64 linux/amd64 windows/amd64 linux/386 linux/ppc64le linux/s390x linux/arm linux/arm64
-TARGETS           ?= linux/amd64
+TARGETS           ?= linux/amd64 darwin/amd64 linux/amd64 windows/amd64 linux/386 linux/ppc64le linux/s390x linux/arm linux/arm64
 PROJECT_NAME	  := s3-proxy
 PKG				  := github.com/oxyno-zeta/$(PROJECT_NAME)
 PKG_LIST		  := $(shell go list ${PKG}/... | grep -v /vendor/)
