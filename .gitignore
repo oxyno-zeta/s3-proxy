@@ -132,4 +132,6 @@ GitHub.sublime-settings
 
 vendor/
 bin/
-config.yaml
+/config.yaml
+dist/
+_dist/
