@@ -86,6 +86,9 @@ workflows:
       - build-docker:
           requires:
             - lint
+      - build-cross:
+          requires:
+            - lint
       - test:
           requires:
             - build
