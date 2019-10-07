@@ -8,7 +8,7 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func basicAuthMiddleware(basicConfig *config.BasicConfig, templateConfig *config.TemplateConfig) func(http.Handler) http.Handler {
+func basicAuthMiddleware(basicConfig *config.BasicAuthConfig, templateConfig *config.TemplateConfig) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			logEntry := GetLogEntry(r)
@@ -21,7 +21,7 @@ func basicAuthMiddleware(basicConfig *config.BasicConfig, templateConfig *config
 			}
 
 			// Find user credentials
-			cred := funk.Find(basicConfig.Credentials, func(cred *config.BasicUserConfig) bool {
+			cred := funk.Find(basicConfig.Credentials, func(cred *config.BasicAuthUserConfig) bool {
 				return cred.User == username
 			})
 
@@ -32,7 +32,7 @@ func basicAuthMiddleware(basicConfig *config.BasicConfig, templateConfig *config
 			}
 
 			// Check password
-			if cred.(*config.BasicUserConfig).Password.Value == "" || cred.(*config.BasicUserConfig).Password.Value != password {
+			if cred.(*config.BasicAuthUserConfig).Password.Value == "" || cred.(*config.BasicUserConfig).Password.Value != password {
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
 				handleUnauthorized(w, path, &logEntry, templateConfig)
 				return
