@@ -25,6 +25,19 @@ jobs:
           keys:
             - go-mod-{{ checksum "go.mod"  }}
       - run: make build
+  build-docker:
+    environment:
+      GO111MODULE: "on"
+    docker:
+      - image: circleci/golang:1.12
+    working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.mod"  }}
+      - setup_remote_docker
+      - run: make build-docker
   test:
     environment:
       GO111MODULE: "on"
@@ -56,6 +69,9 @@ workflows:
     jobs:
       - lint
       - build:
+          requires:
+            - lint
+      - build-docker:
           requires:
             - lint
       - test:

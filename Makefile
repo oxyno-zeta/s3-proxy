@@ -56,6 +56,11 @@ build-cross: LDFLAGS += -extldflags "-static"
 build-cross: clean dep
 	CGO_ENABLED=0 gox -output="$(DISTDIR)/bin/$(BINARY_VERSION)/{{.OS}}-{{.Arch}}/{{.Dir}}" -osarch='$(TARGETS)' $(if $(TAGS),-tags '$(TAGS)',) -ldflags '$(LDFLAGS)' ${PKG}/cmd/${PROJECT_NAME}
 
+.PHONY: build-docker
+build-docker: build
+	cp -R templates/ Dockerfile $(BINDIR)
+	docker build -t oxynozeta/s3-proxy:$(BINARY_VERSION) $(BINDIR)
+
 .PHONY: release
 release: build-cross
 	cp -R templates/ Dockerfile $(DISTDIR)/bin/$(BINARY_VERSION)/linux-amd64
