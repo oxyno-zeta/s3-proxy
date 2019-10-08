@@ -13,6 +13,15 @@ log:
 # If only bucket is in the list, use it as main url and don't mount it on /<BUCKET_NAME>
 # mainBucketPathSupport: true
 
+# Authentication
+# auth:
+#   basic:
+#     realm: My Basic Auth Realm
+#     credentials:
+#       - user: user1
+#         password:
+#           path: password1-in-file
+
 # Targets
 targets:
   - name: first-bucket
