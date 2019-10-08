@@ -17,6 +17,8 @@ require (
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/knadh/koanf v0.4.4
 	github.com/leodido/go-urn v1.1.0 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/prometheus/client_golang v1.1.0
 	github.com/sirupsen/logrus v1.4.2
 	github.com/thoas/go-funk v0.4.0
