@@ -1,6 +1,7 @@
 # Configuration
 
-The configuration must be set in a YAML file located in the current working directory. The file name is `config.yaml`.
+The configuration must be set in a YAML file located in `conf/` folder from the current working directory. The file name is `config.yaml`.
+The full path is `conf/config.yaml`.
 
 ## Main structure
 
