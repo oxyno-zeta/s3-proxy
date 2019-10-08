@@ -69,7 +69,6 @@ dockers:
     build_flag_templates:
       - "--label=oxyno-zeta.s3-proxy.version={{ .Version }}"
       - "--label=oxyno-zeta.s3-proxy.name={{ .ProjectName }}"
-      - "--label=oxyno-zeta.s3-proxy.arch={{ .Arch }}"
     extra_files:
       - templates/
   - goos: linux
@@ -87,7 +86,6 @@ dockers:
     build_flag_templates:
       - "--label=oxyno-zeta.s3-proxy.version={{ .Version }}"
       - "--label=oxyno-zeta.s3-proxy.name={{ .ProjectName }}"
-      - "--label=oxyno-zeta.s3-proxy.arch={{ .Arch }}"
     extra_files:
       - templates/
   - goos: linux
@@ -105,7 +103,6 @@ dockers:
     build_flag_templates:
       - "--label=oxyno-zeta.s3-proxy.version={{ .Version }}"
       - "--label=oxyno-zeta.s3-proxy.name={{ .ProjectName }}"
-      - "--label=oxyno-zeta.s3-proxy.arch={{ .Arch }}"
     extra_files:
       - templates/
   - goos: linux
@@ -122,6 +119,5 @@ dockers:
     build_flag_templates:
       - "--label=oxyno-zeta.s3-proxy.version={{ .Version }}"
       - "--label=oxyno-zeta.s3-proxy.name={{ .ProjectName }}"
-      - "--label=oxyno-zeta.s3-proxy.arch={{ .Arch }}"
     extra_files:
       - templates/
