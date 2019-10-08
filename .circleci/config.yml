@@ -25,19 +25,6 @@ jobs:
           keys:
             - go-mod-{{ checksum "go.mod"  }}
       - run: make build
-  build-docker:
-    environment:
-      GO111MODULE: "on"
-    docker:
-      - image: circleci/golang:1.12
-    working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - go-mod-{{ checksum "go.mod"  }}
-      - setup_remote_docker
-      - run: make build-docker
   build-cross:
     environment:
       GO111MODULE: "on"
@@ -46,6 +33,7 @@ jobs:
     working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
     steps:
       - checkout
+      - setup_remote_docker
       - restore_cache:
           keys:
             - go-mod-{{ checksum "go.mod"  }}
@@ -62,19 +50,6 @@ jobs:
           keys:
             - go-mod-{{ checksum "go.mod"  }}
       - run: make test
-  release:
-    environment:
-      GO111MODULE: "on"
-    docker:
-      - image: circleci/golang:1.12
-    working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - go-mod-{{ checksum "go.mod"  }}
-      - setup_remote_docker
-      - run: make release
 workflows:
   version: 2
   project:
@@ -83,17 +58,9 @@ workflows:
       - build:
           requires:
             - lint
-      - build-docker:
-          requires:
-            - lint
       - build-cross:
           requires:
             - lint
       - test:
           requires:
-            - build
-            - build-docker
-            - build-cross
-      - release:
-          requires:
-            - test
+            - lint

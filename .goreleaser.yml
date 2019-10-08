@@ -15,6 +15,8 @@ builds:
       - -X github.com/oxyno-zeta/s3-proxy/pkg/version.Version={{ .Tag }}
       - -X github.com/oxyno-zeta/s3-proxy/pkg/version.GitCommit={{ .ShortCommit }}
       - -X github.com/oxyno-zeta/s3-proxy/pkg/version.BuildDate={{ .Date }}
+      # Clear the "unreleased" string in Metadata
+      - -X github.com/oxyno-zeta/s3-proxy/pkg/version.Metadata=
     env:
       - CGO_ENABLED=0
     goarch:
@@ -60,10 +62,10 @@ dockers:
     binaries:
       - s3-proxy
     image_templates:
-      # - "oxynozeta/test-arch:latest"
+      - "oxynozeta/test-arch:latest"
       - "oxynozeta/test-arch:{{ .Version }}"
-      # - "oxynozeta/test-arch:{{ .Major }}"
-      # - "oxynozeta/test-arch:{{ .Major }}.{{ .Minor }}"
+      - "oxynozeta/test-arch:{{ .Major }}"
+      - "oxynozeta/test-arch:{{ .Major }}.{{ .Minor }}"
     skip_push: false
     dockerfile: Dockerfile
     build_flag_templates:
@@ -77,10 +79,10 @@ dockers:
     binaries:
       - s3-proxy
     image_templates:
-      # - "oxynozeta/test-arch:latest-armv6"
+      - "oxynozeta/test-arch:latest-armv6"
       - "oxynozeta/test-arch:{{ .Version }}-armv6"
-      # - "oxynozeta/test-arch:{{ .Major }}-armv6"
-      # - "oxynozeta/test-arch:{{ .Major }}.{{ .Minor }}-armv6"
+      - "oxynozeta/test-arch:{{ .Major }}-armv6"
+      - "oxynozeta/test-arch:{{ .Major }}.{{ .Minor }}-armv6"
     skip_push: false
     dockerfile: Dockerfile
     build_flag_templates:
@@ -94,10 +96,10 @@ dockers:
     binaries:
       - s3-proxy
     image_templates:
-      # - "oxynozeta/test-arch:latest-armv7"
+      - "oxynozeta/test-arch:latest-armv7"
       - "oxynozeta/test-arch:{{ .Version }}-armv7"
-      # - "oxynozeta/test-arch:{{ .Major }}-armv7"
-      # - "oxynozeta/test-arch:{{ .Major }}.{{ .Minor }}-armv7"
+      - "oxynozeta/test-arch:{{ .Major }}-armv7"
+      - "oxynozeta/test-arch:{{ .Major }}.{{ .Minor }}-armv7"
     skip_push: false
     dockerfile: Dockerfile
     build_flag_templates:
@@ -110,10 +112,10 @@ dockers:
     binaries:
       - s3-proxy
     image_templates:
-      # - "oxynozeta/test-arch:latest-arm64"
+      - "oxynozeta/test-arch:latest-arm64"
       - "oxynozeta/test-arch:{{ .Version }}-arm64"
-      # - "oxynozeta/test-arch:{{ .Major }}-arm64"
-      # - "oxynozeta/test-arch:{{ .Major }}.{{ .Minor }}-arm64"
+      - "oxynozeta/test-arch:{{ .Major }}-arm64"
+      - "oxynozeta/test-arch:{{ .Major }}.{{ .Minor }}-arm64"
     skip_push: false
     dockerfile: Dockerfile
     build_flag_templates:
