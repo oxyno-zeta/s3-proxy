@@ -51,7 +51,7 @@ ifdef HAS_GORELEASER
 	goreleaser --snapshot --skip-publish
 endif
 ifndef HAS_GORELEASER
-	curl -sL https://git.io/goreleaser | bash -- --snapshot --skip-publish
+	curl -sL https://git.io/goreleaser | bash -s -- --snapshot --skip-publish
 endif
 
 .PHONY: release
