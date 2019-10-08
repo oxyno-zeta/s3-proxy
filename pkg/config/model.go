@@ -3,7 +3,7 @@ package config
 import "errors"
 
 // MainConfigPath Configuration path
-const MainConfigPath = "config.yaml"
+const MainConfigPath = "conf/config.yaml"
 
 // DefaultPort Default port
 const DefaultPort = 8080
