@@ -61,7 +61,7 @@ build-docker: build
 	docker build -t oxynozeta/s3-proxy:$(BINARY_VERSION) $(BINDIR)
 
 .PHONY: release
-release: build-cross
+release: dep-release build-cross
 	cp -R templates/ Dockerfile $(DISTDIR)/bin/$(BINARY_VERSION)/linux-amd64
 	docker build -t oxynozeta/s3-proxy:$(BINARY_VERSION) $(DISTDIR)/bin/$(BINARY_VERSION)/linux-amd64
 
@@ -112,3 +112,4 @@ ifndef HAS_GIT
 	$(error You must install Git)
 endif
 	go mod download
+	go mod tidy
