@@ -111,5 +111,4 @@ endif
 ifndef HAS_GIT
 	$(error You must install Git)
 endif
-	go mod download
 	go mod tidy
