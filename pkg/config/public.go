@@ -99,7 +99,7 @@ func loadCredential(credCfg *CredentialConfig) error {
 			return err
 		}
 		credCfg.Value = string(databytes)
-	} else {
+	} else if credCfg.Env != "" {
 		// Environment variable
 		envValue := os.Getenv(credCfg.Env)
 		if envValue == "" {
@@ -107,6 +107,7 @@ func loadCredential(credCfg *CredentialConfig) error {
 		}
 		credCfg.Value = envValue
 	}
+	// Value case is already managed by koanf
 	return nil
 }
 
