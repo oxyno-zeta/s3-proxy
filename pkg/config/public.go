@@ -30,6 +30,8 @@ func Load() (*Config, error) {
 		"templates.notFound":            DefaultTemplateNotFoundPath,
 		"templates.internalServerError": DefaultTemplateInternalServerErrorPath,
 		"templates.unauthorized":        DefaultTemplateUnauthorizedErrorPath,
+		"templates.forbidden":           DefaultTemplateForbiddenErrorPath,
+		"templates.badRequest":          DefaultTemplateBadRequestErrorPath,
 	}, "."), nil)
 
 	// Try to load main configuration file
@@ -76,14 +78,39 @@ func Load() (*Config, error) {
 		}
 	}
 
-	// Load credential for basic auth if needed
-	if out.Auth != nil && out.Auth.Basic != nil && out.Auth.Basic.Credentials != nil && len(out.Auth.Basic.Credentials) > 0 {
-		for _, item := range out.Auth.Basic.Credentials {
-			if item.User != "" && item.Password != nil {
-				err := loadCredential(item.Password)
+	// Load auth credentials
+	if out.Auth != nil {
+		// Load credential for basic auth if needed
+		if out.Auth.Basic != nil && out.Auth.Basic.Credentials != nil && len(out.Auth.Basic.Credentials) > 0 {
+			for _, item := range out.Auth.Basic.Credentials {
+				if item.User != "" && item.Password != nil {
+					err := loadCredential(item.Password)
+					if err != nil {
+						return nil, err
+					}
+				}
+			}
+		}
+		// Load credentials for oidc auth if needed and apply default oidc values
+		if out.Auth.OIDC != nil {
+			// Load credentials for oidc auth if needed
+			if out.Auth.OIDC.ClientSecret != nil {
+				err := loadCredential(out.Auth.OIDC.ClientSecret)
 				if err != nil {
 					return nil, err
 				}
+			}
+			// Manage default scopes
+			if out.Auth.OIDC.Scopes == nil || len(out.Auth.OIDC.Scopes) == 0 {
+				out.Auth.OIDC.Scopes = DefaultOIDCScopes
+			}
+			// Manage default group claim
+			if out.Auth.OIDC.GroupClaim == "" {
+				out.Auth.OIDC.GroupClaim = DefaultOIDCGroupClaim
+			}
+			// Manage default oidc cookie name
+			if out.Auth.OIDC.CookieName == "" {
+				out.Auth.OIDC.CookieName = DefaultOIDCCookieName
 			}
 		}
 	}

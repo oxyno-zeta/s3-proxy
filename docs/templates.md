@@ -59,9 +59,30 @@ Variables:
 | ---- | ------ | ------------ |
 | Path | String | Request Path |
 
+## Forbidden
+
+This template is used for all `Forbidden` errors.
+
+Variables:
+
+| Name | Type   | Description  |
+| ---- | ------ | ------------ |
+| Path | String | Request Path |
+
 ## Internal Server Error
 
 This template is used for all `Internal server error` errors.
+
+Variables:
+
+| Name  | Type   | Description            |
+| ----- | ------ | ---------------------- |
+| Path  | String | Request Path           |
+| Error | Error  | Error raised and catch |
+
+## Bad Request
+
+This template is used for all `Bad Request` errors.
 
 Variables:
 

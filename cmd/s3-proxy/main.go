@@ -61,7 +61,11 @@ func internalServe(logger *logrus.Logger, cfg *config.Config) {
 
 func serve(logger *logrus.Logger, cfg *config.Config) {
 	// Generate router
-	r := server.GenerateRouter(logger, cfg)
+	r, err := server.GenerateRouter(logger, cfg)
+	if err != nil {
+		logger.Fatalf("Unable to setup http server: %v", err)
+		os.Exit(1)
+	}
 
 	// Create server
 	addr := cfg.Server.ListenAddr + ":" + strconv.Itoa(cfg.Server.Port)
@@ -70,7 +74,7 @@ func serve(logger *logrus.Logger, cfg *config.Config) {
 		Handler: r,
 	}
 	logger.Infof("Server listening on %s", addr)
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil {
 		logger.Fatalf("Unable to start http server: %v", err)
 		os.Exit(1)

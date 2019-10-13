@@ -37,6 +37,8 @@ The full path is `conf/config.yaml`.
 | folderList          | String | `templates/folder-list.tpl`           | Folder list template path           |
 | notFound            | String | `templates/not-found.tpl`             | Not found template path             |
 | unauthorized        | String | `templates/unauthorized.tpl`          | Unauthorized template path          |
+| forbidden           | String | `templates/forbidden.tpl`             | Forbidden template path             |
+| badRequest          | String | `templates/bad-request.tpl`           | Bad Request template path           |
 | internalServerError | String | `templates/internal-server-error.tpl` | Internal server error template path |
 
 ## TargetConfiguration
@@ -76,6 +78,30 @@ The full path is `conf/config.yaml`.
 | Key   | Type                                              | Default | Description              |
 | ----- | ------------------------------------------------- | ------- | ------------------------ |
 | basic | [BasicAuthConfiguration](#basicauthconfiguration) | None    | Basic auth configuration |
+| oidc  | [OIDCAuthConfiguration](#oidcauthconfiguration)   | None    | OIDC Auth configuration  |
+
+## OIDCAuthConfiguration
+
+| Key                   | Type                                                      | Default                          | Description                                                                            |
+| --------------------- | --------------------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------- |
+| clientID              | String                                                    | ""                               | Client ID                                                                              |
+| clientSecret          | [CredentialConfiguration](#credentialconfiguration)       | ""                               | Client Secret                                                                          |
+| issuerUrl             | String                                                    | ""                               | Issuer URL (example: https://fake.com/realm/fake-realm                                 |
+| redirectUrl           | String                                                    | ""                               | Redirect URL (this is the service url)                                                 |
+| scopes                | [String]                                                  | `["openid", "profile", "email"]` | Scopes                                                                                 |
+| state                 | String                                                    | ""                               | Random string to have a secure connection with oidc provider                           |
+| groupClaim            | String                                                    | `groups`                         | Groups claim path in token (`groups` must be a list of strings containing user groups) |
+| emailVerified         | Boolean                                                   | `false`                          | Check that user email is verified in user token (field `email_verified`)               |
+| cookieName            | String                                                    | `oidc`                           | Cookie generated name                                                                  |
+| cookieSecure          | Boolean                                                   | `false`                          | Is the cookie secure ?                                                                 |
+| authorizationAccesses | [[OIDCAuthorizationAccesses]](#oidcauthorizationaccesses) | None                             | Authorization accesses matrix by group or email                                        |
+
+## OIDCAuthorizationAccesses
+
+| Key   | Type   | Default | Description |
+| ----- | ------ | ------- | ----------- |
+| group | String | ""      | Group name  |
+| email | String | ""      | Email       |
 
 ## BasicAuthConfiguration
 
