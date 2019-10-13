@@ -10,9 +10,9 @@ This template is used in order to list all targets buckets declared in the confi
 
 Variables:
 
-| Name    | Type                                 | Description                             |
-| ------- | ------------------------------------ | --------------------------------------- |
-| Targets | [[Target]](configuration.md#Targets) | The target object list in configuration |
+| Name    | Type                                             | Description                             |
+| ------- | ------------------------------------------------ | --------------------------------------- |
+| Targets | [[Target]](configuration.md#targetconfiguration) | The target object list in configuration |
 
 ## Folder List
 
