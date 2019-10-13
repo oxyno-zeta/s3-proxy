@@ -20,7 +20,7 @@ I've created this project because I couldn't find any other that allow to proxy 
 
 ## Documentation
 
-See full documentation [here](tree/master/docs).
+See full documentation [here](docs).
 
 ## Inspired by
 
