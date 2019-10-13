@@ -62,10 +62,10 @@ dockers:
     binaries:
       - s3-proxy
     image_templates:
-      - "oxynozeta/test-arch:latest"
-      - "oxynozeta/test-arch:{{ .Version }}"
-      - "oxynozeta/test-arch:{{ .Major }}"
-      - "oxynozeta/test-arch:{{ .Major }}.{{ .Minor }}"
+      - "oxynozeta/s3-proxy:latest"
+      - "oxynozeta/s3-proxy:{{ .Version }}"
+      - "oxynozeta/s3-proxy:{{ .Major }}"
+      - "oxynozeta/s3-proxy:{{ .Major }}.{{ .Minor }}"
     skip_push: false
     dockerfile: Dockerfile
     build_flag_templates:
@@ -79,10 +79,10 @@ dockers:
     binaries:
       - s3-proxy
     image_templates:
-      - "oxynozeta/test-arch:latest-armv6"
-      - "oxynozeta/test-arch:{{ .Version }}-armv6"
-      - "oxynozeta/test-arch:{{ .Major }}-armv6"
-      - "oxynozeta/test-arch:{{ .Major }}.{{ .Minor }}-armv6"
+      - "oxynozeta/s3-proxy:latest-armv6"
+      - "oxynozeta/s3-proxy:{{ .Version }}-armv6"
+      - "oxynozeta/s3-proxy:{{ .Major }}-armv6"
+      - "oxynozeta/s3-proxy:{{ .Major }}.{{ .Minor }}-armv6"
     skip_push: false
     dockerfile: Dockerfile
     build_flag_templates:
@@ -96,10 +96,10 @@ dockers:
     binaries:
       - s3-proxy
     image_templates:
-      - "oxynozeta/test-arch:latest-armv7"
-      - "oxynozeta/test-arch:{{ .Version }}-armv7"
-      - "oxynozeta/test-arch:{{ .Major }}-armv7"
-      - "oxynozeta/test-arch:{{ .Major }}.{{ .Minor }}-armv7"
+      - "oxynozeta/s3-proxy:latest-armv7"
+      - "oxynozeta/s3-proxy:{{ .Version }}-armv7"
+      - "oxynozeta/s3-proxy:{{ .Major }}-armv7"
+      - "oxynozeta/s3-proxy:{{ .Major }}.{{ .Minor }}-armv7"
     skip_push: false
     dockerfile: Dockerfile
     build_flag_templates:
@@ -112,10 +112,10 @@ dockers:
     binaries:
       - s3-proxy
     image_templates:
-      - "oxynozeta/test-arch:latest-arm64"
-      - "oxynozeta/test-arch:{{ .Version }}-arm64"
-      - "oxynozeta/test-arch:{{ .Major }}-arm64"
-      - "oxynozeta/test-arch:{{ .Major }}.{{ .Minor }}-arm64"
+      - "oxynozeta/s3-proxy:latest-arm64"
+      - "oxynozeta/s3-proxy:{{ .Version }}-arm64"
+      - "oxynozeta/s3-proxy:{{ .Major }}-arm64"
+      - "oxynozeta/s3-proxy:{{ .Major }}.{{ .Minor }}-arm64"
     skip_push: false
     dockerfile: Dockerfile
     build_flag_templates:
