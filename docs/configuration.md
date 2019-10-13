@@ -68,10 +68,11 @@ The full path is `conf/config.yaml`.
 
 ## CredentialConfiguration
 
-| Key  | Type   | Default | Description                                         |
-| ---- | ------ | ------- | --------------------------------------------------- |
-| path | String | None    | File path contains credential in                    |
-| env  | String | None    | Environment variable name to use to load credential |
+| Key   | Type   | Default | Description                                         |
+| ----- | ------ | ------- | --------------------------------------------------- |
+| path  | String | None    | File path contains credential in                    |
+| env   | String | None    | Environment variable name to use to load credential |
+| value | String | None    | Credential value directly (Not recommended)         |
 
 ## AuthConfiguration
 
