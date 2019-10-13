@@ -5,3 +5,5 @@
 - Custom templates
 - AWS S3 Login from files or environment variables
 - Custom S3 endpoints supported
+- Basic Authentication support
+- OpenID Connect Authentication support

@@ -6,7 +6,7 @@
 
 Yes this is another S3 proxy written in Golang.
 
-I've created this project because I can't find any other that allow to proxy multiple S3 buckets or to have custom templates.
+I've created this project because I couldn't find any other that allow to proxy multiple S3 buckets or to have custom templates with OpenID Connect authentication.
 
 ## Features
 
@@ -15,6 +15,12 @@ I've created this project because I can't find any other that allow to proxy mul
 - Custom templates
 - AWS S3 Login from files or environment variables
 - Custom S3 endpoints supported
+- Basic Authentication support
+- OpenID Connect Authentication support
+
+## Documentation
+
+See full documentation [here](tree/master/docs).
 
 ## Inspired by
 
