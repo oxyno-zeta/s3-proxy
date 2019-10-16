@@ -1,0 +1,9 @@
+FROM arm64v8/alpine:3.9
+
+RUN which apk
+RUN which apk && apk add --update ca-certificates && rm -rf /var/cache/apk/*
+
+COPY s3-proxy /s3-proxy
+COPY templates/ /templates/
+
+ENTRYPOINT [ "/s3-proxy" ]
