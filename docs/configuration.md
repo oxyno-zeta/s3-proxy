@@ -3,6 +3,8 @@
 The configuration must be set in a YAML file located in `conf/` folder from the current working directory. The file name is `config.yaml`.
 The full path is `conf/config.yaml`.
 
+You can see a full example in the [Example section](#example)
+
 ## Main structure
 
 | Key                   | Type                                            | Default | Description                                                                                |
