@@ -117,3 +117,61 @@ The full path is `conf/config.yaml`.
 | -------- | --------------------------------------------------- | ------- | ------------- |
 | user     | String                                              | None    | User name     |
 | password | [CredentialConfiguration](#credentialconfiguration) | None    | User password |
+
+## Example
+
+```yaml
+# Log configuration
+log:
+  # Log level
+  level: info
+  # Log format
+  format: text
+
+# Server configurations
+# server:
+#   listenAddr: ""
+#   port: 8080
+
+# If only bucket is in the list, use it as main url and don't mount it on /<BUCKET_NAME>
+# mainBucketPathSupport: true
+
+# Authentication
+# auth:
+#   oidc:
+#     clientID: client-id
+#     clientSecret:
+#       path: client-secret-in-file # client secret file
+#     state: my-secret-state-key # do not use this in production ! put something random here
+#     issuerUrl: https://issuer-url/
+#     redirectUrl: http://localhost:8080/ # /auth/oidc/callback will be added automatically
+#     scopes: # OIDC Scopes (defaults: oidc, email, profile)
+#       - oidc
+#       - email
+#       - profile
+#     groupClaim: groups # path in token
+#     emailVerified: true # check email verified field from token
+#     authorizationAccesses: # Authorization accesses : groups or email
+#       - group: devops_users
+#   basic:
+#     realm: My Basic Auth Realm
+#     credentials:
+#       - user: user1
+#         password:
+#           path: password1-in-file
+
+# Targets
+targets:
+  - name: first-bucket
+    bucket:
+      name: super-bucket
+      prefix:
+      region: eu-west-1
+      s3Endpoint:
+      # credentials:
+      #   accessKey:
+      #     env: AWS_ACCESS_KEY_ID
+      #   secretKey:
+      #     path: secret_key_file
+    # indexDocument: index.html
+```
