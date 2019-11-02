@@ -147,9 +147,9 @@ type BucketCredentialConfig struct {
 
 // CredentialConfig Credential Configurations
 type CredentialConfig struct {
-	Path  string `koanf:"path" validate:"required_without=Env Value"`
-	Env   string `koanf:"env" validate:"required_without=Path Value"`
-	Value string `koanf:"value" validate:"required_without=Path Env"`
+	Path  string `koanf:"path" validate:"required_without_all=Env Value"`
+	Env   string `koanf:"env" validate:"required_without_all=Path Value"`
+	Value string `koanf:"value" validate:"required_without_all=Path Env"`
 }
 
 // LogConfig Log configuration
