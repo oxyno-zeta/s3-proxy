@@ -74,6 +74,10 @@ coverage-report:
 clean:
 	@rm -rf $(BINDIR) $(DISTDIR)
 
+.PHONY: update-dep
+update-dep:
+	go get -u ./...
+
 #############
 # Bootstrap #
 #############
