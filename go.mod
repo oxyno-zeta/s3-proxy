@@ -23,7 +23,6 @@ require (
 	github.com/prometheus/client_golang v1.1.0
 	github.com/sirupsen/logrus v1.4.2
 	github.com/thoas/go-funk v0.4.0
-	github.com/tidwall/gjson v1.3.2 // indirect
 	golang.org/x/crypto v0.0.0-20190927123631-a832865fa7ad // indirect
 	golang.org/x/net v0.0.0-20190613194153-d28f0bde5980
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
