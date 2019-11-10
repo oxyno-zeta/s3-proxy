@@ -69,6 +69,7 @@ func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 			handleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
 			return
 		}
+
 		rawIDToken, ok := oauth2Token.Extra("id_token").(string)
 		if !ok {
 			err = errors.New("no id_token field in token")
@@ -76,6 +77,7 @@ func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 			handleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
 			return
 		}
+
 		idToken, err := verifier.Verify(ctx, rawIDToken)
 		if err != nil {
 			err = errors.New("failed to verify ID Token: " + err.Error())
@@ -96,6 +98,7 @@ func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 			handleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
 			return
 		}
+
 		// Build cookie
 		cookie := &http.Cookie{
 			Expires:  oauth2Token.Expiry,
@@ -106,6 +109,7 @@ func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 			Path:     "/",
 		}
 		http.SetCookie(w, cookie)
+
 		logEntry.Info("Successfull authentication detected")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	})
@@ -185,7 +189,7 @@ func oidcAuthorizationMiddleware(oidcAuthCfg *config.OIDCAuthConfig, tplConfig *
 
 func isAuthorized(groups []string, email string, authorizationAccesses []*config.OIDCAuthorizationAccess) bool {
 	if len(authorizationAccesses) == 0 {
-		return false
+		return true
 	}
 	for _, item := range authorizationAccesses {
 		if item.Group != "" {
