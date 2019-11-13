@@ -14,6 +14,7 @@ You can see a full example in the [Example section](#example)
 | internalServer        | [ServerConfiguration](#serverconfiguration)     | None    | Internal Server configurations                                                             |
 | template              | [TemplateConfiguration](#templateconfiguration) | None    | Template configurations                                                                    |
 | mainBucketPathSupport | Boolean                                         | `false` | If only one bucket is in the list, use it as main url and don't mount it on /<BUCKET_NAME> |
+| resources             | [[Resource]](#resource)                         | None    | Resources declaration for path whitelist or specific authentication on paths               |
 | targets               | [[TargetConfiguration]](#targetconfiguration)   | None    | Targets configuration                                                                      |
 | auth                  | AuthConfig                                      | None    | Authentication configuration                                                               |
 
@@ -78,6 +79,10 @@ You can see a full example in the [Example section](#example)
 
 ## AuthConfiguration
 
+Note:
+
+OIDC authentication will be used in priority if the 2 authentication configurations are set. Basic auth will be ignored in this case.
+
 | Key   | Type                                              | Default | Description              |
 | ----- | ------------------------------------------------- | ------- | ------------------------ |
 | basic | [BasicAuthConfiguration](#basicauthconfiguration) | None    | Basic auth configuration |
@@ -85,19 +90,19 @@ You can see a full example in the [Example section](#example)
 
 ## OIDCAuthConfiguration
 
-| Key                   | Type                                                      | Default                          | Description                                                                            |
-| --------------------- | --------------------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------- |
-| clientID              | String                                                    | ""                               | Client ID                                                                              |
-| clientSecret          | [CredentialConfiguration](#credentialconfiguration)       | ""                               | Client Secret                                                                          |
-| issuerUrl             | String                                                    | ""                               | Issuer URL (example: https://fake.com/realm/fake-realm                                 |
-| redirectUrl           | String                                                    | ""                               | Redirect URL (this is the service url)                                                 |
-| scopes                | [String]                                                  | `["openid", "profile", "email"]` | Scopes                                                                                 |
-| state                 | String                                                    | ""                               | Random string to have a secure connection with oidc provider                           |
-| groupClaim            | String                                                    | `groups`                         | Groups claim path in token (`groups` must be a list of strings containing user groups) |
-| emailVerified         | Boolean                                                   | `false`                          | Check that user email is verified in user token (field `email_verified`)               |
-| cookieName            | String                                                    | `oidc`                           | Cookie generated name                                                                  |
-| cookieSecure          | Boolean                                                   | `false`                          | Is the cookie secure ?                                                                 |
-| authorizationAccesses | [[OIDCAuthorizationAccesses]](#oidcauthorizationaccesses) | None                             | Authorization accesses matrix by group or email                                        |
+| Key                   | Type                                                      | Default                          | Description                                                                                                                                           |
+| --------------------- | --------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| clientID              | String                                                    | ""                               | Client ID                                                                                                                                             |
+| clientSecret          | [CredentialConfiguration](#credentialconfiguration)       | ""                               | Client Secret                                                                                                                                         |
+| issuerUrl             | String                                                    | ""                               | Issuer URL (example: https://fake.com/realm/fake-realm                                                                                                |
+| redirectUrl           | String                                                    | ""                               | Redirect URL (this is the service url)                                                                                                                |
+| scopes                | [String]                                                  | `["openid", "profile", "email"]` | Scopes                                                                                                                                                |
+| state                 | String                                                    | ""                               | Random string to have a secure connection with oidc provider                                                                                          |
+| groupClaim            | String                                                    | `groups`                         | Groups claim path in token (`groups` must be a list of strings containing user groups)                                                                |
+| emailVerified         | Boolean                                                   | `false`                          | Check that user email is verified in user token (field `email_verified`)                                                                              |
+| cookieName            | String                                                    | `oidc`                           | Cookie generated name                                                                                                                                 |
+| cookieSecure          | Boolean                                                   | `false`                          | Is the cookie secure ?                                                                                                                                |
+| authorizationAccesses | [[OIDCAuthorizationAccesses]](#oidcauthorizationaccesses) | None                             | Authorization accesses matrix by group or email. If not set, authenticated users will be authorized (no group or email validation will be performed). |
 
 ## OIDCAuthorizationAccesses
 
@@ -120,6 +125,21 @@ You can see a full example in the [Example section](#example)
 | user     | String                                              | None    | User name     |
 | password | [CredentialConfiguration](#credentialconfiguration) | None    | User password |
 
+## Resource
+
+| Key       | Type                                              | Default                           | Description                                                                                                         |
+| --------- | ------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| path      | String                                            | None                              | Path or matching path (e.g.: `/*`)                                                                                  |
+| whiteList | Boolean                                           | None                              | Is this path in white list ? E.g.: No authentication                                                                |
+| oidc      | [ResourceOIDC](#resourceoidc)                     | None                              | OIDC configuration authorization override. This part will override the default groups/email authorization accesses. |
+| basic     | [BasicAuthConfiguration](#basicauthconfiguration) | Basic auth configuration override |
+
+# ResourceOIDC
+
+| Key                   | Type                                                      | Default | Description                                                                                                                                           |
+| --------------------- | --------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| authorizationAccesses | [[OIDCAuthorizationAccesses]](#oidcauthorizationaccesses) | None    | Authorization accesses matrix by group or email. If not set, authenticated users will be authorized (no group or email validation will be performed). |
+
 ## Example
 
 ```yaml
@@ -139,6 +159,7 @@ log:
 # mainBucketPathSupport: true
 
 # Authentication
+# Note: OIDC is always preferred by default against basic authentication
 # auth:
 #   oidc:
 #     clientID: client-id
@@ -161,6 +182,17 @@ log:
 #       - user: user1
 #         password:
 #           path: password1-in-file
+
+# Resources declaration
+# resources:
+#   - path: /
+#     whiteList: true
+#   - path: /devops_internal_doc/*
+#     whiteList: false # Force not white list to use default global authentication system
+#   - path: /specific_doc
+#     oidc:
+#       authorizationAccesses: # Authorization accesses : groups or email
+#         - group: specific_users
 
 # Targets
 targets:
