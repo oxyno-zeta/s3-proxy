@@ -116,7 +116,11 @@ func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 	return nil
 }
 
-func oidcAuthorizationMiddleware(oidcAuthCfg *config.OIDCAuthConfig, tplConfig *config.TemplateConfig) func(http.Handler) http.Handler {
+func oidcAuthorizationMiddleware(
+	oidcAuthCfg *config.OIDCAuthConfig,
+	tplConfig *config.TemplateConfig,
+	authorizationAccesses []*config.OIDCAuthorizationAccess,
+) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			logEntry := GetLogEntry(r)
@@ -173,7 +177,7 @@ func oidcAuthorizationMiddleware(oidcAuthCfg *config.OIDCAuthConfig, tplConfig *
 				groups = append(groups, item.(string))
 			}
 			// Check if authorized
-			if !isAuthorized(groups, email, oidcAuthCfg.AuthorizationAccesses) {
+			if !isAuthorized(groups, email, authorizationAccesses) {
 				logEntry.Errorf("Forbidden user %s", email)
 				handleForbidden(w, path, &logEntry, tplConfig)
 				return

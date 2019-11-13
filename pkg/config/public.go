@@ -2,16 +2,14 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/go-playground/validator.v9"
 )
 
 var k = koanf.New(".")
@@ -52,6 +50,21 @@ func Load() (*Config, error) {
 		}
 	}
 
+	if out.Auth != nil && out.Auth.OIDC != nil {
+		// Manage default scopes
+		if out.Auth.OIDC.Scopes == nil || len(out.Auth.OIDC.Scopes) == 0 {
+			out.Auth.OIDC.Scopes = DefaultOIDCScopes
+		}
+		// Manage default group claim
+		if out.Auth.OIDC.GroupClaim == "" {
+			out.Auth.OIDC.GroupClaim = DefaultOIDCGroupClaim
+		}
+		// Manage default oidc cookie name
+		if out.Auth.OIDC.CookieName == "" {
+			out.Auth.OIDC.CookieName = DefaultOIDCCookieName
+		}
+	}
+
 	// Configuration validation
 	err = validate.Struct(out)
 	if err != nil {
@@ -60,6 +73,29 @@ func Load() (*Config, error) {
 	// Validate main bucket path support option
 	if out.MainBucketPathSupport && len(out.Targets) > 1 {
 		return nil, ErrMainBucketPathSupportNotValid
+	}
+	// Validate resources if they exists
+	noGlobalAuth := out.Auth == nil || (out.Auth != nil && out.Auth.Basic == nil && out.Auth.OIDC == nil)
+	if out.Resources != nil && len(out.Resources) != 0 {
+		for i := 0; i < len(out.Resources); i++ {
+			res := out.Resources[i]
+			// Check resource not valid
+			if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil {
+				return nil, fmt.Errorf("Resource %d must have whitelist, basic configuration or oidc configuration", i)
+			}
+			// Check no global auth and not in white list
+			if noGlobalAuth &&
+				res.Basic == nil &&
+				res.OIDC == nil &&
+				res.WhiteList != nil &&
+				!*res.WhiteList {
+				return nil, fmt.Errorf("Resource %d is not declared in whitelist and global authentication were not found", i)
+			}
+			// Check OIDC but no OIDC configuration
+			if (out.Auth == nil || (out.Auth != nil && out.Auth.OIDC == nil)) && res.OIDC != nil {
+				return nil, fmt.Errorf("Resource %d have an OIDC configuration but no global authentication were found", i)
+			}
+		}
 	}
 
 	// Load credentials from declaration
@@ -91,7 +127,7 @@ func Load() (*Config, error) {
 				}
 			}
 		}
-		// Load credentials for oidc auth if needed and apply default oidc values
+		// Load credentials for oidc auth if needed
 		if out.Auth.OIDC != nil {
 			// Load credentials for oidc auth if needed
 			if out.Auth.OIDC.ClientSecret != nil {
@@ -100,42 +136,10 @@ func Load() (*Config, error) {
 					return nil, err
 				}
 			}
-			// Manage default scopes
-			if out.Auth.OIDC.Scopes == nil || len(out.Auth.OIDC.Scopes) == 0 {
-				out.Auth.OIDC.Scopes = DefaultOIDCScopes
-			}
-			// Manage default group claim
-			if out.Auth.OIDC.GroupClaim == "" {
-				out.Auth.OIDC.GroupClaim = DefaultOIDCGroupClaim
-			}
-			// Manage default oidc cookie name
-			if out.Auth.OIDC.CookieName == "" {
-				out.Auth.OIDC.CookieName = DefaultOIDCCookieName
-			}
 		}
 	}
 
 	return &out, nil
-}
-
-func loadCredential(credCfg *CredentialConfig) error {
-	if credCfg.Path != "" {
-		// Secret file
-		databytes, err := ioutil.ReadFile(credCfg.Path)
-		if err != nil {
-			return err
-		}
-		credCfg.Value = string(databytes)
-	} else if credCfg.Env != "" {
-		// Environment variable
-		envValue := os.Getenv(credCfg.Env)
-		if envValue == "" {
-			return fmt.Errorf(TemplateErrLoadingEnvCredentialEmpty, credCfg.Env)
-		}
-		credCfg.Value = envValue
-	}
-	// Value case is already managed by koanf
-	return nil
 }
 
 // ConfigureLogger Configure logger instance
