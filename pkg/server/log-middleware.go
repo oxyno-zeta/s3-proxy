@@ -40,6 +40,7 @@ func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 
 	logFields["remote_addr"] = r.RemoteAddr
 	logFields["user_agent"] = r.UserAgent()
+	logFields["client_ip"] = clientIP(r)
 
 	logFields["uri"] = fmt.Sprintf("%s://%s%s", scheme, r.Host, r.RequestURI)
 
@@ -58,8 +59,9 @@ type StructuredLoggerEntry struct {
 // Write Write
 func (l *StructuredLoggerEntry) Write(status, bytes int, elapsed time.Duration) {
 	l.Logger = l.Logger.WithFields(logrus.Fields{
-		"resp_status": status, "resp_bytes_length": bytes,
-		"resp_elapsed_ms": float64(elapsed.Nanoseconds()) / 1000000.0,
+		"resp_status":       status,
+		"resp_bytes_length": bytes,
+		"resp_elapsed_ms":   float64(elapsed.Nanoseconds()) / 1000000.0,
 	})
 	logFunc := l.Logger.Infoln
 	if status >= 300 && status < 400 {

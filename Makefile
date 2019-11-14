@@ -74,6 +74,10 @@ coverage-report:
 clean:
 	@rm -rf $(BINDIR) $(DISTDIR)
 
+.PHONY: update-dep
+update-dep:
+	go get -u ./...
+
 #############
 # Bootstrap #
 #############
@@ -94,3 +98,4 @@ ifndef HAS_GIT
 	$(error You must install Git)
 endif
 	go mod download
+	go mod tidy

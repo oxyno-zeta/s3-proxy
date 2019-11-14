@@ -69,6 +69,7 @@ func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 			handleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
 			return
 		}
+
 		rawIDToken, ok := oauth2Token.Extra("id_token").(string)
 		if !ok {
 			err = errors.New("no id_token field in token")
@@ -76,6 +77,7 @@ func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 			handleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
 			return
 		}
+
 		idToken, err := verifier.Verify(ctx, rawIDToken)
 		if err != nil {
 			err = errors.New("failed to verify ID Token: " + err.Error())
@@ -96,6 +98,7 @@ func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 			handleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
 			return
 		}
+
 		// Build cookie
 		cookie := &http.Cookie{
 			Expires:  oauth2Token.Expiry,
@@ -106,13 +109,18 @@ func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 			Path:     "/",
 		}
 		http.SetCookie(w, cookie)
+
 		logEntry.Info("Successfull authentication detected")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	})
 	return nil
 }
 
-func oidcAuthorizationMiddleware(oidcAuthCfg *config.OIDCAuthConfig, tplConfig *config.TemplateConfig) func(http.Handler) http.Handler {
+func oidcAuthorizationMiddleware(
+	oidcAuthCfg *config.OIDCAuthConfig,
+	tplConfig *config.TemplateConfig,
+	authorizationAccesses []*config.OIDCAuthorizationAccess,
+) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			logEntry := GetLogEntry(r)
@@ -169,7 +177,7 @@ func oidcAuthorizationMiddleware(oidcAuthCfg *config.OIDCAuthConfig, tplConfig *
 				groups = append(groups, item.(string))
 			}
 			// Check if authorized
-			if !isAuthorized(groups, email, oidcAuthCfg.AuthorizationAccesses) {
+			if !isAuthorized(groups, email, authorizationAccesses) {
 				logEntry.Errorf("Forbidden user %s", email)
 				handleForbidden(w, path, &logEntry, tplConfig)
 				return
@@ -185,7 +193,7 @@ func oidcAuthorizationMiddleware(oidcAuthCfg *config.OIDCAuthConfig, tplConfig *
 
 func isAuthorized(groups []string, email string, authorizationAccesses []*config.OIDCAuthorizationAccess) bool {
 	if len(authorizationAccesses) == 0 {
-		return false
+		return true
 	}
 	for _, item := range authorizationAccesses {
 		if item.Group != "" {

@@ -65,6 +65,7 @@ type Config struct {
 	Templates             *TemplateConfig `koanf:"templates"`
 	MainBucketPathSupport bool            `koanf:"mainBucketPathSupport"`
 	Auth                  *AuthConfig     `koanf:"auth"`
+	Resources             []*Resource     `koanf:"resources" validate:"dive"`
 }
 
 // AuthConfig Authentication configurations
@@ -85,7 +86,7 @@ type OIDCAuthConfig struct {
 	EmailVerified         bool                       `koanf:"emailVerified"`
 	CookieName            string                     `koanf:"cookieName"`
 	CookieSecure          bool                       `koanf:"cookieSecure"`
-	AuthorizationAccesses []*OIDCAuthorizationAccess `koanf:"authorizationAccesses" validate:"required"`
+	AuthorizationAccesses []*OIDCAuthorizationAccess `koanf:"authorizationAccesses"`
 }
 
 // OIDCAuthorizationAccess OpenID Connect authorization accesses
@@ -130,6 +131,19 @@ type Target struct {
 	IndexDocument string        `koanf:"indexDocument"`
 }
 
+// Resource Resource
+type Resource struct {
+	Path      string           `koanf:"path" validate:"required"`
+	WhiteList *bool            `koanf:"whiteList"`
+	Basic     *BasicAuthConfig `koanf:"basic" validate:"omitempty"`
+	OIDC      *ResourceOIDC    `koanf:"oidc" validate:"omitempty"`
+}
+
+// ResourceOIDC OIDC Resource
+type ResourceOIDC struct {
+	AuthorizationAccesses []*OIDCAuthorizationAccess `koanf:"authorizationAccesses" validate:"dive"`
+}
+
 // BucketConfig Bucket configuration
 type BucketConfig struct {
 	Name        string                  `koanf:"name" validate:"required"`
@@ -147,9 +161,9 @@ type BucketCredentialConfig struct {
 
 // CredentialConfig Credential Configurations
 type CredentialConfig struct {
-	Path  string `koanf:"path" validate:"required_without=Env Value"`
-	Env   string `koanf:"env" validate:"required_without=Path Value"`
-	Value string `koanf:"value" validate:"required_without=Path Env"`
+	Path  string `koanf:"path" validate:"required_without_all=Env Value"`
+	Env   string `koanf:"env" validate:"required_without_all=Path Value"`
+	Value string `koanf:"value" validate:"required_without_all=Path Env"`
 }
 
 // LogConfig Log configuration

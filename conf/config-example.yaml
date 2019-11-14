@@ -14,6 +14,7 @@ log:
 # mainBucketPathSupport: true
 
 # Authentication
+# Note: OIDC is always preferred by default against basic authentication
 # auth:
 #   oidc:
 #     clientID: client-id
@@ -36,6 +37,17 @@ log:
 #       - user: user1
 #         password:
 #           path: password1-in-file
+
+# Resources declaration
+# resources:
+#   - path: /
+#     whiteList: true
+#   - path: /devops_internal_doc/*
+#     whiteList: false # Force not white list to use default global authentication system
+#   - path: /specific_doc
+#     oidc:
+#       authorizationAccesses: # Authorization accesses : groups or email
+#         - group: specific_users
 
 # Targets
 targets:
