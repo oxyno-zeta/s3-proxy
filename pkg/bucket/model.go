@@ -11,7 +11,7 @@ import (
 
 // RequestContext Bucket request context
 type RequestContext struct {
-	s3Context                 *s3client.S3Context
+	s3Context                 s3client.S3ContextInterface
 	logger                    *logrus.FieldLogger
 	bucketInstance            *config.Target
 	tplConfig                 *config.TemplateConfig

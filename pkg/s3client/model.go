@@ -10,8 +10,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// S3Context S3 Context
-type S3Context struct {
+// S3ContextInterface S3 Context interface
+type S3ContextInterface interface {
+	ListFilesAndDirectories(string) ([]*Entry, error)
+	GetObject(string) (*ObjectOutput, error)
+}
+
+type s3Context struct {
 	svcClient *s3.S3
 	Target    *config.Target
 	logger    *logrus.FieldLogger

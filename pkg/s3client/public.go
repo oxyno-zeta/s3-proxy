@@ -5,37 +5,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/oxyno-zeta/s3-proxy/pkg/config"
-	"github.com/sirupsen/logrus"
 )
 
-// NewS3Context New S3 Context
-func NewS3Context(tgt *config.Target, logger *logrus.FieldLogger) (*S3Context, error) {
-	sessionConfig := &aws.Config{
-		Region: aws.String(tgt.Bucket.Region),
-	}
-	// Load credentials if they exists
-	if tgt.Bucket.Credentials != nil && tgt.Bucket.Credentials.AccessKey != nil && tgt.Bucket.Credentials.SecretKey != nil {
-		sessionConfig.Credentials = credentials.NewStaticCredentials(tgt.Bucket.Credentials.AccessKey.Value, tgt.Bucket.Credentials.SecretKey.Value, "")
-	}
-	// Load custom endpoint if it exists
-	if tgt.Bucket.S3Endpoint != "" {
-		sessionConfig.Endpoint = aws.String(tgt.Bucket.S3Endpoint)
-		sessionConfig.S3ForcePathStyle = aws.Bool(true)
-	}
-	sess, err := session.NewSession(sessionConfig)
-	if err != nil {
-		return nil, err
-	}
-	svcClient := s3.New(sess)
-	return &S3Context{svcClient: svcClient, logger: logger, Target: tgt}, nil
-}
-
 // ListFilesAndDirectories List files and directories
-func (s3ctx *S3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
+func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 	// List files on path
 	folders := make([]*Entry, 0)
 	files := make([]*Entry, 0)
@@ -81,7 +55,7 @@ func (s3ctx *S3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 }
 
 // GetObject Get object from S3 bucket
-func (s3ctx *S3Context) GetObject(key string) (*ObjectOutput, error) {
+func (s3ctx *s3Context) GetObject(key string) (*ObjectOutput, error) {
 	obj, err := s3ctx.svcClient.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(s3ctx.Target.Bucket.Name),
 		Key:    aws.String(key),
