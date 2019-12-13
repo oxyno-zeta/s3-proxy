@@ -8,6 +8,8 @@ import (
 	"github.com/go-chi/hostrouter"
 	"github.com/oxyno-zeta/s3-proxy/pkg/bucket"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/server/middlewares"
+	"github.com/oxyno-zeta/s3-proxy/pkg/server/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 )
@@ -21,12 +23,12 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) (http.Handler, er
 	r.Use(middleware.NoCache)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(NewStructuredLogger(logger))
+	r.Use(middlewares.NewStructuredLogger(logger))
 	r.Use(middleware.Recoverer)
 	// Check if auth if enabled and oidc enabled
 	if cfg.AuthProviders != nil && cfg.AuthProviders.OIDC != nil {
 		for _, v := range cfg.AuthProviders.OIDC {
-			err := oidcEndpoints(v, cfg.Templates, r)
+			err := middlewares.OIDCEndpoints(v, cfg.Templates, r)
 			if err != nil {
 				return nil, err
 			}
@@ -34,9 +36,9 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) (http.Handler, er
 	}
 
 	r.NotFound(func(rw http.ResponseWriter, req *http.Request) {
-		logEntry := GetLogEntry(req)
+		logEntry := middlewares.GetLogEntry(req)
 		path := req.URL.RequestURI()
-		handleNotFound(rw, path, &logEntry, cfg.Templates)
+		utils.HandleNotFound(rw, path, &logEntry, cfg.Templates)
 	})
 
 	// Create host router
@@ -50,9 +52,9 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) (http.Handler, er
 		// Loop over path list
 		funk.ForEach(cfg.ListTargets.Mount.Path, func(path string) {
 			rt.Route(path, func(rt2 chi.Router) {
-				rt2 = rt2.With(authMiddleware(cfg, []*config.Resource{cfg.ListTargets.Resource}))
+				rt2 = rt2.With(middlewares.AuthMiddleware(cfg, []*config.Resource{cfg.ListTargets.Resource}))
 				rt2.Get("/", func(rw http.ResponseWriter, req *http.Request) {
-					logEntry := GetLogEntry(req)
+					logEntry := middlewares.GetLogEntry(req)
 					generateTargetList(rw, &logEntry, cfg)
 				})
 			})
@@ -82,15 +84,15 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) (http.Handler, er
 		// Loop over path list
 		funk.ForEach(tgt.Mount.Path, func(path string) {
 			rt.Route(path, func(rt2 chi.Router) {
-				rt2 = rt2.With(authMiddleware(cfg, tgt.Resources))
+				rt2 = rt2.With(middlewares.AuthMiddleware(cfg, tgt.Resources))
 				rt2.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
 					requestPath := chi.URLParam(req, "*")
-					logEntry := GetLogEntry(req)
-					brctx, err := bucket.NewRequestContext(tgt, cfg.Templates, &logEntry, path, requestPath, &rw, handleNotFound, handleInternalServerError)
+					logEntry := middlewares.GetLogEntry(req)
+					brctx, err := bucket.NewRequestContext(tgt, cfg.Templates, &logEntry, path, requestPath, &rw, utils.HandleNotFound, utils.HandleInternalServerError)
 
 					if err != nil {
 						logger.Errorln(err)
-						handleInternalServerError(rw, err, requestPath, &logEntry, cfg.Templates)
+						utils.HandleInternalServerError(rw, err, requestPath, &logEntry, cfg.Templates)
 					} else {
 						brctx.Proxy()
 					}

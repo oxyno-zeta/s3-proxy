@@ -1,4 +1,4 @@
-package server
+package middlewares
 
 import (
 	"encoding/json"
@@ -10,6 +10,7 @@ import (
 	oidc "github.com/coreos/go-oidc"
 	"github.com/go-chi/chi"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/server/utils"
 	"github.com/thoas/go-funk"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -20,7 +21,7 @@ import (
 const oidcLoginPath = "/auth/oidc"
 const oidcLoginCallbackPath = "/auth/oidc/callback"
 
-func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateConfig, mux chi.Router) error {
+func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateConfig, mux chi.Router) error {
 	ctx := context.Background()
 
 	provider, err := oidc.NewProvider(ctx, oidcCfg.IssuerURL)
@@ -58,7 +59,7 @@ func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if r.URL.Query().Get("state") != state {
 			err := errors.New("state did not match")
 			logEntry.Error(err)
-			handleBadRequest(w, oidcLoginCallbackPath, err, &logEntry, tplConfig)
+			utils.HandleBadRequest(w, oidcLoginCallbackPath, err, &logEntry, tplConfig)
 			return
 		}
 
@@ -66,7 +67,7 @@ func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if err != nil {
 			err = errors.New("failed to exchange token: " + err.Error())
 			logEntry.Error(err)
-			handleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
+			utils.HandleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
 			return
 		}
 
@@ -74,7 +75,7 @@ func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if !ok {
 			err = errors.New("no id_token field in token")
 			logEntry.Error(err)
-			handleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
+			utils.HandleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
 			return
 		}
 
@@ -82,7 +83,7 @@ func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if err != nil {
 			err = errors.New("failed to verify ID Token: " + err.Error())
 			logEntry.Error(err)
-			handleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
+			utils.HandleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
 			return
 		}
 
@@ -95,7 +96,7 @@ func oidcEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		err = idToken.Claims(&resp.IDTokenClaims)
 		if err != nil {
 			logEntry.Error(err)
-			handleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
+			utils.HandleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
 			return
 		}
 
@@ -132,7 +133,7 @@ func oidcAuthorizationMiddleware(
 				logEntry.Debug("Can't load auth cookie")
 				if err != http.ErrNoCookie {
 					logEntry.Error(err)
-					handleInternalServerError(w, err, path, &logEntry, tplConfig)
+					utils.HandleInternalServerError(w, err, path, &logEntry, tplConfig)
 					return
 				}
 				if cookie == nil {
@@ -146,13 +147,13 @@ func oidcAuthorizationMiddleware(
 			token, _, err := parser.ParseUnverified(cookie.Value, jwt.MapClaims{})
 			if err != nil {
 				logEntry.Error(err)
-				handleInternalServerError(w, err, path, &logEntry, tplConfig)
+				utils.HandleInternalServerError(w, err, path, &logEntry, tplConfig)
 				return
 			}
 			err = token.Claims.Valid()
 			if err != nil {
 				logEntry.Error(err)
-				handleInternalServerError(w, err, path, &logEntry, tplConfig)
+				utils.HandleInternalServerError(w, err, path, &logEntry, tplConfig)
 				return
 			}
 
@@ -165,7 +166,7 @@ func oidcAuthorizationMiddleware(
 				emailVerified := claims["email_verified"].(bool)
 				if !emailVerified {
 					logEntry.Errorf("Email not verified for %s", email)
-					handleForbidden(w, path, &logEntry, tplConfig)
+					utils.HandleForbidden(w, path, &logEntry, tplConfig)
 					return
 				}
 			}
@@ -179,7 +180,7 @@ func oidcAuthorizationMiddleware(
 			// Check if authorized
 			if !isAuthorized(groups, email, authorizationAccesses) {
 				logEntry.Errorf("Forbidden user %s", email)
-				handleForbidden(w, path, &logEntry, tplConfig)
+				utils.HandleForbidden(w, path, &logEntry, tplConfig)
 				return
 			}
 

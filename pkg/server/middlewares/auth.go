@@ -1,4 +1,4 @@
-package server
+package middlewares
 
 import (
 	"errors"
@@ -6,11 +6,12 @@ import (
 
 	"github.com/gobwas/glob"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/server/utils"
 )
 
 var errAuthMiddlewareNotSupported = errors.New("not supported")
 
-func authMiddleware(cfg *config.Config, resources []*config.Resource) func(http.Handler) http.Handler {
+func AuthMiddleware(cfg *config.Config, resources []*config.Resource) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			logEntry := GetLogEntry(r)
@@ -20,7 +21,7 @@ func authMiddleware(cfg *config.Config, resources []*config.Resource) func(http.
 			res, err := findResource(resources, requestURI)
 			if err != nil {
 				logEntry.Error(err)
-				handleInternalServerError(w, err, requestURI, &logEntry, cfg.Templates)
+				utils.HandleInternalServerError(w, err, requestURI, &logEntry, cfg.Templates)
 			}
 
 			// Check if resource isn't found
@@ -53,7 +54,7 @@ func authMiddleware(cfg *config.Config, resources []*config.Resource) func(http.
 			// Error, this case shouldn't arrive
 			err = errAuthMiddlewareNotSupported
 			logEntry.Error(err)
-			handleInternalServerError(w, err, requestURI, &logEntry, cfg.Templates)
+			utils.HandleInternalServerError(w, err, requestURI, &logEntry, cfg.Templates)
 		})
 	}
 }

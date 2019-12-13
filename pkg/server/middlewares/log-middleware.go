@@ -1,4 +1,4 @@
-package server
+package middlewares
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/middleware"
+	"github.com/oxyno-zeta/s3-proxy/pkg/server/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -40,7 +41,7 @@ func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 
 	logFields["remote_addr"] = r.RemoteAddr
 	logFields["user_agent"] = r.UserAgent()
-	logFields["client_ip"] = clientIP(r)
+	logFields["client_ip"] = utils.ClientIP(r)
 
 	logFields["uri"] = fmt.Sprintf("%s://%s%s", scheme, r.Host, r.RequestURI)
 

@@ -1,10 +1,11 @@
-package server
+package middlewares
 
 import (
 	"fmt"
 	"net/http"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/server/utils"
 	"github.com/thoas/go-funk"
 )
 
@@ -17,7 +18,7 @@ func basicAuthMiddleware(basicConfig *config.BasicAuthConfig, basicAuthUserConfi
 			if !ok {
 				logEntry.Error("No basic auth detected in request")
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
-				handleUnauthorized(w, path, &logEntry, templateConfig)
+				utils.HandleUnauthorized(w, path, &logEntry, templateConfig)
 				return
 			}
 
@@ -29,7 +30,7 @@ func basicAuthMiddleware(basicConfig *config.BasicAuthConfig, basicAuthUserConfi
 			if cred == nil {
 				logEntry.Errorf("Username %s not found in authorized users", username)
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
-				handleUnauthorized(w, path, &logEntry, templateConfig)
+				utils.HandleUnauthorized(w, path, &logEntry, templateConfig)
 				return
 			}
 
@@ -37,7 +38,7 @@ func basicAuthMiddleware(basicConfig *config.BasicAuthConfig, basicAuthUserConfi
 			if cred.(*config.BasicAuthUserConfig).Password.Value == "" || cred.(*config.BasicAuthUserConfig).Password.Value != password {
 				logEntry.Errorf("Username %s not authorized", username)
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
-				handleUnauthorized(w, path, &logEntry, templateConfig)
+				utils.HandleUnauthorized(w, path, &logEntry, templateConfig)
 				return
 			}
 
