@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -50,18 +49,20 @@ func Load() (*Config, error) {
 		}
 	}
 
-	if out.Auth != nil && out.Auth.OIDC != nil {
-		// Manage default scopes
-		if out.Auth.OIDC.Scopes == nil || len(out.Auth.OIDC.Scopes) == 0 {
-			out.Auth.OIDC.Scopes = DefaultOIDCScopes
-		}
-		// Manage default group claim
-		if out.Auth.OIDC.GroupClaim == "" {
-			out.Auth.OIDC.GroupClaim = DefaultOIDCGroupClaim
-		}
-		// Manage default oidc cookie name
-		if out.Auth.OIDC.CookieName == "" {
-			out.Auth.OIDC.CookieName = DefaultOIDCCookieName
+	if out.AuthProviders != nil && out.AuthProviders.OIDC != nil {
+		for _, v := range out.AuthProviders.OIDC {
+			// Manage default scopes
+			if v.Scopes == nil || len(v.Scopes) == 0 {
+				v.Scopes = DefaultOIDCScopes
+			}
+			// Manage default group claim
+			if v.GroupClaim == "" {
+				v.GroupClaim = DefaultOIDCGroupClaim
+			}
+			// Manage default oidc cookie name
+			if v.CookieName == "" {
+				v.CookieName = DefaultOIDCCookieName
+			}
 		}
 	}
 
@@ -70,33 +71,29 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Validate main bucket path support option
-	if out.MainBucketPathSupport && len(out.Targets) > 1 {
-		return nil, ErrMainBucketPathSupportNotValid
-	}
 	// Validate resources if they exists
-	noGlobalAuth := out.Auth == nil || (out.Auth != nil && out.Auth.Basic == nil && out.Auth.OIDC == nil)
-	if out.Resources != nil && len(out.Resources) != 0 {
-		for i := 0; i < len(out.Resources); i++ {
-			res := out.Resources[i]
-			// Check resource not valid
-			if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil {
-				return nil, fmt.Errorf("Resource %d must have whitelist, basic configuration or oidc configuration", i)
-			}
-			// Check no global auth and not in white list
-			if noGlobalAuth &&
-				res.Basic == nil &&
-				res.OIDC == nil &&
-				res.WhiteList != nil &&
-				!*res.WhiteList {
-				return nil, fmt.Errorf("Resource %d is not declared in whitelist and global authentication were not found", i)
-			}
-			// Check OIDC but no OIDC configuration
-			if (out.Auth == nil || (out.Auth != nil && out.Auth.OIDC == nil)) && res.OIDC != nil {
-				return nil, fmt.Errorf("Resource %d have an OIDC configuration but no global authentication were found", i)
-			}
-		}
-	}
+	// noGlobalAuth := out.AuthProviders == nil || (out.AuthProviders != nil && out.AuthProviders.Basic == nil && out.AuthProviders.OIDC == nil)
+	// if out.Resources != nil && len(out.Resources) != 0 {
+	// 	for i := 0; i < len(out.Resources); i++ {
+	// 		res := out.Resources[i]
+	// 		// Check resource not valid
+	// 		if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil {
+	// 			return nil, fmt.Errorf("Resource %d must have whitelist, basic configuration or oidc configuration", i)
+	// 		}
+	// 		// Check no global auth and not in white list
+	// 		if noGlobalAuth &&
+	// 			res.Basic == nil &&
+	// 			res.OIDC == nil &&
+	// 			res.WhiteList != nil &&
+	// 			!*res.WhiteList {
+	// 			return nil, fmt.Errorf("Resource %d is not declared in whitelist and global authentication were not found", i)
+	// 		}
+	// 		// Check OIDC but no OIDC configuration
+	// 		if (out.AuthProviders == nil || (out.AuthProviders != nil && out.AuthProviders.OIDC == nil)) && res.OIDC != nil {
+	// 			return nil, fmt.Errorf("Resource %d have an OIDC configuration but no global authentication were found", i)
+	// 		}
+	// 	}
+	// }
 
 	// Load credentials from declaration
 	for _, item := range out.Targets {
@@ -115,25 +112,16 @@ func Load() (*Config, error) {
 	}
 
 	// Load auth credentials
-	if out.Auth != nil {
-		// Load credential for basic auth if needed
-		if out.Auth.Basic != nil && out.Auth.Basic.Credentials != nil && len(out.Auth.Basic.Credentials) > 0 {
-			for _, item := range out.Auth.Basic.Credentials {
-				if item.User != "" && item.Password != nil {
-					err := loadCredential(item.Password)
+	if out.AuthProviders != nil {
+		// Load credentials for oidc auth if needed
+		if out.AuthProviders.OIDC != nil {
+			// Load credentials for oidc auth if needed
+			for _, v := range out.AuthProviders.OIDC {
+				if v.ClientSecret != nil {
+					err := loadCredential(v.ClientSecret)
 					if err != nil {
 						return nil, err
 					}
-				}
-			}
-		}
-		// Load credentials for oidc auth if needed
-		if out.Auth.OIDC != nil {
-			// Load credentials for oidc auth if needed
-			if out.Auth.OIDC.ClientSecret != nil {
-				err := loadCredential(out.Auth.OIDC.ClientSecret)
-				if err != nil {
-					return nil, err
 				}
 			}
 		}

@@ -8,7 +8,7 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func basicAuthMiddleware(basicConfig *config.BasicAuthConfig, templateConfig *config.TemplateConfig) func(http.Handler) http.Handler {
+func basicAuthMiddleware(basicConfig *config.BasicAuthConfig, basicAuthUserConfigList []*config.BasicAuthUserConfig, templateConfig *config.TemplateConfig) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			logEntry := GetLogEntry(r)
@@ -22,7 +22,7 @@ func basicAuthMiddleware(basicConfig *config.BasicAuthConfig, templateConfig *co
 			}
 
 			// Find user credentials
-			cred := funk.Find(basicConfig.Credentials, func(cred *config.BasicAuthUserConfig) bool {
+			cred := funk.Find(basicAuthUserConfigList, func(cred *config.BasicAuthUserConfig) bool {
 				return cred.User == username
 			})
 

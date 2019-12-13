@@ -58,35 +58,46 @@ var TemplateErrLoadingEnvCredentialEmpty = "error loading credentials, environme
 
 // Config Application Configuration
 type Config struct {
-	Log                   *LogConfig      `koanf:"log"`
-	Server                *ServerConfig   `koanf:"server"`
-	InternalServer        *ServerConfig   `koanf:"internalServer"`
-	Targets               []*Target       `koanf:"targets" validate:"gte=0,required,dive,required"`
-	Templates             *TemplateConfig `koanf:"templates"`
-	MainBucketPathSupport bool            `koanf:"mainBucketPathSupport"`
-	Auth                  *AuthConfig     `koanf:"auth"`
-	Resources             []*Resource     `koanf:"resources" validate:"dive"`
+	Log            *LogConfig          `koanf:"log"`
+	Server         *ServerConfig       `koanf:"server"`
+	InternalServer *ServerConfig       `koanf:"internalServer"`
+	Targets        []*Target           `koanf:"targets" validate:"gte=0,required,dive,required"`
+	Templates      *TemplateConfig     `koanf:"templates"`
+	AuthProviders  *AuthProviderConfig `koanf:"authProviders"`
+	ListTargets    *ListTargetsConfig  `koanf:"listTargets" validate:"required"`
 }
 
-// AuthConfig Authentication configurations
-type AuthConfig struct {
-	Basic *BasicAuthConfig `koanf:"basic" validate:"omitempty,dive"`
-	OIDC  *OIDCAuthConfig  `koanf:"oidc" validate:"omitempty,dive"`
+// ListTargetsConfig List targets configuration
+type ListTargetsConfig struct {
+	Enabled  bool         `koanf:"enabled"`
+	Mount    *MountConfig `koanf:"mount"`
+	Resource *Resource    `koanf:"resource"`
+}
+
+// MountConfig Mount configuration
+type MountConfig struct {
+	Host string   `koanf:"host"`
+	Path []string `koanf:"path" validate:"dive,required"`
+}
+
+// AuthProviderConfig Authentication provider configurations
+type AuthProviderConfig struct {
+	Basic map[string]*BasicAuthConfig `koanf:"basic" validate:"omitempty,dive"`
+	OIDC  map[string]*OIDCAuthConfig  `koanf:"oidc" validate:"omitempty,dive"`
 }
 
 // OIDCAuthConfig OpenID Connect authentication configurations
 type OIDCAuthConfig struct {
-	ClientID              string                     `koanf:"clientID" validate:"required"`
-	ClientSecret          *CredentialConfig          `koanf:"clientSecret" validate:"omitempty,dive"`
-	IssuerURL             string                     `koanf:"issuerUrl" validate:"required"`
-	RedirectURL           string                     `koanf:"redirectUrl" validate:"required"`
-	Scopes                []string                   `koanf:"scope"`
-	State                 string                     `koanf:"state" validate:"required"`
-	GroupClaim            string                     `koanf:"groupClaim"`
-	EmailVerified         bool                       `koanf:"emailVerified"`
-	CookieName            string                     `koanf:"cookieName"`
-	CookieSecure          bool                       `koanf:"cookieSecure"`
-	AuthorizationAccesses []*OIDCAuthorizationAccess `koanf:"authorizationAccesses"`
+	ClientID      string            `koanf:"clientID" validate:"required"`
+	ClientSecret  *CredentialConfig `koanf:"clientSecret" validate:"omitempty,dive"`
+	IssuerURL     string            `koanf:"issuerUrl" validate:"required"`
+	RedirectURL   string            `koanf:"redirectUrl" validate:"required"`
+	Scopes        []string          `koanf:"scope"`
+	State         string            `koanf:"state" validate:"required"`
+	GroupClaim    string            `koanf:"groupClaim"`
+	EmailVerified bool              `koanf:"emailVerified"`
+	CookieName    string            `koanf:"cookieName"`
+	CookieSecure  bool              `koanf:"cookieSecure"`
 }
 
 // OIDCAuthorizationAccess OpenID Connect authorization accesses
@@ -97,8 +108,7 @@ type OIDCAuthorizationAccess struct {
 
 // BasicAuthConfig Basic auth configurations
 type BasicAuthConfig struct {
-	Realm       string                 `koanf:"realm" validate:"required"`
-	Credentials []*BasicAuthUserConfig `koanf:"credentials" validate:"omitempty,dive"`
+	Realm string `koanf:"realm" validate:"required"`
 }
 
 // BasicAuthUserConfig Basic User auth configuration
@@ -128,18 +138,26 @@ type ServerConfig struct {
 type Target struct {
 	Name          string        `koanf:"name" validate:"required"`
 	Bucket        *BucketConfig `koanf:"bucket" validate:"required"`
+	Resources     []*Resource   `koanf:"resources" validate:"dive"`
+	Mount         *MountConfig  `koanf:"mount" validate:"required"`
 	IndexDocument string        `koanf:"indexDocument"`
 }
 
 // Resource Resource
 type Resource struct {
-	Path      string           `koanf:"path" validate:"required"`
-	WhiteList *bool            `koanf:"whiteList"`
-	Basic     *BasicAuthConfig `koanf:"basic" validate:"omitempty"`
-	OIDC      *ResourceOIDC    `koanf:"oidc" validate:"omitempty"`
+	Path      string         `koanf:"path" validate:"required"`
+	WhiteList *bool          `koanf:"whiteList"`
+	Provider  string         `koanf:"provider"`
+	Basic     *ResourceBasic `koanf:"basic" validate:"omitempty"`
+	OIDC      *ResourceOIDC  `koanf:"oidc" validate:"omitempty"`
 }
 
-// ResourceOIDC OIDC Resource
+// ResourceBasic Basic auth resource
+type ResourceBasic struct {
+	Credentials []*BasicAuthUserConfig `koanf:"credentials" validate:"omitempty,dive"`
+}
+
+// ResourceOIDC OIDC auth Resource
 type ResourceOIDC struct {
 	AuthorizationAccesses []*OIDCAuthorizationAccess `koanf:"authorizationAccesses" validate:"dive"`
 }

@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/Masterminds/sprig"
-	"github.com/go-chi/chi"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
 	"github.com/sirupsen/logrus"
 )
@@ -48,22 +47,11 @@ func clientIP(r *http.Request) string {
 }
 
 func generateTargetList(rw http.ResponseWriter, logger *logrus.FieldLogger, cfg *config.Config) {
+	// TODO Manage new host and path list
 	err := templateExecution(cfg.Templates.TargetList, logger, rw, struct{ Targets []*config.Target }{Targets: cfg.Targets}, 200)
 	if err != nil {
 		(*logger).Errorln(err)
 		handleInternalServerError(rw, err, "/", logger, cfg.Templates)
 		return
 	}
-}
-
-func putAuthMiddlewares(cfg *config.Config, r chi.Router) chi.Router {
-	// Check if oidc is enabled
-	if cfg.Auth != nil && cfg.Auth.OIDC != nil {
-		return r.With(oidcAuthorizationMiddleware(cfg.Auth.OIDC, cfg.Templates, cfg.Auth.OIDC.AuthorizationAccesses))
-	}
-	// Check if basic auth is enabled
-	if cfg.Auth != nil && cfg.Auth.Basic != nil {
-		return r.With(basicAuthMiddleware(cfg.Auth.Basic, cfg.Templates))
-	}
-	return r
 }
