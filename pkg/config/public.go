@@ -1,38 +1,38 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/parsers/yaml"
-	"github.com/knadh/koanf/providers/confmap"
-	"github.com/knadh/koanf/providers/file"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
-var k = koanf.New(".")
 var validate = validator.New()
 
 // Load Load configuration
 func Load() (*Config, error) {
+	// Set main configuration filename
+	viper.SetConfigName(MainConfigFileName)
+	// Set main configuration folder path
+	viper.AddConfigPath(MainConfigFolderPath)
+	viper.AddConfigPath(".")
 	// Load default configuration
-	k.Load(confmap.Provider(map[string]interface{}{
-		"log.level":                     DefaultLogLevel,
-		"log.format":                    DefaultLogFormat,
-		"server.port":                   DefaultPort,
-		"internalServer.port":           DefaultInternalPort,
-		"templates.folderList":          DefaultTemplateFolderListPath,
-		"templates.targetList":          DefaultTemplateTargetListPath,
-		"templates.notFound":            DefaultTemplateNotFoundPath,
-		"templates.internalServerError": DefaultTemplateInternalServerErrorPath,
-		"templates.unauthorized":        DefaultTemplateUnauthorizedErrorPath,
-		"templates.forbidden":           DefaultTemplateForbiddenErrorPath,
-		"templates.badRequest":          DefaultTemplateBadRequestErrorPath,
-	}, "."), nil)
+	viper.SetDefault("log.level", DefaultLogLevel)
+	viper.SetDefault("log.format", DefaultLogFormat)
+	viper.SetDefault("server.port", DefaultPort)
+	viper.SetDefault("internalServer.port", DefaultInternalPort)
+	viper.SetDefault("templates.folderList", DefaultTemplateFolderListPath)
+	viper.SetDefault("templates.targetList", DefaultTemplateTargetListPath)
+	viper.SetDefault("templates.notFound", DefaultTemplateNotFoundPath)
+	viper.SetDefault("templates.internalServerError", DefaultTemplateInternalServerErrorPath)
+	viper.SetDefault("templates.unauthorized", DefaultTemplateUnauthorizedErrorPath)
+	viper.SetDefault("templates.forbidden", DefaultTemplateForbiddenErrorPath)
+	viper.SetDefault("templates.badRequest", DefaultTemplateBadRequestErrorPath)
 
 	// Try to load main configuration file
-	err := k.Load(file.Provider(MainConfigPath), yaml.Parser())
+	err := viper.ReadInConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,10 @@ func Load() (*Config, error) {
 	// Prepare configuration object
 	var out Config
 	// Quick unmarshal.
-	k.Unmarshal("", &out)
+	err = viper.Unmarshal(&out)
+	if err != nil {
+		return nil, err
+	}
 
 	// Manage default s3 bucket region
 	for _, item := range out.Targets {
@@ -71,29 +74,6 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Validate resources if they exists
-	// noGlobalAuth := out.AuthProviders == nil || (out.AuthProviders != nil && out.AuthProviders.Basic == nil && out.AuthProviders.OIDC == nil)
-	// if out.Resources != nil && len(out.Resources) != 0 {
-	// 	for i := 0; i < len(out.Resources); i++ {
-	// 		res := out.Resources[i]
-	// 		// Check resource not valid
-	// 		if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil {
-	// 			return nil, fmt.Errorf("Resource %d must have whitelist, basic configuration or oidc configuration", i)
-	// 		}
-	// 		// Check no global auth and not in white list
-	// 		if noGlobalAuth &&
-	// 			res.Basic == nil &&
-	// 			res.OIDC == nil &&
-	// 			res.WhiteList != nil &&
-	// 			!*res.WhiteList {
-	// 			return nil, fmt.Errorf("Resource %d is not declared in whitelist and global authentication were not found", i)
-	// 		}
-	// 		// Check OIDC but no OIDC configuration
-	// 		if (out.AuthProviders == nil || (out.AuthProviders != nil && out.AuthProviders.OIDC == nil)) && res.OIDC != nil {
-	// 			return nil, fmt.Errorf("Resource %d have an OIDC configuration but no global authentication were found", i)
-	// 		}
-	// 	}
-	// }
 
 	// Load credentials from declaration
 	for _, item := range out.Targets {
@@ -127,6 +107,121 @@ func Load() (*Config, error) {
 		}
 	}
 
+	// Load auth credentials from list targets with basic auth
+	if out.ListTargets != nil && out.ListTargets.Resource != nil &&
+		out.ListTargets.Resource.Basic != nil && out.ListTargets.Resource.Basic.Credentials != nil {
+		// Loop over credentials declared
+		for i := 0; i < len(out.ListTargets.Resource.Basic.Credentials); i++ {
+			// Store item access
+			it := out.ListTargets.Resource.Basic.Credentials[i]
+			// Load credential
+			err := loadCredential(it.Password)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	// Load auth credentials from targets with basic auth
+	for i := 0; i < len(out.Targets); i++ {
+		target := out.Targets[i]
+		// Check if resources are declared
+		if target.Resources != nil {
+			for j := 0; j < len(target.Resources); j++ {
+				res := target.Resources[j]
+				// Check if basic auth configuration exists
+				if res.Basic != nil && res.Basic.Credentials != nil {
+					// Loop over creds
+					for k := 0; k < len(res.Basic.Credentials); k++ {
+						it := res.Basic.Credentials[k]
+						// Load credential
+						err := loadCredential(it.Password)
+						if err != nil {
+							return nil, err
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Validate resources if they exists in all targets
+	for i := 0; i < len(out.Targets); i++ {
+		target := out.Targets[i]
+		// Check if resources are declared
+		if target.Resources != nil {
+			for j := 0; j < len(target.Resources); j++ {
+				res := target.Resources[j]
+				// Check resource not valid
+				if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil {
+					return nil, fmt.Errorf("Resource %d from target %d must have whitelist, basic configuration or oidc configuration", j, i)
+				}
+				// Check if provider exists
+				if res.WhiteList != nil && !*res.WhiteList && res.Provider == "" {
+					return nil, fmt.Errorf("Resource %d from target %d must have a provider", j, i)
+				}
+				// Check auth logins are provided in case of no whitelist
+				if res.WhiteList != nil && !*res.WhiteList && res.Basic == nil && res.OIDC == nil {
+					return nil, fmt.Errorf("Resource %d from target %d must have authentication configuration declared (oidc or basic)", j, i)
+				}
+				// Check that provider is declared is auth providers and correctly linked
+				if res.Provider != "" {
+					// Check that auth provider exists
+					exists := out.AuthProviders.Basic[res.Provider] != nil || out.AuthProviders.OIDC[res.Provider] != nil
+					if !exists {
+						return nil, fmt.Errorf("Resource %d from target %d must have a valid provider declared in authentication providers", j, i)
+					}
+					// Check that selected provider is in link with authentication selected
+					// Check basic
+					if res.Basic != nil && out.AuthProviders.Basic[res.Provider] == nil {
+						return nil, fmt.Errorf(
+							"Resource %d from target %d must use a valid authentication configuration with selected authentication provider: basic auth not allowed",
+							j, i)
+					}
+					// Check oidc
+					if res.OIDC != nil && out.AuthProviders.OIDC[res.Provider] == nil {
+						return nil, fmt.Errorf(
+							"Resource %d from target %d must use a valid authentication configuration with selected authentication provider: oidc not allowed", j, i)
+					}
+				}
+			}
+		}
+	}
+
+	// Validate list targets resource
+	if out.ListTargets != nil && out.ListTargets.Resource != nil {
+		res := out.ListTargets.Resource
+		// Check resource not valid
+		if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil {
+			return nil, fmt.Errorf("Resource from list targets have whitelist, basic configuration or oidc configuration")
+		}
+		// Check if provider exists
+		if res.WhiteList != nil && !*res.WhiteList && res.Provider == "" {
+			return nil, fmt.Errorf("Resource from list targets must have a provider")
+		}
+		// Check auth logins are provided in case of no whitelist
+		if res.WhiteList != nil && !*res.WhiteList && res.Basic == nil && res.OIDC == nil {
+			return nil, fmt.Errorf("Resource from list targets must have authentication configuration declared (oidc or basic)")
+		}
+		// Check that provider is declared is auth providers and correctly linked
+		if res.Provider != "" {
+			// Check that auth provider exists
+			exists := out.AuthProviders.Basic[res.Provider] != nil || out.AuthProviders.OIDC[res.Provider] != nil
+			if !exists {
+				return nil, fmt.Errorf("Resource from list targets must have a valid provider declared in authentication providers")
+			}
+			// Check that selected provider is in link with authentication selected
+			// Check basic
+			if res.Basic != nil && out.AuthProviders.Basic[res.Provider] == nil {
+				return nil, fmt.Errorf(
+					"Resource from list targets must use a valid authentication configuration with selected authentication provider: basic auth not allowed")
+			}
+			// Check oidc
+			if res.OIDC != nil && out.AuthProviders.OIDC[res.Provider] == nil {
+				return nil, fmt.Errorf("Resource from list targets must use a valid authentication configuration with selected authentication provider: oidc not allowed")
+			}
+		}
+	}
+
 	return &out, nil
 }
 
@@ -144,6 +239,7 @@ func ConfigureLogger(logger *logrus.Logger, logConfig *LogConfig) error {
 	if err != nil {
 		return err
 	}
+	// Set log level
 	logger.SetLevel(lvl)
 
 	return nil
@@ -156,5 +252,6 @@ func (bcfg *BucketConfig) GetRootPrefix() string {
 	if key != "" && !strings.HasSuffix(key, "/") {
 		key += "/"
 	}
+	// Return result
 	return key
 }
