@@ -48,11 +48,16 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) (http.Handler, er
 	if cfg.ListTargets.Enabled {
 		// Create new router
 		rt := chi.NewRouter()
+		// Make list of resources from resource
+		resources := make([]*config.Resource, 0)
+		if cfg.ListTargets.Resource != nil {
+			resources = append(resources, cfg.ListTargets.Resource)
+		}
 		// Manage path for list targets feature
 		// Loop over path list
 		funk.ForEach(cfg.ListTargets.Mount.Path, func(path string) {
 			rt.Route(path, func(rt2 chi.Router) {
-				rt2 = rt2.With(middlewares.AuthMiddleware(cfg, []*config.Resource{cfg.ListTargets.Resource}))
+				rt2 = rt2.With(middlewares.AuthMiddleware(cfg, resources))
 				rt2.Get("/", func(rw http.ResponseWriter, req *http.Request) {
 					logEntry := middlewares.GetLogEntry(req)
 					generateTargetList(rw, &logEntry, cfg)
