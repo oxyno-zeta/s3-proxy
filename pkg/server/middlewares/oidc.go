@@ -18,9 +18,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const oidcLoginPath = "/auth/oidc"
-const oidcLoginCallbackPath = "/auth/oidc/callback"
-
 func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateConfig, mux chi.Router) error {
 	ctx := context.Background()
 
@@ -35,7 +32,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 
 	// Build redirect url
 	u, err := url.Parse(oidcCfg.RedirectURL)
-	u.Path = path.Join(u.Path, oidcLoginCallbackPath)
+	u.Path = path.Join(u.Path, oidcCfg.CallbackPath)
 	redirectURL := u.String()
 	config := oauth2.Config{
 		ClientID:    oidcCfg.ClientID,
@@ -50,16 +47,16 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 	// Store state
 	state := oidcCfg.State
 
-	mux.HandleFunc(oidcLoginPath, func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(oidcCfg.LoginPath, func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, config.AuthCodeURL(state), http.StatusFound)
 	})
 
-	mux.HandleFunc(oidcLoginCallbackPath, func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(oidcCfg.CallbackPath, func(w http.ResponseWriter, r *http.Request) {
 		logEntry := GetLogEntry(r)
 		if r.URL.Query().Get("state") != state {
 			err := errors.New("state did not match")
 			logEntry.Error(err)
-			utils.HandleBadRequest(w, oidcLoginCallbackPath, err, &logEntry, tplConfig)
+			utils.HandleBadRequest(w, oidcCfg.CallbackPath, err, &logEntry, tplConfig)
 			return
 		}
 
@@ -67,7 +64,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if err != nil {
 			err = errors.New("failed to exchange token: " + err.Error())
 			logEntry.Error(err)
-			utils.HandleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
+			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, &logEntry, tplConfig)
 			return
 		}
 
@@ -75,7 +72,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if !ok {
 			err = errors.New("no id_token field in token")
 			logEntry.Error(err)
-			utils.HandleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
+			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, &logEntry, tplConfig)
 			return
 		}
 
@@ -83,7 +80,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if err != nil {
 			err = errors.New("failed to verify ID Token: " + err.Error())
 			logEntry.Error(err)
-			utils.HandleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
+			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, &logEntry, tplConfig)
 			return
 		}
 
@@ -96,7 +93,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		err = idToken.Claims(&resp.IDTokenClaims)
 		if err != nil {
 			logEntry.Error(err)
-			utils.HandleInternalServerError(w, err, oidcLoginCallbackPath, &logEntry, tplConfig)
+			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, &logEntry, tplConfig)
 			return
 		}
 
@@ -138,7 +135,7 @@ func oidcAuthorizationMiddleware(
 				}
 				if cookie == nil {
 					logEntry.Error("No auth cookie detected, redirect to oidc login")
-					http.Redirect(w, r, oidcLoginPath, http.StatusTemporaryRedirect)
+					http.Redirect(w, r, oidcAuthCfg.LoginPath, http.StatusTemporaryRedirect)
 					return
 				}
 			}

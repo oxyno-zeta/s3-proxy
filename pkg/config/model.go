@@ -59,6 +59,9 @@ var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support opti
 // TemplateErrLoadingEnvCredentialEmpty Template Error when Loading Environment variable Credentials
 var TemplateErrLoadingEnvCredentialEmpty = "error loading credentials, environment variable %s is empty"
 
+const oidcLoginPathTemplate = "/auth/%s"
+const oidcCallbackPathTemplate = "/auth/%s/callback"
+
 // Config Application Configuration
 type Config struct {
 	Log            *LogConfig          `mapstructure:"log"`
@@ -101,6 +104,8 @@ type OIDCAuthConfig struct {
 	CookieName    string            `mapstructure:"cookieName"`
 	EmailVerified bool              `mapstructure:"emailVerified"`
 	CookieSecure  bool              `mapstructure:"cookieSecure"`
+	LoginPath     string            `mapstructure:"loginPath"`
+	CallbackPath  string            `mapstructure:"callbackPath"`
 }
 
 // OIDCAuthorizationAccess OpenID Connect authorization accesses

@@ -96,12 +96,21 @@ func Load() (*Config, error) {
 		// Load credentials for oidc auth if needed
 		if out.AuthProviders.OIDC != nil {
 			// Load credentials for oidc auth if needed
-			for _, v := range out.AuthProviders.OIDC {
+			for k, v := range out.AuthProviders.OIDC {
+				// Check if client secret exists
 				if v.ClientSecret != nil {
 					err := loadCredential(v.ClientSecret)
 					if err != nil {
 						return nil, err
 					}
+				}
+				// Check if login path is defined
+				if v.LoginPath == "" {
+					v.LoginPath = fmt.Sprintf(oidcLoginPathTemplate, k)
+				}
+				// Check if callback path is defined
+				if v.CallbackPath == "" {
+					v.CallbackPath = fmt.Sprintf(oidcCallbackPathTemplate, k)
 				}
 			}
 		}
