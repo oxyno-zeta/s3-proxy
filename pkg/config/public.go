@@ -200,11 +200,11 @@ func Load() (*Config, error) {
 			path := pathList[j]
 			// Check that path begins with /
 			if !strings.HasPrefix(path, "/") {
-				return nil, fmt.Errorf("path %d in resource %d must starts with /", j, i)
+				return nil, fmt.Errorf("path %d in target %d must starts with /", j, i)
 			}
 			// Check that path ends with /
 			if !strings.HasSuffix(path, "/") {
-				return nil, fmt.Errorf("path %d in resource %d must ends with /", j, i)
+				return nil, fmt.Errorf("path %d in target %d must ends with /", j, i)
 			}
 		}
 	}
