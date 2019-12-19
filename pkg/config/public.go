@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -198,13 +199,10 @@ func Load() (*Config, error) {
 		pathList := target.Mount.Path
 		for j := 0; j < len(pathList); j++ {
 			path := pathList[j]
-			// Check that path begins with /
-			if !strings.HasPrefix(path, "/") {
-				return nil, fmt.Errorf("path %d in target %d must starts with /", j, i)
-			}
-			// Check that path ends with /
-			if !strings.HasSuffix(path, "/") {
-				return nil, fmt.Errorf("path %d in target %d must ends with /", j, i)
+			// Check path value
+			err := validatePath(fmt.Sprintf("path %d in target %d", j, i), path)
+			if err != nil {
+				return nil, err
 			}
 		}
 	}
@@ -249,18 +247,28 @@ func Load() (*Config, error) {
 		pathList := out.ListTargets.Mount.Path
 		for j := 0; j < len(pathList); j++ {
 			path := pathList[j]
-			// Check that path begins with /
-			if !strings.HasPrefix(path, "/") {
-				return nil, fmt.Errorf("path %d in list targets must starts with /", j)
-			}
-			// Check that path ends with /
-			if !strings.HasSuffix(path, "/") {
-				return nil, fmt.Errorf("path %d in list targets must ends with /", j)
+			// Check path value
+			err := validatePath(fmt.Sprintf("path %d in list targets", j), path)
+			if err != nil {
+				return nil, err
 			}
 		}
 	}
 
 	return &out, nil
+}
+
+func validatePath(beginErrorMessage string, path string) error {
+	// Check that path begins with /
+	if !strings.HasPrefix(path, "/") {
+		return errors.New(beginErrorMessage + " must starts with /")
+	}
+	// Check that path ends with /
+	if !strings.HasSuffix(path, "/") {
+		return errors.New(beginErrorMessage + " must ends with /")
+	}
+	// Return no error
+	return nil
 }
 
 // ConfigureLogger Configure logger instance
