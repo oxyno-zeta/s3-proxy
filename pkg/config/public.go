@@ -162,34 +162,34 @@ func Load() (*Config, error) {
 				res := target.Resources[j]
 				// Check resource not valid
 				if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil {
-					return nil, fmt.Errorf("Resource %d from target %d must have whitelist, basic configuration or oidc configuration", j, i)
+					return nil, fmt.Errorf("resource %d from target %d must have whitelist, basic configuration or oidc configuration", j, i)
 				}
 				// Check if provider exists
 				if res.WhiteList != nil && !*res.WhiteList && res.Provider == "" {
-					return nil, fmt.Errorf("Resource %d from target %d must have a provider", j, i)
+					return nil, fmt.Errorf("resource %d from target %d must have a provider", j, i)
 				}
 				// Check auth logins are provided in case of no whitelist
 				if res.WhiteList != nil && !*res.WhiteList && res.Basic == nil && res.OIDC == nil {
-					return nil, fmt.Errorf("Resource %d from target %d must have authentication configuration declared (oidc or basic)", j, i)
+					return nil, fmt.Errorf("resource %d from target %d must have authentication configuration declared (oidc or basic)", j, i)
 				}
 				// Check that provider is declared is auth providers and correctly linked
 				if res.Provider != "" {
 					// Check that auth provider exists
 					exists := out.AuthProviders.Basic[res.Provider] != nil || out.AuthProviders.OIDC[res.Provider] != nil
 					if !exists {
-						return nil, fmt.Errorf("Resource %d from target %d must have a valid provider declared in authentication providers", j, i)
+						return nil, fmt.Errorf("resource %d from target %d must have a valid provider declared in authentication providers", j, i)
 					}
 					// Check that selected provider is in link with authentication selected
 					// Check basic
 					if res.Basic != nil && out.AuthProviders.Basic[res.Provider] == nil {
 						return nil, fmt.Errorf(
-							"Resource %d from target %d must use a valid authentication configuration with selected authentication provider: basic auth not allowed",
+							"resource %d from target %d must use a valid authentication configuration with selected authentication provider: basic auth not allowed",
 							j, i)
 					}
 					// Check oidc
 					if res.OIDC != nil && out.AuthProviders.OIDC[res.Provider] == nil {
 						return nil, fmt.Errorf(
-							"Resource %d from target %d must use a valid authentication configuration with selected authentication provider: oidc not allowed", j, i)
+							"resource %d from target %d must use a valid authentication configuration with selected authentication provider: oidc not allowed", j, i)
 					}
 				}
 			}
@@ -216,32 +216,32 @@ func Load() (*Config, error) {
 			res := out.ListTargets.Resource
 			// Check resource not valid
 			if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil {
-				return nil, fmt.Errorf("Resource from list targets have whitelist, basic configuration or oidc configuration")
+				return nil, fmt.Errorf("resource from list targets have whitelist, basic configuration or oidc configuration")
 			}
 			// Check if provider exists
 			if res.WhiteList != nil && !*res.WhiteList && res.Provider == "" {
-				return nil, fmt.Errorf("Resource from list targets must have a provider")
+				return nil, fmt.Errorf("resource from list targets must have a provider")
 			}
 			// Check auth logins are provided in case of no whitelist
 			if res.WhiteList != nil && !*res.WhiteList && res.Basic == nil && res.OIDC == nil {
-				return nil, fmt.Errorf("Resource from list targets must have authentication configuration declared (oidc or basic)")
+				return nil, fmt.Errorf("resource from list targets must have authentication configuration declared (oidc or basic)")
 			}
 			// Check that provider is declared is auth providers and correctly linked
 			if res.Provider != "" {
 				// Check that auth provider exists
 				exists := out.AuthProviders.Basic[res.Provider] != nil || out.AuthProviders.OIDC[res.Provider] != nil
 				if !exists {
-					return nil, fmt.Errorf("Resource from list targets must have a valid provider declared in authentication providers")
+					return nil, fmt.Errorf("resource from list targets must have a valid provider declared in authentication providers")
 				}
 				// Check that selected provider is in link with authentication selected
 				// Check basic
 				if res.Basic != nil && out.AuthProviders.Basic[res.Provider] == nil {
 					return nil, fmt.Errorf(
-						"Resource from list targets must use a valid authentication configuration with selected authentication provider: basic auth not allowed")
+						"resource from list targets must use a valid authentication configuration with selected authentication provider: basic auth not allowed")
 				}
 				// Check oidc
 				if res.OIDC != nil && out.AuthProviders.OIDC[res.Provider] == nil {
-					return nil, fmt.Errorf("Resource from list targets must use a valid authentication configuration with selected authentication provider: oidc not allowed")
+					return nil, fmt.Errorf("resource from list targets must use a valid authentication configuration with selected authentication provider: oidc not allowed")
 				}
 			}
 		}
