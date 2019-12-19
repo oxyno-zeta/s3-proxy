@@ -153,7 +153,7 @@ func Load() (*Config, error) {
 		}
 	}
 
-	// Validate resources if they exists in all targets
+	// Validate resources if they exists in all targets and validate target mount path
 	for i := 0; i < len(out.Targets); i++ {
 		target := out.Targets[i]
 		// Check if resources are declared
@@ -194,39 +194,68 @@ func Load() (*Config, error) {
 				}
 			}
 		}
+		// Check mount path items
+		pathList := target.Mount.Path
+		for j := 0; j < len(pathList); j++ {
+			path := pathList[j]
+			// Check that path begins with /
+			if !strings.HasPrefix(path, "/") {
+				return nil, fmt.Errorf("path %d in resource %d must starts with /", j, i)
+			}
+			// Check that path ends with /
+			if !strings.HasSuffix(path, "/") {
+				return nil, fmt.Errorf("path %d in resource %d must ends with /", j, i)
+			}
+		}
 	}
 
-	// Validate list targets resource
-	if out.ListTargets != nil && out.ListTargets.Resource != nil {
-		res := out.ListTargets.Resource
-		// Check resource not valid
-		if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil {
-			return nil, fmt.Errorf("Resource from list targets have whitelist, basic configuration or oidc configuration")
-		}
-		// Check if provider exists
-		if res.WhiteList != nil && !*res.WhiteList && res.Provider == "" {
-			return nil, fmt.Errorf("Resource from list targets must have a provider")
-		}
-		// Check auth logins are provided in case of no whitelist
-		if res.WhiteList != nil && !*res.WhiteList && res.Basic == nil && res.OIDC == nil {
-			return nil, fmt.Errorf("Resource from list targets must have authentication configuration declared (oidc or basic)")
-		}
-		// Check that provider is declared is auth providers and correctly linked
-		if res.Provider != "" {
-			// Check that auth provider exists
-			exists := out.AuthProviders.Basic[res.Provider] != nil || out.AuthProviders.OIDC[res.Provider] != nil
-			if !exists {
-				return nil, fmt.Errorf("Resource from list targets must have a valid provider declared in authentication providers")
+	// Validate list targets object
+	if out.ListTargets != nil {
+		// Check list targets resource
+		if out.ListTargets.Resource != nil {
+			res := out.ListTargets.Resource
+			// Check resource not valid
+			if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil {
+				return nil, fmt.Errorf("Resource from list targets have whitelist, basic configuration or oidc configuration")
 			}
-			// Check that selected provider is in link with authentication selected
-			// Check basic
-			if res.Basic != nil && out.AuthProviders.Basic[res.Provider] == nil {
-				return nil, fmt.Errorf(
-					"Resource from list targets must use a valid authentication configuration with selected authentication provider: basic auth not allowed")
+			// Check if provider exists
+			if res.WhiteList != nil && !*res.WhiteList && res.Provider == "" {
+				return nil, fmt.Errorf("Resource from list targets must have a provider")
 			}
-			// Check oidc
-			if res.OIDC != nil && out.AuthProviders.OIDC[res.Provider] == nil {
-				return nil, fmt.Errorf("Resource from list targets must use a valid authentication configuration with selected authentication provider: oidc not allowed")
+			// Check auth logins are provided in case of no whitelist
+			if res.WhiteList != nil && !*res.WhiteList && res.Basic == nil && res.OIDC == nil {
+				return nil, fmt.Errorf("Resource from list targets must have authentication configuration declared (oidc or basic)")
+			}
+			// Check that provider is declared is auth providers and correctly linked
+			if res.Provider != "" {
+				// Check that auth provider exists
+				exists := out.AuthProviders.Basic[res.Provider] != nil || out.AuthProviders.OIDC[res.Provider] != nil
+				if !exists {
+					return nil, fmt.Errorf("Resource from list targets must have a valid provider declared in authentication providers")
+				}
+				// Check that selected provider is in link with authentication selected
+				// Check basic
+				if res.Basic != nil && out.AuthProviders.Basic[res.Provider] == nil {
+					return nil, fmt.Errorf(
+						"Resource from list targets must use a valid authentication configuration with selected authentication provider: basic auth not allowed")
+				}
+				// Check oidc
+				if res.OIDC != nil && out.AuthProviders.OIDC[res.Provider] == nil {
+					return nil, fmt.Errorf("Resource from list targets must use a valid authentication configuration with selected authentication provider: oidc not allowed")
+				}
+			}
+		}
+		// Check mount path items
+		pathList := out.ListTargets.Mount.Path
+		for j := 0; j < len(pathList); j++ {
+			path := pathList[j]
+			// Check that path begins with /
+			if !strings.HasPrefix(path, "/") {
+				return nil, fmt.Errorf("path %d in list targets must starts with /", j)
+			}
+			// Check that path ends with /
+			if !strings.HasSuffix(path, "/") {
+				return nil, fmt.Errorf("path %d in list targets must ends with /", j)
 			}
 		}
 	}

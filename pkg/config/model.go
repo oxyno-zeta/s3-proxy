@@ -83,7 +83,7 @@ type ListTargetsConfig struct {
 // MountConfig Mount configuration
 type MountConfig struct {
 	Host string   `mapstructure:"host"`
-	Path []string `mapstructure:"path" validate:"dive,required"`
+	Path []string `mapstructure:"path" validate:"required,dive,required"`
 }
 
 // AuthProviderConfig Authentication provider configurations
