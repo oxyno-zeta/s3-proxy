@@ -80,7 +80,7 @@ func Load() (*Config, error) {
 	for _, item := range out.Targets {
 		if item.Bucket.Credentials != nil && item.Bucket.Credentials.AccessKey != nil && item.Bucket.Credentials.SecretKey != nil {
 			// Manage access key
-			err := loadCredential(item.Bucket.Credentials.AccessKey)
+			err = loadCredential(item.Bucket.Credentials.AccessKey)
 			if err != nil {
 				return nil, err
 			}
@@ -100,7 +100,7 @@ func Load() (*Config, error) {
 			for k, v := range out.AuthProviders.OIDC {
 				// Check if client secret exists
 				if v.ClientSecret != nil {
-					err := loadCredential(v.ClientSecret)
+					err = loadCredential(v.ClientSecret)
 					if err != nil {
 						return nil, err
 					}
@@ -125,7 +125,7 @@ func Load() (*Config, error) {
 			// Store item access
 			it := out.ListTargets.Resource.Basic.Credentials[i]
 			// Load credential
-			err := loadCredential(it.Password)
+			err = loadCredential(it.Password)
 			if err != nil {
 				return nil, err
 			}
@@ -144,7 +144,7 @@ func Load() (*Config, error) {
 					for k := 0; k < len(res.Basic.Credentials); k++ {
 						it := res.Basic.Credentials[k]
 						// Load credential
-						err := loadCredential(it.Password)
+						err = loadCredential(it.Password)
 						if err != nil {
 							return nil, err
 						}
@@ -174,7 +174,7 @@ func Load() (*Config, error) {
 		for j := 0; j < len(pathList); j++ {
 			path := pathList[j]
 			// Check path value
-			err := validatePath(fmt.Sprintf("path %d in target %d", j, i), path)
+			err = validatePath(fmt.Sprintf("path %d in target %d", j, i), path)
 			if err != nil {
 				return nil, err
 			}
