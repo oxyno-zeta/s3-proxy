@@ -30,7 +30,7 @@ func loadCredential(credCfg *CredentialConfig) error {
 	return nil
 }
 
-func validateResource(beginErrorMessage string, res *Resource, authProviders *AuthProviderConfig) error {
+func validateResource(beginErrorMessage string, res *Resource, authProviders *AuthProviderConfig, mountPathList []string) error {
 	// Check resource not valid
 	if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil {
 		return errors.New(beginErrorMessage + " have whitelist, basic configuration or oidc configuration")
@@ -61,6 +61,23 @@ func validateResource(beginErrorMessage string, res *Resource, authProviders *Au
 			return errors.New(beginErrorMessage + " must use a valid authentication configuration with selected authentication provider: oidc not allowed")
 		}
 	}
+	// Check if resource path contains mount path item
+	pathMatch := false
+	// Loop over mount path list
+	for i := 0; i < len(mountPathList); i++ {
+		mountPath := mountPathList[i]
+		// Check
+		if strings.HasPrefix(res.Path, mountPath) {
+			pathMatch = true
+			// Stop loop now
+			break
+		}
+	}
+	// Check if matching was found
+	if !pathMatch {
+		return errors.New(beginErrorMessage + " must start with path declared in mount path section")
+	}
+
 	// Return no error
 	return nil
 }

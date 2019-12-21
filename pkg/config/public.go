@@ -161,7 +161,7 @@ func Load() (*Config, error) {
 			for j := 0; j < len(target.Resources); j++ {
 				res := target.Resources[j]
 				// Validate resource
-				err = validateResource(fmt.Sprintf("resource %d from target %d", j, i), res, out.AuthProviders)
+				err = validateResource(fmt.Sprintf("resource %d from target %d", j, i), res, out.AuthProviders, target.Mount.Path)
 				// Return error if exists
 				if err != nil {
 					return nil, err
@@ -186,7 +186,7 @@ func Load() (*Config, error) {
 		if out.ListTargets.Resource != nil {
 			res := out.ListTargets.Resource
 			// Validate resource
-			err = validateResource("resource from list targets", res, out.AuthProviders)
+			err = validateResource("resource from list targets", res, out.AuthProviders, out.ListTargets.Mount.Path)
 			// Return error if exists
 			if err != nil {
 				return nil, err
