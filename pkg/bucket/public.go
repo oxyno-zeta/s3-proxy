@@ -94,7 +94,7 @@ func (rctx *RequestContext) Proxy() {
 			Entries:    entries,
 			BucketName: rctx.bucketInstance.Bucket.Name,
 			Name:       rctx.bucketInstance.Name,
-			Path:       rctx.mountPath + "/" + rctx.requestPath,
+			Path:       rctx.mountPath + rctx.requestPath,
 		}
 		// Generate template in buffer
 		buf := &bytes.Buffer{}

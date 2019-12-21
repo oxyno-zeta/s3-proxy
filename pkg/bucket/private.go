@@ -23,7 +23,7 @@ func transformS3Entries(s3Entries []*s3client.Entry, rctx *RequestContext, bucke
 			LastModified: item.LastModified,
 			Size:         item.Size,
 			Key:          item.Key,
-			Path:         rctx.mountPath + "/" + strings.TrimPrefix(item.Key, bucketRootPrefixKey),
+			Path:         rctx.mountPath + strings.TrimPrefix(item.Key, bucketRootPrefixKey),
 		})
 	}
 	return entries
