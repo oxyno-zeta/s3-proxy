@@ -32,6 +32,7 @@ func main() {
 		logger.Fatal(err)
 		os.Exit(1)
 	}
+
 	logger.Debug("Configuration successfully loaded and logger configured")
 
 	// Getting version
@@ -51,8 +52,11 @@ func internalServe(logger *logrus.Logger, cfg *config.Config) {
 		Addr:    addr,
 		Handler: r,
 	}
+
 	logger.Infof("Server listening on %s", addr)
+
 	err := server.ListenAndServe()
+	// Check if error exists
 	if err != nil {
 		logger.Fatalf("Unable to start http server: %v", err)
 		os.Exit(1)
@@ -73,8 +77,11 @@ func serve(logger *logrus.Logger, cfg *config.Config) {
 		Addr:    addr,
 		Handler: r,
 	}
+
 	logger.Infof("Server listening on %s", addr)
+
 	err = server.ListenAndServe()
+	// Check if error exists
 	if err != nil {
 		logger.Fatalf("Unable to start http server: %v", err)
 		os.Exit(1)

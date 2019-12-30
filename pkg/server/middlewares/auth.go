@@ -63,12 +63,15 @@ func findResource(resL []*config.Resource, requestURI string) (*config.Resource,
 	for i := 0; i < len(resL); i++ {
 		res := resL[i]
 		g, err := glob.Compile(res.Path)
+		// Check if error exists
 		if err != nil {
 			return nil, err
 		}
+		// Check if request uri match glob pattern declared in resource
 		if g.Match(requestURI) {
 			return res, nil
 		}
 	}
+	// Not found case
 	return nil, nil
 }

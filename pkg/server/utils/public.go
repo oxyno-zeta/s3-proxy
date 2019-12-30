@@ -30,8 +30,9 @@ func HandleInternalServerError(rw http.ResponseWriter, err error, requestPath st
   </body>
 </html>
 `, err2)
+
 		rw.WriteHeader(http.StatusInternalServerError)
-		rw.Write([]byte(res))
+		_, _ = rw.Write([]byte(res))
 	}
 }
 
@@ -40,7 +41,6 @@ func HandleNotFound(rw http.ResponseWriter, requestPath string, logger *logrus.F
 	if err != nil {
 		(*logger).Errorln(err)
 		HandleInternalServerError(rw, err, requestPath, logger, tplCfg)
-		return
 	}
 }
 
@@ -49,7 +49,6 @@ func HandleUnauthorized(rw http.ResponseWriter, requestPath string, logger *logr
 	if err != nil {
 		(*logger).Errorln(err)
 		HandleInternalServerError(rw, err, requestPath, logger, tplCfg)
-		return
 	}
 }
 
@@ -61,7 +60,6 @@ func HandleBadRequest(rw http.ResponseWriter, requestPath string, err error, log
 	if err2 != nil {
 		(*logger).Errorln(err2)
 		HandleInternalServerError(rw, err2, requestPath, logger, tplCfg)
-		return
 	}
 }
 
@@ -72,7 +70,6 @@ func HandleForbidden(rw http.ResponseWriter, requestPath string, logger *logrus.
 	if err != nil {
 		(*logger).Errorln(err)
 		HandleInternalServerError(rw, err, requestPath, logger, tplCfg)
-		return
 	}
 }
 
@@ -81,9 +78,11 @@ func ClientIP(r *http.Request) string {
 	if IPAddress == "" {
 		IPAddress = r.Header.Get("X-Forwarded-For")
 	}
+
 	if IPAddress == "" {
 		IPAddress = r.RemoteAddr
 	}
+
 	return IPAddress
 }
 
@@ -91,6 +90,7 @@ func TemplateExecution(tplPath string, logger *logrus.FieldLogger, rw http.Respo
 	// Load template
 	tplFileName := filepath.Base(tplPath)
 	tmpl, err := template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).ParseFiles(tplPath)
+	// Check if error exists
 	if err != nil {
 		return err
 	}
@@ -98,15 +98,19 @@ func TemplateExecution(tplPath string, logger *logrus.FieldLogger, rw http.Respo
 	// Generate template in buffer
 	buf := &bytes.Buffer{}
 	err = tmpl.Execute(buf, data)
+	// Check if error exists
 	if err != nil {
 		return err
 	}
+	// Set status code
 	rw.WriteHeader(status)
 	// Set the header and write the buffer to the http.ResponseWriter
 	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, err = buf.WriteTo(rw)
+	// Check if error exists
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

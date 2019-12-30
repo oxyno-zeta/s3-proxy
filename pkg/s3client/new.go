@@ -23,10 +23,13 @@ func NewS3Context(tgt *config.Target, logger *logrus.FieldLogger) (S3ContextInte
 		sessionConfig.Endpoint = aws.String(tgt.Bucket.S3Endpoint)
 		sessionConfig.S3ForcePathStyle = aws.Bool(true)
 	}
+	// Create session
 	sess, err := session.NewSession(sessionConfig)
 	if err != nil {
 		return nil, err
 	}
+	// Create s3 client
 	svcClient := s3.New(sess)
+
 	return &s3Context{svcClient: svcClient, logger: logger, Target: tgt}, nil
 }

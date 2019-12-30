@@ -13,6 +13,7 @@ func generateTargetList(rw http.ResponseWriter, logger *logrus.FieldLogger, cfg 
 	if err != nil {
 		(*logger).Errorln(err)
 		utils.HandleInternalServerError(rw, err, "/", logger, cfg.Templates)
+		// Stop here
 		return
 	}
 }

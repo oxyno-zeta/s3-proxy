@@ -28,5 +28,6 @@ func GenerateInternalRouter(logger *logrus.Logger, cfg *config.Config) http.Hand
 	// Listen path
 	r.Handle("/metrics", promhttp.Handler())
 	r.Handle("/health", healthHandler)
+
 	return r
 }

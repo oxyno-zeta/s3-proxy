@@ -25,6 +25,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 	if err != nil {
 		return err
 	}
+
 	oidcConfig := &oidc.Config{
 		ClientID: oidcCfg.ClientID,
 	}
@@ -32,8 +33,15 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 
 	// Build redirect url
 	u, err := url.Parse(oidcCfg.RedirectURL)
+	// Check if error exists
+	if err != nil {
+		return err
+	}
+	// Continue to build redirect url
 	u.Path = path.Join(u.Path, oidcCfg.CallbackPath)
 	redirectURL := u.String()
+
+	// Create OIDC configuration
 	config := oauth2.Config{
 		ClientID:    oidcCfg.ClientID,
 		Endpoint:    provider.Endpoint(),
@@ -108,12 +116,14 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		}
 		http.SetCookie(w, cookie)
 
-		logEntry.Info("Successfull authentication detected")
+		logEntry.Info("Successful authentication detected")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	})
+
 	return nil
 }
 
+// nolint:whitespace
 func oidcAuthorizationMiddleware(
 	oidcAuthCfg *config.OIDCAuthConfig,
 	tplConfig *config.TemplateConfig,
@@ -190,19 +200,27 @@ func oidcAuthorizationMiddleware(
 }
 
 func isAuthorized(groups []string, email string, authorizationAccesses []*config.OIDCAuthorizationAccess) bool {
+	// Check if there is a list of groups or email
 	if len(authorizationAccesses) == 0 {
+		// No group or email => consider this as authentication only required => ok
 		return true
 	}
+
+	// Loop over groups and email
 	for _, item := range authorizationAccesses {
+		// Check group case
 		if item.Group != "" {
 			result := funk.Contains(groups, item.Group)
 			if result {
 				return true
 			}
 		}
+		// Check email case
 		if item.Email != "" && item.Email == email {
 			return true
 		}
 	}
+
+	// Not found case
 	return false
 }

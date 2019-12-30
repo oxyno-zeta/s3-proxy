@@ -15,6 +15,7 @@ import (
 )
 
 // NewRequestContext New request context
+// nolint:whitespace
 func NewRequestContext(
 	tgt *config.Target, tplConfig *config.TemplateConfig, logger *logrus.FieldLogger,
 	mountPath string, requestPath string, httpRW *http.ResponseWriter,
@@ -53,6 +54,7 @@ func (rctx *RequestContext) Proxy() {
 		if err != nil {
 			(*rctx.logger).Errorln(err)
 			rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
+			// Stop
 			return
 		}
 
@@ -68,25 +70,30 @@ func (rctx *RequestContext) Proxy() {
 			// Check if index document entry exists
 			if indexDocumentEntry != nil {
 				// Get data
-				err := getFile(rctx, indexDocumentEntry.(*Entry).Key)
+				err = getFile(rctx, indexDocumentEntry.(*Entry).Key)
 				// Check if error is a not found error
 				if err == s3client.ErrNotFound {
 					// Not found
 					rctx.handleNotFound(*rctx.httpRW, rctx.requestPath, rctx.logger, rctx.tplConfig)
 					return
 				}
+				// Log error
 				(*rctx.logger).Errorln(err)
+				// Response with error
 				rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
+				// Stop
 				return
 			}
 		}
 
 		// Load template
 		tplFileName := filepath.Base(rctx.tplConfig.FolderList)
+		// Create template
 		tmpl, err := template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).ParseFiles(rctx.tplConfig.FolderList)
 		if err != nil {
 			(*rctx.logger).Errorln(err)
 			rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
+			// Stop
 			return
 		}
 		// Create bucket list data for templating
@@ -98,21 +105,27 @@ func (rctx *RequestContext) Proxy() {
 		}
 		// Generate template in buffer
 		buf := &bytes.Buffer{}
+		// Execute template
 		err = tmpl.Execute(buf, data)
 		if err != nil {
 			(*rctx.logger).Errorln(err)
 			rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
+			// Stop
 			return
 		}
+		// Set status code
 		(*rctx.httpRW).WriteHeader(200)
 		// Set the header and write the buffer to the http.ResponseWriter
 		(*rctx.httpRW).Header().Set("Content-Type", "text/html; charset=utf-8")
+		// Write buffer content to output
 		_, err = buf.WriteTo((*rctx.httpRW))
 		if err != nil {
 			(*rctx.logger).Errorln(err)
 			rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
+			// Stop
 			return
 		}
+		// Stop
 		return
 	}
 
@@ -123,10 +136,14 @@ func (rctx *RequestContext) Proxy() {
 		if err == s3client.ErrNotFound {
 			// Not found
 			rctx.handleNotFound(*rctx.httpRW, rctx.requestPath, rctx.logger, rctx.tplConfig)
+			// Stop
 			return
 		}
+		// Log error
 		(*rctx.logger).Errorln(err)
+		// Manage error response
 		rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
+		// Stop
 		return
 	}
 }

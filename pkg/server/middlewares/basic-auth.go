@@ -9,7 +9,9 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func basicAuthMiddleware(basicConfig *config.BasicAuthConfig, basicAuthUserConfigList []*config.BasicAuthUserConfig, templateConfig *config.TemplateConfig) func(http.Handler) http.Handler {
+// nolint:whitespace
+func basicAuthMiddleware(basicConfig *config.BasicAuthConfig,
+	basicAuthUserConfigList []*config.BasicAuthUserConfig, templateConfig *config.TemplateConfig) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			logEntry := GetLogEntry(r)

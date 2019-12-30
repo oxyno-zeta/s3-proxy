@@ -51,6 +51,7 @@ func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 	}
 	// Concat folders and files
 	all := append(folders, files...)
+
 	return all, nil
 }
 
@@ -69,41 +70,53 @@ func (s3ctx *s3Context) GetObject(key string) (*ObjectOutput, error) {
 				return nil, ErrNotFound
 			}
 		}
+
 		return nil, err
 	}
 	// Build output
 	output := &ObjectOutput{
 		Body: &obj.Body,
 	}
+
 	if obj.CacheControl != nil {
 		output.CacheControl = *obj.CacheControl
 	}
+
 	if obj.Expires != nil {
 		output.Expires = *obj.Expires
 	}
+
 	if obj.ContentDisposition != nil {
 		output.ContentDisposition = *obj.ContentDisposition
 	}
+
 	if obj.ContentEncoding != nil {
 		output.ContentEncoding = *obj.ContentEncoding
 	}
+
 	if obj.ContentLanguage != nil {
 		output.ContentLanguage = *obj.ContentLanguage
 	}
+
 	if obj.ContentLength != nil {
 		output.ContentLength = *obj.ContentLength
 	}
+
 	if obj.ContentRange != nil {
 		output.ContentRange = *obj.ContentRange
 	}
+
 	if obj.ContentType != nil {
 		output.ContentType = *obj.ContentType
 	}
+
 	if obj.ETag != nil {
 		output.ETag = *obj.ETag
 	}
+
 	if obj.LastModified != nil {
 		output.LastModified = *obj.LastModified
 	}
+
 	return output, nil
 }

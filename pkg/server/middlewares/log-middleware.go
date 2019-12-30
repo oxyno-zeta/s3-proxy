@@ -35,6 +35,7 @@ func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	if r.TLS != nil {
 		scheme = "https"
 	}
+
 	logFields["http_scheme"] = scheme
 	logFields["http_proto"] = r.Proto
 	logFields["http_method"] = r.Method
@@ -65,9 +66,11 @@ func (l *StructuredLoggerEntry) Write(status, bytes int, elapsed time.Duration) 
 		"resp_elapsed_ms":   float64(elapsed.Nanoseconds()) / 1000000.0,
 	})
 	logFunc := l.Logger.Infoln
+	// Check status code for warn logger
 	if status >= 300 && status < 400 {
 		logFunc = l.Logger.Warnln
 	}
+	// Check status code for error logger
 	if status >= 400 {
 		logFunc = l.Logger.Errorln
 	}
