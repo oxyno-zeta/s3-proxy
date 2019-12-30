@@ -9,7 +9,7 @@ run:
   # exit code when at least one issue was found, default is 1
   issues-exit-code: 1
   # include test files or not, default is true
-  tests: true
+  tests: false
   # list of build tags, all linters use it. Default is empty list.
   build-tags: []
   # which dirs to skip: issues from them won't be reported;
@@ -65,13 +65,13 @@ linters-settings:
     # report about shadowed variables
     check-shadowing: true
     # settings per analyzer
-    settings:
-      printf: # analyzer name, run `go tool vet help` to see all analyzers
-        funcs: # run `go tool vet help printf` to see available settings for `printf` analyzer
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+    # settings:
+    #   printf: # analyzer name, run `go tool vet help` to see all analyzers
+    #     funcs: # run `go tool vet help printf` to see available settings for `printf` analyzer
+    #       - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+    #       - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+    #       - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+    #       - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
     # enable or disable analyzers by name
     enable:
       - atomicalign
