@@ -45,6 +45,8 @@ func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 			}
 			return lastPage
 		})
+	// Metrics
+	s3ctx.metricsCtx.IncS3Operations(ListObjectsOperation)
 	// Check if errors exists
 	if err != nil {
 		return nil, err
@@ -61,6 +63,9 @@ func (s3ctx *s3Context) GetObject(key string) (*ObjectOutput, error) {
 		Bucket: aws.String(s3ctx.Target.Bucket.Name),
 		Key:    aws.String(key),
 	})
+	// Metrics
+	s3ctx.metricsCtx.IncS3Operations(GetObjectOperation)
+	// Check if error exists
 	if err != nil {
 		// Try to cast error into an AWS Error if possible
 		aerr, ok := err.(awserr.Error)

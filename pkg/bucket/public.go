@@ -9,6 +9,7 @@ import (
 
 	"github.com/Masterminds/sprig"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3client"
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
@@ -21,8 +22,9 @@ func NewRequestContext(
 	mountPath string, requestPath string, httpRW *http.ResponseWriter,
 	handleNotFound func(rw http.ResponseWriter, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig),
 	handleInternalServerError func(rw http.ResponseWriter, err error, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig),
+	metricsCtx metrics.Instance,
 ) (*RequestContext, error) {
-	s3ctx, err := s3client.NewS3Context(tgt, logger)
+	s3ctx, err := s3client.NewS3Context(tgt, logger, metricsCtx)
 	if err != nil {
 		return nil, err
 	}

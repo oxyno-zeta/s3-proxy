@@ -7,13 +7,14 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/server/middlewares"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 )
 
 // GenerateInternalRouter Generate internal router
-func GenerateInternalRouter(logger *logrus.Logger, cfg *config.Config) http.Handler {
+func GenerateInternalRouter(logger *logrus.Logger, cfg *config.Config, metricsCtx metrics.Instance) http.Handler {
 	r := chi.NewRouter()
 
 	// A good base middleware stack

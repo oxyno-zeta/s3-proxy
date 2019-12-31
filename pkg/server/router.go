@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/hostrouter"
 	"github.com/oxyno-zeta/s3-proxy/pkg/bucket"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/server/utils"
 	"github.com/sirupsen/logrus"
@@ -15,7 +16,7 @@ import (
 )
 
 // GenerateRouter Generate router
-func GenerateRouter(logger *logrus.Logger, cfg *config.Config) (http.Handler, error) {
+func GenerateRouter(logger *logrus.Logger, cfg *config.Config, metricsCtx metrics.Instance) (http.Handler, error) {
 	r := chi.NewRouter()
 
 	// A good base middleware stack
@@ -24,6 +25,7 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) (http.Handler, er
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middlewares.NewStructuredLogger(logger))
+	r.Use(metricsCtx.Instrument())
 	r.Use(middleware.Recoverer)
 	// Check if auth if enabled and oidc enabled
 	if cfg.AuthProviders != nil && cfg.AuthProviders.OIDC != nil {
@@ -93,7 +95,7 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config) (http.Handler, er
 				rt2.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
 					requestPath := chi.URLParam(req, "*")
 					logEntry := middlewares.GetLogEntry(req)
-					brctx, err := bucket.NewRequestContext(tgt, cfg.Templates, &logEntry, path, requestPath, &rw, utils.HandleNotFound, utils.HandleInternalServerError)
+					brctx, err := bucket.NewRequestContext(tgt, cfg.Templates, &logEntry, path, requestPath, &rw, utils.HandleNotFound, utils.HandleInternalServerError, metricsCtx)
 
 					if err != nil {
 						logger.Errorln(err)

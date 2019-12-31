@@ -6,11 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
 	"github.com/sirupsen/logrus"
 )
 
 // NewS3Context New S3 Context
-func NewS3Context(tgt *config.Target, logger *logrus.FieldLogger) (S3ContextInterface, error) {
+func NewS3Context(tgt *config.Target, logger *logrus.FieldLogger, metricsCtx metrics.Instance) (S3ContextInterface, error) {
 	sessionConfig := &aws.Config{
 		Region: aws.String(tgt.Bucket.Region),
 	}
@@ -31,5 +32,5 @@ func NewS3Context(tgt *config.Target, logger *logrus.FieldLogger) (S3ContextInte
 	// Create s3 client
 	svcClient := s3.New(sess)
 
-	return &s3Context{svcClient: svcClient, logger: logger, Target: tgt}, nil
+	return &s3Context{svcClient: svcClient, logger: logger, Target: tgt, metricsCtx: metricsCtx}, nil
 }
