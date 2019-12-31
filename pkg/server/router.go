@@ -95,7 +95,9 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config, metricsCtx metric
 				rt2.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
 					requestPath := chi.URLParam(req, "*")
 					logEntry := middlewares.GetLogEntry(req)
-					brctx, err := bucket.NewRequestContext(tgt, cfg.Templates, &logEntry, path, requestPath, &rw, utils.HandleNotFound, utils.HandleInternalServerError, metricsCtx)
+					brctx, err := bucket.NewRequestContext(tgt, cfg.Templates, &logEntry,
+						path, requestPath, &rw, utils.HandleNotFound,
+						utils.HandleInternalServerError, metricsCtx)
 
 					if err != nil {
 						logger.Errorln(err)
