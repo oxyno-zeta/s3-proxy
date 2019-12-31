@@ -85,12 +85,16 @@ update-dep:
 HAS_GIT := $(shell command -v git;)
 HAS_COLORGO := $(shell command -v colorgo;)
 HAS_GOLANGCI_LINT := $(shell command -v golangci-lint;)
+HAS_CURL:=$(shell command -v curl;)
 
 .PHONY: dep
 dep:
 ifndef HAS_GOLANGCI_LINT
 	@echo "=> Installing golangci-lint tool"
-	go get -u github.com/golangci/golangci-lint@v1.22.2
+ifndef HAS_CURL
+	$(error You must install curl)
+endif
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.22.2
 endif
 ifndef HAS_COLORGO
 	@echo "=> Installing colorgo tool"
