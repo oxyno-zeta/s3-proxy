@@ -90,7 +90,7 @@ HAS_GOLANGCI_LINT := $(shell command -v golangci-lint;)
 dep:
 ifndef HAS_GOLANGCI_LINT
 	@echo "=> Installing golangci-lint tool"
-	go get -u github.com/golangci/golangci-lint@v1.21.0
+	go get -u github.com/golangci/golangci-lint@v1.22.2
 endif
 ifndef HAS_COLORGO
 	@echo "=> Installing colorgo tool"
