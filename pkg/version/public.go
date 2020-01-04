@@ -1,9 +1,11 @@
 package version
 
 func buildVersion() string {
+	// Check if metadata are not present
 	if Metadata == "" {
 		return Version
 	}
+
 	return Version + "-" + Metadata
 }
 

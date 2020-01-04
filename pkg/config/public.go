@@ -5,35 +5,34 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/parsers/yaml"
-	"github.com/knadh/koanf/providers/confmap"
-	"github.com/knadh/koanf/providers/file"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
-var k = koanf.New(".")
 var validate = validator.New()
 
 // Load Load configuration
 func Load() (*Config, error) {
+	// Set main configuration filename
+	viper.SetConfigName(MainConfigFileName)
+	// Set main configuration folder path
+	viper.AddConfigPath(MainConfigFolderPath)
+	viper.AddConfigPath(".")
 	// Load default configuration
-	k.Load(confmap.Provider(map[string]interface{}{
-		"log.level":                     DefaultLogLevel,
-		"log.format":                    DefaultLogFormat,
-		"server.port":                   DefaultPort,
-		"internalServer.port":           DefaultInternalPort,
-		"templates.folderList":          DefaultTemplateFolderListPath,
-		"templates.targetList":          DefaultTemplateTargetListPath,
-		"templates.notFound":            DefaultTemplateNotFoundPath,
-		"templates.internalServerError": DefaultTemplateInternalServerErrorPath,
-		"templates.unauthorized":        DefaultTemplateUnauthorizedErrorPath,
-		"templates.forbidden":           DefaultTemplateForbiddenErrorPath,
-		"templates.badRequest":          DefaultTemplateBadRequestErrorPath,
-	}, "."), nil)
+	viper.SetDefault("log.level", DefaultLogLevel)
+	viper.SetDefault("log.format", DefaultLogFormat)
+	viper.SetDefault("server.port", DefaultPort)
+	viper.SetDefault("internalServer.port", DefaultInternalPort)
+	viper.SetDefault("templates.folderList", DefaultTemplateFolderListPath)
+	viper.SetDefault("templates.targetList", DefaultTemplateTargetListPath)
+	viper.SetDefault("templates.notFound", DefaultTemplateNotFoundPath)
+	viper.SetDefault("templates.internalServerError", DefaultTemplateInternalServerErrorPath)
+	viper.SetDefault("templates.unauthorized", DefaultTemplateUnauthorizedErrorPath)
+	viper.SetDefault("templates.forbidden", DefaultTemplateForbiddenErrorPath)
+	viper.SetDefault("templates.badRequest", DefaultTemplateBadRequestErrorPath)
 
 	// Try to load main configuration file
-	err := k.Load(file.Provider(MainConfigPath), yaml.Parser())
+	err := viper.ReadInConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +40,10 @@ func Load() (*Config, error) {
 	// Prepare configuration object
 	var out Config
 	// Quick unmarshal.
-	k.Unmarshal("", &out)
+	err = viper.Unmarshal(&out)
+	if err != nil {
+		return nil, err
+	}
 
 	// Manage default s3 bucket region
 	for _, item := range out.Targets {
@@ -50,18 +52,20 @@ func Load() (*Config, error) {
 		}
 	}
 
-	if out.Auth != nil && out.Auth.OIDC != nil {
-		// Manage default scopes
-		if out.Auth.OIDC.Scopes == nil || len(out.Auth.OIDC.Scopes) == 0 {
-			out.Auth.OIDC.Scopes = DefaultOIDCScopes
-		}
-		// Manage default group claim
-		if out.Auth.OIDC.GroupClaim == "" {
-			out.Auth.OIDC.GroupClaim = DefaultOIDCGroupClaim
-		}
-		// Manage default oidc cookie name
-		if out.Auth.OIDC.CookieName == "" {
-			out.Auth.OIDC.CookieName = DefaultOIDCCookieName
+	if out.AuthProviders != nil && out.AuthProviders.OIDC != nil {
+		for _, v := range out.AuthProviders.OIDC {
+			// Manage default scopes
+			if v.Scopes == nil || len(v.Scopes) == 0 {
+				v.Scopes = DefaultOIDCScopes
+			}
+			// Manage default group claim
+			if v.GroupClaim == "" {
+				v.GroupClaim = DefaultOIDCGroupClaim
+			}
+			// Manage default oidc cookie name
+			if v.CookieName == "" {
+				v.CookieName = DefaultOIDCCookieName
+			}
 		}
 	}
 
@@ -70,39 +74,12 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Validate main bucket path support option
-	if out.MainBucketPathSupport && len(out.Targets) > 1 {
-		return nil, ErrMainBucketPathSupportNotValid
-	}
-	// Validate resources if they exists
-	noGlobalAuth := out.Auth == nil || (out.Auth != nil && out.Auth.Basic == nil && out.Auth.OIDC == nil)
-	if out.Resources != nil && len(out.Resources) != 0 {
-		for i := 0; i < len(out.Resources); i++ {
-			res := out.Resources[i]
-			// Check resource not valid
-			if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil {
-				return nil, fmt.Errorf("Resource %d must have whitelist, basic configuration or oidc configuration", i)
-			}
-			// Check no global auth and not in white list
-			if noGlobalAuth &&
-				res.Basic == nil &&
-				res.OIDC == nil &&
-				res.WhiteList != nil &&
-				!*res.WhiteList {
-				return nil, fmt.Errorf("Resource %d is not declared in whitelist and global authentication were not found", i)
-			}
-			// Check OIDC but no OIDC configuration
-			if (out.Auth == nil || (out.Auth != nil && out.Auth.OIDC == nil)) && res.OIDC != nil {
-				return nil, fmt.Errorf("Resource %d have an OIDC configuration but no global authentication were found", i)
-			}
-		}
-	}
 
 	// Load credentials from declaration
 	for _, item := range out.Targets {
 		if item.Bucket.Credentials != nil && item.Bucket.Credentials.AccessKey != nil && item.Bucket.Credentials.SecretKey != nil {
 			// Manage access key
-			err := loadCredential(item.Bucket.Credentials.AccessKey)
+			err = loadCredential(item.Bucket.Credentials.AccessKey)
 			if err != nil {
 				return nil, err
 			}
@@ -115,26 +92,114 @@ func Load() (*Config, error) {
 	}
 
 	// Load auth credentials
-	if out.Auth != nil {
-		// Load credential for basic auth if needed
-		if out.Auth.Basic != nil && out.Auth.Basic.Credentials != nil && len(out.Auth.Basic.Credentials) > 0 {
-			for _, item := range out.Auth.Basic.Credentials {
-				if item.User != "" && item.Password != nil {
-					err := loadCredential(item.Password)
+	if out.AuthProviders != nil {
+		// Load credentials for oidc auth if needed
+		if out.AuthProviders.OIDC != nil {
+			// Load credentials for oidc auth if needed
+			for k, v := range out.AuthProviders.OIDC {
+				// Check if client secret exists
+				if v.ClientSecret != nil {
+					err = loadCredential(v.ClientSecret)
 					if err != nil {
 						return nil, err
 					}
 				}
+				// Check if login path is defined
+				if v.LoginPath == "" {
+					v.LoginPath = fmt.Sprintf(oidcLoginPathTemplate, k)
+				}
+				// Check if callback path is defined
+				if v.CallbackPath == "" {
+					v.CallbackPath = fmt.Sprintf(oidcCallbackPathTemplate, k)
+				}
 			}
 		}
-		// Load credentials for oidc auth if needed
-		if out.Auth.OIDC != nil {
-			// Load credentials for oidc auth if needed
-			if out.Auth.OIDC.ClientSecret != nil {
-				err := loadCredential(out.Auth.OIDC.ClientSecret)
+	}
+
+	// Load auth credentials from list targets with basic auth
+	if out.ListTargets != nil && out.ListTargets.Resource != nil &&
+		out.ListTargets.Resource.Basic != nil && out.ListTargets.Resource.Basic.Credentials != nil {
+		// Loop over credentials declared
+		for i := 0; i < len(out.ListTargets.Resource.Basic.Credentials); i++ {
+			// Store item access
+			it := out.ListTargets.Resource.Basic.Credentials[i]
+			// Load credential
+			err = loadCredential(it.Password)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	// Load auth credentials from targets with basic auth
+	for i := 0; i < len(out.Targets); i++ {
+		target := out.Targets[i]
+		// Check if resources are declared
+		if target.Resources != nil {
+			for j := 0; j < len(target.Resources); j++ {
+				res := target.Resources[j]
+				// Check if basic auth configuration exists
+				if res.Basic != nil && res.Basic.Credentials != nil {
+					// Loop over creds
+					for k := 0; k < len(res.Basic.Credentials); k++ {
+						it := res.Basic.Credentials[k]
+						// Load credential
+						err = loadCredential(it.Password)
+						if err != nil {
+							return nil, err
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Validate resources if they exists in all targets and validate target mount path
+	for i := 0; i < len(out.Targets); i++ {
+		target := out.Targets[i]
+		// Check if resources are declared
+		if target.Resources != nil {
+			for j := 0; j < len(target.Resources); j++ {
+				res := target.Resources[j]
+				// Validate resource
+				err = validateResource(fmt.Sprintf("resource %d from target %d", j, i), res, out.AuthProviders, target.Mount.Path)
+				// Return error if exists
 				if err != nil {
 					return nil, err
 				}
+			}
+		}
+		// Check mount path items
+		pathList := target.Mount.Path
+		for j := 0; j < len(pathList); j++ {
+			path := pathList[j]
+			// Check path value
+			err = validatePath(fmt.Sprintf("path %d in target %d", j, i), path)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	// Validate list targets object
+	if out.ListTargets != nil {
+		// Check list targets resource
+		if out.ListTargets.Resource != nil {
+			res := out.ListTargets.Resource
+			// Validate resource
+			err = validateResource("resource from list targets", res, out.AuthProviders, out.ListTargets.Mount.Path)
+			// Return error if exists
+			if err != nil {
+				return nil, err
+			}
+		}
+		// Check mount path items
+		pathList := out.ListTargets.Mount.Path
+		for j := 0; j < len(pathList); j++ {
+			path := pathList[j]
+			// Check path value
+			err := validatePath(fmt.Sprintf("path %d in list targets", j), path)
+			if err != nil {
+				return nil, err
 			}
 		}
 	}
@@ -156,6 +221,7 @@ func ConfigureLogger(logger *logrus.Logger, logConfig *LogConfig) error {
 	if err != nil {
 		return err
 	}
+	// Set log level
 	logger.SetLevel(lvl)
 
 	return nil
@@ -168,5 +234,6 @@ func (bcfg *BucketConfig) GetRootPrefix() string {
 	if key != "" && !strings.HasSuffix(key, "/") {
 		key += "/"
 	}
+	// Return result
 	return key
 }

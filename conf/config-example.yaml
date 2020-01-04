@@ -10,48 +10,108 @@ log:
 #   listenAddr: ""
 #   port: 8080
 
-# If only bucket is in the list, use it as main url and don't mount it on /<BUCKET_NAME>
-# mainBucketPathSupport: true
+# Template configurations
+# template:
+#   badRequest: templates/bad-request.tpl
+#   folderList: templates/folder-list.tpl
+#   forbidden: templates/forbidden.tpl
+#   internalServerError: templates/internal-server-error.tpl
+#   notFound: templates/not-found.tpl
+#   targetList: templates/target-list.tpl
+#   unauthorized: templates/unauthorized.tpl
 
 # Authentication
-# Note: OIDC is always preferred by default against basic authentication
 # auth:
 #   oidc:
-#     clientID: client-id
-#     clientSecret:
-#       path: client-secret-in-file # client secret file
-#     state: my-secret-state-key # do not use this in production ! put something random here
-#     issuerUrl: https://issuer-url/
-#     redirectUrl: http://localhost:8080/ # /auth/oidc/callback will be added automatically
-#     scopes: # OIDC Scopes (defaults: oidc, email, profile)
-#       - oidc
-#       - email
-#       - profile
-#     groupClaim: groups # path in token
-#     emailVerified: true # check email verified field from token
-#     authorizationAccesses: # Authorization accesses : groups or email
-#       - group: devops_users
+#     provider1:
+#       clientID: client-id
+#       clientSecret:
+#         path: client-secret-in-file # client secret file
+#       state: my-secret-state-key # do not use this in production ! put something random here
+#       issuerUrl: https://issuer-url/
+#       redirectUrl: http://localhost:8080/ # /auth/oidc/callback will be added automatically
+#       scopes: # OIDC Scopes (defaults: oidc, email, profile)
+#         - oidc
+#         - email
+#         - profile
+#       groupClaim: groups # path in token
+#       # cookieSecure: true # Is the cookie generated secure ?
+#       # cookieName: oidc # Cookie generated name
+#       emailVerified: true # check email verified field from token
+#       # loginPath: /auth/provider1 # Override login path dynamically generated from provider key
+#       # callbackPath: /auth/provider1/callback # Override callback path dynamically generated from provider key
 #   basic:
-#     realm: My Basic Auth Realm
-#     credentials:
-#       - user: user1
-#         password:
-#           path: password1-in-file
+#     provider2:
+#       realm: My Basic Auth Realm
 
-# Resources declaration
-# resources:
-#   - path: /
-#     whiteList: true
-#   - path: /devops_internal_doc/*
-#     whiteList: false # Force not white list to use default global authentication system
-#   - path: /specific_doc
+# List targets feature
+# This will generate a webpage with list of targets with links using targetList template
+# listTargets:
+#   # To enable the list targets feature
+#   enabled: false
+#   ## Mount point
+#   mount:
+#     path:
+#       - /
+#     # A specific host can be added for filtering. Otherwise, all hosts will be accepted
+#     # host: localhost:8080
+#   ## Resource configuration
+#   resource:
+#     # A Path must be declared for a resource filtering
+#     path: /
+#     # Whitelist
+#     whitelist: false
+#     # A authentication provider declared in section before, here is the key name
+#     provider: provider1
+#     # OIDC section for access filter
 #     oidc:
+#       # NOTE: This list can be empty ([]) for authentication only and no group filter
 #       authorizationAccesses: # Authorization accesses : groups or email
-#         - group: specific_users
+#         - group: devops_users
+#     # Basic authentication section
+#     basic:
+#       credentials:
+#         - user: user1
+#           password:
+#             path: password1-in-file
 
 # Targets
 targets:
   - name: first-bucket
+    # ## Mount point
+    # mount:
+    #   path:
+    #     - /
+    #   # A specific host can be added for filtering. Otherwise, all hosts will be accepted
+    #   # host: localhost:8080
+    # ## Resources declaration
+    # resources:
+    #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
+    #   - path: /
+    #     # Whitelist
+    #     whiteList: true
+    #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
+    #   - path: /specific_doc/*
+    #     # A authentication provider declared in section before, here is the key name
+    #     provider: provider1
+    #     # OIDC section for access filter
+    #     oidc:
+    #       # NOTE: This list can be empty ([]) for authentication only and no group filter
+    #       authorizationAccesses: # Authorization accesses : groups or email
+    #         - group: specific_users
+    #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
+    #   - path: /directory1/*
+    #     # A authentication provider declared in section before, here is the key name
+    #     provider: provider1
+    #     # Basic authentication section
+    #     basic:
+    #       credentials:
+    #         - user: user1
+    #           password:
+    #             path: password1-in-file
+    # ## Index document to display if exists in folder
+    # indexDocument: index.html
+    ## Bucket configuration
     bucket:
       name: super-bucket
       prefix:
@@ -62,4 +122,3 @@ targets:
       #     env: AWS_ACCESS_KEY_ID
       #   secretKey:
       #     path: secret_key_file
-    # indexDocument: index.html

@@ -2,8 +2,11 @@ package config
 
 import "errors"
 
-// MainConfigPath Configuration path
-const MainConfigPath = "conf/config.yaml"
+// MainConfigFolderPath Main configuration folder path
+const MainConfigFolderPath = "conf/"
+
+// MainConfigFileName Main configuration filename
+const MainConfigFileName = "config"
 
 // DefaultPort Default port
 const DefaultPort = 8080
@@ -56,118 +59,141 @@ var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support opti
 // TemplateErrLoadingEnvCredentialEmpty Template Error when Loading Environment variable Credentials
 var TemplateErrLoadingEnvCredentialEmpty = "error loading credentials, environment variable %s is empty"
 
+const oidcLoginPathTemplate = "/auth/%s"
+const oidcCallbackPathTemplate = "/auth/%s/callback"
+
 // Config Application Configuration
 type Config struct {
-	Log                   *LogConfig      `koanf:"log"`
-	Server                *ServerConfig   `koanf:"server"`
-	InternalServer        *ServerConfig   `koanf:"internalServer"`
-	Targets               []*Target       `koanf:"targets" validate:"gte=0,required,dive,required"`
-	Templates             *TemplateConfig `koanf:"templates"`
-	MainBucketPathSupport bool            `koanf:"mainBucketPathSupport"`
-	Auth                  *AuthConfig     `koanf:"auth"`
-	Resources             []*Resource     `koanf:"resources" validate:"dive"`
+	Log            *LogConfig          `mapstructure:"log"`
+	Server         *ServerConfig       `mapstructure:"server"`
+	InternalServer *ServerConfig       `mapstructure:"internalServer"`
+	Targets        []*Target           `mapstructure:"targets" validate:"gte=0,required,dive,required"`
+	Templates      *TemplateConfig     `mapstructure:"templates"`
+	AuthProviders  *AuthProviderConfig `mapstructure:"authProviders"`
+	ListTargets    *ListTargetsConfig  `mapstructure:"listTargets" validate:"required"`
 }
 
-// AuthConfig Authentication configurations
-type AuthConfig struct {
-	Basic *BasicAuthConfig `koanf:"basic" validate:"omitempty,dive"`
-	OIDC  *OIDCAuthConfig  `koanf:"oidc" validate:"omitempty,dive"`
+// ListTargetsConfig List targets configuration
+type ListTargetsConfig struct {
+	Enabled  bool         `mapstructure:"enabled"`
+	Mount    *MountConfig `mapstructure:"mount" validate:"required_with=Enabled"`
+	Resource *Resource    `mapstructure:"resource" validate:"omitempty"`
+}
+
+// MountConfig Mount configuration
+type MountConfig struct {
+	Host string   `mapstructure:"host"`
+	Path []string `mapstructure:"path" validate:"required,dive,required"`
+}
+
+// AuthProviderConfig Authentication provider configurations
+type AuthProviderConfig struct {
+	Basic map[string]*BasicAuthConfig `mapstructure:"basic" validate:"omitempty,dive"`
+	OIDC  map[string]*OIDCAuthConfig  `mapstructure:"oidc" validate:"omitempty,dive"`
 }
 
 // OIDCAuthConfig OpenID Connect authentication configurations
 type OIDCAuthConfig struct {
-	ClientID              string                     `koanf:"clientID" validate:"required"`
-	ClientSecret          *CredentialConfig          `koanf:"clientSecret" validate:"omitempty,dive"`
-	IssuerURL             string                     `koanf:"issuerUrl" validate:"required"`
-	RedirectURL           string                     `koanf:"redirectUrl" validate:"required"`
-	Scopes                []string                   `koanf:"scope"`
-	State                 string                     `koanf:"state" validate:"required"`
-	GroupClaim            string                     `koanf:"groupClaim"`
-	EmailVerified         bool                       `koanf:"emailVerified"`
-	CookieName            string                     `koanf:"cookieName"`
-	CookieSecure          bool                       `koanf:"cookieSecure"`
-	AuthorizationAccesses []*OIDCAuthorizationAccess `koanf:"authorizationAccesses"`
+	ClientID      string            `mapstructure:"clientID" validate:"required"`
+	ClientSecret  *CredentialConfig `mapstructure:"clientSecret" validate:"omitempty,dive"`
+	IssuerURL     string            `mapstructure:"issuerUrl" validate:"required"`
+	RedirectURL   string            `mapstructure:"redirectUrl" validate:"required"`
+	Scopes        []string          `mapstructure:"scope"`
+	State         string            `mapstructure:"state" validate:"required"`
+	GroupClaim    string            `mapstructure:"groupClaim"`
+	CookieName    string            `mapstructure:"cookieName"`
+	EmailVerified bool              `mapstructure:"emailVerified"`
+	CookieSecure  bool              `mapstructure:"cookieSecure"`
+	LoginPath     string            `mapstructure:"loginPath"`
+	CallbackPath  string            `mapstructure:"callbackPath"`
 }
 
 // OIDCAuthorizationAccess OpenID Connect authorization accesses
 type OIDCAuthorizationAccess struct {
-	Group string `koanf:"group" validate:"required_without=Email"`
-	Email string `koanf:"email" validate:"required_without=Group"`
+	Group string `mapstructure:"group" validate:"required_without=Email"`
+	Email string `mapstructure:"email" validate:"required_without=Group"`
 }
 
 // BasicAuthConfig Basic auth configurations
 type BasicAuthConfig struct {
-	Realm       string                 `koanf:"realm" validate:"required"`
-	Credentials []*BasicAuthUserConfig `koanf:"credentials" validate:"omitempty,dive"`
+	Realm string `mapstructure:"realm" validate:"required"`
 }
 
 // BasicAuthUserConfig Basic User auth configuration
 type BasicAuthUserConfig struct {
-	User     string            `koanf:"user" validate:"required"`
-	Password *CredentialConfig `koanf:"password" validate:"required,dive"`
+	User     string            `mapstructure:"user" validate:"required"`
+	Password *CredentialConfig `mapstructure:"password" validate:"required,dive"`
 }
 
 // TemplateConfig Templates configuration
 type TemplateConfig struct {
-	FolderList          string `koanf:"folderList" validate:"required"`
-	TargetList          string `koanf:"targetList" validate:"required"`
-	NotFound            string `koanf:"notFound" validate:"required"`
-	InternalServerError string `koanf:"internalServerError" validate:"required"`
-	Unauthorized        string `koanf:"unauthorized" validate:"required"`
-	Forbidden           string `koanf:"forbidden" validate:"required"`
-	BadRequest          string `koanf:"badRequest" validate:"required"`
+	FolderList          string `mapstructure:"folderList" validate:"required"`
+	TargetList          string `mapstructure:"targetList" validate:"required"`
+	NotFound            string `mapstructure:"notFound" validate:"required"`
+	InternalServerError string `mapstructure:"internalServerError" validate:"required"`
+	Unauthorized        string `mapstructure:"unauthorized" validate:"required"`
+	Forbidden           string `mapstructure:"forbidden" validate:"required"`
+	BadRequest          string `mapstructure:"badRequest" validate:"required"`
 }
 
 // ServerConfig Server configuration
 type ServerConfig struct {
-	ListenAddr string `koanf:"listenAddr"`
-	Port       int    `koanf:"port" validate:"required"`
+	ListenAddr string `mapstructure:"listenAddr"`
+	Port       int    `mapstructure:"port" validate:"required"`
 }
 
 // Target Bucket instance configuration
 type Target struct {
-	Name          string        `koanf:"name" validate:"required"`
-	Bucket        *BucketConfig `koanf:"bucket" validate:"required"`
-	IndexDocument string        `koanf:"indexDocument"`
+	Name          string        `mapstructure:"name" validate:"required"`
+	Bucket        *BucketConfig `mapstructure:"bucket" validate:"required"`
+	Resources     []*Resource   `mapstructure:"resources" validate:"dive"`
+	Mount         *MountConfig  `mapstructure:"mount" validate:"required"`
+	IndexDocument string        `mapstructure:"indexDocument"`
 }
 
 // Resource Resource
 type Resource struct {
-	Path      string           `koanf:"path" validate:"required"`
-	WhiteList *bool            `koanf:"whiteList"`
-	Basic     *BasicAuthConfig `koanf:"basic" validate:"omitempty"`
-	OIDC      *ResourceOIDC    `koanf:"oidc" validate:"omitempty"`
+	Path      string         `mapstructure:"path" validate:"required"`
+	WhiteList *bool          `mapstructure:"whiteList"`
+	Provider  string         `mapstructure:"provider"`
+	Basic     *ResourceBasic `mapstructure:"basic" validate:"omitempty"`
+	OIDC      *ResourceOIDC  `mapstructure:"oidc" validate:"omitempty"`
 }
 
-// ResourceOIDC OIDC Resource
+// ResourceBasic Basic auth resource
+type ResourceBasic struct {
+	Credentials []*BasicAuthUserConfig `mapstructure:"credentials" validate:"omitempty,dive"`
+}
+
+// ResourceOIDC OIDC auth Resource
 type ResourceOIDC struct {
-	AuthorizationAccesses []*OIDCAuthorizationAccess `koanf:"authorizationAccesses" validate:"dive"`
+	AuthorizationAccesses []*OIDCAuthorizationAccess `mapstructure:"authorizationAccesses" validate:"dive"`
 }
 
 // BucketConfig Bucket configuration
 type BucketConfig struct {
-	Name        string                  `koanf:"name" validate:"required"`
-	Prefix      string                  `koanf:"prefix"`
-	Region      string                  `koanf:"region"`
-	S3Endpoint  string                  `koanf:"s3Endpoint"`
-	Credentials *BucketCredentialConfig `koanf:"credentials" validate:"omitempty,dive"`
+	Name        string                  `mapstructure:"name" validate:"required"`
+	Prefix      string                  `mapstructure:"prefix"`
+	Region      string                  `mapstructure:"region"`
+	S3Endpoint  string                  `mapstructure:"s3Endpoint"`
+	Credentials *BucketCredentialConfig `mapstructure:"credentials" validate:"omitempty,dive"`
 }
 
 // BucketCredentialConfig Bucket Credentials configurations
 type BucketCredentialConfig struct {
-	AccessKey *CredentialConfig `koanf:"accessKey" validate:"omitempty,dive"`
-	SecretKey *CredentialConfig `koanf:"secretKey" validate:"omitempty,dive"`
+	AccessKey *CredentialConfig `mapstructure:"accessKey" validate:"omitempty,dive"`
+	SecretKey *CredentialConfig `mapstructure:"secretKey" validate:"omitempty,dive"`
 }
 
 // CredentialConfig Credential Configurations
 type CredentialConfig struct {
-	Path  string `koanf:"path" validate:"required_without_all=Env Value"`
-	Env   string `koanf:"env" validate:"required_without_all=Path Value"`
-	Value string `koanf:"value" validate:"required_without_all=Path Env"`
+	Path  string `mapstructure:"path" validate:"required_without_all=Env Value"`
+	Env   string `mapstructure:"env" validate:"required_without_all=Path Value"`
+	Value string `mapstructure:"value" validate:"required_without_all=Path Env"`
 }
 
 // LogConfig Log configuration
 type LogConfig struct {
-	Level  string `koanf:"level"`
-	Format string `koanf:"format"`
+	Level  string `mapstructure:"level"`
+	Format string `mapstructure:"format"`
 }

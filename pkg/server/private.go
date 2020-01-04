@@ -1,69 +1,19 @@
 package server
 
 import (
-	"bytes"
-	"html/template"
 	"net/http"
-	"path/filepath"
 
-	"github.com/Masterminds/sprig"
-	"github.com/go-chi/chi"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/server/utils"
 	"github.com/sirupsen/logrus"
 )
 
-func templateExecution(tplPath string, logger *logrus.FieldLogger, rw http.ResponseWriter, data interface{}, status int) error {
-	// Load template
-	tplFileName := filepath.Base(tplPath)
-	tmpl, err := template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).ParseFiles(tplPath)
+func generateTargetList(rw http.ResponseWriter, logger logrus.FieldLogger, cfg *config.Config) {
+	err := utils.TemplateExecution(cfg.Templates.TargetList, logger, rw, struct{ Targets []*config.Target }{Targets: cfg.Targets}, 200)
 	if err != nil {
-		return err
-	}
-
-	// Generate template in buffer
-	buf := &bytes.Buffer{}
-	err = tmpl.Execute(buf, data)
-	if err != nil {
-		return err
-	}
-	rw.WriteHeader(status)
-	// Set the header and write the buffer to the http.ResponseWriter
-	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, err = buf.WriteTo(rw)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func clientIP(r *http.Request) string {
-	IPAddress := r.Header.Get("X-Real-Ip")
-	if IPAddress == "" {
-		IPAddress = r.Header.Get("X-Forwarded-For")
-	}
-	if IPAddress == "" {
-		IPAddress = r.RemoteAddr
-	}
-	return IPAddress
-}
-
-func generateTargetList(rw http.ResponseWriter, logger *logrus.FieldLogger, cfg *config.Config) {
-	err := templateExecution(cfg.Templates.TargetList, logger, rw, struct{ Targets []*config.Target }{Targets: cfg.Targets}, 200)
-	if err != nil {
-		(*logger).Errorln(err)
-		handleInternalServerError(rw, err, "/", logger, cfg.Templates)
+		logger.Errorln(err)
+		utils.HandleInternalServerError(rw, err, "/", logger, cfg.Templates)
+		// Stop here
 		return
 	}
-}
-
-func putAuthMiddlewares(cfg *config.Config, r chi.Router) chi.Router {
-	// Check if oidc is enabled
-	if cfg.Auth != nil && cfg.Auth.OIDC != nil {
-		return r.With(oidcAuthorizationMiddleware(cfg.Auth.OIDC, cfg.Templates, cfg.Auth.OIDC.AuthorizationAccesses))
-	}
-	// Check if basic auth is enabled
-	if cfg.Auth != nil && cfg.Auth.Basic != nil {
-		return r.With(basicAuthMiddleware(cfg.Auth.Basic, cfg.Templates))
-	}
-	return r
 }

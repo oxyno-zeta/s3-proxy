@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/server"
 	"github.com/oxyno-zeta/s3-proxy/pkg/version"
 	"github.com/sirupsen/logrus"
@@ -32,36 +33,43 @@ func main() {
 		logger.Fatal(err)
 		os.Exit(1)
 	}
+
 	logger.Debug("Configuration successfully loaded and logger configured")
 
 	// Getting version
 	v := version.GetVersion()
 	logger.Infof("Starting s3-proxy version: %s (git commit: %s) built on %s", v.Version, v.GitCommit, v.BuildDate)
 
+	// Generate metrics instance
+	metricsCtx := metrics.NewInstance()
+
 	// Listen
-	go internalServe(logger, cfg)
-	serve(logger, cfg)
+	go internalServe(logger, cfg, metricsCtx)
+	serve(logger, cfg, metricsCtx)
 }
 
-func internalServe(logger *logrus.Logger, cfg *config.Config) {
-	r := server.GenerateInternalRouter(logger, cfg)
+func internalServe(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Instance) {
+	r := server.GenerateInternalRouter(logger, cfg, metricsCtx)
 	// Create server
 	addr := cfg.InternalServer.ListenAddr + ":" + strconv.Itoa(cfg.InternalServer.Port)
 	server := &http.Server{
 		Addr:    addr,
 		Handler: r,
 	}
+
 	logger.Infof("Server listening on %s", addr)
+
 	err := server.ListenAndServe()
+	// Check if error exists
 	if err != nil {
 		logger.Fatalf("Unable to start http server: %v", err)
 		os.Exit(1)
 	}
 }
 
-func serve(logger *logrus.Logger, cfg *config.Config) {
+func serve(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Instance) {
 	// Generate router
-	r, err := server.GenerateRouter(logger, cfg)
+	r, err := server.GenerateRouter(logger, cfg, metricsCtx)
 	if err != nil {
 		logger.Fatalf("Unable to setup http server: %v", err)
 		os.Exit(1)
@@ -73,8 +81,11 @@ func serve(logger *logrus.Logger, cfg *config.Config) {
 		Addr:    addr,
 		Handler: r,
 	}
+
 	logger.Infof("Server listening on %s", addr)
+
 	err = server.ListenAndServe()
+	// Check if error exists
 	if err != nil {
 		logger.Fatalf("Unable to start http server: %v", err)
 		os.Exit(1)

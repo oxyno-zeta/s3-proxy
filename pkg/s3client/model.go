@@ -7,15 +7,28 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
 	"github.com/sirupsen/logrus"
 )
 
-// S3Context S3 Context
-type S3Context struct {
-	svcClient *s3.S3
-	Target    *config.Target
-	logger    *logrus.FieldLogger
+// S3ContextInterface S3 Context interface
+type S3ContextInterface interface {
+	ListFilesAndDirectories(string) ([]*Entry, error)
+	GetObject(string) (*ObjectOutput, error)
 }
+
+type s3Context struct {
+	svcClient  *s3.S3
+	Target     *config.Target
+	logger     logrus.FieldLogger
+	metricsCtx metrics.Instance
+}
+
+// ListObjectsOperation List objects operation
+const ListObjectsOperation = "list-objects"
+
+// GetObjectOperation Get object operation
+const GetObjectOperation = "get-object"
 
 // FileType File type
 const FileType = "FILE"

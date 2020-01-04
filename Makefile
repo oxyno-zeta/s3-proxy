@@ -39,7 +39,7 @@ all: lint test build
 
 .PHONY: lint
 lint: dep
-	golint -set_exit_status ${PKG_LIST}
+	golangci-lint run ./...
 
 .PHONY: build
 build: clean dep
@@ -83,16 +83,22 @@ update-dep:
 #############
 
 HAS_GIT := $(shell command -v git;)
-HAS_GOLINT := $(shell command -v golint;)
 HAS_COLORGO := $(shell command -v colorgo;)
+HAS_GOLANGCI_LINT := $(shell command -v golangci-lint;)
+HAS_CURL:=$(shell command -v curl;)
 
 .PHONY: dep
 dep:
-ifndef HAS_GOLINT
-	GO111MODULE=off go get -u golang.org/x/lint/golint
+ifndef HAS_GOLANGCI_LINT
+	@echo "=> Installing golangci-lint tool"
+ifndef HAS_CURL
+	$(error You must install curl)
+endif
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.22.2
 endif
 ifndef HAS_COLORGO
-	GO111MODULE=off go get -u github.com/songgao/colorgo
+	@echo "=> Installing colorgo tool"
+	go get -u github.com/songgao/colorgo
 endif
 ifndef HAS_GIT
 	$(error You must install Git)
