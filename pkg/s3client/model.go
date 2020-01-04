@@ -20,7 +20,7 @@ type S3ContextInterface interface {
 type s3Context struct {
 	svcClient  *s3.S3
 	Target     *config.Target
-	logger     *logrus.FieldLogger
+	logger     logrus.FieldLogger
 	metricsCtx metrics.Instance
 }
 

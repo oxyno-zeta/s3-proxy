@@ -64,7 +64,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if r.URL.Query().Get("state") != state {
 			err := errors.New("state did not match")
 			logEntry.Error(err)
-			utils.HandleBadRequest(w, oidcCfg.CallbackPath, err, &logEntry, tplConfig)
+			utils.HandleBadRequest(w, oidcCfg.CallbackPath, err, logEntry, tplConfig)
 			return
 		}
 
@@ -72,7 +72,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if err != nil {
 			err = errors.New("failed to exchange token: " + err.Error())
 			logEntry.Error(err)
-			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, &logEntry, tplConfig)
+			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, logEntry, tplConfig)
 			return
 		}
 
@@ -80,7 +80,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if !ok {
 			err = errors.New("no id_token field in token")
 			logEntry.Error(err)
-			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, &logEntry, tplConfig)
+			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, logEntry, tplConfig)
 			return
 		}
 
@@ -88,7 +88,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if err != nil {
 			err = errors.New("failed to verify ID Token: " + err.Error())
 			logEntry.Error(err)
-			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, &logEntry, tplConfig)
+			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, logEntry, tplConfig)
 			return
 		}
 
@@ -101,7 +101,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		err = idToken.Claims(&resp.IDTokenClaims)
 		if err != nil {
 			logEntry.Error(err)
-			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, &logEntry, tplConfig)
+			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, logEntry, tplConfig)
 			return
 		}
 
@@ -140,7 +140,7 @@ func oidcAuthorizationMiddleware(
 				logEntry.Debug("Can't load auth cookie")
 				if err != http.ErrNoCookie {
 					logEntry.Error(err)
-					utils.HandleInternalServerError(w, err, path, &logEntry, tplConfig)
+					utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
 					return
 				}
 				if cookie == nil {
@@ -154,13 +154,13 @@ func oidcAuthorizationMiddleware(
 			token, _, err := parser.ParseUnverified(cookie.Value, jwt.MapClaims{})
 			if err != nil {
 				logEntry.Error(err)
-				utils.HandleInternalServerError(w, err, path, &logEntry, tplConfig)
+				utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
 				return
 			}
 			err = token.Claims.Valid()
 			if err != nil {
 				logEntry.Error(err)
-				utils.HandleInternalServerError(w, err, path, &logEntry, tplConfig)
+				utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
 				return
 			}
 
@@ -173,7 +173,7 @@ func oidcAuthorizationMiddleware(
 				emailVerified := claims["email_verified"].(bool)
 				if !emailVerified {
 					logEntry.Errorf("Email not verified for %s", email)
-					utils.HandleForbidden(w, path, &logEntry, tplConfig)
+					utils.HandleForbidden(w, path, logEntry, tplConfig)
 					return
 				}
 			}
@@ -187,7 +187,7 @@ func oidcAuthorizationMiddleware(
 			// Check if authorized
 			if !isAuthorized(groups, email, authorizationAccesses) {
 				logEntry.Errorf("Forbidden user %s", email)
-				utils.HandleForbidden(w, path, &logEntry, tplConfig)
+				utils.HandleForbidden(w, path, logEntry, tplConfig)
 				return
 			}
 

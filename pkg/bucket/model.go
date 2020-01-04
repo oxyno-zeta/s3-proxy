@@ -12,14 +12,14 @@ import (
 // RequestContext Bucket request context
 type RequestContext struct {
 	s3Context                 s3client.S3ContextInterface
-	logger                    *logrus.FieldLogger
+	logger                    logrus.FieldLogger
 	bucketInstance            *config.Target
 	tplConfig                 *config.TemplateConfig
 	mountPath                 string
 	requestPath               string
 	httpRW                    *http.ResponseWriter
-	handleNotFound            func(rw http.ResponseWriter, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig)
-	handleInternalServerError func(rw http.ResponseWriter, err error, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig)
+	handleNotFound            func(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
+	handleInternalServerError func(rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
 }
 
 // Entry Entry with path

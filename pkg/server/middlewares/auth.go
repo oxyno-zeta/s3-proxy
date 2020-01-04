@@ -21,7 +21,7 @@ func AuthMiddleware(cfg *config.Config, resources []*config.Resource) func(http.
 			res, err := findResource(resources, requestURI)
 			if err != nil {
 				logEntry.Error(err)
-				utils.HandleInternalServerError(w, err, requestURI, &logEntry, cfg.Templates)
+				utils.HandleInternalServerError(w, err, requestURI, logEntry, cfg.Templates)
 			}
 
 			// Check if resource isn't found
@@ -54,7 +54,7 @@ func AuthMiddleware(cfg *config.Config, resources []*config.Resource) func(http.
 			// Error, this case shouldn't arrive
 			err = errAuthMiddlewareNotSupported
 			logEntry.Error(err)
-			utils.HandleInternalServerError(w, err, requestURI, &logEntry, cfg.Templates)
+			utils.HandleInternalServerError(w, err, requestURI, logEntry, cfg.Templates)
 		})
 	}
 }

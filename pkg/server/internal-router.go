@@ -14,7 +14,7 @@ import (
 )
 
 // GenerateInternalRouter Generate internal router
-func GenerateInternalRouter(logger *logrus.Logger, cfg *config.Config, metricsCtx metrics.Instance) http.Handler {
+func GenerateInternalRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Instance) http.Handler {
 	r := chi.NewRouter()
 
 	// A good base middleware stack

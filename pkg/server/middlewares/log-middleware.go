@@ -13,18 +13,18 @@ import (
 // Copied and modified from https://github.com/go-chi/chi/blob/master/_examples/logging/main.go
 
 // NewStructuredLogger Generate a new structured logger
-func NewStructuredLogger(logger *logrus.Logger) func(next http.Handler) http.Handler {
+func NewStructuredLogger(logger logrus.FieldLogger) func(next http.Handler) http.Handler {
 	return middleware.RequestLogger(&StructuredLogger{logger})
 }
 
 // StructuredLogger structured logger
 type StructuredLogger struct {
-	Logger *logrus.Logger
+	Logger logrus.FieldLogger
 }
 
 // NewLogEntry new log entry
 func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
-	entry := &StructuredLoggerEntry{Logger: logrus.NewEntry(l.Logger)}
+	entry := &StructuredLoggerEntry{Logger: l.Logger}
 	logFields := logrus.Fields{}
 
 	if reqID := middleware.GetReqID(r.Context()); reqID != "" {

@@ -11,7 +11,7 @@ import (
 )
 
 // NewS3Context New S3 Context
-func NewS3Context(tgt *config.Target, logger *logrus.FieldLogger, metricsCtx metrics.Instance) (S3ContextInterface, error) {
+func NewS3Context(tgt *config.Target, logger logrus.FieldLogger, metricsCtx metrics.Instance) (S3ContextInterface, error) {
 	sessionConfig := &aws.Config{
 		Region: aws.String(tgt.Bucket.Region),
 	}

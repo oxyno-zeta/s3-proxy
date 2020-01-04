@@ -16,7 +16,7 @@ import (
 )
 
 // GenerateRouter Generate router
-func GenerateRouter(logger *logrus.Logger, cfg *config.Config, metricsCtx metrics.Instance) (http.Handler, error) {
+func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Instance) (http.Handler, error) {
 	r := chi.NewRouter()
 
 	// A good base middleware stack
@@ -40,7 +40,7 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config, metricsCtx metric
 	r.NotFound(func(rw http.ResponseWriter, req *http.Request) {
 		logEntry := middlewares.GetLogEntry(req)
 		path := req.URL.RequestURI()
-		utils.HandleNotFound(rw, path, &logEntry, cfg.Templates)
+		utils.HandleNotFound(rw, path, logEntry, cfg.Templates)
 	})
 
 	// Create host router
@@ -62,7 +62,7 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config, metricsCtx metric
 				rt2 = rt2.With(middlewares.AuthMiddleware(cfg, resources))
 				rt2.Get("/", func(rw http.ResponseWriter, req *http.Request) {
 					logEntry := middlewares.GetLogEntry(req)
-					generateTargetList(rw, &logEntry, cfg)
+					generateTargetList(rw, logEntry, cfg)
 				})
 			})
 		})
@@ -95,13 +95,13 @@ func GenerateRouter(logger *logrus.Logger, cfg *config.Config, metricsCtx metric
 				rt2.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
 					requestPath := chi.URLParam(req, "*")
 					logEntry := middlewares.GetLogEntry(req)
-					brctx, err := bucket.NewRequestContext(tgt, cfg.Templates, &logEntry,
+					brctx, err := bucket.NewRequestContext(tgt, cfg.Templates, logEntry,
 						path, requestPath, &rw, utils.HandleNotFound,
 						utils.HandleInternalServerError, metricsCtx)
 
 					if err != nil {
 						logger.Errorln(err)
-						utils.HandleInternalServerError(rw, err, requestPath, &logEntry, cfg.Templates)
+						utils.HandleInternalServerError(rw, err, requestPath, logEntry, cfg.Templates)
 					} else {
 						brctx.Proxy()
 					}

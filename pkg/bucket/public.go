@@ -18,10 +18,10 @@ import (
 // NewRequestContext New request context
 // nolint:whitespace
 func NewRequestContext(
-	tgt *config.Target, tplConfig *config.TemplateConfig, logger *logrus.FieldLogger,
+	tgt *config.Target, tplConfig *config.TemplateConfig, logger logrus.FieldLogger,
 	mountPath string, requestPath string, httpRW *http.ResponseWriter,
-	handleNotFound func(rw http.ResponseWriter, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig),
-	handleInternalServerError func(rw http.ResponseWriter, err error, requestPath string, logger *logrus.FieldLogger, tplCfg *config.TemplateConfig),
+	handleNotFound func(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig),
+	handleInternalServerError func(rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig),
 	metricsCtx metrics.Instance,
 ) (*RequestContext, error) {
 	s3ctx, err := s3client.NewS3Context(tgt, logger, metricsCtx)
@@ -54,7 +54,7 @@ func (rctx *RequestContext) Proxy() {
 		// Directory listing case
 		s3Entries, err := rctx.s3Context.ListFilesAndDirectories(key)
 		if err != nil {
-			(*rctx.logger).Errorln(err)
+			rctx.logger.Errorln(err)
 			rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
 			// Stop
 			return
@@ -80,7 +80,7 @@ func (rctx *RequestContext) Proxy() {
 					return
 				}
 				// Log error
-				(*rctx.logger).Errorln(err)
+				rctx.logger.Errorln(err)
 				// Response with error
 				rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
 				// Stop
@@ -93,7 +93,7 @@ func (rctx *RequestContext) Proxy() {
 		// Create template
 		tmpl, err := template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).ParseFiles(rctx.tplConfig.FolderList)
 		if err != nil {
-			(*rctx.logger).Errorln(err)
+			rctx.logger.Errorln(err)
 			rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
 			// Stop
 			return
@@ -110,7 +110,7 @@ func (rctx *RequestContext) Proxy() {
 		// Execute template
 		err = tmpl.Execute(buf, data)
 		if err != nil {
-			(*rctx.logger).Errorln(err)
+			rctx.logger.Errorln(err)
 			rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
 			// Stop
 			return
@@ -122,7 +122,7 @@ func (rctx *RequestContext) Proxy() {
 		// Write buffer content to output
 		_, err = buf.WriteTo((*rctx.httpRW))
 		if err != nil {
-			(*rctx.logger).Errorln(err)
+			rctx.logger.Errorln(err)
 			rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
 			// Stop
 			return
@@ -142,7 +142,7 @@ func (rctx *RequestContext) Proxy() {
 			return
 		}
 		// Log error
-		(*rctx.logger).Errorln(err)
+		rctx.logger.Errorln(err)
 		// Manage error response
 		rctx.handleInternalServerError(*rctx.httpRW, err, rctx.requestPath, rctx.logger, rctx.tplConfig)
 		// Stop
