@@ -48,7 +48,7 @@ func main() {
 	serve(logger, cfg, metricsCtx)
 }
 
-func internalServe(logger *logrus.Logger, cfg *config.Config, metricsCtx metrics.Instance) {
+func internalServe(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Instance) {
 	r := server.GenerateInternalRouter(logger, cfg, metricsCtx)
 	// Create server
 	addr := cfg.InternalServer.ListenAddr + ":" + strconv.Itoa(cfg.InternalServer.Port)
@@ -67,7 +67,7 @@ func internalServe(logger *logrus.Logger, cfg *config.Config, metricsCtx metrics
 	}
 }
 
-func serve(logger *logrus.Logger, cfg *config.Config, metricsCtx metrics.Instance) {
+func serve(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Instance) {
 	// Generate router
 	r, err := server.GenerateRouter(logger, cfg, metricsCtx)
 	if err != nil {
