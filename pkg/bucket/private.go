@@ -39,9 +39,9 @@ func getFile(brctx *RequestContext, key string) error {
 		return err
 	}
 	// Set headers from object
-	setHeadersFromObjectOutput(*brctx.httpRW, objOutput)
+	setHeadersFromObjectOutput(brctx.httpRW, objOutput)
 	// Copy data stream to output stream
-	_, err = io.Copy(*brctx.httpRW, *objOutput.Body)
+	_, err = io.Copy(brctx.httpRW, *objOutput.Body)
 	// Return potential error
 	return err
 }

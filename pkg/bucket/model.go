@@ -17,7 +17,7 @@ type RequestContext struct {
 	tplConfig                 *config.TemplateConfig
 	mountPath                 string
 	requestPath               string
-	httpRW                    *http.ResponseWriter
+	httpRW                    http.ResponseWriter
 	handleNotFound            func(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
 	handleInternalServerError func(rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
 }
