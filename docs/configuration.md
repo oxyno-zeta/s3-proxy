@@ -7,16 +7,15 @@ You can see a full example in the [Example section](#example)
 
 ## Main structure
 
-| Key                   | Type                                            | Required | Default | Description                                                                                |
-| --------------------- | ----------------------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------------ |
-| log                   | [LogConfiguration](#logconfiguration)           | No       | None    | Log configurations                                                                         |
-| server                | [ServerConfiguration](#serverconfiguration)     | No       | None    | Server configurations                                                                      |
-| internalServer        | [ServerConfiguration](#serverconfiguration)     | No       | None    | Internal Server configurations                                                             |
-| template              | [TemplateConfiguration](#templateconfiguration) | No       | None    | Template configurations                                                                    |
-| mainBucketPathSupport | Boolean                                         | No       | `false` | If only one bucket is in the list, use it as main url and don't mount it on /<BUCKET_NAME> |
-| resources             | [[Resource]](#resource)                         | No       | None    | Resources declaration for path whitelist or specific authentication on paths               |
-| targets               | [[TargetConfiguration]](#targetconfiguration)   | Yes      | None    | Targets configuration                                                                      |
-| auth                  | AuthConfig                                      | No       | None    | Authentication configuration                                                               |
+| Key            | Type                                                  | Required | Default | Description                        |
+| -------------- | ----------------------------------------------------- | -------- | ------- | ---------------------------------- |
+| log            | [LogConfiguration](#logconfiguration)                 | No       | None    | Log configurations                 |
+| server         | [ServerConfiguration](#serverconfiguration)           | No       | None    | Server configurations              |
+| internalServer | [ServerConfiguration](#serverconfiguration)           | No       | None    | Internal Server configurations     |
+| template       | [TemplateConfiguration](#templateconfiguration)       | No       | None    | Template configurations            |
+| targets        | [[TargetConfiguration]](#targetconfiguration)         | Yes      | None    | Targets configuration              |
+| auth           | [AuthConfiguration](#authconfiguration)               | No       | None    | Authentication configuration       |
+| listTargets    | [ListTargetsConfiguration](#listtargetsconfiguration) | No       | None    | List targets feature configuration |
 
 ## LogConfiguration
 
@@ -29,7 +28,7 @@ You can see a full example in the [Example section](#example)
 
 | Key        | Type    | Required | Default | Description    |
 | ---------- | ------- | -------- | ------- | -------------- |
-| listenAddr | String  | No       | ""      | Listen Address |
+| listenAddr | String  | No       | `""`    | Listen Address |
 | port       | Integer | No       | `8080`  | Listening Port |
 
 ## TemplateConfiguration
@@ -50,7 +49,9 @@ You can see a full example in the [Example section](#example)
 | ------------- | ------------------------------------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------- |
 | name          | String                                      | Yes      | None    | Target name. (This will used in urls and list of targets.)                                               |
 | bucket        | [BucketConfiguration](#bucketconfiguration) | Yes      | None    | Bucket configuration                                                                                     |
-| indexDocument | String                                      | No       | ""      | The index document name. If this document is found, get it instead of list folder. Example: `index.html` |
+| indexDocument | String                                      | No       | `""`    | The index document name. If this document is found, get it instead of list folder. Example: `index.html` |
+| resources     | [[Resource]](#resource)                     | No       | None    | Resources declaration for path whitelist or specific authentication on path list                         |
+| mount         | [MountConfiguration](#mountconfiguration)   | Yes      | None    | Mount point configuration                                                                                |
 
 ## BucketConfiguration
 
@@ -79,30 +80,48 @@ You can see a full example in the [Example section](#example)
 
 ## AuthConfiguration
 
-Note:
-
-OIDC authentication will be used in priority if the 2 authentication configurations are set. Basic auth will be ignored in this case.
-
-| Key   | Type                                              | Required | Default | Description              |
-| ----- | ------------------------------------------------- | -------- | ------- | ------------------------ |
-| basic | [BasicAuthConfiguration](#basicauthconfiguration) | No       | None    | Basic auth configuration |
-| oidc  | [OIDCAuthConfiguration](#oidcauthconfiguration)   | No       | None    | OIDC Auth configuration  |
+| Key   | Type                                                         | Required | Default | Description                                       |
+| ----- | ------------------------------------------------------------ | -------- | ------- | ------------------------------------------------- |
+| basic | [map[string]BasicAuthConfiguration](#basicauthconfiguration) | No       | None    | Basic Auth configuration and key as provider name |
+| oidc  | [map[string]OIDCAuthConfiguration](#oidcauthconfiguration)   | No       | None    | OIDC Auth configuration and key as provider name  |
 
 ## OIDCAuthConfiguration
 
-| Key                   | Type                                                      | Required | Default                          | Description                                                                                                                                           |
-| --------------------- | --------------------------------------------------------- | -------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| clientID              | String                                                    | Yes      | None                             | Client ID                                                                                                                                             |
-| clientSecret          | [CredentialConfiguration](#credentialconfiguration)       | No       | None                             | Client Secret                                                                                                                                         |
-| issuerUrl             | String                                                    | Yes      | None                             | Issuer URL (example: https://fake.com/realm/fake-realm                                                                                                |
-| redirectUrl           | String                                                    | Yes      | None                             | Redirect URL (this is the service url)                                                                                                                |
-| scopes                | [String]                                                  | No       | `["openid", "profile", "email"]` | Scopes                                                                                                                                                |
-| state                 | String                                                    | Yes      | None                             | Random string to have a secure connection with oidc provider                                                                                          |
-| groupClaim            | String                                                    | No       | `groups`                         | Groups claim path in token (`groups` must be a list of strings containing user groups)                                                                |
-| emailVerified         | Boolean                                                   | No       | `false`                          | Check that user email is verified in user token (field `email_verified`)                                                                              |
-| cookieName            | String                                                    | No       | `oidc`                           | Cookie generated name                                                                                                                                 |
-| cookieSecure          | Boolean                                                   | No       | `false`                          | Is the cookie secure ?                                                                                                                                |
-| authorizationAccesses | [[OIDCAuthorizationAccesses]](#oidcauthorizationaccesses) | No       | None                             | Authorization accesses matrix by group or email. If not set, authenticated users will be authorized (no group or email validation will be performed). |
+| Key           | Type                                                | Required | Default                          | Description                                                                                                    |
+| ------------- | --------------------------------------------------- | -------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| clientID      | String                                              | Yes      | None                             | Client ID                                                                                                      |
+| clientSecret  | [CredentialConfiguration](#credentialconfiguration) | No       | None                             | Client Secret                                                                                                  |
+| issuerUrl     | String                                              | Yes      | None                             | Issuer URL (example: https://fake.com/realm/fake-realm                                                         |
+| redirectUrl   | String                                              | Yes      | None                             | Redirect URL (this is the service url)                                                                         |
+| scopes        | [String]                                            | No       | `["openid", "profile", "email"]` | Scopes                                                                                                         |
+| state         | String                                              | Yes      | None                             | Random string to have a secure connection with oidc provider                                                   |
+| groupClaim    | String                                              | No       | `groups`                         | Groups claim path in token (`groups` must be a list of strings containing user groups)                         |
+| emailVerified | Boolean                                             | No       | `false`                          | Check that user email is verified in user token (field `email_verified`)                                       |
+| cookieName    | String                                              | No       | `oidc`                           | Cookie generated name                                                                                          |
+| cookieSecure  | Boolean                                             | No       | `false`                          | Is the cookie generated secure ?                                                                               |
+| loginPath     | String                                              | No       | `""`                             | Override login path for authentication. If not defined, `/auth/PROVIDER_NAME` will be used                     |
+| callbackPath  | String                                              | No       | `""`                             | Override callback path for authentication callback. If not defined,`/auth/PROVIDER_NAME/callback` will be used |
+
+## BasicAuthConfiguration
+
+| Key   | Type   | Required | Default | Description      |
+| ----- | ------ | -------- | ------- | ---------------- |
+| realm | String | Yes      | None    | Basic Auth Realm |
+
+## Resource
+
+| Key       | Type                            | Required                            | Default | Description                                          |
+| --------- | ------------------------------- | ----------------------------------- | ------- | ---------------------------------------------------- |
+| path      | String                          | Yes                                 | None    | Path or matching path (e.g.: `/*`)                   |
+| whiteList | Boolean                         | Required without oidc or basic      | None    | Is this path in white list ? E.g.: No authentication |
+| oidc      | [ResourceOIDC](#resourceoidc)   | Required without whitelist or oidc  | None    | OIDC configuration authorization                     |
+| basic     | [ResourceBasic](#resourcebasic) | Required without whitelist or basic | None    | Basic auth configuration                             |
+
+# ResourceOIDC
+
+| Key                   | Type                                                      | Required | Default | Description                                                                                                                                           |
+| --------------------- | --------------------------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| authorizationAccesses | [[OIDCAuthorizationAccesses]](#oidcauthorizationaccesses) | No       | None    | Authorization accesses matrix by group or email. If not set, authenticated users will be authorized (no group or email validation will be performed). |
 
 ## OIDCAuthorizationAccesses
 
@@ -111,12 +130,11 @@ OIDC authentication will be used in priority if the 2 authentication configurati
 | group | String | Required without email | None    | Group name  |
 | email | String | Required without group | None    | Email       |
 
-## BasicAuthConfiguration
+## ResourceBasic
 
 | Key         | Type                                                        | Required | Default | Description                          |
 | ----------- | ----------------------------------------------------------- | -------- | ------- | ------------------------------------ |
-| realm       | String                                                      | Yes      | None    | Basic Auth Realm                     |
-| credentials | [[BasicAuthUserConfiguration]](#basicauthuserconfiguration) | No       | None    | List of authorized user and password |
+| credentials | [[BasicAuthUserConfiguration]](#basicauthuserconfiguration) | Yes      | None    | List of authorized user and password |
 
 ## BasicAuthUserConfiguration
 
@@ -125,20 +143,20 @@ OIDC authentication will be used in priority if the 2 authentication configurati
 | user     | String                                              | Yes      | None    | User name     |
 | password | [CredentialConfiguration](#credentialconfiguration) | Yes      | None    | User password |
 
-## Resource
+## MountConfiguration
 
-| Key       | Type                                              | Required                            | Default                           | Description                                                                                                         |
-| --------- | ------------------------------------------------- | ----------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| path      | String                                            | Yes                                 | None                              | Path or matching path (e.g.: `/*`)                                                                                  |
-| whiteList | Boolean                                           | Required without oidc or basic      | None                              | Is this path in white list ? E.g.: No authentication                                                                |
-| oidc      | [ResourceOIDC](#resourceoidc)                     | Required without whitelist or oidc  | None                              | OIDC configuration authorization override. This part will override the default groups/email authorization accesses. |
-| basic     | [BasicAuthConfiguration](#basicauthconfiguration) | Required without whitelist or basic | Basic auth configuration override |
+| Key  | Type     | Required | Default | Description                                            |
+| ---- | -------- | -------- | ------- | ------------------------------------------------------ |
+| host | String   | No       | `""`    | Host domain requested (eg: localhost:888 or google.fr) |
+| path | [String] | Yes      | None    | A path list for mounting point                         |
 
-# ResourceOIDC
+## ListTargetsConfiguration
 
-| Key                   | Type                                                      | Required | Default | Description                                                                                                                                           |
-| --------------------- | --------------------------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| authorizationAccesses | [[OIDCAuthorizationAccesses]](#oidcauthorizationaccesses) | No       | None    | Authorization accesses matrix by group or email. If not set, authenticated users will be authorized (no group or email validation will be performed). |
+| Key      | Type                                      | Required | Default | Description                                                                 |
+| -------- | ----------------------------------------- | -------- | ------- | --------------------------------------------------------------------------- |
+| enabled  | Boolean                                   | Yes      | None    | To enable the list targets feature                                          |
+| mount    | [MountConfiguration](#mountconfiguration) | Yes      | None    | Mount point configuration                                                   |
+| resource | [Resource](#resource)                     | No       | None    | Resources declaration for path whitelist or specific authentication on path |
 
 ## Example
 
@@ -155,48 +173,107 @@ log:
 #   listenAddr: ""
 #   port: 8080
 
-# If only bucket is in the list, use it as main url and don't mount it on /<BUCKET_NAME>
-# mainBucketPathSupport: true
+# Template configurations
+# template:
+#   badRequest: templates/bad-request.tpl
+#   folderList: templates/folder-list.tpl
+#   forbidden: templates/forbidden.tpl
+#   internalServerError: templates/internal-server-error.tpl
+#   notFound: templates/not-found.tpl
+#   targetList: templates/target-list.tpl
+#   unauthorized: templates/unauthorized.tpl
 
 # Authentication
-# Note: OIDC is always preferred by default against basic authentication
 # auth:
 #   oidc:
-#     clientID: client-id
-#     clientSecret:
-#       path: client-secret-in-file # client secret file
-#     state: my-secret-state-key # do not use this in production ! put something random here
-#     issuerUrl: https://issuer-url/
-#     redirectUrl: http://localhost:8080/ # /auth/oidc/callback will be added automatically
-#     scopes: # OIDC Scopes (defaults: oidc, email, profile)
-#       - oidc
-#       - email
-#       - profile
-#     groupClaim: groups # path in token
-#     emailVerified: true # check email verified field from token
-#     authorizationAccesses: # Authorization accesses : groups or email
-#       - group: devops_users
+#     provider1:
+#       clientID: client-id
+#       clientSecret:
+#         path: client-secret-in-file # client secret file
+#       state: my-secret-state-key # do not use this in production ! put something random here
+#       issuerUrl: https://issuer-url/
+#       redirectUrl: http://localhost:8080/ # /auth/oidc/callback will be added automatically
+#       scopes: # OIDC Scopes (defaults: oidc, email, profile)
+#         - oidc
+#         - email
+#         - profile
+#       groupClaim: groups # path in token
+#       # cookieSecure: true # Is the cookie generated secure ?
+#       # cookieName: oidc # Cookie generated name
+#       emailVerified: true # check email verified field from token
+#       # loginPath: /auth/provider1 # Override login path dynamically generated from provider key
+#       # callbackPath: /auth/provider1/callback # Override callback path dynamically generated from provider key
 #   basic:
-#     realm: My Basic Auth Realm
-#     credentials:
-#       - user: user1
-#         password:
-#           path: password1-in-file
+#     provider2:
+#       realm: My Basic Auth Realm
 
-# Resources declaration
-# resources:
-#   - path: /
-#     whiteList: true
-#   - path: /devops_internal_doc/*
-#     whiteList: false # Force not white list to use default global authentication system
-#   - path: /specific_doc
+# List targets feature
+# This will generate a webpage with list of targets with links using targetList template
+# listTargets:
+#   enabled: false
+#   ## Mount point
+#   mount:
+#     path:
+#       - /
+#     # A specific host can be added for filtering. Otherwise, all hosts will be accepted
+#     # host: localhost:8080
+#   ## Resource configuration
+#   resource:
+#     # A Path must be declared for a resource filtering
+#     path: /
+#     # Whitelist
+#     whitelist: false
+#     # A authentication provider declared in section before, here is the key name
+#     provider: provider1
+#     # OIDC section for access filter
 #     oidc:
+#       # NOTE: This list can be empty ([]) for authentication only and no group filter
 #       authorizationAccesses: # Authorization accesses : groups or email
-#         - group: specific_users
+#         - group: devops_users
+#     # Basic authentication section
+#     basic:
+#       credentials:
+#         - user: user1
+#           password:
+#             path: password1-in-file
 
 # Targets
 targets:
   - name: first-bucket
+    # ## Mount point
+    # mount:
+    #   path:
+    #     - /
+    #   # A specific host can be added for filtering. Otherwise, all hosts will be accepted
+    #   # host: localhost:8080
+    # ## Resources declaration
+    # resources:
+    #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
+    #   - path: /
+    #     # Whitelist
+    #     whiteList: true
+    #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
+    #   - path: /specific_doc/*
+    #     # A authentication provider declared in section before, here is the key name
+    #     provider: provider1
+    #     # OIDC section for access filter
+    #     oidc:
+    #       # NOTE: This list can be empty ([]) for authentication only and no group filter
+    #       authorizationAccesses: # Authorization accesses : groups or email
+    #         - group: specific_users
+    #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
+    #   - path: /directory1/*
+    #     # A authentication provider declared in section before, here is the key name
+    #     provider: provider1
+    #     # Basic authentication section
+    #     basic:
+    #       credentials:
+    #         - user: user1
+    #           password:
+    #             path: password1-in-file
+    # ## Index document to display if exists in folder
+    # indexDocument: index.html
+    ## Bucket configuration
     bucket:
       name: super-bucket
       prefix:
@@ -207,5 +284,4 @@ targets:
       #     env: AWS_ACCESS_KEY_ID
       #   secretKey:
       #     path: secret_key_file
-    # indexDocument: index.html
 ```
