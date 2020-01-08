@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/dimiro1/health"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/hostrouter"
@@ -11,12 +12,33 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/server/utils"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 )
 
+// GenerateInternalRouter Generate internal router
+func GenerateInternalRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Client) http.Handler {
+	r := chi.NewRouter()
+
+	// A good base middleware stack
+	r.Use(middleware.DefaultCompress)
+	r.Use(middleware.NoCache)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middlewares.NewStructuredLogger(logger))
+	r.Use(middleware.Recoverer)
+
+	healthHandler := health.NewHandler()
+	// Listen path
+	r.Handle("/metrics", promhttp.Handler())
+	r.Handle("/health", healthHandler)
+
+	return r
+}
+
 // GenerateRouter Generate router
-func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Instance) (http.Handler, error) {
+func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Client) (http.Handler, error) {
 	r := chi.NewRouter()
 
 	// A good base middleware stack
@@ -95,7 +117,7 @@ func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx me
 				rt2.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
 					requestPath := chi.URLParam(req, "*")
 					logEntry := middlewares.GetLogEntry(req)
-					brctx, err := bucket.NewRequestContext(tgt, cfg.Templates, logEntry,
+					brctx, err := bucket.NewClient(tgt, cfg.Templates, logEntry,
 						path, requestPath, rw, utils.HandleNotFound,
 						utils.HandleInternalServerError, metricsCtx)
 
@@ -116,4 +138,14 @@ func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx me
 	r.Mount("/", hr)
 
 	return r, nil
+}
+
+func generateTargetList(rw http.ResponseWriter, logger logrus.FieldLogger, cfg *config.Config) {
+	err := utils.TemplateExecution(cfg.Templates.TargetList, logger, rw, struct{ Targets []*config.Target }{Targets: cfg.Targets}, 200)
+	if err != nil {
+		logger.Errorln(err)
+		utils.HandleInternalServerError(rw, err, "/", logger, cfg.Templates)
+		// Stop here
+		return
+	}
 }

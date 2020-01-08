@@ -2,7 +2,6 @@ package bucket
 
 import (
 	"html/template"
-	"io"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -12,39 +11,6 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3client"
 )
-
-func transformS3Entries(s3Entries []*s3client.Entry, rctx *RequestContext, bucketRootPrefixKey string) []*Entry {
-	// Prepare result
-	entries := make([]*Entry, 0)
-	// Loop over s3 entries
-	for _, item := range s3Entries {
-		entries = append(entries, &Entry{
-			Type:         item.Type,
-			ETag:         item.ETag,
-			Name:         item.Name,
-			LastModified: item.LastModified,
-			Size:         item.Size,
-			Key:          item.Key,
-			Path:         rctx.mountPath + strings.TrimPrefix(item.Key, bucketRootPrefixKey),
-		})
-	}
-	// Return result
-	return entries
-}
-
-func getFile(brctx *RequestContext, key string) error {
-	// Get object from s3
-	objOutput, err := brctx.s3Context.GetObject(key)
-	if err != nil {
-		return err
-	}
-	// Set headers from object
-	setHeadersFromObjectOutput(brctx.httpRW, objOutput)
-	// Copy data stream to output stream
-	_, err = io.Copy(brctx.httpRW, *objOutput.Body)
-	// Return potential error
-	return err
-}
 
 func setHeadersFromObjectOutput(w http.ResponseWriter, obj *s3client.ObjectOutput) {
 	setStrHeader(w, "Cache-Control", obj.CacheControl)

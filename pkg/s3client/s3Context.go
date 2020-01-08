@@ -1,12 +1,65 @@
 package s3client
 
 import (
+	"errors"
+	"io"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
+	"github.com/sirupsen/logrus"
 )
+
+type s3Context struct {
+	svcClient  *s3.S3
+	Target     *config.Target
+	logger     logrus.FieldLogger
+	metricsCtx metrics.Client
+}
+
+// ListObjectsOperation List objects operation
+const ListObjectsOperation = "list-objects"
+
+// GetObjectOperation Get object operation
+const GetObjectOperation = "get-object"
+
+// FileType File type
+const FileType = "FILE"
+
+// FolderType Folder type
+const FolderType = "FOLDER"
+
+// Entry Bucket Entry
+type Entry struct {
+	Type         string
+	ETag         string
+	Name         string
+	LastModified time.Time
+	Size         int64
+	Key          string
+}
+
+// ErrNotFound Error not found
+var ErrNotFound = errors.New("not found")
+
+// ObjectOutput Object output for S3 get object
+type ObjectOutput struct {
+	Body               *io.ReadCloser
+	CacheControl       string
+	Expires            string
+	ContentDisposition string
+	ContentEncoding    string
+	ContentLanguage    string
+	ContentLength      int64
+	ContentRange       string
+	ContentType        string
+	ETag               string
+	LastModified       time.Time
+}
 
 // ListFilesAndDirectories List files and directories
 func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {

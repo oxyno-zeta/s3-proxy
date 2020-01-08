@@ -10,8 +10,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Client S3 Context interface
+type Client interface {
+	ListFilesAndDirectories(string) ([]*Entry, error)
+	GetObject(string) (*ObjectOutput, error)
+}
+
 // NewS3Context New S3 Context
-func NewS3Context(tgt *config.Target, logger logrus.FieldLogger, metricsCtx metrics.Instance) (S3ContextInterface, error) {
+func NewS3Context(tgt *config.Target, logger logrus.FieldLogger, metricsCtx metrics.Client) (Client, error) {
 	sessionConfig := &aws.Config{
 		Region: aws.String(tgt.Bucket.Region),
 	}

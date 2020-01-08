@@ -41,14 +41,14 @@ func main() {
 	logger.Infof("Starting s3-proxy version: %s (git commit: %s) built on %s", v.Version, v.GitCommit, v.BuildDate)
 
 	// Generate metrics instance
-	metricsCtx := metrics.NewInstance()
+	metricsCtx := metrics.NewClient()
 
 	// Listen
 	go internalServe(logger, cfg, metricsCtx)
 	serve(logger, cfg, metricsCtx)
 }
 
-func internalServe(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Instance) {
+func internalServe(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Client) {
 	r := server.GenerateInternalRouter(logger, cfg, metricsCtx)
 	// Create server
 	addr := cfg.InternalServer.ListenAddr + ":" + strconv.Itoa(cfg.InternalServer.Port)
@@ -67,7 +67,7 @@ func internalServe(logger logrus.FieldLogger, cfg *config.Config, metricsCtx met
 	}
 }
 
-func serve(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Instance) {
+func serve(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Client) {
 	// Generate router
 	r, err := server.GenerateRouter(logger, cfg, metricsCtx)
 	if err != nil {

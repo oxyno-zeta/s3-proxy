@@ -3,47 +3,53 @@ package bucket
 import (
 	"bytes"
 	"html/template"
+	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/Masterminds/sprig"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3client"
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 )
 
-// NewRequestContext New request context
-// nolint:whitespace
-func NewRequestContext(
-	tgt *config.Target, tplConfig *config.TemplateConfig, logger logrus.FieldLogger,
-	mountPath string, requestPath string, httpRW http.ResponseWriter,
-	handleNotFound func(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig),
-	handleInternalServerError func(rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig),
-	metricsCtx metrics.Instance,
-) (*RequestContext, error) {
-	s3ctx, err := s3client.NewS3Context(tgt, logger, metricsCtx)
-	if err != nil {
-		return nil, err
-	}
+// requestContext Bucket request context
+type requestContext struct {
+	s3Context                 s3client.Client
+	logger                    logrus.FieldLogger
+	bucketInstance            *config.Target
+	tplConfig                 *config.TemplateConfig
+	mountPath                 string
+	requestPath               string
+	httpRW                    http.ResponseWriter
+	handleNotFound            func(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
+	handleInternalServerError func(rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
+}
 
-	return &RequestContext{
-		s3Context:                 s3ctx,
-		logger:                    logger,
-		bucketInstance:            tgt,
-		mountPath:                 mountPath,
-		requestPath:               requestPath,
-		httpRW:                    httpRW,
-		tplConfig:                 tplConfig,
-		handleNotFound:            handleNotFound,
-		handleInternalServerError: handleInternalServerError,
-	}, nil
+// Entry Entry with path
+type Entry struct {
+	Type         string
+	ETag         string
+	Name         string
+	LastModified time.Time
+	Size         int64
+	Key          string
+	Path         string
+}
+
+// bucketListingData Bucket listing data for templating
+type bucketListingData struct {
+	Entries    []*Entry
+	BucketName string
+	Name       string
+	Path       string
 }
 
 // Proxy proxy requests
-func (rctx *RequestContext) Proxy() {
+func (rctx *requestContext) Proxy() {
 	bucketRootPrefixKey := rctx.bucketInstance.Bucket.GetRootPrefix()
 	// Key must begin by bucket prefix
 	key := bucketRootPrefixKey
@@ -148,4 +154,37 @@ func (rctx *RequestContext) Proxy() {
 		// Stop
 		return
 	}
+}
+
+func transformS3Entries(s3Entries []*s3client.Entry, rctx *requestContext, bucketRootPrefixKey string) []*Entry {
+	// Prepare result
+	entries := make([]*Entry, 0)
+	// Loop over s3 entries
+	for _, item := range s3Entries {
+		entries = append(entries, &Entry{
+			Type:         item.Type,
+			ETag:         item.ETag,
+			Name:         item.Name,
+			LastModified: item.LastModified,
+			Size:         item.Size,
+			Key:          item.Key,
+			Path:         rctx.mountPath + strings.TrimPrefix(item.Key, bucketRootPrefixKey),
+		})
+	}
+	// Return result
+	return entries
+}
+
+func getFile(brctx *requestContext, key string) error {
+	// Get object from s3
+	objOutput, err := brctx.s3Context.GetObject(key)
+	if err != nil {
+		return err
+	}
+	// Set headers from object
+	setHeadersFromObjectOutput(brctx.httpRW, objOutput)
+	// Copy data stream to output stream
+	_, err = io.Copy(brctx.httpRW, *objOutput.Body)
+	// Return potential error
+	return err
 }
