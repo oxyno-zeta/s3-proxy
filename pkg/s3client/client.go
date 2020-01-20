@@ -1,10 +1,15 @@
 package s3client
 
 import (
+	"errors"
+	"io"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
 	"github.com/sirupsen/logrus"
@@ -12,12 +17,63 @@ import (
 
 // Client S3 Context interface
 type Client interface {
-	ListFilesAndDirectories(string) ([]*Entry, error)
-	GetObject(string) (*ObjectOutput, error)
+	ListFilesAndDirectories(key string) ([]*ListElementOutput, error)
+	HeadObject(key string) (*HeadOutput, error)
+	GetObject(key string) (*GetOutput, error)
+	PutObject(input *PutInput) error
+	DeleteObject(key string) error
+}
+
+// FileType File type
+const FileType = "FILE"
+
+// FolderType Folder type
+const FolderType = "FOLDER"
+
+// ListElementOutput Bucket ListElementOutput
+type ListElementOutput struct {
+	Type         string
+	ETag         string
+	Name         string
+	LastModified time.Time
+	Size         int64
+	Key          string
+}
+
+type HeadOutput struct {
+	Type string
+	Key  string
+}
+
+// ErrNotFound Error not found
+var ErrNotFound = errors.New("not found")
+
+// GetOutput Object output for S3 get object
+type GetOutput struct {
+	Body               *io.ReadCloser
+	CacheControl       string
+	Expires            string
+	ContentDisposition string
+	ContentEncoding    string
+	ContentLanguage    string
+	ContentLength      int64
+	ContentRange       string
+	ContentType        string
+	ETag               string
+	LastModified       time.Time
+}
+
+// PutInput Put input object for PUT request
+type PutInput struct {
+	Key          string
+	Body         io.Reader
+	ContentType  string
+	Metadata     map[string]string
+	StorageClass string
 }
 
 // NewS3Context New S3 Context
-func NewS3Context(tgt *config.Target, logger logrus.FieldLogger, metricsCtx metrics.Client) (Client, error) {
+func NewS3Context(tgt *config.TargetConfig, logger logrus.FieldLogger, metricsCtx metrics.Client) (Client, error) {
 	sessionConfig := &aws.Config{
 		Region: aws.String(tgt.Bucket.Region),
 	}
@@ -38,5 +94,8 @@ func NewS3Context(tgt *config.Target, logger logrus.FieldLogger, metricsCtx metr
 	// Create s3 client
 	svcClient := s3.New(sess)
 
-	return &s3Context{svcClient: svcClient, logger: logger, Target: tgt, metricsCtx: metricsCtx}, nil
+	// Create S3 uploader client
+	uploader := s3manager.NewUploader(sess)
+
+	return &s3Context{svcClient: svcClient, uploader: uploader, logger: logger, target: tgt, metricsCtx: metricsCtx}, nil
 }

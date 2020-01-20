@@ -1,14 +1,12 @@
 package s3client
 
 import (
-	"errors"
-	"io"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
 	"github.com/sirupsen/logrus"
@@ -16,7 +14,8 @@ import (
 
 type s3Context struct {
 	svcClient  *s3.S3
-	Target     *config.Target
+	uploader   *s3manager.Uploader
+	target     *config.TargetConfig
 	logger     logrus.FieldLogger
 	metricsCtx metrics.Client
 }
@@ -27,48 +26,23 @@ const ListObjectsOperation = "list-objects"
 // GetObjectOperation Get object operation
 const GetObjectOperation = "get-object"
 
-// FileType File type
-const FileType = "FILE"
+// HeadObjectOperation Head object operation
+const HeadObjectOperation = "head-object"
 
-// FolderType Folder type
-const FolderType = "FOLDER"
+// PutObjectOperation Put object operation
+const PutObjectOperation = "put-object"
 
-// Entry Bucket Entry
-type Entry struct {
-	Type         string
-	ETag         string
-	Name         string
-	LastModified time.Time
-	Size         int64
-	Key          string
-}
-
-// ErrNotFound Error not found
-var ErrNotFound = errors.New("not found")
-
-// ObjectOutput Object output for S3 get object
-type ObjectOutput struct {
-	Body               *io.ReadCloser
-	CacheControl       string
-	Expires            string
-	ContentDisposition string
-	ContentEncoding    string
-	ContentLanguage    string
-	ContentLength      int64
-	ContentRange       string
-	ContentType        string
-	ETag               string
-	LastModified       time.Time
-}
+// DeleteObjectOperation Delete object operation
+const DeleteObjectOperation = "delete-object"
 
 // ListFilesAndDirectories List files and directories
-func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
+func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*ListElementOutput, error) {
 	// List files on path
-	folders := make([]*Entry, 0)
-	files := make([]*Entry, 0)
+	folders := make([]*ListElementOutput, 0)
+	files := make([]*ListElementOutput, 0)
 	err := s3ctx.svcClient.ListObjectsV2Pages(
 		&s3.ListObjectsV2Input{
-			Bucket:    aws.String(s3ctx.Target.Bucket.Name),
+			Bucket:    aws.String(s3ctx.target.Bucket.Name),
 			Prefix:    aws.String(key),
 			Delimiter: aws.String("/"),
 		},
@@ -76,7 +50,7 @@ func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 			// Manage folders
 			for _, item := range page.CommonPrefixes {
 				name := strings.TrimPrefix(*item.Prefix, key)
-				folders = append(folders, &Entry{
+				folders = append(folders, &ListElementOutput{
 					Type: FolderType,
 					Key:  *item.Prefix,
 					Name: name,
@@ -86,7 +60,7 @@ func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 			for _, item := range page.Contents {
 				name := strings.TrimPrefix(*item.Key, key)
 				if name != "" {
-					files = append(files, &Entry{
+					files = append(files, &ListElementOutput{
 						Type:         FileType,
 						ETag:         *item.ETag,
 						Name:         name,
@@ -111,9 +85,9 @@ func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*Entry, error) {
 }
 
 // GetObject Get object from S3 bucket
-func (s3ctx *s3Context) GetObject(key string) (*ObjectOutput, error) {
+func (s3ctx *s3Context) GetObject(key string) (*GetOutput, error) {
 	obj, err := s3ctx.svcClient.GetObject(&s3.GetObjectInput{
-		Bucket: aws.String(s3ctx.Target.Bucket.Name),
+		Bucket: aws.String(s3ctx.target.Bucket.Name),
 		Key:    aws.String(key),
 	})
 	// Metrics
@@ -124,6 +98,7 @@ func (s3ctx *s3Context) GetObject(key string) (*ObjectOutput, error) {
 		aerr, ok := err.(awserr.Error)
 		if ok {
 			switch aerr.Code() {
+			// !! FIXME Need to remove no such bucket !
 			case s3.ErrCodeNoSuchBucket, s3.ErrCodeNoSuchKey:
 				return nil, ErrNotFound
 			}
@@ -132,7 +107,7 @@ func (s3ctx *s3Context) GetObject(key string) (*ObjectOutput, error) {
 		return nil, err
 	}
 	// Build output
-	output := &ObjectOutput{
+	output := &GetOutput{
 		Body: &obj.Body,
 	}
 
@@ -177,4 +152,72 @@ func (s3ctx *s3Context) GetObject(key string) (*ObjectOutput, error) {
 	}
 
 	return output, nil
+}
+
+func (s3ctx *s3Context) PutObject(input *PutInput) error {
+	inp := &s3manager.UploadInput{
+		Bucket: aws.String(s3ctx.target.Bucket.Name),
+		Key:    aws.String(input.Key),
+		Body:   input.Body,
+	}
+	// Manage content type case
+	if input.ContentType != "" {
+		inp.ContentType = aws.String(input.ContentType)
+	}
+	// Manage metadata case
+	if input.Metadata != nil {
+		inp.Metadata = aws.StringMap(input.Metadata)
+	}
+	// Manage storage class
+	if input.StorageClass != "" {
+		inp.StorageClass = aws.String(input.StorageClass)
+	}
+	// Upload to S3 bucket
+	_, err := s3ctx.uploader.Upload(inp)
+	// Metrics
+	s3ctx.metricsCtx.IncS3Operations(PutObjectOperation)
+	// Return error
+	return err
+}
+
+func (s3ctx *s3Context) HeadObject(key string) (*HeadOutput, error) {
+	// Head object in bucket
+	_, err := s3ctx.svcClient.HeadObject(&s3.HeadObjectInput{
+		Bucket: aws.String(s3ctx.target.Bucket.Name),
+		Key:    aws.String(key),
+	})
+	// Metrics
+	s3ctx.metricsCtx.IncS3Operations(HeadObjectOperation)
+	// Test error
+	if err != nil {
+		// Try to cast error into an AWS Error if possible
+		aerr, ok := err.(awserr.Error)
+		if ok {
+			// Issue not fixed: https://github.com/aws/aws-sdk-go/issues/1208
+			if aerr.Code() == "NotFound" {
+				return nil, ErrNotFound
+			}
+		}
+
+		return nil, err
+	}
+	// Generate output
+	output := &HeadOutput{
+		Type: FileType,
+		Key:  key,
+	}
+	// Return output
+	return output, nil
+}
+
+func (s3ctx *s3Context) DeleteObject(key string) error {
+	// Delete object
+	_, err := s3ctx.svcClient.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(s3ctx.target.Bucket.Name),
+		Key:    aws.String(key),
+	})
+	// Metrics
+	s3ctx.metricsCtx.IncS3Operations(DeleteObjectOperation)
+	// Return error
+	return err
 }

@@ -4,12 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/thoas/go-funk"
 )
 
 // MainConfigFolderPath Main configuration folder path
@@ -79,7 +81,7 @@ type Config struct {
 	Log            *LogConfig          `mapstructure:"log"`
 	Server         *ServerConfig       `mapstructure:"server"`
 	InternalServer *ServerConfig       `mapstructure:"internalServer"`
-	Targets        []*Target           `mapstructure:"targets" validate:"gte=0,required,dive,required"`
+	Targets        []*TargetConfig     `mapstructure:"targets" validate:"gte=0,required,dive,required"`
 	Templates      *TemplateConfig     `mapstructure:"templates"`
 	AuthProviders  *AuthProviderConfig `mapstructure:"authProviders"`
 	ListTargets    *ListTargetsConfig  `mapstructure:"listTargets" validate:"required"`
@@ -154,18 +156,50 @@ type ServerConfig struct {
 	Port       int    `mapstructure:"port" validate:"required"`
 }
 
-// Target Bucket instance configuration
-type Target struct {
-	Name          string        `mapstructure:"name" validate:"required"`
-	Bucket        *BucketConfig `mapstructure:"bucket" validate:"required"`
-	Resources     []*Resource   `mapstructure:"resources" validate:"dive"`
-	Mount         *MountConfig  `mapstructure:"mount" validate:"required"`
-	IndexDocument string        `mapstructure:"indexDocument"`
+// TargetConfig Bucket instance configuration
+type TargetConfig struct {
+	Name          string         `mapstructure:"name" validate:"required"`
+	Bucket        *BucketConfig  `mapstructure:"bucket" validate:"required"`
+	Resources     []*Resource    `mapstructure:"resources" validate:"dive"`
+	Mount         *MountConfig   `mapstructure:"mount" validate:"required"`
+	IndexDocument string         `mapstructure:"indexDocument"`
+	Actions       *ActionsConfig `mapstructure:"actions"`
+}
+
+// ActionsConfig is dedicated to actions configuration in a target
+type ActionsConfig struct {
+	GET    *GetActionConfig    `mapstructure:"GET"`
+	PUT    *PutActionConfig    `mapstructure:"PUT"`
+	DELETE *DeleteActionConfig `mapstructure:"DELETE"`
+}
+
+// DeleteActionConfig Delete action configuration
+type DeleteActionConfig struct {
+	Enabled bool `mapstructure:"enabled"`
+}
+
+// PutActionConfig Post action configuration
+type PutActionConfig struct {
+	Enabled bool                   `mapstructure:"enabled"`
+	Config  *PutActionConfigConfig `mapstructure:"config"`
+}
+
+// PutActionConfigConfig Post action configuration object configuration
+type PutActionConfigConfig struct {
+	Metadata      map[string]string `mapstructure:"metadata"`
+	StorageClass  string            `mapstructure:"storageClass"`
+	AllowOverride bool              `mapstructure:"allowOverride"`
+}
+
+// GetActionConfig Get action configuration
+type GetActionConfig struct {
+	Enabled bool `mapstructure:"enabled"`
 }
 
 // Resource Resource
 type Resource struct {
 	Path      string         `mapstructure:"path" validate:"required"`
+	Methods   []string       `mapstructure:"methods" validate:"required,dive,required"`
 	WhiteList *bool          `mapstructure:"whiteList"`
 	Provider  string         `mapstructure:"provider"`
 	Basic     *ResourceBasic `mapstructure:"basic" validate:"omitempty"`
@@ -244,11 +278,34 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	// Manage default s3 bucket region
+	// Manage default values for targets
 	for _, item := range out.Targets {
+		// Manage default configuration for target region
 		if item.Bucket.Region == "" {
 			item.Bucket.Region = DefaultBucketRegion
 		}
+		// Manage default configuration for target actions
+		if item.Actions == nil {
+			item.Actions = &ActionsConfig{GET: &GetActionConfig{Enabled: true}}
+		}
+		// Manage default value for resources methods
+		if item.Resources != nil {
+			for _, res := range item.Resources {
+				// Check if resource has methods
+				if res.Methods == nil {
+					// Set default values
+					res.Methods = []string{http.MethodGet}
+				}
+			}
+		}
+	}
+
+	// Manage default value for list targets resource methods
+	if out.ListTargets != nil &&
+		out.ListTargets.Resource != nil &&
+		out.ListTargets.Resource.Methods == nil {
+		// Set default values
+		out.ListTargets.Resource.Methods = []string{http.MethodGet}
 	}
 
 	if out.AuthProviders != nil && out.AuthProviders.OIDC != nil {
@@ -352,7 +409,7 @@ func Load() (*Config, error) {
 		}
 	}
 
-	// Validate resources if they exists in all targets and validate target mount path
+	// Validate resources if they exists in all targets, validate target mount path and validate actions
 	for i := 0; i < len(out.Targets); i++ {
 		target := out.Targets[i]
 		// Check if resources are declared
@@ -376,6 +433,28 @@ func Load() (*Config, error) {
 			if err != nil {
 				return nil, err
 			}
+		}
+		// Check actions
+		if target.Actions.GET == nil && target.Actions.PUT == nil && target.Actions.DELETE == nil {
+			return nil, fmt.Errorf("at least one action must be declared in target %d", i)
+		}
+		// This part will check that at least one action is enabled
+		oneMustBeEnabled := false
+
+		if target.Actions.GET != nil {
+			oneMustBeEnabled = target.Actions.GET.Enabled || oneMustBeEnabled
+		}
+
+		if target.Actions.PUT != nil {
+			oneMustBeEnabled = target.Actions.PUT.Enabled || oneMustBeEnabled
+		}
+
+		if target.Actions.DELETE != nil {
+			oneMustBeEnabled = target.Actions.DELETE.Enabled || oneMustBeEnabled
+		}
+
+		if !oneMustBeEnabled {
+			return nil, fmt.Errorf("at least one action must be enabled in target %d", i)
 		}
 	}
 
@@ -460,6 +539,15 @@ func loadCredential(credCfg *CredentialConfig) error {
 }
 
 func validateResource(beginErrorMessage string, res *Resource, authProviders *AuthProviderConfig, mountPathList []string) error {
+	// Check resource http methods
+	// Filter http methods that are not supported
+	filtered := funk.FilterString(res.Methods, func(s string) bool {
+		return s != http.MethodGet && s != http.MethodPut && s != http.MethodDelete
+	})
+	// Check if size is > 0
+	if len(filtered) > 0 {
+		return errors.New(beginErrorMessage + " must have a HTTP method in GET, PUT or DELETE")
+	}
 	// Check resource not valid
 	if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil {
 		return errors.New(beginErrorMessage + " have whitelist, basic configuration or oidc configuration")

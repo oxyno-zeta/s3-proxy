@@ -1,6 +1,7 @@
 package bucket
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
@@ -10,16 +11,26 @@ import (
 )
 
 type Client interface {
-	Proxy()
+	Get(requestPath string)
+	Put(inp *PutInput)
+	Delete(requestPath string)
+}
+
+type PutInput struct {
+	RequestPath string
+	Filename    string
+	Body        io.Reader
+	ContentType string
 }
 
 // NewClient New Client
 // nolint:whitespace
 func NewClient(
-	tgt *config.Target, tplConfig *config.TemplateConfig, logger logrus.FieldLogger,
-	mountPath string, requestPath string, httpRW http.ResponseWriter,
+	tgt *config.TargetConfig, tplConfig *config.TemplateConfig, logger logrus.FieldLogger,
+	mountPath string, httpRW http.ResponseWriter,
 	handleNotFound func(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig),
 	handleInternalServerError func(rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig),
+	handleForbidden func(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig),
 	metricsCtx metrics.Client,
 ) (Client, error) {
 	s3ctx, err := s3client.NewS3Context(tgt, logger, metricsCtx)
@@ -32,10 +43,10 @@ func NewClient(
 		logger:                    logger,
 		bucketInstance:            tgt,
 		mountPath:                 mountPath,
-		requestPath:               requestPath,
 		httpRW:                    httpRW,
 		tplConfig:                 tplConfig,
 		handleNotFound:            handleNotFound,
+		handleForbidden:           handleForbidden,
 		handleInternalServerError: handleInternalServerError,
 	}, nil
 }

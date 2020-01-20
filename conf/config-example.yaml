@@ -59,6 +59,11 @@ log:
 #   resource:
 #     # A Path must be declared for a resource filtering
 #     path: /
+#     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
+#     methods:
+#       - GET
+#       - PUT
+#       - DELETE
 #     # Whitelist
 #     whitelist: false
 #     # A authentication provider declared in section before, here is the key name
@@ -92,6 +97,11 @@ targets:
     #     whiteList: true
     #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /specific_doc/*
+    #     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
+    #     methods:
+    #       - GET
+    #       - PUT
+    #       - DELETE
     #     # A authentication provider declared in section before, here is the key name
     #     provider: provider1
     #     # OIDC section for access filter
@@ -101,6 +111,11 @@ targets:
     #         - group: specific_users
     #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /directory1/*
+    #     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
+    #     methods:
+    #       - GET
+    #       - PUT
+    #       - DELETE
     #     # A authentication provider declared in section before, here is the key name
     #     provider: provider1
     #     # Basic authentication section
@@ -111,6 +126,30 @@ targets:
     #             path: password1-in-file
     # ## Index document to display if exists in folder
     # indexDocument: index.html
+    # ## Actions
+    # actions:
+    #   # Action for GET requests on target
+    #   GET:
+    #     # Will allow GET requests
+    #     enabled: true
+    #   # Action for PUT requests on target
+    #   PUT:
+    #     # Will allow PUT requests
+    #     enabled: true
+    #     # Configuration for PUT requests
+    #     config:
+    #       # Metadata key/values that will be put on S3 objects
+    #       metadata:
+    #         key: value
+    #       # Storage class that will be used for uploaded objects
+    #       # See storage class here: https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html
+    #       storageClass: STANDARD # GLACIER, ...
+    #       # Will allow override objects if enabled
+    #       allowOverride: false
+    #   # Action for DELETE requests on target
+    #   DELETE:
+    #     # Will allow DELETE requests
+    #     enabled: true
     ## Bucket configuration
     bucket:
       name: super-bucket

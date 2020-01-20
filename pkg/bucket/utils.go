@@ -12,7 +12,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3client"
 )
 
-func setHeadersFromObjectOutput(w http.ResponseWriter, obj *s3client.ObjectOutput) {
+func setHeadersFromObjectOutput(w http.ResponseWriter, obj *s3client.GetOutput) {
 	setStrHeader(w, "Cache-Control", obj.CacheControl)
 	setStrHeader(w, "Expires", obj.Expires)
 	setStrHeader(w, "Content-Disposition", obj.ContentDisposition)
@@ -28,7 +28,7 @@ func setHeadersFromObjectOutput(w http.ResponseWriter, obj *s3client.ObjectOutpu
 	w.WriteHeader(httpStatus)
 }
 
-func determineHTTPStatus(obj *s3client.ObjectOutput) int {
+func determineHTTPStatus(obj *s3client.GetOutput) int {
 	// Set default http status to 200 OK
 	httpStatus := http.StatusOK
 	contentRangeIsGiven := len(obj.ContentRange) > 0
@@ -43,7 +43,7 @@ func determineHTTPStatus(obj *s3client.ObjectOutput) int {
 	return httpStatus
 }
 
-func totalFileSizeEqualToContentRange(obj *s3client.ObjectOutput) bool {
+func totalFileSizeEqualToContentRange(obj *s3client.GetOutput) bool {
 	totalSizeIsEqualToContentRange := false
 	// Calculate total file size
 	totalSize, err := strconv.ParseInt(getFileSizeAsString(obj), 10, 64)
@@ -59,7 +59,7 @@ func totalFileSizeEqualToContentRange(obj *s3client.ObjectOutput) bool {
 /**
 See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range
 */
-func getFileSizeAsString(obj *s3client.ObjectOutput) string {
+func getFileSizeAsString(obj *s3client.GetOutput) string {
 	s := strings.Split(obj.ContentRange, "/")
 	totalSizeString := s[1]
 	totalSizeString = strings.TrimSpace(totalSizeString)
