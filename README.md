@@ -10,6 +10,7 @@
   - [GET](#get)
   - [PUT](#put)
   - [DELETE](#delete)
+- [AWS IAM Policy](#aws-iam-policy)
 - [Deployment](#deployment)
   - [Kubernetes - Helm](#kubernetes---helm)
   - [Docker](#docker)
@@ -72,6 +73,30 @@ Example: `PUT --form file:@file.pdf /dir1/`
 This kind of requests will allow to delete files (**only**).
 
 The DELETE request path must contain the file name. Example: `DELETE /dir1/dir2/file.pdf`.
+
+## AWS IAM Policy
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        // Needed for GET API/Action
+        "s3:ListBucket",
+        "s3:GetObject",
+        // Needed for PUT API/Action
+        "s3:PutObject",
+        "s3:HeadObject",
+        // Needed for DELETE API/Action
+        "s3:DeleteObject"
+      ],
+      "Resource": ["arn:aws:s3:::<bucket-name>", "arn:aws:s3:::<bucket-name>/*"]
+    }
+  ]
+}
+```
 
 ## Deployment
 
