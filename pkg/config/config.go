@@ -84,7 +84,7 @@ type Config struct {
 	Targets        []*TargetConfig     `mapstructure:"targets" validate:"gte=0,required,dive,required"`
 	Templates      *TemplateConfig     `mapstructure:"templates"`
 	AuthProviders  *AuthProviderConfig `mapstructure:"authProviders"`
-	ListTargets    *ListTargetsConfig  `mapstructure:"listTargets" validate:"required"`
+	ListTargets    *ListTargetsConfig  `mapstructure:"listTargets"`
 }
 
 // ListTargetsConfig List targets configuration
@@ -325,6 +325,11 @@ func Load() (*Config, error) {
 		}
 	}
 
+	// Manage default value for list targets
+	if out.ListTargets == nil {
+		out.ListTargets = &ListTargetsConfig{Enabled: false}
+	}
+
 	// Configuration validation
 	err = validate.Struct(out)
 	if err != nil {
@@ -459,7 +464,7 @@ func Load() (*Config, error) {
 	}
 
 	// Validate list targets object
-	if out.ListTargets != nil {
+	if out.ListTargets != nil && out.ListTargets.Enabled {
 		// Check list targets resource
 		if out.ListTargets.Resource != nil {
 			res := out.ListTargets.Resource
