@@ -225,7 +225,7 @@ func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx me
 func generateTargetList(rw http.ResponseWriter, logger logrus.FieldLogger, cfg *config.Config) {
 	err := utils.TemplateExecution(cfg.Templates.TargetList, logger, rw, struct{ Targets []*config.TargetConfig }{Targets: cfg.Targets}, 200)
 	if err != nil {
-		logger.Errorln(err)
+		logger.Error(err)
 		utils.HandleInternalServerError(rw, err, "/", logger, cfg.Templates)
 		// Stop here
 		return

@@ -19,7 +19,7 @@ func HandleInternalServerError(rw http.ResponseWriter, err error, requestPath st
 	}{Path: requestPath, Error: err}, http.StatusInternalServerError)
 	if err2 != nil {
 		// New error
-		logger.Errorln(err2)
+		logger.Error(err2)
 		// Template error
 		res := fmt.Sprintf(`
 <!DOCTYPE html>
@@ -39,7 +39,7 @@ func HandleInternalServerError(rw http.ResponseWriter, err error, requestPath st
 func HandleNotFound(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
 	err := TemplateExecution(tplCfg.NotFound, logger, rw, struct{ Path string }{Path: requestPath}, http.StatusNotFound)
 	if err != nil {
-		logger.Errorln(err)
+		logger.Error(err)
 		HandleInternalServerError(rw, err, requestPath, logger, tplCfg)
 	}
 }
@@ -47,7 +47,7 @@ func HandleNotFound(rw http.ResponseWriter, requestPath string, logger logrus.Fi
 func HandleUnauthorized(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
 	err := TemplateExecution(tplCfg.Unauthorized, logger, rw, struct{ Path string }{Path: requestPath}, http.StatusUnauthorized)
 	if err != nil {
-		logger.Errorln(err)
+		logger.Error(err)
 		HandleInternalServerError(rw, err, requestPath, logger, tplCfg)
 	}
 }
@@ -58,7 +58,7 @@ func HandleBadRequest(rw http.ResponseWriter, requestPath string, err error, log
 		Error error
 	}{Path: requestPath, Error: err}, http.StatusBadRequest)
 	if err2 != nil {
-		logger.Errorln(err2)
+		logger.Error(err2)
 		HandleInternalServerError(rw, err2, requestPath, logger, tplCfg)
 	}
 }
@@ -68,7 +68,7 @@ func HandleForbidden(rw http.ResponseWriter, requestPath string, logger logrus.F
 		Path string
 	}{Path: requestPath}, http.StatusForbidden)
 	if err != nil {
-		logger.Errorln(err)
+		logger.Error(err)
 		HandleInternalServerError(rw, err, requestPath, logger, tplCfg)
 	}
 }
