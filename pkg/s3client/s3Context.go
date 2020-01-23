@@ -96,12 +96,8 @@ func (s3ctx *s3Context) GetObject(key string) (*GetOutput, error) {
 	if err != nil {
 		// Try to cast error into an AWS Error if possible
 		aerr, ok := err.(awserr.Error)
-		if ok {
-			switch aerr.Code() {
-			// !! FIXME Need to remove no such bucket !
-			case s3.ErrCodeNoSuchBucket, s3.ErrCodeNoSuchKey:
-				return nil, ErrNotFound
-			}
+		if ok && aerr.Code() == s3.ErrCodeNoSuchKey {
+			return nil, ErrNotFound
 		}
 
 		return nil, err
