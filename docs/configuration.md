@@ -45,13 +45,49 @@ You can see a full example in the [Example section](#example)
 
 ## TargetConfiguration
 
-| Key           | Type                                        | Required | Default | Description                                                                                              |
-| ------------- | ------------------------------------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------- |
-| name          | String                                      | Yes      | None    | Target name. (This will used in urls and list of targets.)                                               |
-| bucket        | [BucketConfiguration](#bucketconfiguration) | Yes      | None    | Bucket configuration                                                                                     |
-| indexDocument | String                                      | No       | `""`    | The index document name. If this document is found, get it instead of list folder. Example: `index.html` |
-| resources     | [[Resource]](#resource)                     | No       | None    | Resources declaration for path whitelist or specific authentication on path list                         |
-| mount         | [MountConfiguration](#mountconfiguration)   | Yes      | None    | Mount point configuration                                                                                |
+| Key           | Type                                          | Required | Default            | Description                                                                                              |
+| ------------- | --------------------------------------------- | -------- | ------------------ | -------------------------------------------------------------------------------------------------------- |
+| name          | String                                        | Yes      | None               | Target name. (This will used in urls and list of targets.)                                               |
+| bucket        | [BucketConfiguration](#bucketconfiguration)   | Yes      | None               | Bucket configuration                                                                                     |
+| indexDocument | String                                        | No       | `""`               | The index document name. If this document is found, get it instead of list folder. Example: `index.html` |
+| resources     | [[Resource]](#resource)                       | No       | None               | Resources declaration for path whitelist or specific authentication on path list                         |
+| mount         | [MountConfiguration](#mountconfiguration)     | Yes      | None               | Mount point configuration                                                                                |
+| actions       | [ActionsConfiguration](#actionsconfiguration) | No       | GET action enabled | Actions allowed on target (GET, PUT or DELETE)                                                           |
+
+## ActionsConfiguration
+
+| Key    | Type                                                    | Required | Default | Description                                        |
+| ------ | ------------------------------------------------------- | -------- | ------- | -------------------------------------------------- |
+| GET    | [GetActionConfiguration](#getactionconfiguration)       | No       | None    | Action configuration for GET requests on target    |
+| PUT    | [PutActionConfiguration](#putactionconfiguration)       | No       | None    | Action configuration for PUT requests on target    |
+| DELETE | [DeleteActionConfiguration](#deleteactionconfiguration) | No       | None    | Action configuration for DELETE requests on target |
+
+## GetActionConfiguration
+
+| Key     | Type    | Required | Default | Description             |
+| ------- | ------- | -------- | ------- | ----------------------- |
+| enabled | Boolean | No       | `false` | Will allow GET requests |
+
+## PutActionConfiguration
+
+| Key     | Type                                                          | Required | Default | Description                    |
+| ------- | ------------------------------------------------------------- | -------- | ------- | ------------------------------ |
+| enabled | Boolean                                                       | No       | `false` | Will allow PUT requests        |
+| config  | [PutActionConfigConfiguration](#putactionconfigconfiguration) | No       | None    | Configuration for PUT requests |
+
+## PutActionConfigConfiguration
+
+| Key           | Type              | Required | Default | Description                                                                                                                                                                                                                        |
+| ------------- | ----------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| metadata      | Map[String]String | No       | None    | Metadata key/values that will be put on S3 objects                                                                                                                                                                                 |
+| storageClass  | String            | No       | `""`    | Storage class that will be used for uploaded objects. See storage class here: [https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html](https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html) |
+| allowOverride | Boolean           | No       | `false` | Will allow override objects if enabled                                                                                                                                                                                             |
+
+## DeleteActionConfiguration
+
+| Key     | Type    | Required | Default | Description                |
+| ------- | ------- | -------- | ------- | -------------------------- |
+| enabled | Boolean | No       | `false` | Will allow DELETE requests |
 
 ## BucketConfiguration
 
@@ -110,12 +146,13 @@ You can see a full example in the [Example section](#example)
 
 ## Resource
 
-| Key       | Type                            | Required                            | Default | Description                                          |
-| --------- | ------------------------------- | ----------------------------------- | ------- | ---------------------------------------------------- |
-| path      | String                          | Yes                                 | None    | Path or matching path (e.g.: `/*`)                   |
-| whiteList | Boolean                         | Required without oidc or basic      | None    | Is this path in white list ? E.g.: No authentication |
-| oidc      | [ResourceOIDC](#resourceoidc)   | Required without whitelist or oidc  | None    | OIDC configuration authorization                     |
-| basic     | [ResourceBasic](#resourcebasic) | Required without whitelist or basic | None    | Basic auth configuration                             |
+| Key       | Type                            | Required                            | Default | Description                                                  |
+| --------- | ------------------------------- | ----------------------------------- | ------- | ------------------------------------------------------------ |
+| path      | String                          | Yes                                 | None    | Path or matching path (e.g.: `/*`)                           |
+| methods   | [String]                        | No                                  | `[GET]` | HTTP methods allowed (Allowed values `GET`, `PUT`, `DELETE`) |
+| whiteList | Boolean                         | Required without oidc or basic      | None    | Is this path in white list ? E.g.: No authentication         |
+| oidc      | [ResourceOIDC](#resourceoidc)   | Required without whitelist or oidc  | None    | OIDC configuration authorization                             |
+| basic     | [ResourceBasic](#resourcebasic) | Required without whitelist or basic | None    | Basic auth configuration                                     |
 
 # ResourceOIDC
 
@@ -273,6 +310,30 @@ targets:
     #             path: password1-in-file
     # ## Index document to display if exists in folder
     # indexDocument: index.html
+    # ## Actions
+    # actions:
+    #   # Action for GET requests on target
+    #   GET:
+    #     # Will allow GET requests
+    #     enabled: true
+    #   # Action for PUT requests on target
+    #   PUT:
+    #     # Will allow PUT requests
+    #     enabled: true
+    #     # Configuration for PUT requests
+    #     config:
+    #       # Metadata key/values that will be put on S3 objects
+    #       metadata:
+    #         key: value
+    #       # Storage class that will be used for uploaded objects
+    #       # See storage class here: https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html
+    #       storageClass: STANDARD # GLACIER, ...
+    #       # Will allow override objects if enabled
+    #       allowOverride: false
+    #   # Action for DELETE requests on target
+    #   DELETE:
+    #     # Will allow DELETE requests
+    #     enabled: true
     ## Bucket configuration
     bucket:
       name: super-bucket

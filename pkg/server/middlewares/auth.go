@@ -7,6 +7,7 @@ import (
 	"github.com/gobwas/glob"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/server/utils"
+	"github.com/thoas/go-funk"
 )
 
 var errAuthMiddlewareNotSupported = errors.New("not supported")
@@ -16,9 +17,10 @@ func AuthMiddleware(cfg *config.Config, resources []*config.Resource) func(http.
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			logEntry := GetLogEntry(r)
 			requestURI := r.URL.RequestURI()
+			httpMethod := r.Method
 			logEntry.Info(requestURI)
 			// Find resource
-			res, err := findResource(resources, requestURI)
+			res, err := findResource(resources, requestURI, httpMethod)
 			if err != nil {
 				logEntry.Error(err)
 				utils.HandleInternalServerError(w, err, requestURI, logEntry, cfg.Templates)
@@ -26,8 +28,16 @@ func AuthMiddleware(cfg *config.Config, resources []*config.Resource) func(http.
 
 			// Check if resource isn't found
 			if res == nil {
-				// No resource matching
-				next.ServeHTTP(w, r)
+				// Check if resources are empty
+				if len(resources) == 0 {
+					// In this case, continue without authentication
+					next.ServeHTTP(w, r)
+					return
+				}
+				// In this case, resource isn't found because not path not declared
+				// So access is forbidden
+				logEntry.Errorf("no resource found for path %s => Forbidden access", requestURI)
+				utils.HandleForbidden(w, requestURI, logEntry, cfg.Templates)
 				return
 			}
 
@@ -59,9 +69,16 @@ func AuthMiddleware(cfg *config.Config, resources []*config.Resource) func(http.
 	}
 }
 
-func findResource(resL []*config.Resource, requestURI string) (*config.Resource, error) {
+func findResource(resL []*config.Resource, requestURI string, httpMethod string) (*config.Resource, error) {
 	for i := 0; i < len(resL); i++ {
 		res := resL[i]
+		// Check if http method is declared in resource
+		if !funk.Contains(res.Methods, httpMethod) {
+			// Http method not declared in resource
+			// Stop here and continue to next resource
+			continue
+		}
+		// Compile a glob pattern for uri matching
 		g, err := glob.Compile(res.Path)
 		// Check if error exists
 		if err != nil {

@@ -2,7 +2,6 @@ package bucket
 
 import (
 	"html/template"
-	"io"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -13,40 +12,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3client"
 )
 
-func transformS3Entries(s3Entries []*s3client.Entry, rctx *RequestContext, bucketRootPrefixKey string) []*Entry {
-	// Prepare result
-	entries := make([]*Entry, 0)
-	// Loop over s3 entries
-	for _, item := range s3Entries {
-		entries = append(entries, &Entry{
-			Type:         item.Type,
-			ETag:         item.ETag,
-			Name:         item.Name,
-			LastModified: item.LastModified,
-			Size:         item.Size,
-			Key:          item.Key,
-			Path:         rctx.mountPath + strings.TrimPrefix(item.Key, bucketRootPrefixKey),
-		})
-	}
-	// Return result
-	return entries
-}
-
-func getFile(brctx *RequestContext, key string) error {
-	// Get object from s3
-	objOutput, err := brctx.s3Context.GetObject(key)
-	if err != nil {
-		return err
-	}
-	// Set headers from object
-	setHeadersFromObjectOutput(brctx.httpRW, objOutput)
-	// Copy data stream to output stream
-	_, err = io.Copy(brctx.httpRW, *objOutput.Body)
-	// Return potential error
-	return err
-}
-
-func setHeadersFromObjectOutput(w http.ResponseWriter, obj *s3client.ObjectOutput) {
+func setHeadersFromObjectOutput(w http.ResponseWriter, obj *s3client.GetOutput) {
 	setStrHeader(w, "Cache-Control", obj.CacheControl)
 	setStrHeader(w, "Expires", obj.Expires)
 	setStrHeader(w, "Content-Disposition", obj.ContentDisposition)
@@ -62,7 +28,7 @@ func setHeadersFromObjectOutput(w http.ResponseWriter, obj *s3client.ObjectOutpu
 	w.WriteHeader(httpStatus)
 }
 
-func determineHTTPStatus(obj *s3client.ObjectOutput) int {
+func determineHTTPStatus(obj *s3client.GetOutput) int {
 	// Set default http status to 200 OK
 	httpStatus := http.StatusOK
 	contentRangeIsGiven := len(obj.ContentRange) > 0
@@ -77,7 +43,7 @@ func determineHTTPStatus(obj *s3client.ObjectOutput) int {
 	return httpStatus
 }
 
-func totalFileSizeEqualToContentRange(obj *s3client.ObjectOutput) bool {
+func totalFileSizeEqualToContentRange(obj *s3client.GetOutput) bool {
 	totalSizeIsEqualToContentRange := false
 	// Calculate total file size
 	totalSize, err := strconv.ParseInt(getFileSizeAsString(obj), 10, 64)
@@ -93,7 +59,7 @@ func totalFileSizeEqualToContentRange(obj *s3client.ObjectOutput) bool {
 /**
 See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range
 */
-func getFileSizeAsString(obj *s3client.ObjectOutput) string {
+func getFileSizeAsString(obj *s3client.GetOutput) string {
 	s := strings.Split(obj.ContentRange, "/")
 	totalSizeString := s[1]
 	totalSizeString = strings.TrimSpace(totalSizeString)
