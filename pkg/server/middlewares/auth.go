@@ -36,6 +36,7 @@ func AuthMiddleware(cfg *config.Config, resources []*config.Resource) func(http.
 				}
 				// In this case, resource isn't found because not path not declared
 				// So access is forbidden
+				logEntry.Errorf("no resource found for path %s => Forbidden access", requestURI)
 				utils.HandleForbidden(w, requestURI, logEntry, cfg.Templates)
 				return
 			}
