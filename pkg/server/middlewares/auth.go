@@ -28,8 +28,15 @@ func AuthMiddleware(cfg *config.Config, resources []*config.Resource) func(http.
 
 			// Check if resource isn't found
 			if res == nil {
-				// No resource matching
-				next.ServeHTTP(w, r)
+				// Check if resources are empty
+				if len(resources) == 0 {
+					// In this case, continue without authentication
+					next.ServeHTTP(w, r)
+					return
+				}
+				// In this case, resource isn't found because not path not declared
+				// So access is forbidden
+				utils.HandleForbidden(w, requestURI, logEntry, cfg.Templates)
 				return
 			}
 
