@@ -5,8 +5,6 @@ before:
   hooks:
     - make clean
     - make dep
-env:
-  - GO111MODULE=on
 builds:
   - main: ./cmd/s3-proxy
     binary: s3-proxy
