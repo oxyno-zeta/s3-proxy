@@ -27,6 +27,7 @@ func GenerateInternalRouter(logger logrus.FieldLogger, cfg *config.Config, metri
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middlewares.NewStructuredLogger(logger))
+	r.Use(metricsCtx.Instrument())
 	r.Use(middleware.Recoverer)
 
 	healthHandler := health.NewHandler()
