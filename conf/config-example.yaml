@@ -20,8 +20,8 @@ log:
 #   targetList: templates/target-list.tpl
 #   unauthorized: templates/unauthorized.tpl
 
-# Authentication
-# auth:
+# Authentication Providers
+# authProviders:
 #   oidc:
 #     provider1:
 #       clientID: client-id

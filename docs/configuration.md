@@ -7,15 +7,15 @@ You can see a full example in the [Example section](#example)
 
 ## Main structure
 
-| Key            | Type                                                  | Required | Default | Description                        |
-| -------------- | ----------------------------------------------------- | -------- | ------- | ---------------------------------- |
-| log            | [LogConfiguration](#logconfiguration)                 | No       | None    | Log configurations                 |
-| server         | [ServerConfiguration](#serverconfiguration)           | No       | None    | Server configurations              |
-| internalServer | [ServerConfiguration](#serverconfiguration)           | No       | None    | Internal Server configurations     |
-| template       | [TemplateConfiguration](#templateconfiguration)       | No       | None    | Template configurations            |
-| targets        | [[TargetConfiguration]](#targetconfiguration)         | Yes      | None    | Targets configuration              |
-| auth           | [AuthConfiguration](#authconfiguration)               | No       | None    | Authentication configuration       |
-| listTargets    | [ListTargetsConfiguration](#listtargetsconfiguration) | No       | None    | List targets feature configuration |
+| Key            | Type                                                      | Required | Default | Description                            |
+| -------------- | --------------------------------------------------------- | -------- | ------- | -------------------------------------- |
+| log            | [LogConfiguration](#logconfiguration)                     | No       | None    | Log configurations                     |
+| server         | [ServerConfiguration](#serverconfiguration)               | No       | None    | Server configurations                  |
+| internalServer | [ServerConfiguration](#serverconfiguration)               | No       | None    | Internal Server configurations         |
+| template       | [TemplateConfiguration](#templateconfiguration)           | No       | None    | Template configurations                |
+| targets        | [[TargetConfiguration]](#targetconfiguration)             | Yes      | None    | Targets configuration                  |
+| authProviders  | [AuthProvidersConfiguration](#authProvidersconfiguration) | No       | None    | Authentication providers configuration |
+| listTargets    | [ListTargetsConfiguration](#listtargetsconfiguration)     | No       | None    | List targets feature configuration     |
 
 ## LogConfiguration
 
@@ -114,7 +114,7 @@ You can see a full example in the [Example section](#example)
 | env   | String | Only if path and value are not set | None    | Environment variable name to use to load credential |
 | value | String | Only if path and env are not set   | None    | Credential value directly (Not recommended)         |
 
-## AuthConfiguration
+## AuthProvidersConfiguration
 
 | Key   | Type                                                         | Required | Default | Description                                       |
 | ----- | ------------------------------------------------------------ | -------- | ------- | ------------------------------------------------- |
@@ -220,8 +220,8 @@ log:
 #   targetList: templates/target-list.tpl
 #   unauthorized: templates/unauthorized.tpl
 
-# Authentication
-# auth:
+# Authentication Providers
+# authProviders:
 #   oidc:
 #     provider1:
 #       clientID: client-id
