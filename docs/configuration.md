@@ -162,10 +162,11 @@ You can see a full example in the [Example section](#example)
 
 ## OIDCAuthorizationAccesses
 
-| Key   | Type   | Required               | Default | Description |
-| ----- | ------ | ---------------------- | ------- | ----------- |
-| group | String | Required without email | None    | Group name  |
-| email | String | Required without group | None    | Email       |
+| Key    | Type    | Required               | Default | Description                                    |
+| ------ | ------- | ---------------------- | ------- | ---------------------------------------------- |
+| group  | String  | Required without email | None    | Group name                                     |
+| email  | String  | Required without group | None    | Email                                          |
+| regexp | Boolean | No                     | `false` | Consider group or email as regexp for matching |
 
 ## ResourceBasic
 
@@ -265,7 +266,7 @@ log:
 #     # OIDC section for access filter
 #     oidc:
 #       # NOTE: This list can be empty ([]) for authentication only and no group filter
-#       authorizationAccesses: # Authorization accesses : groups or email
+#       authorizationAccesses: # Authorization accesses : groups or email or regexp
 #         - group: devops_users
 #     # Basic authentication section
 #     basic:
@@ -296,7 +297,7 @@ targets:
     #     # OIDC section for access filter
     #     oidc:
     #       # NOTE: This list can be empty ([]) for authentication only and no group filter
-    #       authorizationAccesses: # Authorization accesses : groups or email
+    #       authorizationAccesses: # Authorization accesses : groups or email or regexp
     #         - group: specific_users
     #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /directory1/*
