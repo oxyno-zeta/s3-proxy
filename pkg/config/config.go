@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -123,8 +124,11 @@ type OIDCAuthConfig struct {
 
 // OIDCAuthorizationAccess OpenID Connect authorization accesses
 type OIDCAuthorizationAccess struct {
-	Group string `mapstructure:"group" validate:"required_without=Email"`
-	Email string `mapstructure:"email" validate:"required_without=Group"`
+	Group       string `mapstructure:"group" validate:"required_without=Email"`
+	Email       string `mapstructure:"email" validate:"required_without=Group"`
+	Regexp      bool   `mapstructure:"regexp"`
+	GroupRegexp *regexp.Regexp
+	EmailRegexp *regexp.Regexp
 }
 
 // BasicAuthConfig Basic auth configurations
@@ -390,7 +394,7 @@ func Load() (*Config, error) {
 			}
 		}
 	}
-	// Load auth credentials from targets with basic auth
+	// Load auth credentials from targets with basic auth and load regexp in OIDC authorizations
 	for i := 0; i < len(out.Targets); i++ {
 		target := out.Targets[i]
 		// Check if resources are declared
@@ -406,6 +410,38 @@ func Load() (*Config, error) {
 						err = loadCredential(it.Password)
 						if err != nil {
 							return nil, err
+						}
+					}
+				}
+
+				// Check if regexp is enabled in OIDC Authorization groups
+				if res.OIDC != nil && res.OIDC.AuthorizationAccesses != nil {
+					for _, item := range res.OIDC.AuthorizationAccesses {
+						if item.Regexp {
+							// Try to compile regex for group or email
+							// Group case
+							if item.Group != "" {
+								// Compile Regexp
+								reg, err2 := regexp.Compile(item.Group)
+								// Check error
+								if err2 != nil {
+									return nil, err2
+								}
+								// Save regexp
+								item.GroupRegexp = reg
+							}
+
+							// Email case
+							if item.Email != "" {
+								// Compile regexp
+								reg, err2 := regexp.Compile(item.Email)
+								// Check error
+								if err2 != nil {
+									return nil, err2
+								}
+								// Save regexp
+								item.EmailRegexp = reg
+							}
 						}
 					}
 				}
