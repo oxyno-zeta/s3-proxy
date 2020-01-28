@@ -9,7 +9,7 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func validateConfig(out *Config) error {
+func validateBusinessConfig(out *Config) error {
 	// Validate resources if they exists in all targets, validate target mount path and validate actions
 	for i := 0; i < len(out.Targets); i++ {
 		target := out.Targets[i]

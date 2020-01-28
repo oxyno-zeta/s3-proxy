@@ -281,56 +281,10 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	// Manage default values for targets
-	for _, item := range out.Targets {
-		// Manage default configuration for target region
-		if item.Bucket.Region == "" {
-			item.Bucket.Region = DefaultBucketRegion
-		}
-		// Manage default configuration for target actions
-		if item.Actions == nil {
-			item.Actions = &ActionsConfig{GET: &GetActionConfig{Enabled: true}}
-		}
-		// Manage default value for resources methods
-		if item.Resources != nil {
-			for _, res := range item.Resources {
-				// Check if resource has methods
-				if res.Methods == nil {
-					// Set default values
-					res.Methods = []string{http.MethodGet}
-				}
-			}
-		}
-	}
-
-	// Manage default value for list targets resource methods
-	if out.ListTargets != nil &&
-		out.ListTargets.Resource != nil &&
-		out.ListTargets.Resource.Methods == nil {
-		// Set default values
-		out.ListTargets.Resource.Methods = []string{http.MethodGet}
-	}
-
-	if out.AuthProviders != nil && out.AuthProviders.OIDC != nil {
-		for _, v := range out.AuthProviders.OIDC {
-			// Manage default scopes
-			if v.Scopes == nil || len(v.Scopes) == 0 {
-				v.Scopes = DefaultOIDCScopes
-			}
-			// Manage default group claim
-			if v.GroupClaim == "" {
-				v.GroupClaim = DefaultOIDCGroupClaim
-			}
-			// Manage default oidc cookie name
-			if v.CookieName == "" {
-				v.CookieName = DefaultOIDCCookieName
-			}
-		}
-	}
-
-	// Manage default value for list targets
-	if out.ListTargets == nil {
-		out.ListTargets = &ListTargetsConfig{Enabled: false}
+	// Load default values
+	err = loadDefaultValues(&out)
+	if err != nil {
+		return nil, err
 	}
 
 	// Configuration validation
@@ -339,117 +293,13 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	// Load credentials from declaration
-	for _, item := range out.Targets {
-		if item.Bucket.Credentials != nil && item.Bucket.Credentials.AccessKey != nil && item.Bucket.Credentials.SecretKey != nil {
-			// Manage access key
-			err = loadCredential(item.Bucket.Credentials.AccessKey)
-			if err != nil {
-				return nil, err
-			}
-			// Manage secret key
-			err = loadCredential(item.Bucket.Credentials.SecretKey)
-			if err != nil {
-				return nil, err
-			}
-		}
+	// Load all credentials
+	err = loadAllCredentials(&out)
+	if err != nil {
+		return nil, err
 	}
 
-	// Load auth credentials
-	if out.AuthProviders != nil {
-		// Load credentials for oidc auth if needed
-		if out.AuthProviders.OIDC != nil {
-			// Load credentials for oidc auth if needed
-			for k, v := range out.AuthProviders.OIDC {
-				// Check if client secret exists
-				if v.ClientSecret != nil {
-					err = loadCredential(v.ClientSecret)
-					if err != nil {
-						return nil, err
-					}
-				}
-				// Check if login path is defined
-				if v.LoginPath == "" {
-					v.LoginPath = fmt.Sprintf(oidcLoginPathTemplate, k)
-				}
-				// Check if callback path is defined
-				if v.CallbackPath == "" {
-					v.CallbackPath = fmt.Sprintf(oidcCallbackPathTemplate, k)
-				}
-			}
-		}
-	}
-
-	// Load auth credentials from list targets with basic auth
-	if out.ListTargets != nil && out.ListTargets.Resource != nil &&
-		out.ListTargets.Resource.Basic != nil && out.ListTargets.Resource.Basic.Credentials != nil {
-		// Loop over credentials declared
-		for i := 0; i < len(out.ListTargets.Resource.Basic.Credentials); i++ {
-			// Store item access
-			it := out.ListTargets.Resource.Basic.Credentials[i]
-			// Load credential
-			err = loadCredential(it.Password)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-	// Load auth credentials from targets with basic auth and load regexp in OIDC authorizations
-	for i := 0; i < len(out.Targets); i++ {
-		target := out.Targets[i]
-		// Check if resources are declared
-		if target.Resources != nil {
-			for j := 0; j < len(target.Resources); j++ {
-				res := target.Resources[j]
-				// Check if basic auth configuration exists
-				if res.Basic != nil && res.Basic.Credentials != nil {
-					// Loop over creds
-					for k := 0; k < len(res.Basic.Credentials); k++ {
-						it := res.Basic.Credentials[k]
-						// Load credential
-						err = loadCredential(it.Password)
-						if err != nil {
-							return nil, err
-						}
-					}
-				}
-
-				// Check if regexp is enabled in OIDC Authorization groups
-				if res.OIDC != nil && res.OIDC.AuthorizationAccesses != nil {
-					for _, item := range res.OIDC.AuthorizationAccesses {
-						if item.Regexp {
-							// Try to compile regex for group or email
-							// Group case
-							if item.Group != "" {
-								// Compile Regexp
-								reg, err2 := regexp.Compile(item.Group)
-								// Check error
-								if err2 != nil {
-									return nil, err2
-								}
-								// Save regexp
-								item.GroupRegexp = reg
-							}
-
-							// Email case
-							if item.Email != "" {
-								// Compile regexp
-								reg, err2 := regexp.Compile(item.Email)
-								// Check error
-								if err2 != nil {
-									return nil, err2
-								}
-								// Save regexp
-								item.EmailRegexp = reg
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	err = validateConfig(&out)
+	err = validateBusinessConfig(&out)
 	if err != nil {
 		return nil, err
 	}
@@ -488,6 +338,80 @@ func (bcfg *BucketConfig) GetRootPrefix() string {
 	return key
 }
 
+func loadAllCredentials(out *Config) error {
+	// Load credentials from declaration
+	for _, item := range out.Targets {
+		if item.Bucket.Credentials != nil && item.Bucket.Credentials.AccessKey != nil && item.Bucket.Credentials.SecretKey != nil {
+			// Manage access key
+			err := loadCredential(item.Bucket.Credentials.AccessKey)
+			if err != nil {
+				return err
+			}
+			// Manage secret key
+			err = loadCredential(item.Bucket.Credentials.SecretKey)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Load auth credentials
+	if out.AuthProviders != nil {
+		// Load credentials for oidc auth if needed
+		if out.AuthProviders.OIDC != nil {
+			// Load credentials for oidc auth if needed
+			for _, v := range out.AuthProviders.OIDC {
+				// Check if client secret exists
+				if v.ClientSecret != nil {
+					err := loadCredential(v.ClientSecret)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+
+	// Load auth credentials from list targets with basic auth
+	if out.ListTargets != nil && out.ListTargets.Resource != nil &&
+		out.ListTargets.Resource.Basic != nil && out.ListTargets.Resource.Basic.Credentials != nil {
+		// Loop over credentials declared
+		for i := 0; i < len(out.ListTargets.Resource.Basic.Credentials); i++ {
+			// Store item access
+			it := out.ListTargets.Resource.Basic.Credentials[i]
+			// Load credential
+			err := loadCredential(it.Password)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	// Load auth credentials from targets with basic auth
+	for i := 0; i < len(out.Targets); i++ {
+		target := out.Targets[i]
+		// Check if resources are declared
+		if target.Resources != nil {
+			for j := 0; j < len(target.Resources); j++ {
+				res := target.Resources[j]
+				// Check if basic auth configuration exists
+				if res.Basic != nil && res.Basic.Credentials != nil {
+					// Loop over creds
+					for k := 0; k < len(res.Basic.Credentials); k++ {
+						it := res.Basic.Credentials[k]
+						// Load credential
+						err := loadCredential(it.Password)
+						if err != nil {
+							return err
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 func loadCredential(credCfg *CredentialConfig) error {
 	if credCfg.Path != "" {
 		// Secret file
@@ -507,5 +431,139 @@ func loadCredential(credCfg *CredentialConfig) error {
 		credCfg.Value = envValue
 	}
 	// Value case is already managed by koanf
+	return nil
+}
+
+func loadDefaultValues(out *Config) error {
+	// Manage default values for targets
+	for _, item := range out.Targets {
+		// Manage default configuration for target region
+		if item.Bucket.Region == "" {
+			item.Bucket.Region = DefaultBucketRegion
+		}
+		// Manage default configuration for target actions
+		if item.Actions == nil {
+			item.Actions = &ActionsConfig{GET: &GetActionConfig{Enabled: true}}
+		}
+		// Manage default value for resources methods
+		if item.Resources != nil {
+			for _, res := range item.Resources {
+				// Check if resource has methods
+				if res.Methods == nil {
+					// Set default values
+					res.Methods = []string{http.MethodGet}
+				}
+
+				// Check if regexp is enabled in OIDC Authorization groups
+				if res.OIDC != nil && res.OIDC.AuthorizationAccesses != nil {
+					for _, item := range res.OIDC.AuthorizationAccesses {
+						if item.Regexp {
+							// Try to compile regex for group or email
+							// Group case
+							if item.Group != "" {
+								// Compile Regexp
+								reg, err2 := regexp.Compile(item.Group)
+								// Check error
+								if err2 != nil {
+									return err2
+								}
+								// Save regexp
+								item.GroupRegexp = reg
+							}
+
+							// Email case
+							if item.Email != "" {
+								// Compile regexp
+								reg, err2 := regexp.Compile(item.Email)
+								// Check error
+								if err2 != nil {
+									return err2
+								}
+								// Save regexp
+								item.EmailRegexp = reg
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Manage default value for list targets resources
+	if out.ListTargets != nil && out.ListTargets.Resource != nil {
+		// Store resource object
+		res := out.ListTargets.Resource
+
+		// Manage default values for http methods
+		if res.Methods == nil {
+			// Set default values
+			res.Methods = []string{http.MethodGet}
+		}
+
+		// Manage regexp values
+		// Check if regexp is enabled in OIDC Authorization groups
+		if res.OIDC != nil && res.OIDC.AuthorizationAccesses != nil {
+			for _, item := range res.OIDC.AuthorizationAccesses {
+				if item.Regexp {
+					// Try to compile regex for group or email
+					// Group case
+					if item.Group != "" {
+						// Compile Regexp
+						reg, err2 := regexp.Compile(item.Group)
+						// Check error
+						if err2 != nil {
+							return err2
+						}
+						// Save regexp
+						item.GroupRegexp = reg
+					}
+
+					// Email case
+					if item.Email != "" {
+						// Compile regexp
+						reg, err2 := regexp.Compile(item.Email)
+						// Check error
+						if err2 != nil {
+							return err2
+						}
+						// Save regexp
+						item.EmailRegexp = reg
+					}
+				}
+			}
+		}
+	}
+
+	// Manage default values for auth providers
+	if out.AuthProviders != nil && out.AuthProviders.OIDC != nil {
+		for k, v := range out.AuthProviders.OIDC {
+			// Manage default scopes
+			if v.Scopes == nil || len(v.Scopes) == 0 {
+				v.Scopes = DefaultOIDCScopes
+			}
+			// Manage default group claim
+			if v.GroupClaim == "" {
+				v.GroupClaim = DefaultOIDCGroupClaim
+			}
+			// Manage default oidc cookie name
+			if v.CookieName == "" {
+				v.CookieName = DefaultOIDCCookieName
+			}
+			// Check if login path is defined
+			if v.LoginPath == "" {
+				v.LoginPath = fmt.Sprintf(oidcLoginPathTemplate, k)
+			}
+			// Check if callback path is defined
+			if v.CallbackPath == "" {
+				v.CallbackPath = fmt.Sprintf(oidcCallbackPathTemplate, k)
+			}
+		}
+	}
+
+	// Manage default value for list targets
+	if out.ListTargets == nil {
+		out.ListTargets = &ListTargetsConfig{Enabled: false}
+	}
+
 	return nil
 }
