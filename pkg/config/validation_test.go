@@ -132,6 +132,22 @@ func Test_validateResource(t *testing.T) {
 			errorString: "begin error must have authentication configuration declared (oidc or basic)",
 		},
 		{
+			name: "Resource declare a provider but authorization providers are nil",
+			args: args{
+				beginErrorMessage: "begin error",
+				res: &Resource{
+					Methods:   []string{"GET"},
+					WhiteList: &falseValue,
+					Provider:  "test",
+					Basic:     &ResourceBasic{},
+				},
+				authProviders: nil,
+				mountPathList: []string{"/"},
+			},
+			wantErr:     true,
+			errorString: "begin error has declared a provider but authentication providers aren't declared",
+		},
+		{
 			name: "Resource use a not declared provider (Basic auth case) and no provider declared",
 			args: args{
 				beginErrorMessage: "begin error",
