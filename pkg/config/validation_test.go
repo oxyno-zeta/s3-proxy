@@ -274,3 +274,296 @@ func Test_validateResource(t *testing.T) {
 		})
 	}
 }
+
+func Test_validateBusinessConfig(t *testing.T) {
+	type args struct {
+		out *Config
+	}
+	tests := []struct {
+		name        string
+		args        args
+		wantErr     bool
+		errorString string
+	}{
+		{
+			name: "Path is invalid in target",
+			args: args{
+				out: &Config{
+					Targets: []*TargetConfig{
+						{
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1"},
+							},
+							Resources: nil,
+							Actions: &ActionsConfig{
+								GET: &GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "path 0 in target 0 must ends with /",
+		},
+		{
+			name: "Resource is invalid in target",
+			args: args{
+				out: &Config{
+					Targets: []*TargetConfig{
+						{
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1"},
+							},
+							Resources: []*Resource{
+								{
+									Path:     "/*",
+									Provider: "doesn't exists",
+								},
+							},
+							Actions: &ActionsConfig{
+								GET: &GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "resource 0 from target 0 must have whitelist, basic configuration or oidc configuration",
+		},
+		{
+			name: "No actions are present in target",
+			args: args{
+				out: &Config{
+					Targets: []*TargetConfig{
+						{
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1/"},
+							},
+							Resources: nil,
+							Actions: &ActionsConfig{
+								GET:    nil,
+								PUT:    nil,
+								DELETE: nil,
+							},
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "at least one action must be declared in target 0",
+		},
+		{
+			name: "No actions are enabled in target",
+			args: args{
+				out: &Config{
+					Targets: []*TargetConfig{
+						{
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1/"},
+							},
+							Resources: nil,
+							Actions: &ActionsConfig{
+								GET:    &GetActionConfig{Enabled: false},
+								PUT:    &PutActionConfig{Enabled: false},
+								DELETE: &DeleteActionConfig{Enabled: false},
+							},
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "at least one action must be enabled in target 0",
+		},
+		{
+			name: "Configuration is valid without list targets",
+			args: args{
+				out: &Config{
+					Targets: []*TargetConfig{
+						{
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1/"},
+							},
+							Resources: nil,
+							Actions: &ActionsConfig{
+								GET:    &GetActionConfig{Enabled: true},
+								PUT:    &PutActionConfig{Enabled: false},
+								DELETE: &DeleteActionConfig{Enabled: false},
+							},
+						},
+					},
+				},
+			},
+			wantErr:     false,
+			errorString: "",
+		},
+		{
+			name: "Configuration is valid with list targets disabled",
+			args: args{
+				out: &Config{
+					Targets: []*TargetConfig{
+						{
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1/"},
+							},
+							Resources: nil,
+							Actions: &ActionsConfig{
+								GET:    &GetActionConfig{Enabled: true},
+								PUT:    &PutActionConfig{Enabled: false},
+								DELETE: &DeleteActionConfig{Enabled: false},
+							},
+						},
+					},
+					ListTargets: &ListTargetsConfig{Enabled: false},
+				},
+			},
+			wantErr:     false,
+			errorString: "",
+		},
+		{
+			name: "List targets resource is invalid",
+			args: args{
+				out: &Config{
+					Targets: []*TargetConfig{
+						{
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1/"},
+							},
+							Resources: nil,
+							Actions: &ActionsConfig{
+								GET:    &GetActionConfig{Enabled: true},
+								PUT:    &PutActionConfig{Enabled: false},
+								DELETE: &DeleteActionConfig{Enabled: false},
+							},
+						},
+					},
+					ListTargets: &ListTargetsConfig{
+						Enabled: true,
+						Mount: &MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &Resource{
+							Path:     "/*",
+							Provider: "doesn't exists",
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "resource from list targets must have whitelist, basic configuration or oidc configuration",
+		},
+		{
+			name: "List targets path is invalid",
+			args: args{
+				out: &Config{
+					Targets: []*TargetConfig{
+						{
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1/"},
+							},
+							Resources: nil,
+							Actions: &ActionsConfig{
+								GET:    &GetActionConfig{Enabled: true},
+								PUT:    &PutActionConfig{Enabled: false},
+								DELETE: &DeleteActionConfig{Enabled: false},
+							},
+						},
+					},
+					ListTargets: &ListTargetsConfig{
+						Enabled: true,
+						Mount: &MountConfig{
+							Path: []string{"/list"},
+						},
+						Resource: nil,
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "path 0 in list targets must ends with /",
+		},
+		{
+			name: "Configuration with list target and target is valid",
+			args: args{
+				out: &Config{
+					Targets: []*TargetConfig{
+						{
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1/"},
+							},
+							Resources: nil,
+							Actions: &ActionsConfig{
+								GET:    &GetActionConfig{Enabled: true},
+								PUT:    &PutActionConfig{Enabled: false},
+								DELETE: &DeleteActionConfig{Enabled: false},
+							},
+						},
+					},
+					ListTargets: &ListTargetsConfig{
+						Enabled: true,
+						Mount: &MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: nil,
+					},
+				},
+			},
+			wantErr:     false,
+			errorString: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateBusinessConfig(tt.args.out)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateBusinessConfig() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil && err.Error() != tt.errorString {
+				t.Errorf("validateBusinessConfig() error = %v, wantErr %v", err.Error(), tt.errorString)
+			}
+		})
+	}
+}
