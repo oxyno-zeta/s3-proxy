@@ -90,17 +90,22 @@ func (rctx *requestContext) Get(requestPath string) {
 			if indexDocumentEntry != nil {
 				// Get data
 				err = getFile(rctx, indexDocumentEntry.(*Entry).Key)
-				// Check if error is a not found error
-				if err == s3client.ErrNotFound {
-					// Not found
-					rctx.handleNotFound(rctx.httpRW, requestPath, rctx.logger, rctx.tplConfig)
+				// Check if error exists
+				if err != nil {
+					// Check if error is a not found error
+					if err == s3client.ErrNotFound {
+						// Not found
+						rctx.handleNotFound(rctx.httpRW, requestPath, rctx.logger, rctx.tplConfig)
+						return
+					}
+					// Log error
+					rctx.logger.Error(err)
+					// Response with error
+					rctx.handleInternalServerError(rctx.httpRW, err, requestPath, rctx.logger, rctx.tplConfig)
+					// Stop
 					return
 				}
-				// Log error
-				rctx.logger.Error(err)
-				// Response with error
-				rctx.handleInternalServerError(rctx.httpRW, err, requestPath, rctx.logger, rctx.tplConfig)
-				// Stop
+				// Stop here because no error are present
 				return
 			}
 		}
