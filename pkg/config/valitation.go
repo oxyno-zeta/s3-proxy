@@ -110,8 +110,13 @@ func validateResource(beginErrorMessage string, res *Resource, authProviders *Au
 	}
 	// Check that provider is declared is auth providers and correctly linked
 	if res.Provider != "" {
-		// Check that auth provider exists
-		exists := authProviders.Basic[res.Provider] != nil || authProviders.OIDC[res.Provider] != nil
+		// Check if auth providers exists
+		if authProviders == nil {
+			return errors.New(beginErrorMessage + " has declared a provider but authentication providers aren't declared")
+		}
+		// Check that auth provider exists for target provider
+		exists := (authProviders.Basic != nil && authProviders.Basic[res.Provider] != nil) ||
+			(authProviders.OIDC != nil && authProviders.OIDC[res.Provider] != nil)
 		if !exists {
 			return errors.New(beginErrorMessage + " must have a valid provider declared in authentication providers")
 		}
