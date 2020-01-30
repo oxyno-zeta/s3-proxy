@@ -1,7 +1,6 @@
 TARGETS           ?= linux/amd64 darwin/amd64 linux/amd64 windows/amd64 linux/386 linux/ppc64le linux/s390x linux/arm linux/arm64
 PROJECT_NAME	  := s3-proxy
 PKG				  := github.com/oxyno-zeta/$(PROJECT_NAME)
-PKG_LIST		  := $(shell go list ${PKG}/... | grep -v /vendor/)
 
 # go option
 GO        ?= go
@@ -64,11 +63,12 @@ ifndef HAS_GORELEASER
 endif
 
 test: dep ## Run unittests
-	$(GO) test -short -cover -coverprofile=c.out ${PKG_LIST}
+	$(GO) test -v -coverpkg=./pkg/... -coverprofile=c.out ./pkg/...
 
 .PHONY: coverage-report
 coverage-report:
 	$(GO) tool cover -html=c.out -o coverage.html
+	$(GO) tool cover -func c.out
 
 .PHONY: clean
 clean:
