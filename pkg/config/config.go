@@ -438,7 +438,7 @@ func loadDefaultValues(out *Config) error {
 	// Manage default values for targets
 	for _, item := range out.Targets {
 		// Manage default configuration for target region
-		if item.Bucket.Region == "" {
+		if item.Bucket != nil && item.Bucket.Region == "" {
 			item.Bucket.Region = DefaultBucketRegion
 		}
 		// Manage default configuration for target actions
@@ -457,31 +457,9 @@ func loadDefaultValues(out *Config) error {
 				// Check if regexp is enabled in OIDC Authorization groups
 				if res.OIDC != nil && res.OIDC.AuthorizationAccesses != nil {
 					for _, item := range res.OIDC.AuthorizationAccesses {
-						if item.Regexp {
-							// Try to compile regex for group or email
-							// Group case
-							if item.Group != "" {
-								// Compile Regexp
-								reg, err2 := regexp.Compile(item.Group)
-								// Check error
-								if err2 != nil {
-									return err2
-								}
-								// Save regexp
-								item.GroupRegexp = reg
-							}
-
-							// Email case
-							if item.Email != "" {
-								// Compile regexp
-								reg, err2 := regexp.Compile(item.Email)
-								// Check error
-								if err2 != nil {
-									return err2
-								}
-								// Save regexp
-								item.EmailRegexp = reg
-							}
+						err2 := loadRegexOIDCAuthorizationAccess(item)
+						if err2 != nil {
+							return err2
 						}
 					}
 				}
@@ -504,31 +482,9 @@ func loadDefaultValues(out *Config) error {
 		// Check if regexp is enabled in OIDC Authorization groups
 		if res.OIDC != nil && res.OIDC.AuthorizationAccesses != nil {
 			for _, item := range res.OIDC.AuthorizationAccesses {
-				if item.Regexp {
-					// Try to compile regex for group or email
-					// Group case
-					if item.Group != "" {
-						// Compile Regexp
-						reg, err2 := regexp.Compile(item.Group)
-						// Check error
-						if err2 != nil {
-							return err2
-						}
-						// Save regexp
-						item.GroupRegexp = reg
-					}
-
-					// Email case
-					if item.Email != "" {
-						// Compile regexp
-						reg, err2 := regexp.Compile(item.Email)
-						// Check error
-						if err2 != nil {
-							return err2
-						}
-						// Save regexp
-						item.EmailRegexp = reg
-					}
+				err2 := loadRegexOIDCAuthorizationAccess(item)
+				if err2 != nil {
+					return err2
 				}
 			}
 		}
@@ -563,6 +519,38 @@ func loadDefaultValues(out *Config) error {
 	// Manage default value for list targets
 	if out.ListTargets == nil {
 		out.ListTargets = &ListTargetsConfig{Enabled: false}
+	}
+
+	return nil
+}
+
+// Load Regex in OIDC Authorization access objects
+func loadRegexOIDCAuthorizationAccess(item *OIDCAuthorizationAccess) error {
+	if item.Regexp {
+		// Try to compile regex for group or email
+		// Group case
+		if item.Group != "" {
+			// Compile Regexp
+			reg, err2 := regexp.Compile(item.Group)
+			// Check error
+			if err2 != nil {
+				return err2
+			}
+			// Save regexp
+			item.GroupRegexp = reg
+		}
+
+		// Email case
+		if item.Email != "" {
+			// Compile regexp
+			reg, err2 := regexp.Compile(item.Email)
+			// Check error
+			if err2 != nil {
+				return err2
+			}
+			// Save regexp
+			item.EmailRegexp = reg
+		}
 	}
 
 	return nil
