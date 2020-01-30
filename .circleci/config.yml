@@ -42,6 +42,12 @@ jobs:
           keys:
             - go-mod-{{ checksum "go.mod"  }}
       - run: make test
+      - run: make coverage-report
+      - run: mv coverage.html /tmp/artifacts
+      - store_artifacts:
+          path: /tmp/artifacts
+      - run: go get github.com/mattn/goveralls
+      - run: goveralls -coverprofile=c.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
 workflows:
   version: 2
   project:

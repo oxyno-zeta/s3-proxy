@@ -7,15 +7,15 @@ You can see a full example in the [Example section](#example)
 
 ## Main structure
 
-| Key            | Type                                                  | Required | Default | Description                        |
-| -------------- | ----------------------------------------------------- | -------- | ------- | ---------------------------------- |
-| log            | [LogConfiguration](#logconfiguration)                 | No       | None    | Log configurations                 |
-| server         | [ServerConfiguration](#serverconfiguration)           | No       | None    | Server configurations              |
-| internalServer | [ServerConfiguration](#serverconfiguration)           | No       | None    | Internal Server configurations     |
-| template       | [TemplateConfiguration](#templateconfiguration)       | No       | None    | Template configurations            |
-| targets        | [[TargetConfiguration]](#targetconfiguration)         | Yes      | None    | Targets configuration              |
-| auth           | [AuthConfiguration](#authconfiguration)               | No       | None    | Authentication configuration       |
-| listTargets    | [ListTargetsConfiguration](#listtargetsconfiguration) | No       | None    | List targets feature configuration |
+| Key            | Type                                                      | Required | Default | Description                            |
+| -------------- | --------------------------------------------------------- | -------- | ------- | -------------------------------------- |
+| log            | [LogConfiguration](#logconfiguration)                     | No       | None    | Log configurations                     |
+| server         | [ServerConfiguration](#serverconfiguration)               | No       | None    | Server configurations                  |
+| internalServer | [ServerConfiguration](#serverconfiguration)               | No       | None    | Internal Server configurations         |
+| template       | [TemplateConfiguration](#templateconfiguration)           | No       | None    | Template configurations                |
+| targets        | [[TargetConfiguration]](#targetconfiguration)             | Yes      | None    | Targets configuration                  |
+| authProviders  | [AuthProvidersConfiguration](#authProvidersconfiguration) | No       | None    | Authentication providers configuration |
+| listTargets    | [ListTargetsConfiguration](#listtargetsconfiguration)     | No       | None    | List targets feature configuration     |
 
 ## LogConfiguration
 
@@ -114,7 +114,7 @@ You can see a full example in the [Example section](#example)
 | env   | String | Only if path and value are not set | None    | Environment variable name to use to load credential |
 | value | String | Only if path and env are not set   | None    | Credential value directly (Not recommended)         |
 
-## AuthConfiguration
+## AuthProvidersConfiguration
 
 | Key   | Type                                                         | Required | Default | Description                                       |
 | ----- | ------------------------------------------------------------ | -------- | ------- | ------------------------------------------------- |
@@ -162,10 +162,11 @@ You can see a full example in the [Example section](#example)
 
 ## OIDCAuthorizationAccesses
 
-| Key   | Type   | Required               | Default | Description |
-| ----- | ------ | ---------------------- | ------- | ----------- |
-| group | String | Required without email | None    | Group name  |
-| email | String | Required without group | None    | Email       |
+| Key    | Type    | Required               | Default | Description                                    |
+| ------ | ------- | ---------------------- | ------- | ---------------------------------------------- |
+| group  | String  | Required without email | None    | Group name                                     |
+| email  | String  | Required without group | None    | Email                                          |
+| regexp | Boolean | No                     | `false` | Consider group or email as regexp for matching |
 
 ## ResourceBasic
 
@@ -220,8 +221,8 @@ log:
 #   targetList: templates/target-list.tpl
 #   unauthorized: templates/unauthorized.tpl
 
-# Authentication
-# auth:
+# Authentication Providers
+# authProviders:
 #   oidc:
 #     provider1:
 #       clientID: client-id
@@ -265,7 +266,7 @@ log:
 #     # OIDC section for access filter
 #     oidc:
 #       # NOTE: This list can be empty ([]) for authentication only and no group filter
-#       authorizationAccesses: # Authorization accesses : groups or email
+#       authorizationAccesses: # Authorization accesses : groups or email or regexp
 #         - group: devops_users
 #     # Basic authentication section
 #     basic:
@@ -296,7 +297,7 @@ targets:
     #     # OIDC section for access filter
     #     oidc:
     #       # NOTE: This list can be empty ([]) for authentication only and no group filter
-    #       authorizationAccesses: # Authorization accesses : groups or email
+    #       authorizationAccesses: # Authorization accesses : groups or email or regexp
     #         - group: specific_users
     #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /directory1/*

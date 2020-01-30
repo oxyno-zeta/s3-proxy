@@ -20,8 +20,8 @@ log:
 #   targetList: templates/target-list.tpl
 #   unauthorized: templates/unauthorized.tpl
 
-# Authentication
-# auth:
+# Authentication Providers
+# authProviders:
 #   oidc:
 #     provider1:
 #       clientID: client-id
@@ -71,7 +71,7 @@ log:
 #     # OIDC section for access filter
 #     oidc:
 #       # NOTE: This list can be empty ([]) for authentication only and no group filter
-#       authorizationAccesses: # Authorization accesses : groups or email
+#       authorizationAccesses: # Authorization accesses : groups or email or regexp
 #         - group: devops_users
 #     # Basic authentication section
 #     basic:
@@ -107,7 +107,7 @@ targets:
     #     # OIDC section for access filter
     #     oidc:
     #       # NOTE: This list can be empty ([]) for authentication only and no group filter
-    #       authorizationAccesses: # Authorization accesses : groups or email
+    #       authorizationAccesses: # Authorization accesses : groups or email or regexp
     #         - group: specific_users
     #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /directory1/*

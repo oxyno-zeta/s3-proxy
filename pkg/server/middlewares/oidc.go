@@ -208,16 +208,36 @@ func isAuthorized(groups []string, email string, authorizationAccesses []*config
 
 	// Loop over groups and email
 	for _, item := range authorizationAccesses {
-		// Check group case
-		if item.Group != "" {
-			result := funk.Contains(groups, item.Group)
-			if result {
+		if item.Regexp {
+			// Regex case
+			// Check group case
+			if item.Group != "" {
+				for _, grp := range groups {
+					// Try matching for group regexp
+					if item.GroupRegexp.MatchString(grp) {
+						return true
+					}
+				}
+			}
+
+			// Check email case
+			if item.Email != "" && item.EmailRegexp.MatchString(email) {
 				return true
 			}
-		}
-		// Check email case
-		if item.Email != "" && item.Email == email {
-			return true
+		} else {
+			// Not a regex case
+
+			// Check group case
+			if item.Group != "" {
+				result := funk.Contains(groups, item.Group)
+				if result {
+					return true
+				}
+			}
+			// Check email case
+			if item.Email != "" && item.Email == email {
+				return true
+			}
 		}
 	}
 
