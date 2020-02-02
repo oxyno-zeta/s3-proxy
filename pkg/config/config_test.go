@@ -296,6 +296,7 @@ func Test_loadDefaultValues(t *testing.T) {
 						Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: true}},
 					},
 				},
+				ListTargets: &ListTargetsConfig{Enabled: false},
 			},
 		},
 		{
@@ -318,6 +319,7 @@ func Test_loadDefaultValues(t *testing.T) {
 						Bucket:  &BucketConfig{Region: DefaultBucketRegion},
 					},
 				},
+				ListTargets: &ListTargetsConfig{Enabled: false},
 			},
 		},
 		{
@@ -366,6 +368,7 @@ func Test_loadDefaultValues(t *testing.T) {
 						},
 					},
 				},
+				ListTargets: &ListTargetsConfig{Enabled: false},
 			},
 		},
 	}
@@ -375,8 +378,8 @@ func Test_loadDefaultValues(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("loadDefaultValues() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			if err != nil && !reflect.DeepEqual(tt.args.out, tt.result) {
-				t.Errorf("loadDefaultValues() source = %v, want %v", tt.args.out, tt.result)
+			if !tt.wantErr && !reflect.DeepEqual(tt.args.out, tt.result) {
+				t.Errorf("loadDefaultValues() source = %+v, want %+v", tt.args.out, tt.result)
 			}
 		})
 	}
