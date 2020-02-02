@@ -135,3 +135,4 @@ bin/
 config.yaml
 dist/
 _dist/
+coverage.html
