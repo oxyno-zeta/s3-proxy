@@ -12,7 +12,6 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/server/utils"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 )
@@ -32,7 +31,7 @@ func GenerateInternalRouter(logger logrus.FieldLogger, cfg *config.Config, metri
 
 	healthHandler := health.NewHandler()
 	// Listen path
-	r.Handle("/metrics", promhttp.Handler())
+	r.Handle("/metrics", metricsCtx.GetExposeHandler())
 	r.Handle("/health", healthHandler)
 
 	return r
