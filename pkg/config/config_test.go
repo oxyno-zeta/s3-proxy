@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"regexp"
 	"testing"
+
+	"github.com/sirupsen/logrus"
 )
 
 func TestBucketConfig_GetRootPrefix(t *testing.T) {
@@ -606,6 +608,57 @@ func Test_loadAllCredentials(t *testing.T) {
 			}
 			if !tt.wantErr && !reflect.DeepEqual(tt.args.out, tt.result) {
 				t.Errorf("loadAllCredentials() source = %+v, want %+v", tt.args.out, tt.result)
+			}
+		})
+	}
+}
+
+func TestConfigureLogger(t *testing.T) {
+	type args struct {
+		logger    *logrus.Logger
+		logConfig *LogConfig
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Cannot parse log level",
+			args: args{
+				logger: logrus.New(),
+				logConfig: &LogConfig{
+					Level: "fake",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Parse log level ok",
+			args: args{
+				logger: logrus.New(),
+				logConfig: &LogConfig{
+					Level: "info",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Format json ok",
+			args: args{
+				logger: logrus.New(),
+				logConfig: &LogConfig{
+					Format: "json",
+					Level:  "info",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ConfigureLogger(tt.args.logger, tt.args.logConfig); (err != nil) != tt.wantErr {
+				t.Errorf("ConfigureLogger() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
