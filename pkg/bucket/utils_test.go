@@ -12,11 +12,12 @@ import (
 type respWriterTest struct {
 	Headers http.Header
 	Status  int
+	Resp    []byte
 }
 
-func (r *respWriterTest) Header() http.Header       { return r.Headers }
-func (r *respWriterTest) Write([]byte) (int, error) { return 0, nil }
-func (r *respWriterTest) WriteHeader(s int)         { r.Status = s }
+func (r *respWriterTest) Header() http.Header          { return r.Headers }
+func (r *respWriterTest) Write(in []byte) (int, error) { r.Resp = in; return len(in), nil }
+func (r *respWriterTest) WriteHeader(s int)            { r.Status = s }
 
 func Test_setHeadersFromObjectOutput(t *testing.T) {
 	// Tests data
