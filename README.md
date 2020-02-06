@@ -1,6 +1,6 @@
 <h1 align="center">S3 Proxy</h1>
 
-[![CircleCI](https://circleci.com/gh/oxyno-zeta/s3-proxy/tree/master.svg?style=svg)](https://circleci.com/gh/oxyno-zeta/s3-proxy/tree/master) [![Go Report Card](https://goreportcard.com/badge/github.com/oxyno-zeta/s3-proxy)](https://goreportcard.com/report/github.com/oxyno-zeta/s3-proxy) [![GolangCI](https://golangci.com/badges/github.com/oxyno-zeta/s3-proxy.svg)](https://golangci.com) ![Docker Pulls](https://img.shields.io/docker/pulls/oxynozeta/s3-proxy.svg) [![GitHub license](https://img.shields.io/github/license/oxyno-zeta/s3-proxy)](https://github.com/oxyno-zeta/s3-proxy/blob/master/LICENSE) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/oxyno-zeta/s3-proxy)
+[![CircleCI](https://circleci.com/gh/oxyno-zeta/s3-proxy/tree/master.svg?style=svg)](https://circleci.com/gh/oxyno-zeta/s3-proxy/tree/master) [![Go Report Card](https://goreportcard.com/badge/github.com/oxyno-zeta/s3-proxy)](https://goreportcard.com/report/github.com/oxyno-zeta/s3-proxy) [![GolangCI](https://golangci.com/badges/github.com/oxyno-zeta/s3-proxy.svg)](https://golangci.com) [![Docker Pulls](https://img.shields.io/docker/pulls/oxynozeta/s3-proxy.svg)](https://hub.docker.com/r/oxynozeta/s3-proxy) [![GitHub license](https://img.shields.io/github/license/oxyno-zeta/s3-proxy)](https://github.com/oxyno-zeta/s3-proxy/blob/master/LICENSE) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/oxyno-zeta/s3-proxy)
 
 - [Why ?](#why)
 - [Features](#features)
