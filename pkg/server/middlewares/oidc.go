@@ -165,25 +165,38 @@ func oidcAuthorizationMiddleware(
 			}
 
 			claims := token.Claims.(jwt.MapClaims)
-			// Get email
-			email := claims["email"].(string)
 
-			// Check email verified
-			if oidcAuthCfg.EmailVerified {
-				emailVerified := claims["email_verified"].(bool)
-				if !emailVerified {
-					logEntry.Errorf("Email not verified for %s", email)
-					utils.HandleForbidden(w, path, logEntry, tplConfig)
-					return
+			// Initialize email
+			email := ""
+
+			// Get email claim
+			emailClaim := claims["email"]
+
+			if emailClaim != nil {
+				// Get email
+				email = emailClaim.(string)
+
+				// Check email verified
+				if oidcAuthCfg.EmailVerified {
+					emailVerified := claims["email_verified"].(bool)
+					if !emailVerified {
+						logEntry.Errorf("Email not verified for %s", email)
+						utils.HandleForbidden(w, path, logEntry, tplConfig)
+						return
+					}
 				}
 			}
 
 			// Get groups
 			groupsInterface := claims[oidcAuthCfg.GroupClaim]
 			groups := make([]string, 0)
-			for _, item := range groupsInterface.([]interface{}) {
-				groups = append(groups, item.(string))
+			// Check if groups interface exists
+			if groupsInterface != nil {
+				for _, item := range groupsInterface.([]interface{}) {
+					groups = append(groups, item.(string))
+				}
 			}
+
 			// Check if authorized
 			if !isAuthorized(groups, email, authorizationAccesses) {
 				logEntry.Errorf("Forbidden user %s", email)
