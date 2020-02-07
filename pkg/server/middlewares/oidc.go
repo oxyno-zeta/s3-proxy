@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 
 	oidc "github.com/coreos/go-oidc"
 	"github.com/go-chi/chi"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/server/utils"
+	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -133,25 +135,25 @@ func oidcAuthorizationMiddleware(
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			logEntry := GetLogEntry(r)
 			path := r.URL.RequestURI()
-			// Try to get auth cookie
-			logEntry.Debug("Try get auth cookie from request")
-			cookie, err := r.Cookie(oidcAuthCfg.CookieName)
+
+			// Get JWT Token from header or cookie
+			jwtContent, err := getJWTToken(logEntry, r, oidcAuthCfg.CookieName)
+			// Check if error exists
 			if err != nil {
-				logEntry.Debug("Can't load auth cookie")
-				if err != http.ErrNoCookie {
-					logEntry.Error(err)
-					utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
-					return
-				}
-				if cookie == nil {
-					logEntry.Error("No auth cookie detected, redirect to oidc login")
-					http.Redirect(w, r, oidcAuthCfg.LoginPath, http.StatusTemporaryRedirect)
-					return
-				}
+				logEntry.Error(err)
+				utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
+				return
 			}
+			// Check if JWT content is empty or not
+			if jwtContent == "" {
+				logEntry.Error("No auth cookie detected, redirect to oidc login")
+				http.Redirect(w, r, oidcAuthCfg.LoginPath, http.StatusTemporaryRedirect)
+				return
+			}
+
 			// Parse JWT token
 			parser := new(jwt.Parser)
-			token, _, err := parser.ParseUnverified(cookie.Value, jwt.MapClaims{})
+			token, _, err := parser.ParseUnverified(jwtContent, jwt.MapClaims{})
 			if err != nil {
 				logEntry.Error(err)
 				utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
@@ -210,6 +212,45 @@ func oidcAuthorizationMiddleware(
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+func getJWTToken(logEntry logrus.FieldLogger, r *http.Request, cookieName string) (string, error) {
+	logEntry.Debug("Try to get Authorization header from request")
+	// Get Authorization header
+	authHd := r.Header.Get("Authorization")
+	// Check if Authorization header is populated
+	if authHd != "" {
+		// Split header to get token => Format "Bearer TOKEN"
+		sp := strings.Split(authHd, " ")
+		if len(sp) != 2 || sp[0] != "Bearer" {
+			return "", errors.New("authorization header doesn't follow bearer format")
+		}
+		// Get content
+		content := sp[1]
+		// Check if content exists
+		if content != "" {
+			return content, nil
+		}
+	}
+	// Content is empty => Try to continue with cookie
+
+	logEntry.Debug("Try get auth cookie from request")
+	// Try to get auth cookie
+	cookie, err := r.Cookie(cookieName)
+	// Check if error exists
+	if err != nil {
+		logEntry.Debug("Can't load auth cookie")
+
+		if err != http.ErrNoCookie {
+			return "", err
+		}
+	}
+	// Check if cookie value exists
+	if cookie != nil {
+		return cookie.Value, nil
+	}
+
+	return "", nil
 }
 
 func isAuthorized(groups []string, email string, authorizationAccesses []*config.OIDCAuthorizationAccess) bool {
