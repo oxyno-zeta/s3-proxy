@@ -11,6 +11,7 @@
   - [PUT](#put)
   - [DELETE](#delete)
 - [AWS IAM Policy](#aws-iam-policy)
+- [Grafana Dashboard](#grafana-dashboard)
 - [Deployment](#deployment)
   - [Kubernetes - Helm](#kubernetes---helm)
   - [Docker](#docker)
@@ -97,6 +98,10 @@ The DELETE request path must contain the file name. Example: `DELETE /dir1/dir2/
   ]
 }
 ```
+
+## Grafana Dashboard
+
+This project exports Prometheus metrics. Here is an example of Prometheus dashboard that you can import as JSON file: [dashboard](docs/s3-proxy-dashboard.json).
 
 ## Deployment
 
