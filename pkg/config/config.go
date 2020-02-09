@@ -341,6 +341,25 @@ func (bcfg *BucketConfig) GetRootPrefix() string {
 func loadAllCredentials(out *Config) error {
 	// Load credentials from declaration
 	for _, item := range out.Targets {
+		// Check if resources are declared
+		if item.Resources != nil {
+			for j := 0; j < len(item.Resources); j++ {
+				res := item.Resources[j]
+				// Check if basic auth configuration exists
+				if res.Basic != nil && res.Basic.Credentials != nil {
+					// Loop over creds
+					for k := 0; k < len(res.Basic.Credentials); k++ {
+						it := res.Basic.Credentials[k]
+						// Load credential
+						err := loadCredential(it.Password)
+						if err != nil {
+							return err
+						}
+					}
+				}
+			}
+		}
+		// Load credentials for access key and secret key
 		if item.Bucket.Credentials != nil && item.Bucket.Credentials.AccessKey != nil && item.Bucket.Credentials.SecretKey != nil {
 			// Manage access key
 			err := loadCredential(item.Bucket.Credentials.AccessKey)
@@ -386,28 +405,6 @@ func loadAllCredentials(out *Config) error {
 			}
 		}
 	}
-	// Load auth credentials from targets with basic auth
-	for i := 0; i < len(out.Targets); i++ {
-		target := out.Targets[i]
-		// Check if resources are declared
-		if target.Resources != nil {
-			for j := 0; j < len(target.Resources); j++ {
-				res := target.Resources[j]
-				// Check if basic auth configuration exists
-				if res.Basic != nil && res.Basic.Credentials != nil {
-					// Loop over creds
-					for k := 0; k < len(res.Basic.Credentials); k++ {
-						it := res.Basic.Credentials[k]
-						// Load credential
-						err := loadCredential(it.Password)
-						if err != nil {
-							return err
-						}
-					}
-				}
-			}
-		}
-	}
 
 	return nil
 }
@@ -430,7 +427,7 @@ func loadCredential(credCfg *CredentialConfig) error {
 		// Store value
 		credCfg.Value = envValue
 	}
-	// Value case is already managed by koanf
+	// Default value
 	return nil
 }
 

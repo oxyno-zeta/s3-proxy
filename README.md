@@ -11,9 +11,11 @@
   - [PUT](#put)
   - [DELETE](#delete)
 - [AWS IAM Policy](#aws-iam-policy)
+- [Grafana Dashboard](#grafana-dashboard)
 - [Deployment](#deployment)
   - [Kubernetes - Helm](#kubernetes---helm)
   - [Docker](#docker)
+- [TODO](#todo)
 - [Inspired by](#inspired-by)
 - [Thanks](#thanks)
 - [Author](#author)
@@ -98,6 +100,10 @@ The DELETE request path must contain the file name. Example: `DELETE /dir1/dir2/
 }
 ```
 
+## Grafana Dashboard
+
+This project exports Prometheus metrics. Here is an example of Prometheus dashboard that you can import as JSON file: [dashboard](docs/s3-proxy-dashboard.json).
+
 ## Deployment
 
 ### Kubernetes - Helm
@@ -115,6 +121,12 @@ Run this command:
 ```shell
 docker run -d --name s3-proxy -p 8080:8080 -p 9090:9090 -v $PWD/config:/config oxynozeta/s3-proxy
 ```
+
+## TODO
+
+- Support more authentication and authorization systems
+- JSON response
+- Add tests
 
 ## Inspired by
 
