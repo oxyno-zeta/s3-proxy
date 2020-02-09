@@ -26,29 +26,39 @@ type s3clientTest struct {
 	GetCalled    bool
 	PutCalled    bool
 	DeleteCalled bool
+	ListInput    string
+	HeadInput    string
+	GetInput     string
+	PutInput     *s3client.PutInput
+	DeleteInput  string
 }
 
 func (s *s3clientTest) ListFilesAndDirectories(key string) ([]*s3client.ListElementOutput, error) {
+	s.ListInput = key
 	s.ListCalled = true
 	return s.ListResult, s.Err
 }
 
 func (s *s3clientTest) HeadObject(key string) (*s3client.HeadOutput, error) {
+	s.HeadInput = key
 	s.HeadCalled = true
 	return s.HeadResult, s.Err
 }
 
 func (s *s3clientTest) GetObject(key string) (*s3client.GetOutput, error) {
+	s.GetInput = key
 	s.GetCalled = true
 	return s.GetResult, s.Err
 }
 
 func (s *s3clientTest) PutObject(input *s3client.PutInput) error {
+	s.PutInput = input
 	s.PutCalled = true
 	return s.Err
 }
 
 func (s *s3clientTest) DeleteObject(key string) error {
+	s.DeleteInput = key
 	s.DeleteCalled = true
 	return s.Err
 }
