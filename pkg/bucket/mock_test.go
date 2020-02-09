@@ -17,7 +17,11 @@ func (r *respWriterTest) Write(in []byte) (int, error) { r.Resp = in; return len
 func (r *respWriterTest) WriteHeader(s int)            { r.Status = s }
 
 type s3clientTest struct {
-	Err          error
+	ListErr      error
+	HeadErr      error
+	GetErr       error
+	PutErr       error
+	DeleteErr    error
 	ListResult   []*s3client.ListElementOutput
 	HeadResult   *s3client.HeadOutput
 	GetResult    *s3client.GetOutput
@@ -36,29 +40,29 @@ type s3clientTest struct {
 func (s *s3clientTest) ListFilesAndDirectories(key string) ([]*s3client.ListElementOutput, error) {
 	s.ListInput = key
 	s.ListCalled = true
-	return s.ListResult, s.Err
+	return s.ListResult, s.ListErr
 }
 
 func (s *s3clientTest) HeadObject(key string) (*s3client.HeadOutput, error) {
 	s.HeadInput = key
 	s.HeadCalled = true
-	return s.HeadResult, s.Err
+	return s.HeadResult, s.HeadErr
 }
 
 func (s *s3clientTest) GetObject(key string) (*s3client.GetOutput, error) {
 	s.GetInput = key
 	s.GetCalled = true
-	return s.GetResult, s.Err
+	return s.GetResult, s.GetErr
 }
 
 func (s *s3clientTest) PutObject(input *s3client.PutInput) error {
 	s.PutInput = input
 	s.PutCalled = true
-	return s.Err
+	return s.PutErr
 }
 
 func (s *s3clientTest) DeleteObject(key string) error {
 	s.DeleteInput = key
 	s.DeleteCalled = true
-	return s.Err
+	return s.DeleteErr
 }
