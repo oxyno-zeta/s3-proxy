@@ -427,7 +427,7 @@ func loadCredential(credCfg *CredentialConfig) error {
 		// Store value
 		credCfg.Value = envValue
 	}
-	// Value case is already managed by koanf
+	// Default value
 	return nil
 }
 
