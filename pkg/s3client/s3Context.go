@@ -6,15 +6,17 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 	"github.com/oxyno-zeta/s3-proxy/pkg/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
 	"github.com/sirupsen/logrus"
 )
 
 type s3Context struct {
-	svcClient  *s3.S3
-	uploader   *s3manager.Uploader
+	svcClient  s3iface.S3API
+	uploader   s3manageriface.UploaderAPI
 	target     *config.TargetConfig
 	logger     logrus.FieldLogger
 	metricsCtx metrics.Client
