@@ -156,6 +156,7 @@ targets:
       prefix:
       region: eu-west-1
       s3Endpoint:
+      disableSSL: false
       # credentials:
       #   accessKey:
       #     env: AWS_ACCESS_KEY_ID

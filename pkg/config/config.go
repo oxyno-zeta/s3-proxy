@@ -226,6 +226,7 @@ type BucketConfig struct {
 	Region      string                  `mapstructure:"region"`
 	S3Endpoint  string                  `mapstructure:"s3Endpoint"`
 	Credentials *BucketCredentialConfig `mapstructure:"credentials" validate:"omitempty,dive"`
+	DisableSSL  bool                    `mapstructure:"disableSSL"`
 }
 
 // BucketCredentialConfig Bucket Credentials configurations
