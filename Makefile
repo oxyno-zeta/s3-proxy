@@ -62,8 +62,17 @@ ifndef HAS_GORELEASER
 	curl -sL https://git.io/goreleaser | bash
 endif
 
-test: dep ## Run unittests
-	$(GO) test -v -coverpkg=./pkg/... -coverprofile=c.out ./pkg/...
+.PHONY: test
+test: dep
+	$(GO) test --tags=unit,integration -v -coverpkg=./pkg/... -coverprofile=c.out ./pkg/...
+
+.PHONY: test-unit
+test-unit: dep
+	$(GO) test --tags=unit -v -coverpkg=./pkg/... -coverprofile=c.out ./pkg/...
+
+.PHONY: test-integration
+test-integration: dep
+	$(GO) test --tags=integration -v -coverpkg=./pkg/... -coverprofile=c.out ./pkg/...
 
 .PHONY: coverage-report
 coverage-report:
