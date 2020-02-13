@@ -23,6 +23,71 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Generate metrics instance
+var metricsCtx = metrics.NewClient()
+
+func TestInternalRouter(t *testing.T) {
+	tests := []struct {
+		name            string
+		inputMethod     string
+		inputURL        string
+		expectedCode    int
+		expectedBody    string
+		notExpectedBody string
+	}{
+		{
+			name:         "Should be ok to call /health",
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/health",
+			expectedCode: 200,
+			expectedBody: "{\"status\":\"UP\"}\n",
+		},
+		{
+			name:         "Should be ok to call /metrics",
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/metrics",
+			expectedCode: 200,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GenerateInternalRouter(&logrus.Logger{}, metricsCtx)
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(
+				tt.inputMethod,
+				tt.inputURL,
+				nil,
+			)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			got.ServeHTTP(w, req)
+			if tt.expectedCode != w.Code {
+				t.Errorf("Integration test on GenerateRouter() status code = %v, expected status code %v", w.Code, tt.expectedCode)
+				return
+			}
+
+			if tt.expectedBody != "" {
+				body := w.Body.String()
+				if tt.expectedBody != body {
+					t.Errorf("Integration test on GenerateRouter() body = \"%v\", expected body \"%v\"", body, tt.expectedBody)
+					return
+				}
+			}
+
+			if tt.notExpectedBody != "" {
+				body := w.Body.String()
+				if tt.notExpectedBody == body {
+					t.Errorf("Integration test on GenerateRouter() body = \"%v\", not expected body \"%v\"", body, tt.notExpectedBody)
+					return
+				}
+			}
+		})
+	}
+}
+
 func TestPublicRouter(t *testing.T) {
 	trueValue := true
 	accessKey := "YOUR-ACCESSKEYID"
@@ -40,9 +105,6 @@ func TestPublicRouter(t *testing.T) {
 		t.Error(err)
 		return
 	}
-
-	// Generate metrics instance
-	metricsCtx := metrics.NewClient()
 
 	type args struct {
 		cfg *config.Config
@@ -233,6 +295,92 @@ func TestPublicRouter(t *testing.T) {
   </body>
 </html>
 `,
+		},
+		{
+			name: "GET a file with a not found error because of not valid host",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{},
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../templates/folder-list.tpl",
+						TargetList:          "../../templates/target-list.tpl",
+						NotFound:            "../../templates/not-found.tpl",
+						Forbidden:           "../../templates/forbidden.tpl",
+						BadRequest:          "../../templates/bad-request.tpl",
+						InternalServerError: "../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						&config.TargetConfig{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+								Host: "test.local",
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder1/test.txt",
+			expectedCode: 404,
+			expectedBody: "Not Found\n",
+		},
+		{
+			name: "GET a file with success on specific host",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{},
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../templates/folder-list.tpl",
+						TargetList:          "../../templates/target-list.tpl",
+						NotFound:            "../../templates/not-found.tpl",
+						Forbidden:           "../../templates/forbidden.tpl",
+						BadRequest:          "../../templates/bad-request.tpl",
+						InternalServerError: "../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						&config.TargetConfig{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+								Host: "test.local",
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://test.local/mount/folder1/test.txt",
+			expectedCode: 200,
+			expectedBody: "Hello folder1!",
 		},
 		{
 			name: "GET a file with forbidden error in case of no resource found",
