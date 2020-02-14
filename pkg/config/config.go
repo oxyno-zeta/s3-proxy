@@ -15,7 +15,7 @@ import (
 )
 
 // MainConfigFolderPath Main configuration folder path
-const MainConfigFolderPath = "conf/"
+var MainConfigFolderPath = "conf/"
 
 // MainConfigFileName Main configuration filename
 const MainConfigFileName = "config"
