@@ -98,6 +98,7 @@ You can see a full example in the [Example section](#example)
 | region      | String                                                          | No       | `us-east-1` | Bucket region                            |
 | s3Endpoint  | String                                                          | No       | None        | Custom S3 Endpoint for non AWS S3 bucket |
 | credentials | [BucketCredentialConfiguration](#bucketcredentialconfiguration) | No       | None        | Credentials to access S3 bucket          |
+| disableSSL  | Boolean                                                         | No       | `false`     | Disable SSL connection                   |
 
 ## BucketCredentialConfiguration
 

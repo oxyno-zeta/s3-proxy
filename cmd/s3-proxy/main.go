@@ -49,7 +49,7 @@ func main() {
 }
 
 func internalServe(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Client) {
-	r := server.GenerateInternalRouter(logger, cfg, metricsCtx)
+	r := server.GenerateInternalRouter(logger, metricsCtx)
 	// Create server
 	addr := cfg.InternalServer.ListenAddr + ":" + strconv.Itoa(cfg.InternalServer.Port)
 	server := &http.Server{

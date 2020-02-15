@@ -17,7 +17,7 @@ import (
 )
 
 // GenerateInternalRouter Generate internal router
-func GenerateInternalRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Client) http.Handler {
+func GenerateInternalRouter(logger logrus.FieldLogger, metricsCtx metrics.Client) http.Handler {
 	r := chi.NewRouter()
 
 	// A good base middleware stack
@@ -62,12 +62,6 @@ func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx me
 			}
 		}
 	}
-
-	r.NotFound(func(rw http.ResponseWriter, req *http.Request) {
-		logEntry := middlewares.GetLogEntry(req)
-		path := req.URL.RequestURI()
-		utils.HandleNotFound(rw, path, logEntry, cfg.Templates)
-	})
 
 	// Create host router
 	hr := hostrouter.New()
