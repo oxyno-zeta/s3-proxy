@@ -1,6 +1,14 @@
 <h1 align="center">S3 Proxy</h1>
 
-[![CircleCI](https://circleci.com/gh/oxyno-zeta/s3-proxy/tree/master.svg?style=svg)](https://circleci.com/gh/oxyno-zeta/s3-proxy/tree/master) [![Go Report Card](https://goreportcard.com/badge/github.com/oxyno-zeta/s3-proxy)](https://goreportcard.com/report/github.com/oxyno-zeta/s3-proxy) [![GolangCI](https://golangci.com/badges/github.com/oxyno-zeta/s3-proxy.svg)](https://golangci.com) [![Docker Pulls](https://img.shields.io/docker/pulls/oxynozeta/s3-proxy.svg)](https://hub.docker.com/r/oxynozeta/s3-proxy) [![GitHub license](https://img.shields.io/github/license/oxyno-zeta/s3-proxy)](https://github.com/oxyno-zeta/s3-proxy/blob/master/LICENSE) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/oxyno-zeta/s3-proxy)
+<p align="center">
+  <a href="https://circleci.com/gh/oxyno-zeta/s3-proxy/tree/master" rel="noopener noreferer" target="_blank"><img src="https://circleci.com/gh/oxyno-zeta/s3-proxy/tree/master.svg?style=svg" alt="CircleCI" /></a>
+  <a href="https://goreportcard.com/report/github.com/oxyno-zeta/s3-proxy" rel="noopener noreferer" target="_blank"><img src="https://goreportcard.com/badge/github.com/oxyno-zeta/s3-proxy" alt="Go Report Card" /></a>
+  <a href="https://golangci.com" rel="noopener noreferer" target="_blank"><img src="https://golangci.com/badges/github.com/oxyno-zeta/s3-proxy.svg" alt="GolangCI" /></a>
+  <a href="https://coveralls.io/github/oxyno-zeta/s3-proxy?branch=master" rel="noopener noreferer" target="_blank"><img src="https://coveralls.io/repos/github/oxyno-zeta/s3-proxy/badge.svg?branch=master" alt="Coverage Status" /></a>
+  <a href="https://hub.docker.com/r/oxynozeta/s3-proxy" rel="noopener noreferer" target="_blank"><img src="https://img.shields.io/docker/pulls/oxynozeta/s3-proxy.svg" alt="Docker Pulls" /></a>
+  <a href="https://github.com/oxyno-zeta/s3-proxy/blob/master/LICENSE" rel="noopener noreferer" target="_blank"><img src="https://img.shields.io/github/license/oxyno-zeta/s3-proxy" alt="GitHub license" /></a>
+  <a href="https://github.com/oxyno-zeta/s3-proxy/releases" rel="noopener noreferer" target="_blank"><img src="https://img.shields.io/github/v/release/oxyno-zeta/s3-proxy" alt="GitHub release (latest by date)" /></a>
+</p>
 
 - [Why ?](#why)
 - [Features](#features)
