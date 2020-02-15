@@ -31,6 +31,8 @@ func HandleInternalServerError(rw http.ResponseWriter, err error, requestPath st
 </html>
 `, err2)
 
+		// Set the header and write the buffer to the http.ResponseWriter
+		rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 		rw.WriteHeader(http.StatusInternalServerError)
 		_, _ = rw.Write([]byte(res))
 	}
