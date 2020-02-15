@@ -122,6 +122,7 @@ func TestPublicRouter(t *testing.T) {
 		expectedCode       int
 		expectedBody       string
 		notExpectedBody    string
+		wantErr            bool
 	}{
 		{
 			name: "GET a not found path",
@@ -815,6 +816,69 @@ func TestPublicRouter(t *testing.T) {
 			expectedBody:       "Hello folder1!",
 		},
 		{
+			name: "GET a file with unauthorized error in case of no oidc cookie or bearer token",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{},
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../templates/folder-list.tpl",
+						TargetList:          "../../templates/target-list.tpl",
+						NotFound:            "../../templates/not-found.tpl",
+						Forbidden:           "../../templates/forbidden.tpl",
+						BadRequest:          "../../templates/bad-request.tpl",
+						InternalServerError: "../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../templates/unauthorized.tpl",
+					},
+					AuthProviders: &config.AuthProviderConfig{
+						OIDC: map[string]*config.OIDCAuthConfig{
+							"provider1": &config.OIDCAuthConfig{
+								ClientID:     "fake-client-id",
+								CookieName:   "oidc",
+								RedirectURL:  "http://fake-s3-proxy/",
+								CallbackPath: "/auth/provider1/callback",
+								IssuerURL:    "https://fake-idp/",
+								LoginPath:    "/auth/provider1/",
+							},
+						},
+					},
+					Targets: []*config.TargetConfig{
+						&config.TargetConfig{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Resources: []*config.Resource{
+								&config.Resource{
+									Path:     "/mount/folder1/*",
+									Methods:  []string{"GET"},
+									Provider: "provider1",
+									OIDC: &config.ResourceOIDC{
+										AuthorizationAccesses: []*config.OIDCAuthorizationAccess{},
+									},
+								},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/mount/folder1/test.txt",
+			wantErr:     true,
+		},
+		{
 			name: "GET a file with success in case of whitelist",
 			args: args{
 				cfg: &config.Config{
@@ -1392,8 +1456,12 @@ func TestPublicRouter(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := GenerateRouter(&logrus.Logger{}, tt.args.cfg, metricsCtx)
-			if err != nil {
-				t.Error(err)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GenerateRouter() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			// If want error at this moment => stop
+			if tt.wantErr {
 				return
 			}
 			w := httptest.NewRecorder()
