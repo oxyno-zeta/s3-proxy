@@ -12,6 +12,7 @@ import (
 
 var errAuthMiddlewareNotSupported = errors.New("not supported")
 
+// AuthMiddleware will redirect authentication to basic auth or OIDC depending on request path and resources declared
 func AuthMiddleware(cfg *config.Config, resources []*config.Resource) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

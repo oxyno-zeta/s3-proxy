@@ -40,6 +40,7 @@ type ListElementOutput struct {
 	Key          string
 }
 
+// HeadOutput represents output of Head
 type HeadOutput struct {
 	Type string
 	Key  string

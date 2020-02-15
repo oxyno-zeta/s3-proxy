@@ -12,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// HandleInternalServerError Handle internal server error following response template
 func HandleInternalServerError(rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
 	err2 := TemplateExecution(tplCfg.InternalServerError, logger, rw, struct {
 		Path  string
@@ -38,6 +39,7 @@ func HandleInternalServerError(rw http.ResponseWriter, err error, requestPath st
 	}
 }
 
+// HandleNotFound Handle not found error following response template
 func HandleNotFound(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
 	err := TemplateExecution(tplCfg.NotFound, logger, rw, struct{ Path string }{Path: requestPath}, http.StatusNotFound)
 	if err != nil {
@@ -46,6 +48,7 @@ func HandleNotFound(rw http.ResponseWriter, requestPath string, logger logrus.Fi
 	}
 }
 
+// HandleUnauthorized Handle unauthorized error following response template
 func HandleUnauthorized(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
 	err := TemplateExecution(tplCfg.Unauthorized, logger, rw, struct{ Path string }{Path: requestPath}, http.StatusUnauthorized)
 	if err != nil {
@@ -54,6 +57,7 @@ func HandleUnauthorized(rw http.ResponseWriter, requestPath string, logger logru
 	}
 }
 
+// HandleBadRequest Handle bad request error following response template
 func HandleBadRequest(rw http.ResponseWriter, requestPath string, err error, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
 	err2 := TemplateExecution(tplCfg.BadRequest, logger, rw, struct {
 		Path  string
@@ -65,6 +69,7 @@ func HandleBadRequest(rw http.ResponseWriter, requestPath string, err error, log
 	}
 }
 
+// HandleForbidden Handle forbidden error following response template
 func HandleForbidden(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
 	err := TemplateExecution(tplCfg.Forbidden, logger, rw, struct {
 		Path string
@@ -75,6 +80,7 @@ func HandleForbidden(rw http.ResponseWriter, requestPath string, logger logrus.F
 	}
 }
 
+// ClientIP will return client ip from request
 func ClientIP(r *http.Request) string {
 	IPAddress := r.Header.Get("X-Real-Ip")
 	if IPAddress == "" {
@@ -88,6 +94,7 @@ func ClientIP(r *http.Request) string {
 	return IPAddress
 }
 
+// TemplateExecution will execute template with values and interpret response as html content
 func TemplateExecution(tplPath string, logger logrus.FieldLogger, rw http.ResponseWriter, data interface{}, status int) error {
 	// Load template
 	tplFileName := filepath.Base(tplPath)

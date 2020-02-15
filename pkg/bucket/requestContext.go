@@ -17,6 +17,7 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+// ErrRemovalFolder will be raised when end user is trying to delete a folder and not a file
 var ErrRemovalFolder = errors.New("can't remove folder")
 
 // requestContext Bucket request context
@@ -32,7 +33,7 @@ type requestContext struct {
 	handleForbidden           func(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
 }
 
-// Entry Entry with path
+// Entry Entry with path for internal use (template)
 type Entry struct {
 	Type         string
 	ETag         string
