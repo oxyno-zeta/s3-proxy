@@ -11,11 +11,15 @@ import (
 )
 
 type Client interface {
+	// Get allow to GET what's inside a request path
 	Get(requestPath string)
+	// Put will put a file following input
 	Put(inp *PutInput)
+	// Delete will delete file on request path
 	Delete(requestPath string)
 }
 
+// PutInput represents Put input
 type PutInput struct {
 	RequestPath string
 	Filename    string
@@ -23,7 +27,7 @@ type PutInput struct {
 	ContentType string
 }
 
-// NewClient New Client
+// NewClient will generate a new client to do GET,PUT or DELETE actions
 // nolint:whitespace
 func NewClient(
 	tgt *config.TargetConfig, tplConfig *config.TemplateConfig, logger logrus.FieldLogger,
