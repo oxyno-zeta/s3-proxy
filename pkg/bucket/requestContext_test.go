@@ -4,7 +4,6 @@ package bucket
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -1039,13 +1038,6 @@ func Test_requestContext_Get(t *testing.T) {
 			}
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.fields.httpRW) {
 				t.Errorf("requestContext.Get() => httpWriter = %+v, want %+v", tt.fields.httpRW, tt.expectedHTTPWriter)
-			}
-			if tt.expectedHTTPWriter.Resp != nil {
-				fmt.Println("==========")
-				fmt.Print(string(tt.expectedHTTPWriter.Resp))
-				fmt.Println("==========")
-				fmt.Print(string(tt.fields.httpRW.(*respWriterTest).Resp))
-				fmt.Println("==========")
 			}
 		})
 	}
