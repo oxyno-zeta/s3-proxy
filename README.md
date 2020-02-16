@@ -1,6 +1,7 @@
 <h1 align="center">S3 Proxy</h1>
 
 <p align="center">
+  <a href="http://godoc.org/github.com/oxyno-zeta/s3-proxy" rel="noopener noreferer" target="_blank"><img src="https://img.shields.io/badge/godoc-reference-blue.svg" alt="Go Doc" /></a>
   <a href="https://circleci.com/gh/oxyno-zeta/s3-proxy/tree/master" rel="noopener noreferer" target="_blank"><img src="https://circleci.com/gh/oxyno-zeta/s3-proxy/tree/master.svg?style=svg" alt="CircleCI" /></a>
   <a href="https://goreportcard.com/report/github.com/oxyno-zeta/s3-proxy" rel="noopener noreferer" target="_blank"><img src="https://goreportcard.com/badge/github.com/oxyno-zeta/s3-proxy" alt="Go Report Card" /></a>
   <a href="https://golangci.com" rel="noopener noreferer" target="_blank"><img src="https://golangci.com/badges/github.com/oxyno-zeta/s3-proxy.svg" alt="GolangCI" /></a>
