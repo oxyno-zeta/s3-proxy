@@ -68,6 +68,10 @@ jobs:
       uses: actions/checkout@v2
     - name: Test
       run: make test
+    - name: Install gocoveralls
+      run: go get github.com/mattn/goveralls
+    - name: Send coverage to Coveralls
+      run: goveralls -coverprofile=c.out -service=github-actions -repotoken=$COVERALLS_TOKEN
   build-cross:
     name: Build Cross platform
     runs-on: ubuntu-latest
