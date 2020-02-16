@@ -57,6 +57,10 @@ jobs:
           ${{ runner.os }}-go-
     - name: Build
       run: make build
+    - uses: actions/upload-artifact@v1
+      with:
+        name: s3-proxy
+        path: $GITHUB_WORKSPACE/s3-proxy/bin/
   build-cross:
     name: Build Cross platform
     runs-on: ubuntu-latest
