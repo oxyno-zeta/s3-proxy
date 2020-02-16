@@ -48,6 +48,9 @@ jobs:
   build-cross:
     name: Build Cross platform
     runs-on: ubuntu-latest
+    needs:
+    - lint
+    - build
     steps:
     -
       name: Set GOPATH
