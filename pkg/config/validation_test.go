@@ -193,7 +193,7 @@ func Test_validateResource(t *testing.T) {
 				},
 				authProviders: &AuthProviderConfig{
 					OIDC: map[string]*OIDCAuthConfig{
-						"test": &OIDCAuthConfig{},
+						"test": {},
 					},
 				},
 				mountPathList: []string{"/"},
@@ -213,7 +213,7 @@ func Test_validateResource(t *testing.T) {
 				},
 				authProviders: &AuthProviderConfig{
 					Basic: map[string]*BasicAuthConfig{
-						"test": &BasicAuthConfig{},
+						"test": {},
 					},
 				},
 				mountPathList: []string{"/"},
@@ -234,7 +234,7 @@ func Test_validateResource(t *testing.T) {
 				},
 				authProviders: &AuthProviderConfig{
 					Basic: map[string]*BasicAuthConfig{
-						"test": &BasicAuthConfig{},
+						"test": {},
 					},
 				},
 				mountPathList: []string{"/v1/"},
@@ -255,7 +255,7 @@ func Test_validateResource(t *testing.T) {
 				},
 				authProviders: &AuthProviderConfig{
 					Basic: map[string]*BasicAuthConfig{
-						"test": &BasicAuthConfig{},
+						"test": {},
 					},
 				},
 				mountPathList: []string{"/v1/"},

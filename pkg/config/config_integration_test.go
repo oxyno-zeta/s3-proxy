@@ -75,7 +75,7 @@ targets:
 					Enabled: false,
 				},
 				Targets: []*TargetConfig{
-					&TargetConfig{
+					{
 						Name: "test",
 						Mount: &MountConfig{
 							Path: []string{"/test/"},
@@ -136,7 +136,7 @@ targets:
 					Enabled: false,
 				},
 				Targets: []*TargetConfig{
-					&TargetConfig{
+					{
 						Name: "test",
 						Mount: &MountConfig{
 							Path: []string{"/test/"},
@@ -245,7 +245,7 @@ targets:
 					Enabled: false,
 				},
 				Targets: []*TargetConfig{
-					&TargetConfig{
+					{
 						Name: "test",
 						Mount: &MountConfig{
 							Path: []string{"/test/"},

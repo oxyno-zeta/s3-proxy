@@ -139,7 +139,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -181,7 +181,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -222,7 +222,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -264,7 +264,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -312,7 +312,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -355,7 +355,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -399,13 +399,13 @@ func TestPublicRouter(t *testing.T) {
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
-							"provider1": &config.BasicAuthConfig{
+							"provider1": {
 								Realm: "realm1",
 							},
 						},
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -421,13 +421,13 @@ func TestPublicRouter(t *testing.T) {
 								Path: []string{"/mount/"},
 							},
 							Resources: []*config.Resource{
-								&config.Resource{
+								{
 									Path:     "/mount/folder2/*",
 									Methods:  []string{"GET"},
 									Provider: "provider1",
 									Basic: &config.ResourceBasic{
 										Credentials: []*config.BasicAuthUserConfig{
-											&config.BasicAuthUserConfig{
+											{
 												User: "user1",
 												Password: &config.CredentialConfig{
 													Value: "pass1",
@@ -471,13 +471,13 @@ func TestPublicRouter(t *testing.T) {
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
-							"provider1": &config.BasicAuthConfig{
+							"provider1": {
 								Realm: "realm1",
 							},
 						},
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -493,13 +493,13 @@ func TestPublicRouter(t *testing.T) {
 								Path: []string{"/mount/"},
 							},
 							Resources: []*config.Resource{
-								&config.Resource{
+								{
 									Path:     "/mount/folder2/*",
 									Methods:  []string{"PUT"},
 									Provider: "provider1",
 									Basic: &config.ResourceBasic{
 										Credentials: []*config.BasicAuthUserConfig{
-											&config.BasicAuthUserConfig{
+											{
 												User: "user1",
 												Password: &config.CredentialConfig{
 													Value: "pass1",
@@ -543,13 +543,13 @@ func TestPublicRouter(t *testing.T) {
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
-							"provider1": &config.BasicAuthConfig{
+							"provider1": {
 								Realm: "realm1",
 							},
 						},
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -565,13 +565,13 @@ func TestPublicRouter(t *testing.T) {
 								Path: []string{"/mount/"},
 							},
 							Resources: []*config.Resource{
-								&config.Resource{
+								{
 									Path:     "/mount/folder1/*",
 									Methods:  []string{"GET"},
 									Provider: "provider1",
 									Basic: &config.ResourceBasic{
 										Credentials: []*config.BasicAuthUserConfig{
-											&config.BasicAuthUserConfig{
+											{
 												User: "user1",
 												Password: &config.CredentialConfig{
 													Value: "pass1",
@@ -615,13 +615,13 @@ func TestPublicRouter(t *testing.T) {
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
-							"provider1": &config.BasicAuthConfig{
+							"provider1": {
 								Realm: "realm1",
 							},
 						},
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -637,13 +637,13 @@ func TestPublicRouter(t *testing.T) {
 								Path: []string{"/mount/"},
 							},
 							Resources: []*config.Resource{
-								&config.Resource{
+								{
 									Path:     "/mount/folder1/*",
 									Methods:  []string{"GET"},
 									Provider: "provider1",
 									Basic: &config.ResourceBasic{
 										Credentials: []*config.BasicAuthUserConfig{
-											&config.BasicAuthUserConfig{
+											{
 												User: "user1",
 												Password: &config.CredentialConfig{
 													Value: "pass1",
@@ -689,13 +689,13 @@ func TestPublicRouter(t *testing.T) {
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
-							"provider1": &config.BasicAuthConfig{
+							"provider1": {
 								Realm: "realm1",
 							},
 						},
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -711,13 +711,13 @@ func TestPublicRouter(t *testing.T) {
 								Path: []string{"/mount/"},
 							},
 							Resources: []*config.Resource{
-								&config.Resource{
+								{
 									Path:     "/mount/folder1/*",
 									Methods:  []string{"GET"},
 									Provider: "provider1",
 									Basic: &config.ResourceBasic{
 										Credentials: []*config.BasicAuthUserConfig{
-											&config.BasicAuthUserConfig{
+											{
 												User: "user1",
 												Password: &config.CredentialConfig{
 													Value: "pass1",
@@ -763,13 +763,13 @@ func TestPublicRouter(t *testing.T) {
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
-							"provider1": &config.BasicAuthConfig{
+							"provider1": {
 								Realm: "realm1",
 							},
 						},
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -785,13 +785,13 @@ func TestPublicRouter(t *testing.T) {
 								Path: []string{"/mount/"},
 							},
 							Resources: []*config.Resource{
-								&config.Resource{
+								{
 									Path:     "/mount/folder1/*",
 									Methods:  []string{"GET"},
 									Provider: "provider1",
 									Basic: &config.ResourceBasic{
 										Credentials: []*config.BasicAuthUserConfig{
-											&config.BasicAuthUserConfig{
+											{
 												User: "user1",
 												Password: &config.CredentialConfig{
 													Value: "pass1",
@@ -831,7 +831,7 @@ func TestPublicRouter(t *testing.T) {
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
-							"provider1": &config.OIDCAuthConfig{
+							"provider1": {
 								ClientID:     "fake-client-id",
 								CookieName:   "oidc",
 								RedirectURL:  "http://fake-s3-proxy/",
@@ -842,7 +842,7 @@ func TestPublicRouter(t *testing.T) {
 						},
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -858,7 +858,7 @@ func TestPublicRouter(t *testing.T) {
 								Path: []string{"/mount/"},
 							},
 							Resources: []*config.Resource{
-								&config.Resource{
+								{
 									Path:     "/mount/folder1/*",
 									Methods:  []string{"GET"},
 									Provider: "provider1",
@@ -894,13 +894,13 @@ func TestPublicRouter(t *testing.T) {
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
-							"provider1": &config.BasicAuthConfig{
+							"provider1": {
 								Realm: "realm1",
 							},
 						},
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -916,18 +916,18 @@ func TestPublicRouter(t *testing.T) {
 								Path: []string{"/mount/"},
 							},
 							Resources: []*config.Resource{
-								&config.Resource{
+								{
 									Path:      "/mount/folder1/test.txt",
 									Methods:   []string{"GET"},
 									WhiteList: &trueValue,
 								},
-								&config.Resource{
+								{
 									Path:     "/mount/folder1/*",
 									Methods:  []string{"GET"},
 									Provider: "provider1",
 									Basic: &config.ResourceBasic{
 										Credentials: []*config.BasicAuthUserConfig{
-											&config.BasicAuthUserConfig{
+											{
 												User: "user1",
 												Password: &config.CredentialConfig{
 													Value: "pass1",
@@ -969,7 +969,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1024,7 +1024,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1067,7 +1067,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1110,7 +1110,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1151,7 +1151,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1193,7 +1193,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1246,7 +1246,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1306,7 +1306,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1360,7 +1360,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1412,7 +1412,7 @@ func TestPublicRouter(t *testing.T) {
 						Unauthorized:        "../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
-						&config.TargetConfig{
+						{
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,

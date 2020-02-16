@@ -112,7 +112,7 @@ func Test_loadDefaultValues(t *testing.T) {
 				out: &Config{
 					AuthProviders: &AuthProviderConfig{
 						OIDC: map[string]*OIDCAuthConfig{
-							"provider1": &OIDCAuthConfig{},
+							"provider1": {},
 						},
 					},
 					ListTargets: &ListTargetsConfig{
@@ -127,7 +127,7 @@ func Test_loadDefaultValues(t *testing.T) {
 			result: &Config{
 				AuthProviders: &AuthProviderConfig{
 					OIDC: map[string]*OIDCAuthConfig{
-						"provider1": &OIDCAuthConfig{
+						"provider1": {
 							Scopes:       DefaultOIDCScopes,
 							GroupClaim:   DefaultOIDCGroupClaim,
 							CookieName:   DefaultOIDCCookieName,
@@ -150,7 +150,7 @@ func Test_loadDefaultValues(t *testing.T) {
 				out: &Config{
 					AuthProviders: &AuthProviderConfig{
 						OIDC: map[string]*OIDCAuthConfig{
-							"provider1": &OIDCAuthConfig{
+							"provider1": {
 								Scopes:       []string{"test"},
 								GroupClaim:   "test",
 								CookieName:   "test",
@@ -171,7 +171,7 @@ func Test_loadDefaultValues(t *testing.T) {
 			result: &Config{
 				AuthProviders: &AuthProviderConfig{
 					OIDC: map[string]*OIDCAuthConfig{
-						"provider1": &OIDCAuthConfig{
+						"provider1": {
 							Scopes:       []string{"test"},
 							GroupClaim:   "test",
 							CookieName:   "test",
@@ -217,7 +217,7 @@ func Test_loadDefaultValues(t *testing.T) {
 						Resource: &Resource{
 							OIDC: &ResourceOIDC{
 								AuthorizationAccesses: []*OIDCAuthorizationAccess{
-									&OIDCAuthorizationAccess{
+									{
 										Group:  ".*",
 										Regexp: true,
 									},
@@ -235,7 +235,7 @@ func Test_loadDefaultValues(t *testing.T) {
 						Methods: []string{"GET"},
 						OIDC: &ResourceOIDC{
 							AuthorizationAccesses: []*OIDCAuthorizationAccess{
-								&OIDCAuthorizationAccess{
+								{
 									Group:       ".*",
 									Regexp:      true,
 									GroupRegexp: regexp.MustCompile(".*"),
@@ -255,7 +255,7 @@ func Test_loadDefaultValues(t *testing.T) {
 						Resource: &Resource{
 							OIDC: &ResourceOIDC{
 								AuthorizationAccesses: []*OIDCAuthorizationAccess{
-									&OIDCAuthorizationAccess{
+									{
 										Email:  ".*",
 										Regexp: true,
 									},
@@ -273,7 +273,7 @@ func Test_loadDefaultValues(t *testing.T) {
 						Methods: []string{"GET"},
 						OIDC: &ResourceOIDC{
 							AuthorizationAccesses: []*OIDCAuthorizationAccess{
-								&OIDCAuthorizationAccess{
+								{
 									Email:       ".*",
 									Regexp:      true,
 									EmailRegexp: regexp.MustCompile(".*"),
@@ -289,14 +289,14 @@ func Test_loadDefaultValues(t *testing.T) {
 			args: args{
 				out: &Config{
 					Targets: []*TargetConfig{
-						&TargetConfig{},
+						{},
 					},
 				},
 			},
 			wantErr: false,
 			result: &Config{
 				Targets: []*TargetConfig{
-					&TargetConfig{
+					{
 						Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: true}},
 					},
 				},
@@ -308,7 +308,7 @@ func Test_loadDefaultValues(t *testing.T) {
 			args: args{
 				out: &Config{
 					Targets: []*TargetConfig{
-						&TargetConfig{
+						{
 							Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
 							Bucket:  &BucketConfig{},
 						},
@@ -318,7 +318,7 @@ func Test_loadDefaultValues(t *testing.T) {
 			wantErr: false,
 			result: &Config{
 				Targets: []*TargetConfig{
-					&TargetConfig{
+					{
 						Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
 						Bucket:  &BucketConfig{Region: DefaultBucketRegion},
 					},
@@ -331,14 +331,14 @@ func Test_loadDefaultValues(t *testing.T) {
 			args: args{
 				out: &Config{
 					Targets: []*TargetConfig{
-						&TargetConfig{
+						{
 							Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
 							Bucket:  &BucketConfig{Region: "test"},
 							Resources: []*Resource{
-								&Resource{
+								{
 									OIDC: &ResourceOIDC{
 										AuthorizationAccesses: []*OIDCAuthorizationAccess{
-											&OIDCAuthorizationAccess{
+											{
 												Email:  ".*",
 												Regexp: true,
 											},
@@ -353,15 +353,15 @@ func Test_loadDefaultValues(t *testing.T) {
 			wantErr: false,
 			result: &Config{
 				Targets: []*TargetConfig{
-					&TargetConfig{
+					{
 						Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
 						Bucket:  &BucketConfig{Region: "test"},
 						Resources: []*Resource{
-							&Resource{
+							{
 								Methods: []string{"GET"},
 								OIDC: &ResourceOIDC{
 									AuthorizationAccesses: []*OIDCAuthorizationAccess{
-										&OIDCAuthorizationAccess{
+										{
 											Email:       ".*",
 											Regexp:      true,
 											EmailRegexp: regexp.MustCompile(".*"),
@@ -412,7 +412,7 @@ func Test_loadAllCredentials(t *testing.T) {
 			args: args{
 				out: &Config{
 					Targets: []*TargetConfig{
-						&TargetConfig{
+						{
 							Bucket: &BucketConfig{},
 						},
 					},
@@ -421,7 +421,7 @@ func Test_loadAllCredentials(t *testing.T) {
 			wantErr: false,
 			result: &Config{
 				Targets: []*TargetConfig{
-					&TargetConfig{
+					{
 						Bucket: &BucketConfig{},
 					},
 				},
@@ -432,9 +432,9 @@ func Test_loadAllCredentials(t *testing.T) {
 			args: args{
 				out: &Config{
 					Targets: []*TargetConfig{
-						&TargetConfig{
+						{
 							Resources: []*Resource{
-								&Resource{},
+								{},
 							},
 							Bucket: &BucketConfig{},
 						},
@@ -444,9 +444,9 @@ func Test_loadAllCredentials(t *testing.T) {
 			wantErr: false,
 			result: &Config{
 				Targets: []*TargetConfig{
-					&TargetConfig{
+					{
 						Resources: []*Resource{
-							&Resource{},
+							{},
 						},
 						Bucket: &BucketConfig{},
 					},
@@ -458,12 +458,12 @@ func Test_loadAllCredentials(t *testing.T) {
 			args: args{
 				out: &Config{
 					Targets: []*TargetConfig{
-						&TargetConfig{
+						{
 							Resources: []*Resource{
-								&Resource{
+								{
 									Basic: &ResourceBasic{
 										Credentials: []*BasicAuthUserConfig{
-											&BasicAuthUserConfig{
+											{
 												Password: &CredentialConfig{
 													Value: "value1",
 												},
@@ -480,12 +480,12 @@ func Test_loadAllCredentials(t *testing.T) {
 			wantErr: false,
 			result: &Config{
 				Targets: []*TargetConfig{
-					&TargetConfig{
+					{
 						Resources: []*Resource{
-							&Resource{
+							{
 								Basic: &ResourceBasic{
 									Credentials: []*BasicAuthUserConfig{
-										&BasicAuthUserConfig{
+										{
 											Password: &CredentialConfig{
 												Value: "value1",
 											},
@@ -504,7 +504,7 @@ func Test_loadAllCredentials(t *testing.T) {
 			args: args{
 				out: &Config{
 					Targets: []*TargetConfig{
-						&TargetConfig{
+						{
 							Bucket: &BucketConfig{
 								Credentials: &BucketCredentialConfig{
 									AccessKey: &CredentialConfig{
@@ -522,7 +522,7 @@ func Test_loadAllCredentials(t *testing.T) {
 			wantErr: false,
 			result: &Config{
 				Targets: []*TargetConfig{
-					&TargetConfig{
+					{
 						Bucket: &BucketConfig{
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
@@ -545,7 +545,7 @@ func Test_loadAllCredentials(t *testing.T) {
 						Resource: &Resource{
 							Basic: &ResourceBasic{
 								Credentials: []*BasicAuthUserConfig{
-									&BasicAuthUserConfig{
+									{
 										Password: &CredentialConfig{
 											Value: "value1",
 										},
@@ -562,7 +562,7 @@ func Test_loadAllCredentials(t *testing.T) {
 					Resource: &Resource{
 						Basic: &ResourceBasic{
 							Credentials: []*BasicAuthUserConfig{
-								&BasicAuthUserConfig{
+								{
 									Password: &CredentialConfig{
 										Value: "value1",
 									},
@@ -579,7 +579,7 @@ func Test_loadAllCredentials(t *testing.T) {
 				out: &Config{
 					AuthProviders: &AuthProviderConfig{
 						OIDC: map[string]*OIDCAuthConfig{
-							"test": &OIDCAuthConfig{
+							"test": {
 								ClientSecret: &CredentialConfig{
 									Value: "value1",
 								},
@@ -592,7 +592,7 @@ func Test_loadAllCredentials(t *testing.T) {
 			result: &Config{
 				AuthProviders: &AuthProviderConfig{
 					OIDC: map[string]*OIDCAuthConfig{
-						"test": &OIDCAuthConfig{
+						"test": {
 							ClientSecret: &CredentialConfig{
 								Value: "value1",
 							},

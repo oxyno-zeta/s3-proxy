@@ -35,7 +35,7 @@ func Test_findResource(t *testing.T) {
 			name: "Should find a valid resource with fixed path",
 			args: args{
 				resL: []*config.Resource{
-					&config.Resource{
+					{
 						Path:    "/test",
 						Methods: []string{"GET"},
 					},
@@ -53,7 +53,7 @@ func Test_findResource(t *testing.T) {
 			name: "Should find a valid resource with glob path",
 			args: args{
 				resL: []*config.Resource{
-					&config.Resource{
+					{
 						Path:    "/test/*",
 						Methods: []string{"GET"},
 					},
@@ -71,7 +71,7 @@ func Test_findResource(t *testing.T) {
 			name: "Shouldn't find a valid resource with valid glob path but not http method",
 			args: args{
 				resL: []*config.Resource{
-					&config.Resource{
+					{
 						Path:    "/test/*",
 						Methods: []string{"GET", "PUT"},
 					},

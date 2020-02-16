@@ -41,7 +41,7 @@ func Test_transformS3Entries(t *testing.T) {
 			name: "List",
 			args: args{
 				s3Entries: []*s3client.ListElementOutput{
-					&s3client.ListElementOutput{
+					{
 						Type:         "type",
 						ETag:         "etag",
 						Name:         "name",
@@ -56,7 +56,7 @@ func Test_transformS3Entries(t *testing.T) {
 				bucketRootPrefixKey: "prefix/",
 			},
 			want: []*Entry{
-				&Entry{
+				{
 					Type:         "type",
 					ETag:         "etag",
 					Name:         "name",
@@ -649,7 +649,7 @@ func Test_requestContext_Get(t *testing.T) {
 			fields: fields{
 				s3Context: &s3clientTest{
 					ListResult: []*s3client.ListElementOutput{
-						&s3client.ListElementOutput{
+						{
 							Name:         "file1",
 							Type:         "FILE",
 							ETag:         "etag",
@@ -689,7 +689,7 @@ func Test_requestContext_Get(t *testing.T) {
 			fields: fields{
 				s3Context: &s3clientTest{
 					ListResult: []*s3client.ListElementOutput{
-						&s3client.ListElementOutput{
+						{
 							Name:         "file1",
 							Type:         "FILE",
 							ETag:         "etag",
@@ -761,7 +761,7 @@ func Test_requestContext_Get(t *testing.T) {
 			fields: fields{
 				s3Context: &s3clientTest{
 					ListResult: []*s3client.ListElementOutput{
-						&s3client.ListElementOutput{
+						{
 							Name:         "index.html",
 							Type:         "FILE",
 							ETag:         "etag",
@@ -813,7 +813,7 @@ func Test_requestContext_Get(t *testing.T) {
 			fields: fields{
 				s3Context: &s3clientTest{
 					ListResult: []*s3client.ListElementOutput{
-						&s3client.ListElementOutput{
+						{
 							Name:         "index.html",
 							Type:         "FILE",
 							ETag:         "etag",
@@ -857,7 +857,7 @@ func Test_requestContext_Get(t *testing.T) {
 			fields: fields{
 				s3Context: &s3clientTest{
 					ListResult: []*s3client.ListElementOutput{
-						&s3client.ListElementOutput{
+						{
 							Name:         "index.html",
 							Type:         "FILE",
 							ETag:         "etag",

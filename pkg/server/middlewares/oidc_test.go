@@ -55,7 +55,7 @@ func Test_isAuthorized(t *testing.T) {
 				groups: []string{"test"},
 				email:  "email@test.test",
 				authorizationAccesses: []*config.OIDCAuthorizationAccess{
-					&config.OIDCAuthorizationAccess{Group: "valid1"},
+					{Group: "valid1"},
 				},
 			},
 			want: false,
@@ -66,8 +66,8 @@ func Test_isAuthorized(t *testing.T) {
 				groups: []string{"valid2"},
 				email:  "email@test.test",
 				authorizationAccesses: []*config.OIDCAuthorizationAccess{
-					&config.OIDCAuthorizationAccess{Group: "valid1"},
-					&config.OIDCAuthorizationAccess{Group: "valid2"},
+					{Group: "valid1"},
+					{Group: "valid2"},
 				},
 			},
 			want: true,
@@ -78,9 +78,9 @@ func Test_isAuthorized(t *testing.T) {
 				groups: []string{"valid2"},
 				email:  "email@test.test",
 				authorizationAccesses: []*config.OIDCAuthorizationAccess{
-					&config.OIDCAuthorizationAccess{Email: "valid@test.test"},
-					&config.OIDCAuthorizationAccess{Group: "valid1"},
-					&config.OIDCAuthorizationAccess{Group: "valid2"},
+					{Email: "valid@test.test"},
+					{Group: "valid1"},
+					{Group: "valid2"},
 				},
 			},
 			want: true,
@@ -91,7 +91,7 @@ func Test_isAuthorized(t *testing.T) {
 				groups: make([]string, 0),
 				email:  "email@test.test",
 				authorizationAccesses: []*config.OIDCAuthorizationAccess{
-					&config.OIDCAuthorizationAccess{Email: "valid@test.test"},
+					{Email: "valid@test.test"},
 				},
 			},
 			want: false,
@@ -102,7 +102,7 @@ func Test_isAuthorized(t *testing.T) {
 				groups: []string{"valid2"},
 				email:  "email@test.test",
 				authorizationAccesses: []*config.OIDCAuthorizationAccess{
-					&config.OIDCAuthorizationAccess{Email: "email@test.test"},
+					{Email: "email@test.test"},
 				},
 			},
 			want: true,
@@ -113,9 +113,9 @@ func Test_isAuthorized(t *testing.T) {
 				groups: []string{"valid2"},
 				email:  "email@test.test",
 				authorizationAccesses: []*config.OIDCAuthorizationAccess{
-					&config.OIDCAuthorizationAccess{Email: "email@test.test"},
-					&config.OIDCAuthorizationAccess{Group: "valid1"},
-					&config.OIDCAuthorizationAccess{Group: "valid2"},
+					{Email: "email@test.test"},
+					{Group: "valid1"},
+					{Group: "valid2"},
 				},
 			},
 			want: true,
@@ -126,7 +126,7 @@ func Test_isAuthorized(t *testing.T) {
 				groups: []string{"test"},
 				email:  "email@test.test",
 				authorizationAccesses: []*config.OIDCAuthorizationAccess{
-					&config.OIDCAuthorizationAccess{
+					{
 						Regexp:      true,
 						Group:       "valid.*",
 						GroupRegexp: regexp.MustCompile("valid.*"),
@@ -141,7 +141,7 @@ func Test_isAuthorized(t *testing.T) {
 				groups: []string{"test", "valid2"},
 				email:  "email@test.test",
 				authorizationAccesses: []*config.OIDCAuthorizationAccess{
-					&config.OIDCAuthorizationAccess{
+					{
 						Regexp:      true,
 						Group:       "valid.*",
 						GroupRegexp: regexp.MustCompile("valid.*"),
@@ -156,7 +156,7 @@ func Test_isAuthorized(t *testing.T) {
 				groups: make([]string, 0),
 				email:  "email@test.test",
 				authorizationAccesses: []*config.OIDCAuthorizationAccess{
-					&config.OIDCAuthorizationAccess{
+					{
 						Regexp:      true,
 						Email:       ".*@valid.test",
 						EmailRegexp: regexp.MustCompile(".*@valid.test"),
@@ -171,7 +171,7 @@ func Test_isAuthorized(t *testing.T) {
 				groups: make([]string, 0),
 				email:  "email@valid.test",
 				authorizationAccesses: []*config.OIDCAuthorizationAccess{
-					&config.OIDCAuthorizationAccess{
+					{
 						Regexp:      true,
 						Email:       ".*@valid.test",
 						EmailRegexp: regexp.MustCompile(".*@valid.test"),
