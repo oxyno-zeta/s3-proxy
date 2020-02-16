@@ -71,7 +71,9 @@ jobs:
     - name: Install gocoveralls
       run: go get github.com/mattn/goveralls
     - name: Send coverage to Coveralls
-      run: goveralls -coverprofile=c.out -service=github-actions -repotoken=$COVERALLS_TOKEN
+      env:
+        COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: goveralls -coverprofile=c.out -service=github
   build-cross:
     name: Build Cross platform
     runs-on: ubuntu-18.04
