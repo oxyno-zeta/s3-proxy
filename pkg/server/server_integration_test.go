@@ -1484,6 +1484,10 @@ func TestPublicRouter(t *testing.T) {
 					return
 				}
 				_, err = io.Copy(part, strings.NewReader(tt.inputBody))
+				if err != nil {
+					t.Error(err)
+					return
+				}
 				err = writer.Close()
 				if err != nil {
 					t.Error(err)
