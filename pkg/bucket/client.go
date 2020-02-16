@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Client represents a client in order to GET, PUT or DELETE file on a bucket with a html output
 type Client interface {
 	// Get allow to GET what's inside a request path
 	Get(requestPath string)

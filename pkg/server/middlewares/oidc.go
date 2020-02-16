@@ -20,6 +20,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// OIDCEndpoints will set OpenID Connect endpoints for authentication and callback
 func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateConfig, mux chi.Router) error {
 	ctx := context.Background()
 
