@@ -5,7 +5,7 @@ on:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - name: Set GOPATH
       # temporary fix
@@ -25,7 +25,7 @@ jobs:
       run: make lint
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - name: Set GOPATH
       # temporary fix
@@ -50,7 +50,7 @@ jobs:
         path: bin/
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - name: Set GOPATH
       # temporary fix
@@ -74,7 +74,7 @@ jobs:
       run: goveralls -coverprofile=c.out -service=github-actions -repotoken=$COVERALLS_TOKEN
   build-cross:
     name: Build Cross platform
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs:
     - lint
     - build
