@@ -1,0 +1,22 @@
+# Always validate all commits, and ignore the PR title
+commitsOnly: true
+
+# List of valid scopes
+scopes: []
+
+# By default types specified in commitizen/conventional-commit-types is used.
+# See: https://github.com/commitizen/conventional-commit-types/blob/v2.3.0/index.json
+types:
+  - feat
+  - fix
+  - docs
+  - style
+  - refactor
+  - test
+  - ci
+  - chore
+  - revert
+
+# Allow use of Merge commits (eg on github: "Merge branch 'master' into feature/ride-unicorns")
+# this is only relevant when using commitsOnly: true (or titleAndCommits: true)
+allowMergeCommits: true
