@@ -43,11 +43,6 @@ jobs:
       uses: actions/checkout@v2
     - name: Build
       run: make build
-    - name: Upload artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: s3-proxy
-        path: bin/
   test:
     name: Test
     runs-on: ubuntu-18.04
