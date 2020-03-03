@@ -34,7 +34,7 @@ require (
 	github.com/spf13/viper v1.6.2
 	github.com/thoas/go-funk v0.5.0
 	golang.org/x/crypto v0.0.0-20200208060501-ecb85df21340 // indirect
-	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
+	golang.org/x/net v0.0.0-20200301022130-244492dfa37a
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
