@@ -1,6 +1,7 @@
 <h1 align="center">S3 Proxy</h1>
 
 <p align="center">
+  <a href="https://github.com/avelino/awesome-go" rel="noopener noreferer" target="_blank"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" /></a>
   <a href="http://godoc.org/github.com/oxyno-zeta/s3-proxy" rel="noopener noreferer" target="_blank"><img src="https://img.shields.io/badge/godoc-reference-blue.svg" alt="Go Doc" /></a>
   <a href="https://circleci.com/gh/oxyno-zeta/s3-proxy" rel="noopener noreferer" target="_blank"><img src="https://circleci.com/gh/oxyno-zeta/s3-proxy.svg?style=svg" alt="CircleCI" /></a>
   <a href="https://goreportcard.com/report/github.com/oxyno-zeta/s3-proxy" rel="noopener noreferer" target="_blank"><img src="https://goreportcard.com/badge/github.com/oxyno-zeta/s3-proxy" alt="Go Report Card" /></a>
@@ -25,6 +26,7 @@
   - [Kubernetes - Helm](#kubernetes---helm)
   - [Docker](#docker)
 - [TODO](#todo)
+- [Want to contribute ?](#want-to-contribute)
 - [Inspired by](#inspired-by)
 - [Thanks](#thanks)
 - [Author](#author)
@@ -136,6 +138,10 @@ docker run -d --name s3-proxy -p 8080:8080 -p 9090:9090 -v $PWD/config:/config o
 - Support more authentication and authorization systems
 - JSON response
 - Add tests
+
+## Want to contribute ?
+
+- Read the [CONTRIBUTING guide](./CONTRIBUTING.md)
 
 ## Inspired by
 
