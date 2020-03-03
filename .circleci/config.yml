@@ -1,5 +1,13 @@
 version: 2
 jobs:
+  # Test validation for semantic-release
+  semantic-release:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+      - run: sudo npm install -g semantic-release@17.0.4 @semantic-release/exec@5.0.0
+      - run: semantic-release --ci
   lint:
     docker:
       - image: circleci/golang:1.13
@@ -52,6 +60,7 @@ workflows:
   version: 2
   project:
     jobs:
+      - semantic-release
       - lint
       - build:
           requires:
