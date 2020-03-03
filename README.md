@@ -14,7 +14,11 @@
   <a href="https://github.com/oxyno-zeta/s3-proxy/releases" rel="noopener noreferer" target="_blank"><img src="https://img.shields.io/github/v/release/oxyno-zeta/s3-proxy" alt="GitHub release (latest by date)" /></a>
 </p>
 
-- [Why ?](#why)
+---
+
+## Menu
+
+- [Why ?](#why-)
 - [Features](#features)
 - [Configuration](#configuration)
 - [Templates](#templates)
@@ -28,7 +32,7 @@
   - [Kubernetes - Helm](#kubernetes---helm)
   - [Docker](#docker)
 - [TODO](#todo)
-- [Want to contribute ?](#want-to-contribute)
+- [Want to contribute ?](#want-to-contribute-)
 - [Inspired by](#inspired-by)
 - [Thanks](#thanks)
 - [Author](#author)
