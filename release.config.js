@@ -3,7 +3,16 @@ module.exports = {
     [
       "@semantic-release/commit-analyzer",
       {
-        preset: "angular"
+        preset: "angular",
+        releaseRules: [
+          { breaking: true, release: "major" },
+          { revert: true, release: "patch" },
+          // Angular
+          { type: "feat", release: "minor" },
+          { type: "fix", release: "patch" },
+          { type: "perf", release: "patch" },
+          { type: "chore", scope: "deps", release: "patch" }
+        ]
       }
     ],
     [
