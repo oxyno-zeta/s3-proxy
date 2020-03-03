@@ -25,6 +25,7 @@
   - [Kubernetes - Helm](#kubernetes---helm)
   - [Docker](#docker)
 - [TODO](#todo)
+- [Want to contribute ?](#want-to-contribute)
 - [Inspired by](#inspired-by)
 - [Thanks](#thanks)
 - [Author](#author)
@@ -136,6 +137,10 @@ docker run -d --name s3-proxy -p 8080:8080 -p 9090:9090 -v $PWD/config:/config o
 - Support more authentication and authorization systems
 - JSON response
 - Add tests
+
+## Want to contribute ?
+
+- Read the [CONTRIBUTING guide](./CONTRIBUTING.md)
 
 ## Inspired by
 
