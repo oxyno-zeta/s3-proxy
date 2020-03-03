@@ -2,7 +2,15 @@
 commitsOnly: true
 
 # List of valid scopes
-scopes: []
+scopes:
+  - deps
+  - bucket
+  - config
+  - metrics
+  - s3client
+  - server
+  - version
+  - templates
 
 # By default types specified in commitizen/conventional-commit-types is used.
 # See: https://github.com/commitizen/conventional-commit-types/blob/v2.3.0/index.json
