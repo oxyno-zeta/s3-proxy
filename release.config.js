@@ -1,4 +1,3 @@
-
 module.exports = {
   plugins: [
     [
@@ -110,7 +109,6 @@ module.exports = {
       }
     ]
   ],
-  branch: [{ name: "master" }],
   repositoryUrl: "git@github.com:oxyno-zeta/s3-proxy.git",
   tagFormat: "${version}"
 };
