@@ -1,0 +1,73 @@
+version: 2
+jobs:
+  # Test validation for semantic-release
+  semantic-release:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+      - run: sudo npm install -g semantic-release@17.0.4 @semantic-release/exec@5.0.0
+      - run: semantic-release --ci
+  lint:
+    docker:
+      - image: circleci/golang:1.13
+    working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
+    steps:
+      - checkout
+      - run: make lint
+      - save_cache:
+          key: go-mod-{{ checksum "go.mod"  }}
+          paths:
+            - "/go/pkg/"
+  build:
+    docker:
+      - image: circleci/golang:1.13
+    working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.mod"  }}
+      - run: make build
+  build-cross:
+    docker:
+      - image: circleci/golang:1.13
+    working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.mod"  }}
+      - run: make build-cross
+  test:
+    docker:
+      - image: circleci/golang:1.13
+    working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.mod"  }}
+      - run: make test
+      - run: make coverage-report
+      - run: mv coverage.html /tmp/artifacts
+      - store_artifacts:
+          path: /tmp/artifacts
+      - run: go get github.com/mattn/goveralls
+      - run: goveralls -coverprofile=c.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
+workflows:
+  version: 2
+  project:
+    jobs:
+      - semantic-release
+      - lint
+      - build:
+          requires:
+            - lint
+      - build-cross:
+          requires:
+            - lint
+      - test:
+          requires:
+            - lint

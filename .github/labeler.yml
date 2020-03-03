@@ -1,0 +1,21 @@
+# Add Dockerfile label
+dockerfile:
+  - Dockerfile*
+
+# Add test label
+tests:
+  - pkg/**/*_test.go
+
+# Add actions label
+actions:
+  - .github/**/*
+  - .github/*
+
+# Add ci label
+ci:
+  - .circleci/*
+
+# Add documentation label
+documentation:
+  - "**/*.md"
+  - "*.md"
