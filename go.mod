@@ -13,7 +13,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/go-chi/chi v4.0.3+incompatible
 	github.com/go-chi/hostrouter v0.0.0-20180220162504-7bff2694dfd9
-	github.com/go-playground/validator/v10 v10.1.0
+	github.com/go-playground/validator/v10 v10.2.0
 	github.com/gobwas/glob v0.2.3
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/huandu/xstrings v1.3.0 // indirect
