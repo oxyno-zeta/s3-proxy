@@ -10,7 +10,7 @@ jobs:
       - run: semantic-release --ci
   lint:
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.14
     working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
     steps:
       - checkout
@@ -21,7 +21,7 @@ jobs:
             - "/go/pkg/"
   build:
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.14
     working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
     steps:
       - checkout
@@ -31,7 +31,7 @@ jobs:
       - run: make build
   build-cross:
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.14
     working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
     steps:
       - checkout
@@ -42,7 +42,7 @@ jobs:
       - run: make build-cross
   test:
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.14
     working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
     steps:
       - checkout
