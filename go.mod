@@ -6,7 +6,7 @@ require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Masterminds/sprig/v3 v3.0.2
-	github.com/aws/aws-sdk-go v1.29.17
+	github.com/aws/aws-sdk-go v1.29.18
 	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dimiro1/health v0.0.0-20191019130555-c5cbb4d46ffc
