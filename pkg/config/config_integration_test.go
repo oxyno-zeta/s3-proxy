@@ -87,6 +87,7 @@ targets:
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
 						},
+						Templates: &TargetTemplateConfig{},
 					},
 				},
 			},
@@ -158,6 +159,7 @@ targets:
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
 						},
+						Templates: &TargetTemplateConfig{},
 					},
 				},
 			},
@@ -266,6 +268,7 @@ targets:
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
 						},
+						Templates: &TargetTemplateConfig{},
 					},
 				},
 			},

@@ -297,7 +297,8 @@ func Test_loadDefaultValues(t *testing.T) {
 			result: &Config{
 				Targets: []*TargetConfig{
 					{
-						Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: true}},
+						Actions:   &ActionsConfig{GET: &GetActionConfig{Enabled: true}},
+						Templates: &TargetTemplateConfig{},
 					},
 				},
 				ListTargets: &ListTargetsConfig{Enabled: false},
@@ -309,8 +310,9 @@ func Test_loadDefaultValues(t *testing.T) {
 				out: &Config{
 					Targets: []*TargetConfig{
 						{
-							Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
-							Bucket:  &BucketConfig{},
+							Actions:   &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
+							Bucket:    &BucketConfig{},
+							Templates: &TargetTemplateConfig{},
 						},
 					},
 				},
@@ -319,8 +321,9 @@ func Test_loadDefaultValues(t *testing.T) {
 			result: &Config{
 				Targets: []*TargetConfig{
 					{
-						Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
-						Bucket:  &BucketConfig{Region: DefaultBucketRegion},
+						Actions:   &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
+						Bucket:    &BucketConfig{Region: DefaultBucketRegion},
+						Templates: &TargetTemplateConfig{},
 					},
 				},
 				ListTargets: &ListTargetsConfig{Enabled: false},
@@ -346,6 +349,7 @@ func Test_loadDefaultValues(t *testing.T) {
 									},
 								},
 							},
+							Templates: &TargetTemplateConfig{},
 						},
 					},
 				},
@@ -370,6 +374,7 @@ func Test_loadDefaultValues(t *testing.T) {
 								},
 							},
 						},
+						Templates: &TargetTemplateConfig{},
 					},
 				},
 				ListTargets: &ListTargetsConfig{Enabled: false},

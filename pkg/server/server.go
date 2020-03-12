@@ -82,7 +82,7 @@ func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx me
 				rt2 = rt2.With(middlewares.AuthMiddleware(cfg, resources))
 				rt2.Get("/", func(rw http.ResponseWriter, req *http.Request) {
 					logEntry := middlewares.GetLogEntry(req)
-					generateTargetList(rw, logEntry, cfg)
+					generateTargetList(rw, req.RequestURI, logEntry, cfg)
 				})
 			})
 		})
@@ -111,26 +111,20 @@ func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx me
 		// Loop over path list
 		funk.ForEach(tgt.Mount.Path, func(path string) {
 			rt.Route(path, func(rt2 chi.Router) {
+				// Add Bucket request context middleware to initialize it
+				rt2.Use(middlewares.BucketRequestContext(tgt, cfg.Templates, path, metricsCtx))
+
 				// Add auth middleware to router
-				rt2 = rt2.With(middlewares.AuthMiddleware(cfg, tgt.Resources))
+				rt2.Use(middlewares.AuthMiddleware(cfg, tgt.Resources))
 
 				// Check if GET action is enabled
 				if tgt.Actions.GET != nil && tgt.Actions.GET.Enabled {
 					// Add GET method to router
 					rt2.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
+						// Get bucket request context
+						brctx := middlewares.GetBucketRequestContext(req)
 						// Get request path
 						requestPath := chi.URLParam(req, "*")
-						// Get logger
-						logEntry := middlewares.GetLogEntry(req)
-						// Generate new bucket client
-						brctx, err := bucket.NewClient(tgt, cfg.Templates, logEntry, path, rw, utils.HandleNotFound,
-							utils.HandleInternalServerError, utils.HandleForbidden, metricsCtx)
-						if err != nil {
-							logEntry.Error(err)
-							utils.HandleInternalServerError(rw, err, requestPath, logEntry, cfg.Templates)
-							// Stop
-							return
-						}
 						// Proxy GET Request
 						brctx.Get(requestPath)
 					})
@@ -140,36 +134,29 @@ func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx me
 				if tgt.Actions.PUT != nil && tgt.Actions.PUT.Enabled {
 					// Add PUT method to router
 					rt2.Put("/*", func(rw http.ResponseWriter, req *http.Request) {
+						// Get bucket request context
+						brctx := middlewares.GetBucketRequestContext(req)
 						// Get request path
 						requestPath := chi.URLParam(req, "*")
 						// Get logger
 						logEntry := middlewares.GetLogEntry(req)
 						if err := req.ParseForm(); err != nil {
 							logEntry.Error(err)
-							utils.HandleInternalServerError(rw, err, requestPath, logEntry, cfg.Templates)
+							brctx.HandleInternalServerError(err, path)
 							return
 						}
 						// Parse multipart form
 						err := req.ParseMultipartForm(defaultMaxMemory)
 						if err != nil {
 							logEntry.Error(err)
-							utils.HandleInternalServerError(rw, err, requestPath, logEntry, cfg.Templates)
+							brctx.HandleInternalServerError(err, path)
 							return
 						}
 						// Get file from form
 						file, fileHeader, err := req.FormFile("file")
 						if err != nil {
 							logEntry.Error(err)
-							utils.HandleInternalServerError(rw, err, requestPath, logEntry, cfg.Templates)
-							return
-						}
-						// Generate new bucket client
-						brctx, err := bucket.NewClient(tgt, cfg.Templates, logEntry, path, rw, utils.HandleNotFound,
-							utils.HandleInternalServerError, utils.HandleForbidden, metricsCtx)
-						if err != nil {
-							logEntry.Error(err)
-							utils.HandleInternalServerError(rw, err, requestPath, logEntry, cfg.Templates)
-							// Stop
+							brctx.HandleInternalServerError(err, path)
 							return
 						}
 						// Create input for put request
@@ -187,19 +174,10 @@ func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx me
 				if tgt.Actions.DELETE != nil && tgt.Actions.DELETE.Enabled {
 					// Add DELETE method to router
 					rt2.Delete("/*", func(rw http.ResponseWriter, req *http.Request) {
+						// Get bucket request context
+						brctx := middlewares.GetBucketRequestContext(req)
 						// Get request path
 						requestPath := chi.URLParam(req, "*")
-						// Get logger
-						logEntry := middlewares.GetLogEntry(req)
-						// Generate new bucket client
-						brctx, err := bucket.NewClient(tgt, cfg.Templates, logEntry, path, rw, utils.HandleNotFound,
-							utils.HandleInternalServerError, utils.HandleForbidden, metricsCtx)
-						if err != nil {
-							logEntry.Error(err)
-							utils.HandleInternalServerError(rw, err, requestPath, logEntry, cfg.Templates)
-							// Stop
-							return
-						}
 						// Proxy GET Request
 						brctx.Delete(requestPath)
 					})
@@ -216,11 +194,12 @@ func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx me
 	return r, nil
 }
 
-func generateTargetList(rw http.ResponseWriter, logger logrus.FieldLogger, cfg *config.Config) {
-	err := utils.TemplateExecution(cfg.Templates.TargetList, logger, rw, struct{ Targets []*config.TargetConfig }{Targets: cfg.Targets}, 200)
+func generateTargetList(rw http.ResponseWriter, path string, logger logrus.FieldLogger, cfg *config.Config) {
+	err := utils.TemplateExecution(cfg.Templates.TargetList, "", logger, rw, struct{ Targets []*config.TargetConfig }{Targets: cfg.Targets}, 200)
 	if err != nil {
 		logger.Error(err)
-		utils.HandleInternalServerError(rw, err, "/", logger, cfg.Templates)
+		// ! In this case, use default default local files for error
+		utils.HandleInternalServerError(rw, err, path, logger, cfg.Templates)
 		// Stop here
 		return
 	}
