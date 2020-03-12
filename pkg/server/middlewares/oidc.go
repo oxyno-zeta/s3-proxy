@@ -63,7 +63,12 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 	})
 
 	mux.HandleFunc(oidcCfg.CallbackPath, func(w http.ResponseWriter, r *http.Request) {
+		// Get logger from request
 		logEntry := GetLogEntry(r)
+
+		// ! In this particular case, no bucket request context because mounted in general and not per target
+
+		// Check state
 		if r.URL.Query().Get("state") != state {
 			err := errors.New("state did not match")
 			logEntry.Error(err)
@@ -134,15 +139,24 @@ func oidcAuthorizationMiddleware(
 ) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Get logger from request
 			logEntry := GetLogEntry(r)
 			path := r.URL.RequestURI()
+			// Get bucket request context from request
+			brctx := GetBucketRequestContext(r)
 
 			// Get JWT Token from header or cookie
 			jwtContent, err := getJWTToken(logEntry, r, oidcAuthCfg.CookieName)
 			// Check if error exists
 			if err != nil {
 				logEntry.Error(err)
-				utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
+
+				// Check if bucket request context doesn't exist to use local default files
+				if brctx == nil {
+					utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
+				} else {
+					brctx.HandleInternalServerError(err, path)
+				}
 				return
 			}
 			// Check if JWT content is empty or not
@@ -157,13 +171,24 @@ func oidcAuthorizationMiddleware(
 			token, _, err := parser.ParseUnverified(jwtContent, jwt.MapClaims{})
 			if err != nil {
 				logEntry.Error(err)
-				utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
+				// Check if bucket request context doesn't exist to use local default files
+				if brctx == nil {
+					utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
+				} else {
+					brctx.HandleInternalServerError(err, path)
+				}
 				return
 			}
+			// Check that token is valid
 			err = token.Claims.Valid()
 			if err != nil {
 				logEntry.Error(err)
-				utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
+				// Check if bucket request context doesn't exist to use local default files
+				if brctx == nil {
+					utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
+				} else {
+					brctx.HandleInternalServerError(err, path)
+				}
 				return
 			}
 
@@ -184,7 +209,12 @@ func oidcAuthorizationMiddleware(
 					emailVerified := claims["email_verified"].(bool)
 					if !emailVerified {
 						logEntry.Errorf("Email not verified for %s", email)
-						utils.HandleForbidden(w, path, logEntry, tplConfig)
+						// Check if bucket request context doesn't exist to use local default files
+						if brctx == nil {
+							utils.HandleForbidden(w, path, logEntry, tplConfig)
+						} else {
+							brctx.HandleForbidden(path)
+						}
 						return
 					}
 				}
@@ -203,7 +233,12 @@ func oidcAuthorizationMiddleware(
 			// Check if authorized
 			if !isAuthorized(groups, email, authorizationAccesses) {
 				logEntry.Errorf("Forbidden user %s", email)
-				utils.HandleForbidden(w, path, logEntry, tplConfig)
+				// Check if bucket request context doesn't exist to use local default files
+				if brctx == nil {
+					utils.HandleForbidden(w, path, logEntry, tplConfig)
+				} else {
+					brctx.HandleForbidden(path)
+				}
 				return
 			}
 

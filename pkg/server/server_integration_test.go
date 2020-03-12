@@ -121,6 +121,7 @@ func TestPublicRouter(t *testing.T) {
 		inputFileKey       string
 		expectedCode       int
 		expectedBody       string
+		expectedHeaders    map[string]string
 		notExpectedBody    string
 		wantErr            bool
 	}{
@@ -165,6 +166,10 @@ func TestPublicRouter(t *testing.T) {
 			inputURL:     "http://localhost/not-found/",
 			expectedCode: 404,
 			expectedBody: "404 page not found\n",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
 		},
 		{
 			name: "GET a folder without index document enabled",
@@ -206,6 +211,62 @@ func TestPublicRouter(t *testing.T) {
 			inputMethod:  "GET",
 			inputURL:     "http://localhost/mount/folder1/",
 			expectedCode: 200,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "GET a folder without index document enabled and custom folder list template",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{},
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../templates/folder-list.tpl",
+						TargetList:          "../../templates/target-list.tpl",
+						NotFound:            "../../templates/not-found.tpl",
+						Forbidden:           "../../templates/forbidden.tpl",
+						BadRequest:          "../../templates/bad-request.tpl",
+						InternalServerError: "../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+							Templates: &config.TargetTemplateConfig{
+								FolderList: &config.TargetTemplateConfigItem{
+									InBucket: true,
+									Path:     "templates/folder-list.tpl",
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder1/",
+			expectedCode: 200,
+			expectedBody: "fake template !",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
 		},
 		{
 			name: "GET a file with success",
@@ -248,6 +309,10 @@ func TestPublicRouter(t *testing.T) {
 			inputURL:     "http://localhost/mount/folder1/test.txt",
 			expectedCode: 200,
 			expectedBody: "Hello folder1!",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
 		},
 		{
 			name: "GET a file with a not found error",
@@ -296,6 +361,10 @@ func TestPublicRouter(t *testing.T) {
   </body>
 </html>
 `,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
 		},
 		{
 			name: "GET a file with a not found error because of not valid host",
@@ -339,6 +408,10 @@ func TestPublicRouter(t *testing.T) {
 			inputURL:     "http://localhost/mount/folder1/test.txt",
 			expectedCode: 404,
 			expectedBody: "Not Found\n",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
 		},
 		{
 			name: "GET a file with success on specific host",
@@ -382,6 +455,10 @@ func TestPublicRouter(t *testing.T) {
 			inputURL:     "http://test.local/mount/folder1/test.txt",
 			expectedCode: 200,
 			expectedBody: "Hello folder1!",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
 		},
 		{
 			name: "GET a file with forbidden error in case of no resource found",
@@ -454,6 +531,10 @@ func TestPublicRouter(t *testing.T) {
   </body>
 </html>
 `,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
 		},
 		{
 			name: "GET a file with forbidden error in case of no resource found because no valid http methods",
@@ -526,6 +607,10 @@ func TestPublicRouter(t *testing.T) {
   </body>
 </html>
 `,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
 		},
 		{
 			name: "GET a file with unauthorized error in case of no basic auth",
@@ -598,6 +683,11 @@ func TestPublicRouter(t *testing.T) {
   </body>
 </html>
 `,
+			expectedHeaders: map[string]string{
+				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":     "text/html; charset=utf-8",
+				"Www-Authenticate": "Basic realm=\"realm1\"",
+			},
 		},
 		{
 			name: "GET a file with unauthorized error in case of not found basic auth user",
@@ -672,6 +762,11 @@ func TestPublicRouter(t *testing.T) {
   </body>
 </html>
 `,
+			expectedHeaders: map[string]string{
+				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":     "text/html; charset=utf-8",
+				"Www-Authenticate": "Basic realm=\"realm1\"",
+			},
 		},
 		{
 			name: "GET a file with unauthorized error in case of wrong basic auth password",
@@ -746,6 +841,11 @@ func TestPublicRouter(t *testing.T) {
   </body>
 </html>
 `,
+			expectedHeaders: map[string]string{
+				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":     "text/html; charset=utf-8",
+				"Www-Authenticate": "Basic realm=\"realm1\"",
+			},
 		},
 		{
 			name: "GET a file with success in case of valid basic auth",
@@ -814,6 +914,10 @@ func TestPublicRouter(t *testing.T) {
 			inputBasicPassword: "pass1",
 			expectedCode:       200,
 			expectedBody:       "Hello folder1!",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
 		},
 		{
 			name: "GET a file with unauthorized error in case of no oidc cookie or bearer token",
@@ -877,6 +981,10 @@ func TestPublicRouter(t *testing.T) {
 			inputMethod: "GET",
 			inputURL:    "http://localhost/mount/folder1/test.txt",
 			wantErr:     true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
 		},
 		{
 			name: "GET a file with success in case of whitelist",
@@ -948,6 +1056,10 @@ func TestPublicRouter(t *testing.T) {
 			inputURL:     "http://localhost/mount/folder1/test.txt",
 			expectedCode: 200,
 			expectedBody: "Hello folder1!",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
 		},
 		{
 			name: "GET target list",
@@ -1008,6 +1120,342 @@ func TestPublicRouter(t *testing.T) {
   </body>
 </html>
 `,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "GET target list protected with basic authentication and without any password",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{
+						Enabled: true,
+						Mount: &config.MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &config.Resource{
+							Path:     "/*",
+							Methods:  []string{"GET"},
+							Provider: "provider1",
+							Basic: &config.ResourceBasic{
+								Credentials: []*config.BasicAuthUserConfig{
+									{
+										User: "user1",
+										Password: &config.CredentialConfig{
+											Value: "pass1",
+										},
+									},
+								},
+							},
+						},
+					},
+					AuthProviders: &config.AuthProviderConfig{
+						Basic: map[string]*config.BasicAuthConfig{
+							"provider1": {
+								Realm: "realm1",
+							},
+						},
+					},
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../templates/folder-list.tpl",
+						TargetList:          "../../templates/target-list.tpl",
+						NotFound:            "../../templates/not-found.tpl",
+						Forbidden:           "../../templates/forbidden.tpl",
+						BadRequest:          "../../templates/bad-request.tpl",
+						InternalServerError: "../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/",
+			expectedCode: 401,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Unauthorized</h1>
+  </body>
+</html>
+`,
+			expectedHeaders: map[string]string{
+				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":     "text/html; charset=utf-8",
+				"Www-Authenticate": "Basic realm=\"realm1\"",
+			},
+		},
+		{
+			name: "GET target list protected with basic authentication and with wrong user",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{
+						Enabled: true,
+						Mount: &config.MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &config.Resource{
+							Path:     "/*",
+							Methods:  []string{"GET"},
+							Provider: "provider1",
+							Basic: &config.ResourceBasic{
+								Credentials: []*config.BasicAuthUserConfig{
+									{
+										User: "user1",
+										Password: &config.CredentialConfig{
+											Value: "pass1",
+										},
+									},
+								},
+							},
+						},
+					},
+					AuthProviders: &config.AuthProviderConfig{
+						Basic: map[string]*config.BasicAuthConfig{
+							"provider1": {
+								Realm: "realm1",
+							},
+						},
+					},
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../templates/folder-list.tpl",
+						TargetList:          "../../templates/target-list.tpl",
+						NotFound:            "../../templates/not-found.tpl",
+						Forbidden:           "../../templates/forbidden.tpl",
+						BadRequest:          "../../templates/bad-request.tpl",
+						InternalServerError: "../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:        "GET",
+			inputURL:           "http://localhost/",
+			inputBasicUser:     "user2",
+			inputBasicPassword: "pass1",
+			expectedCode:       401,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Unauthorized</h1>
+  </body>
+</html>
+`,
+			expectedHeaders: map[string]string{
+				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":     "text/html; charset=utf-8",
+				"Www-Authenticate": "Basic realm=\"realm1\"",
+			},
+		},
+		{
+			name: "GET target list protected with basic authentication and with wrong password",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{
+						Enabled: true,
+						Mount: &config.MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &config.Resource{
+							Path:     "/*",
+							Methods:  []string{"GET"},
+							Provider: "provider1",
+							Basic: &config.ResourceBasic{
+								Credentials: []*config.BasicAuthUserConfig{
+									{
+										User: "user1",
+										Password: &config.CredentialConfig{
+											Value: "pass1",
+										},
+									},
+								},
+							},
+						},
+					},
+					AuthProviders: &config.AuthProviderConfig{
+						Basic: map[string]*config.BasicAuthConfig{
+							"provider1": {
+								Realm: "realm1",
+							},
+						},
+					},
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../templates/folder-list.tpl",
+						TargetList:          "../../templates/target-list.tpl",
+						NotFound:            "../../templates/not-found.tpl",
+						Forbidden:           "../../templates/forbidden.tpl",
+						BadRequest:          "../../templates/bad-request.tpl",
+						InternalServerError: "../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:        "GET",
+			inputURL:           "http://localhost/",
+			inputBasicUser:     "user1",
+			inputBasicPassword: "pass2",
+			expectedCode:       401,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Unauthorized</h1>
+  </body>
+</html>
+`,
+			expectedHeaders: map[string]string{
+				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":     "text/html; charset=utf-8",
+				"Www-Authenticate": "Basic realm=\"realm1\"",
+			},
+		},
+		{
+			name: "GET target list protected with basic authentication with success",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{
+						Enabled: true,
+						Mount: &config.MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &config.Resource{
+							Path:     "/*",
+							Methods:  []string{"GET"},
+							Provider: "provider1",
+							Basic: &config.ResourceBasic{
+								Credentials: []*config.BasicAuthUserConfig{
+									{
+										User: "user1",
+										Password: &config.CredentialConfig{
+											Value: "pass1",
+										},
+									},
+								},
+							},
+						},
+					},
+					AuthProviders: &config.AuthProviderConfig{
+						Basic: map[string]*config.BasicAuthConfig{
+							"provider1": {
+								Realm: "realm1",
+							},
+						},
+					},
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../templates/folder-list.tpl",
+						TargetList:          "../../templates/target-list.tpl",
+						NotFound:            "../../templates/not-found.tpl",
+						Forbidden:           "../../templates/forbidden.tpl",
+						BadRequest:          "../../templates/bad-request.tpl",
+						InternalServerError: "../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:        "GET",
+			inputURL:           "http://localhost/",
+			inputBasicUser:     "user1",
+			inputBasicPassword: "pass1",
+			expectedCode:       http.StatusOK,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Target buckets list</h1>
+    <ul>
+        <li>target1:
+          <ul>
+            <li><a href="/mount/">/mount/</a></li>
+          </ul>
+        </li>
+    </ul>
+  </body>
+</html>
+`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
 		},
 		{
 			name: "GET index document with index document enabled with success",
@@ -1051,6 +1499,10 @@ func TestPublicRouter(t *testing.T) {
 			inputURL:     "http://localhost/mount/folder1/",
 			expectedCode: 200,
 			expectedBody: "<!DOCTYPE html><html><body><h1>Hello folder1!</h1></body></html>",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
 		},
 		{
 			name: "GET a path with index document enabled with success",
@@ -1094,6 +1546,10 @@ func TestPublicRouter(t *testing.T) {
 			inputURL:        "http://localhost/mount/folder1/",
 			expectedCode:    200,
 			notExpectedBody: "<!DOCTYPE html><html><body><h1>Hello folder1!</h1></body></html>",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
 		},
 		{
 			name: "DELETE a path with a 405 error (method not allowed) because DELETE not enabled",
@@ -1134,7 +1590,10 @@ func TestPublicRouter(t *testing.T) {
 			},
 			inputMethod:  "DELETE",
 			inputURL:     "http://localhost/mount/folder1/text.txt",
-			expectedCode: 405,
+			expectedCode: http.StatusMethodNotAllowed,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+			},
 		},
 		{
 			name: "DELETE a path with success",
@@ -1177,6 +1636,9 @@ func TestPublicRouter(t *testing.T) {
 			inputMethod:  "DELETE",
 			inputURL:     "http://localhost/mount/folder1/text.txt",
 			expectedCode: 204,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+			},
 		},
 		{
 			name: "PUT in a path with success without allow override and don't need it",
@@ -1230,6 +1692,9 @@ func TestPublicRouter(t *testing.T) {
 			inputFileKey:  "file",
 			inputBody:     "Hello test2!",
 			expectedCode:  204,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+			},
 		},
 		{
 			name: "PUT in a path without allow override should failed",
@@ -1290,6 +1755,10 @@ func TestPublicRouter(t *testing.T) {
   </body>
 </html>
 `,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
 		},
 		{
 			name: "PUT in a path with allow override should be ok",
@@ -1344,6 +1813,9 @@ func TestPublicRouter(t *testing.T) {
 			inputFileKey:  "file",
 			inputBody:     "Hello test1!",
 			expectedCode:  204,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+			},
 		},
 		{
 			name: "PUT in a path should fail because no input",
@@ -1396,6 +1868,10 @@ func TestPublicRouter(t *testing.T) {
   </body>
 </html>
 `,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
 		},
 		{
 			name: "PUT in a path should fail because wrong key in form",
@@ -1451,6 +1927,10 @@ func TestPublicRouter(t *testing.T) {
   </body>
 </html>
 `,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -1509,16 +1989,11 @@ func TestPublicRouter(t *testing.T) {
 				req.SetBasicAuth(tt.inputBasicUser, tt.inputBasicPassword)
 			}
 			got.ServeHTTP(w, req)
-			if tt.expectedCode != w.Code {
-				t.Errorf("Integration test on GenerateRouter() status code = %v, expected status code %v", w.Code, tt.expectedCode)
-				return
-			}
 
 			if tt.expectedBody != "" {
 				body := w.Body.String()
 				if tt.expectedBody != body {
 					t.Errorf("Integration test on GenerateRouter() body = \"%v\", expected body \"%v\"", body, tt.expectedBody)
-					return
 				}
 			}
 
@@ -1526,8 +2001,20 @@ func TestPublicRouter(t *testing.T) {
 				body := w.Body.String()
 				if tt.notExpectedBody == body {
 					t.Errorf("Integration test on GenerateRouter() body = \"%v\", not expected body \"%v\"", body, tt.notExpectedBody)
-					return
 				}
+			}
+
+			if tt.expectedHeaders != nil {
+				for key, val := range tt.expectedHeaders {
+					wheader := w.HeaderMap.Get(key)
+					if val != wheader {
+						t.Errorf("Integration test on GenerateRouter() header %s = %v, expected %v", key, wheader, val)
+					}
+				}
+			}
+
+			if tt.expectedCode != w.Code {
+				t.Errorf("Integration test on GenerateRouter() status code = %v, expected status code %v", w.Code, tt.expectedCode)
 			}
 		})
 	}
@@ -1560,9 +2047,10 @@ func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*httptest.S
 	}
 
 	files := map[string]string{
-		"folder1/test.txt":   "Hello folder1!",
-		"folder1/index.html": "<!DOCTYPE html><html><body><h1>Hello folder1!</h1></body></html>",
-		"folder2/index.html": "<!DOCTYPE html><html><body><h1>Hello folder2!</h1></body></html>",
+		"folder1/test.txt":          "Hello folder1!",
+		"folder1/index.html":        "<!DOCTYPE html><html><body><h1>Hello folder1!</h1></body></html>",
+		"folder2/index.html":        "<!DOCTYPE html><html><body><h1>Hello folder2!</h1></body></html>",
+		"templates/folder-list.tpl": "fake template !",
 	}
 
 	// Upload files
