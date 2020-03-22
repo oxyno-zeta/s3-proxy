@@ -40,11 +40,11 @@ type PutInput struct {
 
 // ErrorHandlers error handlers
 type ErrorHandlers struct {
-	HandleNotFoundWithTemplate            func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
-	HandleInternalServerErrorWithTemplate func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
-	HandleForbiddenWithTemplate           func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
-	HandleBadRequestWithTemplate          func(tplString string, rw http.ResponseWriter, requestPath string, err error, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
-	HandleUnauthorizedWithTemplate        func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
+	HandleNotFoundWithTemplate            func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)            //nolint: lll
+	HandleInternalServerErrorWithTemplate func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) //nolint: lll
+	HandleForbiddenWithTemplate           func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)            //nolint: lll
+	HandleBadRequestWithTemplate          func(tplString string, rw http.ResponseWriter, requestPath string, err error, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) //nolint: lll
+	HandleUnauthorizedWithTemplate        func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)            //nolint: lll
 }
 
 // NewClient will generate a new client to do GET,PUT or DELETE actions
