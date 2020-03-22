@@ -11,7 +11,7 @@ log:
 #   port: 8080
 
 # Template configurations
-# template:
+# templates:
 #   badRequest: templates/bad-request.tpl
 #   folderList: templates/folder-list.tpl
 #   forbidden: templates/forbidden.tpl
@@ -150,6 +150,32 @@ targets:
     #   DELETE:
     #     # Will allow DELETE requests
     #     enabled: true
+    ## Target custom templates
+    # templates:
+    #   # Folder list template
+    #   folderList:
+    #     inBucket: false
+    #     path: ""
+    #   # Not found template
+    #   notFound:
+    #     inBucket: false
+    #     path: ""
+    #   # Internal server error template
+    #   internalServerError:
+    #     inBucket: false
+    #     path: ""
+    #   # Forbidden template
+    #   forbidden:
+    #     inBucket: false
+    #     path: ""
+    #   # Unauthorized template
+    #   unauthorized:
+    #     inBucket: false
+    #     path: ""
+    #   # BadRequest template
+    #   badRequest:
+    #     inBucket: false
+    #     path: ""
     ## Bucket configuration
     bucket:
       name: super-bucket

@@ -53,6 +53,25 @@ You can see a full example in the [Example section](#example)
 | resources     | [[Resource]](#resource)                       | No       | None               | Resources declaration for path whitelist or specific authentication on path list                         |
 | mount         | [MountConfiguration](#mountconfiguration)     | Yes      | None               | Mount point configuration                                                                                |
 | actions       | [ActionsConfiguration](#actionsconfiguration) | No       | GET action enabled | Actions allowed on target (GET, PUT or DELETE)                                                           |
+| templates     | [TargetTemplateConfig](#targettemplateconfig) | No       | None               | Custom target templates from files on local filesystem or in bucket                                      |
+
+## TargetTemplateConfig
+
+| Key                 | Type                                                  | Required | Default | Description                                       |
+| ------------------- | ----------------------------------------------------- | -------- | ------- | ------------------------------------------------- |
+| folderList          | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Folder list custom template declaration           |
+| notFound            | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Not Found custom template declaration             |
+| internalServerError | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Internal server error custom template declaration |
+| forbidden           | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Forbidden custom template declaration             |
+| unauthorized        | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Unauthorized custom template declaration          |
+| badRequest          | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Bad Request custom template declaration           |
+
+## TargetTemplateConfigItem
+
+| Key      | Type    | Required | Default | Description                                     |
+| -------- | ------- | -------- | ------- | ----------------------------------------------- |
+| inBucket | Boolean | No       | `false` | Is the file in bucket or on local file system ? |
+| path     | String  | Yes      | None    | Path for template file                          |
 
 ## ActionsConfiguration
 
@@ -213,7 +232,7 @@ log:
 #   port: 8080
 
 # Template configurations
-# template:
+# templates:
 #   badRequest: templates/bad-request.tpl
 #   folderList: templates/folder-list.tpl
 #   forbidden: templates/forbidden.tpl
@@ -249,6 +268,7 @@ log:
 # List targets feature
 # This will generate a webpage with list of targets with links using targetList template
 # listTargets:
+#   # To enable the list targets feature
 #   enabled: false
 #   ## Mount point
 #   mount:
@@ -260,6 +280,11 @@ log:
 #   resource:
 #     # A Path must be declared for a resource filtering
 #     path: /
+#     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
+#     methods:
+#       - GET
+#       - PUT
+#       - DELETE
 #     # Whitelist
 #     whitelist: false
 #     # A authentication provider declared in section before, here is the key name
@@ -293,6 +318,11 @@ targets:
     #     whiteList: true
     #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /specific_doc/*
+    #     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
+    #     methods:
+    #       - GET
+    #       - PUT
+    #       - DELETE
     #     # A authentication provider declared in section before, here is the key name
     #     provider: provider1
     #     # OIDC section for access filter
@@ -302,6 +332,11 @@ targets:
     #         - group: specific_users
     #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /directory1/*
+    #     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
+    #     methods:
+    #       - GET
+    #       - PUT
+    #       - DELETE
     #     # A authentication provider declared in section before, here is the key name
     #     provider: provider1
     #     # Basic authentication section
@@ -336,12 +371,39 @@ targets:
     #   DELETE:
     #     # Will allow DELETE requests
     #     enabled: true
+    ## Target custom templates
+    # templates:
+    #   # Folder list template
+    #   folderList:
+    #     inBucket: false
+    #     path: ""
+    #   # Not found template
+    #   notFound:
+    #     inBucket: false
+    #     path: ""
+    #   # Internal server error template
+    #   internalServerError:
+    #     inBucket: false
+    #     path: ""
+    #   # Forbidden template
+    #   forbidden:
+    #     inBucket: false
+    #     path: ""
+    #   # Unauthorized template
+    #   unauthorized:
+    #     inBucket: false
+    #     path: ""
+    #   # BadRequest template
+    #   badRequest:
+    #     inBucket: false
+    #     path: ""
     ## Bucket configuration
     bucket:
       name: super-bucket
       prefix:
       region: eu-west-1
       s3Endpoint:
+      disableSSL: false
       # credentials:
       #   accessKey:
       #     env: AWS_ACCESS_KEY_ID
