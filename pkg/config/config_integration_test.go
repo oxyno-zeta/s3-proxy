@@ -87,6 +87,7 @@ targets:
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
 						},
+						Templates: &TargetTemplateConfig{},
 					},
 				},
 			},
@@ -158,6 +159,7 @@ targets:
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
 						},
+						Templates: &TargetTemplateConfig{},
 					},
 				},
 			},
@@ -265,6 +267,110 @@ targets:
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+			},
+		},
+		{
+			name:           "should fail when target templates configuration are invalid",
+			configFileName: "config.yaml",
+			configFileContent: `
+targets:
+- name: test
+  mount:
+    path: /test/
+  templates:
+    notFound:
+      inBucket: false
+  bucket:
+    name: bucket1
+    region: us-east-1
+    credentials:
+      accessKey:
+        value: ENV1
+      secretKey:
+        value: ENV2`,
+			wantErr: true,
+		},
+		{
+			name:           "should load complete configuration with target custom templates",
+			configFileName: "config.yaml",
+			configFileContent: `
+targets:
+- name: test
+  mount:
+    path: /test/
+  templates:
+    notFound:
+      inBucket: false
+      path: "/fake"
+    internalServerError:
+      inBucket: true
+      path: "/fake2"
+  bucket:
+    name: bucket1
+    region: us-east-1
+    credentials:
+      accessKey:
+        value: VALUE1
+      secretKey:
+        value: VALUE2`,
+			wantErr: false,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "info",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port: 8080,
+				},
+				InternalServer: &ServerConfig{
+					Port: 9090,
+				},
+				Templates: &TemplateConfig{
+					FolderList:          "templates/folder-list.tpl",
+					TargetList:          "templates/target-list.tpl",
+					NotFound:            "templates/not-found.tpl",
+					InternalServerError: "templates/internal-server-error.tpl",
+					Unauthorized:        "templates/unauthorized.tpl",
+					Forbidden:           "templates/forbidden.tpl",
+					BadRequest:          "templates/bad-request.tpl",
+				},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: []*TargetConfig{
+					{
+						Name: "test",
+						Mount: &MountConfig{
+							Path: []string{"/test/"},
+						},
+						Bucket: &BucketConfig{
+							Name:   "bucket1",
+							Region: "us-east-1",
+							Credentials: &BucketCredentialConfig{
+								AccessKey: &CredentialConfig{
+									Value: "VALUE1",
+								},
+								SecretKey: &CredentialConfig{
+									Value: "VALUE2",
+								},
+							},
+						},
+						Actions: &ActionsConfig{
+							GET: &GetActionConfig{Enabled: true},
+						},
+						Templates: &TargetTemplateConfig{
+							NotFound: &TargetTemplateConfigItem{
+								InBucket: false,
+								Path:     "/fake",
+							},
+							InternalServerError: &TargetTemplateConfigItem{
+								InBucket: true,
+								Path:     "/fake2",
+							},
 						},
 					},
 				},

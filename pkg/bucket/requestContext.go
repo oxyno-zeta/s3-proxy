@@ -5,6 +5,7 @@ import (
 	"errors"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -22,15 +23,13 @@ var ErrRemovalFolder = errors.New("can't remove folder")
 
 // requestContext Bucket request context
 type requestContext struct {
-	s3Context                 s3client.Client
-	logger                    logrus.FieldLogger
-	bucketInstance            *config.TargetConfig
-	tplConfig                 *config.TemplateConfig
-	mountPath                 string
-	httpRW                    http.ResponseWriter
-	handleNotFound            func(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
-	handleInternalServerError func(rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
-	handleForbidden           func(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)
+	s3Context      s3client.Client
+	logger         logrus.FieldLogger
+	targetCfg      *config.TargetConfig
+	tplConfig      *config.TemplateConfig
+	mountPath      string
+	httpRW         http.ResponseWriter
+	errorsHandlers *ErrorHandlers
 }
 
 // Entry Entry with path for internal use (template)
@@ -54,7 +53,7 @@ type bucketListingData struct {
 
 // generateStartKey will generate start key used in all functions
 func (rctx *requestContext) generateStartKey(requestPath string) string {
-	bucketRootPrefixKey := rctx.bucketInstance.Bucket.GetRootPrefix()
+	bucketRootPrefixKey := rctx.targetCfg.Bucket.GetRootPrefix()
 	// Key must begin by bucket prefix
 	key := bucketRootPrefixKey
 	// Trim first / if exists
@@ -63,111 +62,233 @@ func (rctx *requestContext) generateStartKey(requestPath string) string {
 	return key
 }
 
+func (rctx *requestContext) HandleInternalServerError(err error, requestPath string) {
+	// Initialize content
+	content := ""
+	// Check if file is in bucket
+	if rctx.targetCfg != nil &&
+		rctx.targetCfg.Templates != nil &&
+		rctx.targetCfg.Templates.InternalServerError != nil {
+		// Put error err2 to avoid erase of err
+		var err2 error
+		content, err2 = rctx.loadTemplateContent(rctx.targetCfg.Templates.InternalServerError)
+		// Check if error exists
+		if err2 != nil {
+			// This is a particular case. In this case, remove old error and manage new one
+			err = err2
+		}
+	}
+
+	rctx.errorsHandlers.HandleInternalServerErrorWithTemplate(content, rctx.httpRW, err, requestPath, rctx.logger, rctx.tplConfig)
+}
+
+func (rctx *requestContext) HandleNotFound(requestPath string) {
+	// Initialize content
+	content := ""
+	// Check if file is in bucket
+	if rctx.targetCfg != nil &&
+		rctx.targetCfg.Templates != nil &&
+		rctx.targetCfg.Templates.NotFound != nil {
+		// Declare error
+		var err error
+		// Try to get file from bucket
+		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.NotFound)
+		if err != nil {
+			rctx.HandleInternalServerError(err, requestPath)
+			return
+		}
+	}
+
+	rctx.errorsHandlers.HandleNotFoundWithTemplate(content, rctx.httpRW, requestPath, rctx.logger, rctx.tplConfig)
+}
+
+func (rctx *requestContext) HandleForbidden(requestPath string) {
+	// Initialize content
+	content := ""
+	// Check if file is in bucket
+	if rctx.targetCfg != nil &&
+		rctx.targetCfg.Templates != nil &&
+		rctx.targetCfg.Templates.Forbidden != nil {
+		// Declare error
+		var err error
+		// Try to get file from bucket
+		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.Forbidden)
+		if err != nil {
+			rctx.HandleInternalServerError(err, requestPath)
+			return
+		}
+	}
+
+	rctx.errorsHandlers.HandleForbiddenWithTemplate(content, rctx.httpRW, requestPath, rctx.logger, rctx.tplConfig)
+}
+
+func (rctx *requestContext) HandleBadRequest(err error, requestPath string) {
+	// Initialize content
+	content := ""
+	// Check if file is in bucket
+	if rctx.targetCfg != nil &&
+		rctx.targetCfg.Templates != nil &&
+		rctx.targetCfg.Templates.BadRequest != nil {
+		// Declare error
+		var err2 error
+		// Try to get file from bucket
+		content, err2 = rctx.loadTemplateContent(rctx.targetCfg.Templates.BadRequest)
+		if err2 != nil {
+			rctx.HandleInternalServerError(err2, requestPath)
+			return
+		}
+	}
+
+	rctx.errorsHandlers.HandleBadRequestWithTemplate(content, rctx.httpRW, requestPath, err, rctx.logger, rctx.tplConfig)
+}
+
+func (rctx *requestContext) HandleUnauthorized(requestPath string) {
+	// Initialize content
+	content := ""
+	// Check if file is in bucket
+	if rctx.targetCfg != nil &&
+		rctx.targetCfg.Templates != nil &&
+		rctx.targetCfg.Templates.Unauthorized != nil {
+		// Declare error
+		var err error
+		// Try to get file from bucket
+		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.Unauthorized)
+		if err != nil {
+			rctx.HandleInternalServerError(err, requestPath)
+			return
+		}
+	}
+
+	rctx.errorsHandlers.HandleUnauthorizedWithTemplate(content, rctx.httpRW, requestPath, rctx.logger, rctx.tplConfig)
+}
+
 // Get proxy GET requests
 func (rctx *requestContext) Get(requestPath string) {
 	key := rctx.generateStartKey(requestPath)
 	// Check that the path ends with a / for a directory listing or the main path special case (empty path)
 	if strings.HasSuffix(requestPath, "/") || requestPath == "" {
-		// Directory listing case
-		s3Entries, err := rctx.s3Context.ListFilesAndDirectories(key)
-		if err != nil {
-			rctx.logger.Error(err)
-			rctx.handleInternalServerError(rctx.httpRW, err, requestPath, rctx.logger, rctx.tplConfig)
-			// Stop
-			return
-		}
-
-		// Transform entries in entry with path objects
-		bucketRootPrefixKey := rctx.bucketInstance.Bucket.GetRootPrefix()
-		entries := transformS3Entries(s3Entries, rctx, bucketRootPrefixKey)
-
-		// Check if index document is activated
-		if rctx.bucketInstance.IndexDocument != "" {
-			// Search if the file is present
-			indexDocumentEntry := funk.Find(entries, func(ent *Entry) bool {
-				return rctx.bucketInstance.IndexDocument == ent.Name
-			})
-			// Check if index document entry exists
-			if indexDocumentEntry != nil {
-				// Get data
-				err = getFile(rctx, indexDocumentEntry.(*Entry).Key)
-				// Check if error exists
-				if err != nil {
-					// Check if error is a not found error
-					if err == s3client.ErrNotFound {
-						// Not found
-						rctx.handleNotFound(rctx.httpRW, requestPath, rctx.logger, rctx.tplConfig)
-						return
-					}
-					// Log error
-					rctx.logger.Error(err)
-					// Response with error
-					rctx.handleInternalServerError(rctx.httpRW, err, requestPath, rctx.logger, rctx.tplConfig)
-					// Stop
-					return
-				}
-				// Stop here because no error are present
-				return
-			}
-		}
-
-		// Load template
-		tplFileName := filepath.Base(rctx.tplConfig.FolderList)
-		// Create template
-		tmpl, err := template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).ParseFiles(rctx.tplConfig.FolderList)
-		if err != nil {
-			rctx.logger.Error(err)
-			rctx.handleInternalServerError(rctx.httpRW, err, requestPath, rctx.logger, rctx.tplConfig)
-			// Stop
-			return
-		}
-		// Create bucket list data for templating
-		data := &bucketListingData{
-			Entries:    entries,
-			BucketName: rctx.bucketInstance.Bucket.Name,
-			Name:       rctx.bucketInstance.Name,
-			Path:       rctx.mountPath + requestPath,
-		}
-		// Generate template in buffer
-		buf := &bytes.Buffer{}
-		// Execute template
-		err = tmpl.Execute(buf, data)
-		if err != nil {
-			rctx.logger.Error(err)
-			rctx.handleInternalServerError(rctx.httpRW, err, requestPath, rctx.logger, rctx.tplConfig)
-			// Stop
-			return
-		}
-		// Set status code
-		rctx.httpRW.WriteHeader(200)
-		// Set the header and write the buffer to the http.ResponseWriter
-		rctx.httpRW.Header().Set("Content-Type", "text/html; charset=utf-8")
-		// Write buffer content to output
-		_, err = buf.WriteTo(rctx.httpRW)
-		if err != nil {
-			rctx.logger.Error(err)
-			rctx.handleInternalServerError(rctx.httpRW, err, requestPath, rctx.logger, rctx.tplConfig)
-			// Stop
-			return
-		}
+		rctx.manageGetFolder(key, requestPath)
 		// Stop
 		return
 	}
 
 	// Get object case
-	err := getFile(rctx, key)
+	err := rctx.streamFileForResponse(key)
 	if err != nil {
 		// Check if error is a not found error
 		if err == s3client.ErrNotFound {
 			// Not found
-			rctx.handleNotFound(rctx.httpRW, requestPath, rctx.logger, rctx.tplConfig)
+			rctx.HandleNotFound(requestPath)
 			// Stop
 			return
 		}
 		// Log error
 		rctx.logger.Error(err)
 		// Manage error response
-		rctx.handleInternalServerError(rctx.httpRW, err, requestPath, rctx.logger, rctx.tplConfig)
+		rctx.HandleInternalServerError(err, requestPath)
+		// Stop
+		return
+	}
+}
+
+func (rctx *requestContext) manageGetFolder(key, requestPath string) {
+	// Directory listing case
+	s3Entries, err := rctx.s3Context.ListFilesAndDirectories(key)
+	if err != nil {
+		rctx.logger.Error(err)
+		rctx.HandleInternalServerError(err, requestPath)
+		// Stop
+		return
+	}
+
+	// Transform entries in entry with path objects
+	bucketRootPrefixKey := rctx.targetCfg.Bucket.GetRootPrefix()
+	entries := transformS3Entries(s3Entries, rctx, bucketRootPrefixKey)
+
+	// Check if index document is activated
+	if rctx.targetCfg.IndexDocument != "" {
+		// Search if the file is present
+		indexDocumentEntry := funk.Find(entries, func(ent *Entry) bool {
+			return rctx.targetCfg.IndexDocument == ent.Name
+		})
+		// Check if index document entry exists
+		if indexDocumentEntry != nil {
+			// Get data
+			err = rctx.streamFileForResponse(indexDocumentEntry.(*Entry).Key)
+			// Check if error exists
+			if err != nil {
+				// Check if error is a not found error
+				if err == s3client.ErrNotFound {
+					// Not found
+					rctx.HandleNotFound(requestPath)
+					return
+				}
+				// Log error
+				rctx.logger.Error(err)
+				// Response with error
+				rctx.HandleInternalServerError(err, requestPath)
+				// Stop
+				return
+			}
+			// Stop here because no error are present
+			return
+		}
+	}
+
+	var tmpl *template.Template
+	// Check if per target template is declared
+	if rctx.targetCfg != nil && rctx.targetCfg.Templates != nil &&
+		rctx.targetCfg.Templates.FolderList != nil {
+		// Load template file name
+		tplFileName := filepath.Base(rctx.targetCfg.Templates.FolderList.Path)
+		// Get template content
+		var content string
+		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.FolderList)
+		// Check if errors exists in load file content
+		if err == nil {
+			// Create template executor
+			tmpl, err = template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).Parse(content)
+		}
+	} else {
+		// Load template file name
+		tplFileName := filepath.Base(rctx.tplConfig.FolderList)
+		// Create template executor
+		tmpl, err = template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).ParseFiles(rctx.tplConfig.FolderList)
+	}
+
+	// Check error
+	if err != nil {
+		rctx.logger.Error(err)
+		rctx.HandleInternalServerError(err, requestPath)
+		// Stop
+		return
+	}
+	// Create bucket list data for templating
+	data := &bucketListingData{
+		Entries:    entries,
+		BucketName: rctx.targetCfg.Bucket.Name,
+		Name:       rctx.targetCfg.Name,
+		Path:       rctx.mountPath + requestPath,
+	}
+	// Generate template in buffer
+	buf := &bytes.Buffer{}
+	// Execute template
+	err = tmpl.Execute(buf, data)
+	if err != nil {
+		rctx.logger.Error(err)
+		rctx.HandleInternalServerError(err, requestPath)
+		// Stop
+		return
+	}
+	// Set status code
+	rctx.httpRW.WriteHeader(200)
+	// Set the header and write the buffer to the http.ResponseWriter
+	rctx.httpRW.Header().Set("Content-Type", "text/html; charset=utf-8")
+	// Write buffer content to output
+	_, err = buf.WriteTo(rctx.httpRW)
+	if err != nil {
+		rctx.logger.Error(err)
+		rctx.HandleInternalServerError(err, requestPath)
 		// Stop
 		return
 	}
@@ -190,33 +311,33 @@ func (rctx *requestContext) Put(inp *PutInput) {
 	}
 
 	// Check if post actions configuration exists
-	if rctx.bucketInstance.Actions.PUT != nil &&
-		rctx.bucketInstance.Actions.PUT.Config != nil {
+	if rctx.targetCfg.Actions.PUT != nil &&
+		rctx.targetCfg.Actions.PUT.Config != nil {
 		// Check if metadata is configured in target configuration
-		if rctx.bucketInstance.Actions.PUT.Config.Metadata != nil {
-			input.Metadata = rctx.bucketInstance.Actions.PUT.Config.Metadata
+		if rctx.targetCfg.Actions.PUT.Config.Metadata != nil {
+			input.Metadata = rctx.targetCfg.Actions.PUT.Config.Metadata
 		}
 
 		// Check if storage class is present in target configuration
-		if rctx.bucketInstance.Actions.PUT.Config.StorageClass != "" {
-			input.StorageClass = rctx.bucketInstance.Actions.PUT.Config.StorageClass
+		if rctx.targetCfg.Actions.PUT.Config.StorageClass != "" {
+			input.StorageClass = rctx.targetCfg.Actions.PUT.Config.StorageClass
 		}
 
 		// Check if allow override is enabled
-		if !rctx.bucketInstance.Actions.PUT.Config.AllowOverride {
+		if !rctx.targetCfg.Actions.PUT.Config.AllowOverride {
 			// Need to check if file already exists
 			headOutput, err := rctx.s3Context.HeadObject(key)
 			// Check if error is not found if exists
 			if err != nil && err != s3client.ErrNotFound {
 				rctx.logger.Error(err)
-				rctx.handleInternalServerError(rctx.httpRW, err, inp.RequestPath, rctx.logger, rctx.tplConfig)
+				rctx.HandleInternalServerError(err, inp.RequestPath)
 				// Stop
 				return
 			}
 			// Check if file exists
 			if headOutput != nil {
 				rctx.logger.Errorf("File detected on path %s for PUT request and override isn't allowed", key)
-				rctx.handleForbidden(rctx.httpRW, inp.RequestPath, rctx.logger, rctx.tplConfig)
+				rctx.HandleForbidden(inp.RequestPath)
 				// Stop
 				return
 			}
@@ -226,7 +347,7 @@ func (rctx *requestContext) Put(inp *PutInput) {
 	err := rctx.s3Context.PutObject(input)
 	if err != nil {
 		rctx.logger.Error(err)
-		rctx.handleInternalServerError(rctx.httpRW, err, inp.RequestPath, rctx.logger, rctx.tplConfig)
+		rctx.HandleInternalServerError(err, inp.RequestPath)
 		// Stop
 		return
 	}
@@ -240,7 +361,7 @@ func (rctx *requestContext) Delete(requestPath string) {
 	// Check that the path ends with a / for a directory or the main path special case (empty path)
 	if strings.HasSuffix(requestPath, "/") || requestPath == "" {
 		rctx.logger.Error(ErrRemovalFolder)
-		rctx.handleInternalServerError(rctx.httpRW, ErrRemovalFolder, requestPath, rctx.logger, rctx.tplConfig)
+		rctx.HandleInternalServerError(ErrRemovalFolder, requestPath)
 		// Stop
 		return
 	}
@@ -249,7 +370,7 @@ func (rctx *requestContext) Delete(requestPath string) {
 	// Check if error exists
 	if err != nil {
 		rctx.logger.Error(err)
-		rctx.handleInternalServerError(rctx.httpRW, err, requestPath, rctx.logger, rctx.tplConfig)
+		rctx.HandleInternalServerError(err, requestPath)
 		// Stop
 		return
 	}
@@ -276,16 +397,50 @@ func transformS3Entries(s3Entries []*s3client.ListElementOutput, rctx *requestCo
 	return entries
 }
 
-func getFile(brctx *requestContext, key string) error {
+func (rctx *requestContext) loadTemplateContent(item *config.TargetTemplateConfigItem) (string, error) {
+	// Check if it is in bucket
+	if item.InBucket {
+		// Try to get file from bucket
+		return rctx.getFileContent(item.Path)
+	}
+
+	// Not in bucket, need to load from FS
+	by, err := ioutil.ReadFile(item.Path)
+	// Check if error exists
+	if err != nil {
+		return "", err
+	}
+
+	return string(by), nil
+}
+
+func (rctx *requestContext) getFileContent(path string) (string, error) {
 	// Get object from s3
-	objOutput, err := brctx.s3Context.GetObject(key)
+	objOutput, err := rctx.s3Context.GetObject(path)
+	if err != nil {
+		return "", err
+	}
+
+	// Read all body
+	bb, err := ioutil.ReadAll(*objOutput.Body)
+	if err != nil {
+		return "", err
+	}
+
+	// Transform it to string and return
+	return string(bb), nil
+}
+
+func (rctx *requestContext) streamFileForResponse(key string) error {
+	// Get object from s3
+	objOutput, err := rctx.s3Context.GetObject(key)
 	if err != nil {
 		return err
 	}
 	// Set headers from object
-	setHeadersFromObjectOutput(brctx.httpRW, objOutput)
+	setHeadersFromObjectOutput(rctx.httpRW, objOutput)
 	// Copy data stream to output stream
-	_, err = io.Copy(brctx.httpRW, *objOutput.Body)
+	_, err = io.Copy(rctx.httpRW, *objOutput.Body)
 	// Return potential error
 	return err
 }

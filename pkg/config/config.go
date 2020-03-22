@@ -161,12 +161,29 @@ type ServerConfig struct {
 
 // TargetConfig Bucket instance configuration
 type TargetConfig struct {
-	Name          string         `mapstructure:"name" validate:"required"`
-	Bucket        *BucketConfig  `mapstructure:"bucket" validate:"required"`
-	Resources     []*Resource    `mapstructure:"resources" validate:"dive"`
-	Mount         *MountConfig   `mapstructure:"mount" validate:"required"`
-	IndexDocument string         `mapstructure:"indexDocument"`
-	Actions       *ActionsConfig `mapstructure:"actions"`
+	Name          string                `mapstructure:"name" validate:"required"`
+	Bucket        *BucketConfig         `mapstructure:"bucket" validate:"required"`
+	Resources     []*Resource           `mapstructure:"resources" validate:"dive"`
+	Mount         *MountConfig          `mapstructure:"mount" validate:"required"`
+	IndexDocument string                `mapstructure:"indexDocument"`
+	Actions       *ActionsConfig        `mapstructure:"actions"`
+	Templates     *TargetTemplateConfig `mapstructure:"templates"`
+}
+
+// TargetTemplateConfig Target templates configuration to override default ones
+type TargetTemplateConfig struct {
+	FolderList          *TargetTemplateConfigItem `mapstructure:"folderList"`
+	NotFound            *TargetTemplateConfigItem `mapstructure:"notFound"`
+	InternalServerError *TargetTemplateConfigItem `mapstructure:"internalServerError"`
+	Forbidden           *TargetTemplateConfigItem `mapstructure:"forbidden"`
+	Unauthorized        *TargetTemplateConfigItem `mapstructure:"unauthorized"`
+	BadRequest          *TargetTemplateConfigItem `mapstructure:"badRequest"`
+}
+
+// TargetTemplateConfigItem Target template configuration item
+type TargetTemplateConfigItem struct {
+	Path     string `mapstructure:"path" validate:"required,min=1"`
+	InBucket bool   `mapstructure:"inBucket"`
 }
 
 // ActionsConfig is dedicated to actions configuration in a target
@@ -442,6 +459,10 @@ func loadDefaultValues(out *Config) error {
 		// Manage default configuration for target actions
 		if item.Actions == nil {
 			item.Actions = &ActionsConfig{GET: &GetActionConfig{Enabled: true}}
+		}
+		// Manage default for target templates configurations
+		if item.Templates == nil {
+			item.Templates = &TargetTemplateConfig{}
 		}
 		// Manage default value for resources methods
 		if item.Resources != nil {

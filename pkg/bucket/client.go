@@ -18,6 +18,16 @@ type Client interface {
 	Put(inp *PutInput)
 	// Delete will delete file on request path
 	Delete(requestPath string)
+	// Handle not found errors with bucket configuration
+	HandleNotFound(requestPath string)
+	// Handle forbidden errors with bucket configuration
+	HandleForbidden(requestPath string)
+	// Handle bad request errors with bucket configuration
+	HandleBadRequest(err error, requestPath string)
+	// Handle internal server error errors with bucket configuration
+	HandleInternalServerError(err error, requestPath string)
+	// Handle unauthorized errors with bucket configuration
+	HandleUnauthorized(requestPath string)
 }
 
 // PutInput represents Put input
@@ -28,15 +38,22 @@ type PutInput struct {
 	ContentType string
 }
 
+// ErrorHandlers error handlers
+type ErrorHandlers struct {
+	HandleNotFoundWithTemplate            func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)            //nolint: lll
+	HandleInternalServerErrorWithTemplate func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) //nolint: lll
+	HandleForbiddenWithTemplate           func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)            //nolint: lll
+	HandleBadRequestWithTemplate          func(tplString string, rw http.ResponseWriter, requestPath string, err error, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) //nolint: lll
+	HandleUnauthorizedWithTemplate        func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig)            //nolint: lll
+}
+
 // NewClient will generate a new client to do GET,PUT or DELETE actions
 // nolint:whitespace
 func NewClient(
 	tgt *config.TargetConfig, tplConfig *config.TemplateConfig, logger logrus.FieldLogger,
 	mountPath string, httpRW http.ResponseWriter,
-	handleNotFound func(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig),
-	handleInternalServerError func(rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig),
-	handleForbidden func(rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig),
 	metricsCtx metrics.Client,
+	errorHandlers *ErrorHandlers,
 ) (Client, error) {
 	s3ctx, err := s3client.NewS3Context(tgt, logger, metricsCtx)
 	if err != nil {
@@ -44,14 +61,12 @@ func NewClient(
 	}
 
 	return &requestContext{
-		s3Context:                 s3ctx,
-		logger:                    logger,
-		bucketInstance:            tgt,
-		mountPath:                 mountPath,
-		httpRW:                    httpRW,
-		tplConfig:                 tplConfig,
-		handleNotFound:            handleNotFound,
-		handleForbidden:           handleForbidden,
-		handleInternalServerError: handleInternalServerError,
+		s3Context:      s3ctx,
+		logger:         logger,
+		targetCfg:      tgt,
+		mountPath:      mountPath,
+		httpRW:         httpRW,
+		tplConfig:      tplConfig,
+		errorsHandlers: errorHandlers,
 	}, nil
 }
