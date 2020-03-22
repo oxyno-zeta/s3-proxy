@@ -182,7 +182,7 @@ type TargetTemplateConfig struct {
 
 // TargetTemplateConfigItem Target template configuration item
 type TargetTemplateConfigItem struct {
-	Path     string `mapstructure:"path"`
+	Path     string `mapstructure:"path" validate:"required,min=1"`
 	InBucket bool   `mapstructure:"inBucket"`
 }
 
