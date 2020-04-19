@@ -21,7 +21,19 @@ func GenerateInternalRouter(logger logrus.FieldLogger, metricsCtx metrics.Client
 	r := chi.NewRouter()
 
 	// A good base middleware stack
-	r.Use(middleware.DefaultCompress)
+	r.Use(middleware.Compress(
+		5,
+		"text/html",
+		"text/css",
+		"text/plain",
+		"text/javascript",
+		"application/javascript",
+		"application/x-javascript",
+		"application/json",
+		"application/atom+xml",
+		"application/rss+xml",
+		"image/svg+xml",
+	))
 	r.Use(middleware.NoCache)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -46,7 +58,19 @@ func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx me
 	r := chi.NewRouter()
 
 	// A good base middleware stack
-	r.Use(middleware.DefaultCompress)
+	r.Use(middleware.Compress(
+		5,
+		"text/html",
+		"text/css",
+		"text/plain",
+		"text/javascript",
+		"application/javascript",
+		"application/x-javascript",
+		"application/json",
+		"application/atom+xml",
+		"application/rss+xml",
+		"image/svg+xml",
+	))
 	r.Use(middleware.NoCache)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
