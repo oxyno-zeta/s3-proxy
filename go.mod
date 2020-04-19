@@ -11,7 +11,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dimiro1/health v0.0.0-20191019130555-c5cbb4d46ffc
 	github.com/dustin/go-humanize v1.0.0
-	github.com/go-chi/chi v4.0.3+incompatible
+	github.com/go-chi/chi v4.1.1+incompatible
 	github.com/go-chi/hostrouter v0.0.0-20180220162504-7bff2694dfd9
 	github.com/go-playground/validator/v10 v10.2.0
 	github.com/gobwas/glob v0.2.3
