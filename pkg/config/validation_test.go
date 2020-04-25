@@ -1,5 +1,3 @@
-// +build unit
-
 package config
 
 import (
@@ -521,6 +519,130 @@ func Test_validateBusinessConfig(t *testing.T) {
 			},
 			wantErr:     true,
 			errorString: "path 0 in list targets must ends with /",
+		},
+		{
+			name: "OIDC provider with wrong callback path",
+			args: args{
+				out: &Config{
+					AuthProviders: &AuthProviderConfig{
+						OIDC: map[string]*OIDCAuthConfig{
+							"provider1": {
+								CallbackPath: "/",
+							},
+						},
+					},
+					Targets: []*TargetConfig{
+						{
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1/"},
+							},
+							Resources: nil,
+							Actions: &ActionsConfig{
+								GET:    &GetActionConfig{Enabled: true},
+								PUT:    &PutActionConfig{Enabled: false},
+								DELETE: &DeleteActionConfig{Enabled: false},
+							},
+						},
+					},
+					ListTargets: &ListTargetsConfig{
+						Enabled: true,
+						Mount: &MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: nil,
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "provider provider1 can't have a callback path equal to / (to avoid redirect loop)",
+		},
+		{
+			name: "OIDC provider with wrong login path",
+			args: args{
+				out: &Config{
+					AuthProviders: &AuthProviderConfig{
+						OIDC: map[string]*OIDCAuthConfig{
+							"provider1": {
+								LoginPath: "/",
+							},
+						},
+					},
+					Targets: []*TargetConfig{
+						{
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1/"},
+							},
+							Resources: nil,
+							Actions: &ActionsConfig{
+								GET:    &GetActionConfig{Enabled: true},
+								PUT:    &PutActionConfig{Enabled: false},
+								DELETE: &DeleteActionConfig{Enabled: false},
+							},
+						},
+					},
+					ListTargets: &ListTargetsConfig{
+						Enabled: true,
+						Mount: &MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: nil,
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "provider provider1 can't have a login path equal to / (to avoid redirect loop)",
+		},
+		{
+			name: "OIDC provider with same login and callback path",
+			args: args{
+				out: &Config{
+					AuthProviders: &AuthProviderConfig{
+						OIDC: map[string]*OIDCAuthConfig{
+							"provider1": {
+								LoginPath:    "/fake",
+								CallbackPath: "/fake",
+							},
+						},
+					},
+					Targets: []*TargetConfig{
+						{
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1/"},
+							},
+							Resources: nil,
+							Actions: &ActionsConfig{
+								GET:    &GetActionConfig{Enabled: true},
+								PUT:    &PutActionConfig{Enabled: false},
+								DELETE: &DeleteActionConfig{Enabled: false},
+							},
+						},
+					},
+					ListTargets: &ListTargetsConfig{
+						Enabled: true,
+						Mount: &MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: nil,
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "provider provider1 can't have same login and callback path (to avoid redirect loop)",
 		},
 		{
 			name: "Configuration with list target and target is valid",
