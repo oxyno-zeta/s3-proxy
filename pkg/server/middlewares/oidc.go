@@ -62,7 +62,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		http.Redirect(w, r, config.AuthCodeURL(state), http.StatusFound)
 	})
 
-	mux.HandleFunc(oidcCfg.CallbackPath, func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(u.Path, func(w http.ResponseWriter, r *http.Request) {
 		// Get logger from request
 		logEntry := GetLogEntry(r)
 
