@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
+	"path"
 	"strings"
 
 	"github.com/thoas/go-funk"
@@ -79,6 +81,37 @@ func validateBusinessConfig(out *Config) error {
 			err := validatePath(fmt.Sprintf("path %d in list targets", j), path)
 			if err != nil {
 				return err
+			}
+		}
+	}
+
+	// Validate authentication providers
+	if out.AuthProviders != nil && out.AuthProviders.OIDC != nil {
+		for prov, authProviderCfg := range out.AuthProviders.OIDC {
+			// Build redirect url
+			u, err := url.Parse(authProviderCfg.RedirectURL)
+			// Check if error exists
+			if err != nil {
+				return err
+			}
+			// Continue to build redirect url
+			u.Path = path.Join(u.Path, authProviderCfg.CallbackPath)
+
+			// Now, full callback path is generated
+
+			// Check if new path is "/"
+			if u.Path == "/" {
+				return fmt.Errorf("provider %s can't have a callback path equal to / (to avoid redirect loop)", prov)
+			}
+
+			// Check login path
+			if authProviderCfg.LoginPath == "/" {
+				return fmt.Errorf("provider %s can't have a login path equal to / (to avoid redirect loop)", prov)
+			}
+
+			// Check that they are different
+			if authProviderCfg.LoginPath == u.Path {
+				return fmt.Errorf("provider %s can't have same login and callback path (to avoid redirect loop)", prov)
 			}
 		}
 	}
