@@ -15,7 +15,6 @@ require (
 	github.com/go-chi/hostrouter v0.0.0-20180220162504-7bff2694dfd9
 	github.com/go-playground/validator/v10 v10.2.0
 	github.com/gobwas/glob v0.2.3
-	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/huandu/xstrings v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
@@ -25,7 +24,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
-	github.com/prometheus/client_golang v1.5.1
+	github.com/prometheus/client_golang v1.6.0
 	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
