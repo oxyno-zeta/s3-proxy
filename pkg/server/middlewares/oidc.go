@@ -161,7 +161,7 @@ func oidcAuthorizationMiddleware(
 			}
 			// Check if JWT content is empty or not
 			if jwtContent == "" {
-				logEntry.Error("No auth cookie detected, redirect to oidc login")
+				logEntry.Error("No auth header or cookie detected, redirect to oidc login")
 				http.Redirect(w, r, oidcAuthCfg.LoginPath, http.StatusTemporaryRedirect)
 				return
 			}
