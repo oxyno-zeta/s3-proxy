@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
@@ -15,10 +14,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 )
+
+var allVerifiers = make([]*oidc.IDTokenVerifier, 0)
 
 // OIDCEndpoints will set OpenID Connect endpoints for authentication and callback
 func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateConfig, mux chi.Router) error {
@@ -57,6 +57,9 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 
 	// Store state
 	state := oidcCfg.State
+
+	// Store provider verifier in map
+	allVerifiers = append(allVerifiers, verifier)
 
 	mux.HandleFunc(oidcCfg.LoginPath, func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, config.AuthCodeURL(state), http.StatusFound)
@@ -100,18 +103,16 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 			return
 		}
 
-		resp := struct {
-			OAuth2Token   *oauth2.Token
-			IDTokenClaims *json.RawMessage // ID Token payload is just JSON.
-		}{oauth2Token, new(json.RawMessage)}
+		var resp map[string]interface{}
 
-		// Try to open JWT token
-		err = idToken.Claims(&resp.IDTokenClaims)
+		// Try to open JWT token in order to verify that we can open it
+		err = idToken.Claims(&resp)
 		if err != nil {
 			logEntry.Error(err)
 			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, logEntry, tplConfig)
 			return
 		}
+		// Now, we know that we can open jwt token to get claims
 
 		// Build cookie
 		cookie := &http.Cookie{
@@ -167,8 +168,7 @@ func oidcAuthorizationMiddleware(
 			}
 
 			// Parse JWT token
-			parser := new(jwt.Parser)
-			token, _, err := parser.ParseUnverified(jwtContent, jwt.MapClaims{})
+			claims, err := parseAndValidateJWTToken(jwtContent)
 			if err != nil {
 				logEntry.Error(err)
 				// Check if bucket request context doesn't exist to use local default files
@@ -179,20 +179,6 @@ func oidcAuthorizationMiddleware(
 				}
 				return
 			}
-			// Check that token is valid
-			err = token.Claims.Valid()
-			if err != nil {
-				logEntry.Error(err)
-				// Check if bucket request context doesn't exist to use local default files
-				if brctx == nil {
-					utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
-				} else {
-					brctx.HandleInternalServerError(err, path)
-				}
-				return
-			}
-
-			claims := token.Claims.(jwt.MapClaims)
 
 			// Initialize email
 			email := ""
@@ -248,6 +234,39 @@ func oidcAuthorizationMiddleware(
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+func parseAndValidateJWTToken(jwtContent string) (map[string]interface{}, error) {
+	ctx := context.Background()
+	// Create result map
+	var res map[string]interface{}
+
+	// Loop over all verifiers
+	for _, verifier := range allVerifiers {
+		// Verify token
+		idToken, err := verifier.Verify(ctx, jwtContent)
+		// Check if error is present because of invalid provider verifier
+		// The error is the one inside the oidc coreos library
+		if err != nil && strings.Contains(err.Error(), "token issued by a different provider") {
+			// Try with another verifier
+			continue
+		}
+		// Error in this case is a bad error...
+		if err != nil {
+			return nil, err
+		}
+
+		// Get claims
+		err = idToken.Claims(&res)
+		if err != nil {
+			return nil, err
+		}
+
+		return res, nil
+	}
+
+	// Error, can't be opened, maybe a forged token ?
+	return nil, errors.New("jwt token cannot be open with oidc providers in configuration, maybe a forged token ?")
 }
 
 func getJWTToken(logEntry logrus.FieldLogger, r *http.Request, cookieName string) (string, error) {
