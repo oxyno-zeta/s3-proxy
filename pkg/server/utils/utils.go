@@ -167,3 +167,12 @@ func TemplateExecution(tplPath, tplString string, logger logrus.FieldLogger, rw 
 
 	return nil
 }
+
+func GetRequestURI(r *http.Request) string {
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
+
+	return fmt.Sprintf("%s://%s%s", scheme, r.Host, r.RequestURI)
+}
