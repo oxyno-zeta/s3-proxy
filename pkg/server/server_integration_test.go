@@ -1,16 +1,21 @@
-// +build integration
-
 package server
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -917,73 +922,6 @@ func TestPublicRouter(t *testing.T) {
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/plain; charset=utf-8",
-			},
-		},
-		{
-			name: "GET a file with unauthorized error in case of no oidc cookie or bearer token",
-			args: args{
-				cfg: &config.Config{
-					ListTargets: &config.ListTargetsConfig{},
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
-					},
-					AuthProviders: &config.AuthProviderConfig{
-						OIDC: map[string]*config.OIDCAuthConfig{
-							"provider1": {
-								ClientID:     "fake-client-id",
-								CookieName:   "oidc",
-								RedirectURL:  "http://fake-s3-proxy/",
-								CallbackPath: "/auth/provider1/callback",
-								IssuerURL:    "https://fake-idp/",
-								LoginPath:    "/auth/provider1/",
-							},
-						},
-					},
-					Targets: []*config.TargetConfig{
-						{
-							Name: "target1",
-							Bucket: &config.BucketConfig{
-								Name:       bucket,
-								Region:     region,
-								S3Endpoint: s3server.URL,
-								Credentials: &config.BucketCredentialConfig{
-									AccessKey: &config.CredentialConfig{Value: accessKey},
-									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
-								},
-								DisableSSL: true,
-							},
-							Mount: &config.MountConfig{
-								Path: []string{"/mount/"},
-							},
-							Resources: []*config.Resource{
-								{
-									Path:     "/mount/folder1/*",
-									Methods:  []string{"GET"},
-									Provider: "provider1",
-									OIDC: &config.ResourceOIDC{
-										AuthorizationAccesses: []*config.OIDCAuthorizationAccess{},
-									},
-								},
-							},
-							Actions: &config.ActionsConfig{
-								GET: &config.GetActionConfig{Enabled: true},
-							},
-						},
-					},
-				},
-			},
-			inputMethod: "GET",
-			inputURL:    "http://localhost/mount/folder1/test.txt",
-			wantErr:     true,
-			expectedHeaders: map[string]string{
-				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
-				"Content-Type":  "text/html; charset=utf-8",
 			},
 		},
 		{
@@ -2015,6 +1953,378 @@ func TestPublicRouter(t *testing.T) {
 
 			if tt.expectedCode != w.Code {
 				t.Errorf("Integration test on GenerateRouter() status code = %v, expected status code %v", w.Code, tt.expectedCode)
+			}
+		})
+	}
+}
+
+// This is in a separate test because this one will need a real server to discuss with OIDC server
+func TestOIDCAuthentication(t *testing.T) {
+	// trueValue := true
+	accessKey := "YOUR-ACCESSKEYID"
+	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	region := "eu-central-1"
+	bucket := "test-bucket"
+
+	s3server, err := setupFakeS3(
+		accessKey,
+		secretAccessKey,
+		region,
+		bucket,
+	)
+	defer s3server.Close()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	tplCfg := &config.TemplateConfig{
+		FolderList:          "../../templates/folder-list.tpl",
+		TargetList:          "../../templates/target-list.tpl",
+		NotFound:            "../../templates/not-found.tpl",
+		Forbidden:           "../../templates/forbidden.tpl",
+		BadRequest:          "../../templates/bad-request.tpl",
+		InternalServerError: "../../templates/internal-server-error.tpl",
+		Unauthorized:        "../../templates/unauthorized.tpl",
+	}
+	targetsTpl := []*config.TargetConfig{
+		{
+			Name: "target1",
+			Bucket: &config.BucketConfig{
+				Name:       bucket,
+				Region:     region,
+				S3Endpoint: s3server.URL,
+				Credentials: &config.BucketCredentialConfig{
+					AccessKey: &config.CredentialConfig{Value: accessKey},
+					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+				},
+				DisableSSL: true,
+			},
+			Mount: &config.MountConfig{
+				Path: []string{"/mount/"},
+			},
+			Resources: []*config.Resource{
+				{
+					Path:     "/mount/folder1/*",
+					Methods:  []string{"GET"},
+					Provider: "provider1",
+					OIDC: &config.ResourceOIDC{
+						AuthorizationAccesses: []*config.OIDCAuthorizationAccess{},
+					},
+				},
+			},
+			Actions: &config.ActionsConfig{
+				GET: &config.GetActionConfig{Enabled: true},
+			},
+		},
+	}
+
+	type jwtToken struct {
+		IDToken string `json:"id_token"`
+	}
+	type args struct {
+		cfg *config.Config
+	}
+	tests := []struct {
+		name                   string
+		args                   args
+		inputURL               string
+		inputForgeOIDCHeader   bool
+		inputForgeOIDCUsername string
+		inputForgeOIDCPassword string
+		expectedCode           int
+		expectedBody           string
+		expectedResponseHost   string
+		expectedResponsePath   string
+		expectedHeaders        map[string]string
+		notExpectedBody        string
+		wantErr                bool
+	}{
+		{
+			name: "Inject not working OIDC provider",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{},
+					Templates:   tplCfg,
+					AuthProviders: &config.AuthProviderConfig{
+						OIDC: map[string]*config.OIDCAuthConfig{
+							"provider1": {
+								ClientID:     "fake-client-id",
+								CookieName:   "oidc",
+								RedirectURL:  "http://fake-s3-proxy/",
+								CallbackPath: "/auth/provider1/callback",
+								IssuerURL:    "https://fake-idp/",
+								LoginPath:    "/auth/provider1/",
+							},
+						},
+					},
+					Targets: targetsTpl,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "GET a file with redirect to oidc provider in case of no oidc cookie or bearer token",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{},
+					Templates:   tplCfg,
+					AuthProviders: &config.AuthProviderConfig{
+						OIDC: map[string]*config.OIDCAuthConfig{
+							"provider1": {
+								ClientID:     "client-with-secret",
+								ClientSecret: &config.CredentialConfig{Value: "565f78f2-a706-41cd-a1a0-431d7df29443"},
+								CookieName:   "oidc",
+								RedirectURL:  "http://localhost:18080/",
+								CallbackPath: "/auth/provider1/callback",
+								IssuerURL:    "http://localhost:8080/auth/realms/integration",
+								LoginPath:    "/auth/provider1/",
+							},
+						},
+					},
+					Targets: targetsTpl,
+				},
+			},
+			inputURL: "http://localhost:18080/mount/folder1/test.txt",
+			wantErr:  false,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-store, must-revalidate, max-age=0",
+				"Content-Type":  "text/html;charset=utf-8",
+			},
+			expectedResponseHost: "localhost:8080",
+			expectedResponsePath: "/auth/realms/integration/protocol/openid-connect/auth",
+			expectedCode:         200,
+		},
+		{
+			name: "GET a file with oidc bearer token should be ok",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{},
+					Templates:   tplCfg,
+					AuthProviders: &config.AuthProviderConfig{
+						OIDC: map[string]*config.OIDCAuthConfig{
+							"provider1": {
+								ClientID:     "client-with-secret",
+								ClientSecret: &config.CredentialConfig{Value: "565f78f2-a706-41cd-a1a0-431d7df29443"},
+								CookieName:   "oidc",
+								RedirectURL:  "http://localhost:18080/",
+								CallbackPath: "/auth/provider1/callback",
+								IssuerURL:    "http://localhost:8080/auth/realms/integration",
+								LoginPath:    "/auth/provider1/",
+							},
+						},
+					},
+					Targets: targetsTpl,
+				},
+			},
+			inputURL:               "http://localhost:18080/mount/folder1/test.txt",
+			inputForgeOIDCHeader:   true,
+			inputForgeOIDCUsername: "user",
+			inputForgeOIDCPassword: "password",
+			wantErr:                false,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
+			expectedResponseHost: "localhost:18080",
+			expectedResponsePath: "/mount/folder1/test.txt",
+			expectedCode:         200,
+		},
+		{
+			name: "GET a file with oidc bearer token and email verified flag enabled should be ok",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{},
+					Templates:   tplCfg,
+					AuthProviders: &config.AuthProviderConfig{
+						OIDC: map[string]*config.OIDCAuthConfig{
+							"provider1": {
+								ClientID:      "client-with-secret",
+								ClientSecret:  &config.CredentialConfig{Value: "565f78f2-a706-41cd-a1a0-431d7df29443"},
+								CookieName:    "oidc",
+								RedirectURL:   "http://localhost:18080/",
+								CallbackPath:  "/auth/provider1/callback",
+								IssuerURL:     "http://localhost:8080/auth/realms/integration",
+								LoginPath:     "/auth/provider1/",
+								EmailVerified: true,
+							},
+						},
+					},
+					Targets: targetsTpl,
+				},
+			},
+			inputURL:               "http://localhost:18080/mount/folder1/test.txt",
+			inputForgeOIDCHeader:   true,
+			inputForgeOIDCUsername: "user",
+			inputForgeOIDCPassword: "password",
+			wantErr:                false,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
+			expectedResponseHost: "localhost:18080",
+			expectedResponsePath: "/mount/folder1/test.txt",
+			expectedCode:         200,
+		},
+		{
+			name: "GET a file with oidc bearer token and email verified flag enabled should be forbidden",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{},
+					Templates:   tplCfg,
+					AuthProviders: &config.AuthProviderConfig{
+						OIDC: map[string]*config.OIDCAuthConfig{
+							"provider1": {
+								ClientID:      "client-with-secret",
+								ClientSecret:  &config.CredentialConfig{Value: "565f78f2-a706-41cd-a1a0-431d7df29443"},
+								CookieName:    "oidc",
+								RedirectURL:   "http://localhost:18080/",
+								CallbackPath:  "/auth/provider1/callback",
+								IssuerURL:     "http://localhost:8080/auth/realms/integration",
+								LoginPath:     "/auth/provider1/",
+								EmailVerified: true,
+							},
+						},
+					},
+					Targets: targetsTpl,
+				},
+			},
+			inputURL:               "http://localhost:18080/mount/folder1/test.txt",
+			inputForgeOIDCHeader:   true,
+			inputForgeOIDCUsername: "user-not-verified",
+			inputForgeOIDCPassword: "password",
+			wantErr:                false,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+			expectedResponseHost: "localhost:18080",
+			expectedResponsePath: "/mount/folder1/test.txt",
+			expectedCode:         403,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := GenerateRouter(&logrus.Logger{}, tt.args.cfg, metricsCtx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GenerateRouter() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			// If want error at this moment => stop
+			if tt.wantErr {
+				return
+			}
+
+			var wg sync.WaitGroup
+
+			// Create a real server this time
+			svr := http.Server{
+				Addr:    ":18080",
+				Handler: got,
+			}
+			// Add a wait
+			wg.Add(1)
+			// Listen and synchronize wait
+			go func() error {
+				wg.Done()
+				return svr.ListenAndServe()
+			}()
+			// Defer close server
+			defer svr.Close()
+			// Wait server up and running
+			wg.Wait()
+
+			request, err := http.NewRequest("GET", tt.inputURL, nil) // URL-encoded payload
+			// Check err
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if tt.inputForgeOIDCHeader {
+				data := url.Values{}
+				data.Set("username", tt.inputForgeOIDCUsername)
+				data.Set("password", tt.inputForgeOIDCPassword)
+				data.Set("client_id", "client-with-secret")
+				data.Set("client_secret", "565f78f2-a706-41cd-a1a0-431d7df29443")
+				data.Set("grant_type", "password")
+				data.Set("scope", "openid profile")
+
+				authentUrlStr := "http://localhost:8080/auth/realms/integration/protocol/openid-connect/token"
+
+				clientAuth := &http.Client{}
+				r, err := http.NewRequest("POST", authentUrlStr, strings.NewReader(data.Encode())) // URL-encoded payload
+				// Check err
+				if err != nil {
+					t.Error(err)
+					return
+				}
+
+				r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+				r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+
+				resp, err := clientAuth.Do(r)
+				// Check err
+				if err != nil {
+					t.Error(err)
+					return
+				}
+
+				bodyBytes, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				body := string(bodyBytes)
+
+				// Check response
+				if resp.StatusCode != 200 {
+					t.Errorf("%d - %s", resp.StatusCode, body)
+					return
+				}
+
+				var to jwtToken
+				// Parse token
+				err = json.Unmarshal(bodyBytes, &to)
+				if err != nil {
+					t.Error(err)
+					return
+				}
+
+				// Add header to request
+				request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", to.IDToken))
+			}
+
+			// Create http client
+			client := &http.Client{
+				Timeout: 10 * time.Second,
+			}
+			resp, err := client.Do(request)
+
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if tt.expectedResponseHost != resp.Request.URL.Host {
+				t.Errorf("OIDC Integration test on GenerateRouter() response host = %v, expected response host %v", resp.Request.URL.Host, tt.expectedResponseHost)
+			}
+
+			if tt.expectedResponsePath != resp.Request.URL.Path {
+				t.Errorf("OIDC Integration test on GenerateRouter() response path = %v, expected response path %v", resp.Request.URL.Path, tt.expectedResponsePath)
+			}
+
+			if tt.expectedHeaders != nil {
+				for key, val := range tt.expectedHeaders {
+					wheader := resp.Header.Get(key)
+					if val != wheader {
+						t.Errorf("OIDC Integration test on GenerateRouter() header %s = %v, expected %v", key, wheader, val)
+					}
+				}
+			}
+
+			if tt.expectedCode != resp.StatusCode {
+				t.Errorf("OIDC Integration test on GenerateRouter() status code = %v, expected status code %v", resp.StatusCode, tt.expectedCode)
 			}
 		})
 	}
