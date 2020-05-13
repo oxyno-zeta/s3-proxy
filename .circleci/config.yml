@@ -41,21 +41,58 @@ jobs:
             - go-mod-{{ checksum "go.mod"  }}
       - run: make build-cross
   test:
-    docker:
-      - image: circleci/golang:1.14
-    working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
+    machine:
+      image: ubuntu-1604:202004-01
+    working_directory: /home/circleci/go/src/github.com/oxyno-zeta/s3-proxy
+    environment:
+      GO_VERSION: "1.14.2"
+      DOCKERIZE_VERSION: v0.6.0
+      OS: linux
+      ARCH: amd64
+      GOPATH: /home/circleci/go
+      GOBIN: /home/circleci/go/bin
+      GOROOT: /home/circleci/golang/go
     steps:
       - checkout
       - restore_cache:
+          key: go-machine-dl-1.14.2
+      - run: |-
+          mkdir -p /home/circleci/golang /home/circleci/dl
+          if [ ! -f /home/circleci/dl/go-$GO_VERSION.tar.gz ]; then
+            wget https://dl.google.com/go/go$GO_VERSION.$OS-$ARCH.tar.gz -O /home/circleci/dl/go-$GO_VERSION.tar.gz
+          fi
+          tar -C /home/circleci/golang -xzf /home/circleci/dl/go-$GO_VERSION.tar.gz
+      - save_cache:
+          key: go-machine-dl-1.14.2
+          paths:
+            - /home/circleci/dl/go-1.14.2.tar.gz
+      - restore_cache:
           keys:
-            - go-mod-{{ checksum "go.mod"  }}
+            - go-mod-machine-{{ checksum "go.mod"  }}
+      - run:
+          name: install dockerize if not found in cache
+          command: if \[ -f /usr/local/bin/dockerize \]; then
+            echo "dockerize found; skipping installation";
+            else wget   https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+            && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+            && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz;
+            fi
+      - run: make test-prepare-local
+      - run: dockerize -wait tcp://localhost:8080 -timeout 5m
+      - run: docker logs keycloak
       - run: make test
       - run: make coverage-report
       - run: mv coverage.html /tmp/artifacts
       - store_artifacts:
           path: /tmp/artifacts
-      - run: go get github.com/mattn/goveralls
-      - run: goveralls -coverprofile=c.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
+      - run: go get -u github.com/mattn/goveralls
+      - run: |-
+          export PATH=$GOBIN:$PATH
+          goveralls -coverprofile=c.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
+      - save_cache:
+          key: go-mod-machine-{{ checksum "go.mod"  }}
+          paths:
+            - "/home/circleci/go/pkg"
 workflows:
   version: 2
   project:
