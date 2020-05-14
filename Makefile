@@ -11,6 +11,7 @@ LDFLAGS   := -w -s
 GOFLAGS   := -i
 BINDIR    := $(CURDIR)/bin
 DISTDIR   := dist
+CURRENT_DIR = $(shell pwd)
 
 # Required for globs to work correctly
 SHELL=/usr/bin/env bash
@@ -61,6 +62,10 @@ endif
 ifndef HAS_GORELEASER
 	curl -sL https://git.io/goreleaser | bash
 endif
+
+.PHONY: test-prepare-local
+test-prepare-local:
+	docker run -d --rm --name keycloak -p 8080:8080 -e KEYCLOAK_IMPORT=/tmp/realm-export.json -v $(CURRENT_DIR)/tests/realm-export.json:/tmp/realm-export.json -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin jboss/keycloak:10.0.0
 
 .PHONY: test
 test: dep

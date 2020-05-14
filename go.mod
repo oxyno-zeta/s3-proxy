@@ -8,7 +8,6 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/aws/aws-sdk-go v1.30.24
 	github.com/coreos/go-oidc v2.2.1+incompatible
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dimiro1/health v0.0.0-20191019130555-c5cbb4d46ffc
 	github.com/dustin/go-humanize v1.0.0
 	github.com/go-chi/chi v4.1.1+incompatible

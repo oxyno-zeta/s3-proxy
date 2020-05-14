@@ -1,8 +1,8 @@
 package middlewares
 
 import (
-	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -15,10 +15,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 )
+
+const redirectQueryKey = "rd"
+
+var allVerifiers = make([]*oidc.IDTokenVerifier, 0)
 
 // OIDCEndpoints will set OpenID Connect endpoints for authentication and callback
 func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateConfig, mux chi.Router) error {
@@ -35,21 +38,20 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 	verifier := provider.Verifier(oidcConfig)
 
 	// Build redirect url
-	u, err := url.Parse(oidcCfg.RedirectURL)
+	mainRedirectURLObject, err := url.Parse(oidcCfg.RedirectURL)
 	// Check if error exists
 	if err != nil {
 		return err
 	}
 	// Continue to build redirect url
-	u.Path = path.Join(u.Path, oidcCfg.CallbackPath)
-	redirectURL := u.String()
+	mainRedirectURLObject.Path = path.Join(mainRedirectURLObject.Path, oidcCfg.CallbackPath)
+	mainRedirectURLStr := mainRedirectURLObject.String()
 
 	// Create OIDC configuration
 	config := oauth2.Config{
-		ClientID:    oidcCfg.ClientID,
-		Endpoint:    provider.Endpoint(),
-		RedirectURL: redirectURL,
-		Scopes:      oidcCfg.Scopes,
+		ClientID: oidcCfg.ClientID,
+		Endpoint: provider.Endpoint(),
+		Scopes:   oidcCfg.Scopes,
 	}
 	if oidcCfg.ClientSecret != nil {
 		config.ClientSecret = oidcCfg.ClientSecret.Value
@@ -58,15 +60,64 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 	// Store state
 	state := oidcCfg.State
 
+	// Store provider verifier in map
+	allVerifiers = append(allVerifiers, verifier)
+
 	mux.HandleFunc(oidcCfg.LoginPath, func(w http.ResponseWriter, r *http.Request) {
+		// Get logger from request
+		logEntry := GetLogEntry(r)
+		// Parse query params from request
+		qs := r.URL.Query()
+		// Get redirect query from query params
+		rdVal := qs.Get(redirectQueryKey)
+		// OIDC Redirect URL
+		oidcRedirectURLStr := mainRedirectURLStr
+		// Check if redirect url exists
+		if rdVal != "" {
+			// Need to build new oidc redirect url
+			oidcRedirectURL, err := url.Parse(oidcRedirectURLStr)
+			// Check if error exists
+			if err != nil {
+				logEntry.Error(err)
+				utils.HandleInternalServerError(w, err, oidcCfg.LoginPath, logEntry, tplConfig)
+				return
+			}
+			qsValues := oidcRedirectURL.Query()
+			// Add query param
+			qsValues.Add(redirectQueryKey, rdVal)
+			// Add query params to oidc redirect url
+			oidcRedirectURL.RawQuery = qs.Encode()
+			// Build new oidc redirect url string
+			oidcRedirectURLStr = oidcRedirectURL.String()
+		}
+		// Add redirect URL string to oidc configuration
+		config.RedirectURL = oidcRedirectURLStr
+
 		http.Redirect(w, r, config.AuthCodeURL(state), http.StatusFound)
 	})
 
-	mux.HandleFunc(u.Path, func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(mainRedirectURLObject.Path, func(w http.ResponseWriter, r *http.Request) {
 		// Get logger from request
 		logEntry := GetLogEntry(r)
 
 		// ! In this particular case, no bucket request context because mounted in general and not per target
+
+		// Get query parameters
+		qs := r.URL.Query()
+		// Get redirect url
+		rdVal := qs.Get(redirectQueryKey)
+		// Check if rdVal exists and that redirect url value is valid
+		if rdVal != "" && !isValidRedirect(rdVal) {
+			err := errors.New("redirect url is invalid")
+			logEntry.Error(err)
+			utils.HandleBadRequest(w, oidcCfg.CallbackPath, err, logEntry, tplConfig)
+			return
+		}
+
+		// Manage default redirect case after validation
+		if rdVal == "" {
+			rdVal = "/"
+		}
 
 		// Check state
 		if r.URL.Query().Get("state") != state {
@@ -100,18 +151,16 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 			return
 		}
 
-		resp := struct {
-			OAuth2Token   *oauth2.Token
-			IDTokenClaims *json.RawMessage // ID Token payload is just JSON.
-		}{oauth2Token, new(json.RawMessage)}
+		var resp map[string]interface{}
 
-		// Try to open JWT token
-		err = idToken.Claims(&resp.IDTokenClaims)
+		// Try to open JWT token in order to verify that we can open it
+		err = idToken.Claims(&resp)
 		if err != nil {
 			logEntry.Error(err)
 			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, logEntry, tplConfig)
 			return
 		}
+		// Now, we know that we can open jwt token to get claims
 
 		// Build cookie
 		cookie := &http.Cookie{
@@ -125,7 +174,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		http.SetCookie(w, cookie)
 
 		logEntry.Info("Successful authentication detected")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, rdVal, http.StatusTemporaryRedirect)
 	})
 
 	return nil
@@ -161,14 +210,27 @@ func oidcAuthorizationMiddleware(
 			}
 			// Check if JWT content is empty or not
 			if jwtContent == "" {
-				logEntry.Error("No auth cookie detected, redirect to oidc login")
-				http.Redirect(w, r, oidcAuthCfg.LoginPath, http.StatusTemporaryRedirect)
+				logEntry.Error("No auth header or cookie detected, redirect to oidc login")
+
+				// Initialize redirect URI
+				rdURI := oidcAuthCfg.LoginPath
+				// Check if redirect URI must be created
+				// If request path isn't equal to login path, build redirect URI to keep incoming request
+				if r.RequestURI != oidcAuthCfg.LoginPath {
+					// Build incoming request
+					incomingURI := utils.GetRequestURI(r)
+					// URL Encode it
+					urlEncodedIncomingURI := url.QueryEscape(incomingURI)
+					// Build redirect URI
+					rdURI = fmt.Sprintf("%s?%s=%s", oidcAuthCfg.LoginPath, redirectQueryKey, urlEncodedIncomingURI)
+				}
+				// Redirect
+				http.Redirect(w, r, rdURI, http.StatusTemporaryRedirect)
 				return
 			}
 
 			// Parse JWT token
-			parser := new(jwt.Parser)
-			token, _, err := parser.ParseUnverified(jwtContent, jwt.MapClaims{})
+			claims, err := parseAndValidateJWTToken(jwtContent)
 			if err != nil {
 				logEntry.Error(err)
 				// Check if bucket request context doesn't exist to use local default files
@@ -179,20 +241,6 @@ func oidcAuthorizationMiddleware(
 				}
 				return
 			}
-			// Check that token is valid
-			err = token.Claims.Valid()
-			if err != nil {
-				logEntry.Error(err)
-				// Check if bucket request context doesn't exist to use local default files
-				if brctx == nil {
-					utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
-				} else {
-					brctx.HandleInternalServerError(err, path)
-				}
-				return
-			}
-
-			claims := token.Claims.(jwt.MapClaims)
 
 			// Initialize email
 			email := ""
@@ -248,6 +296,39 @@ func oidcAuthorizationMiddleware(
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+func parseAndValidateJWTToken(jwtContent string) (map[string]interface{}, error) {
+	ctx := context.Background()
+	// Create result map
+	var res map[string]interface{}
+
+	// Loop over all verifiers
+	for _, verifier := range allVerifiers {
+		// Verify token
+		idToken, err := verifier.Verify(ctx, jwtContent)
+		// Check if error is present because of invalid provider verifier
+		// The error is the one inside the oidc coreos library
+		if err != nil && strings.Contains(err.Error(), "token issued by a different provider") {
+			// Try with another verifier
+			continue
+		}
+		// Error in this case is a bad error...
+		if err != nil {
+			return nil, err
+		}
+
+		// Get claims
+		err = idToken.Claims(&res)
+		if err != nil {
+			return nil, err
+		}
+
+		return res, nil
+	}
+
+	// Error, can't be opened, maybe a forged token ?
+	return nil, errors.New("jwt token cannot be open with oidc providers in configuration, maybe a forged token ?")
 }
 
 func getJWTToken(logEntry logrus.FieldLogger, r *http.Request, cookieName string) (string, error) {
@@ -333,4 +414,9 @@ func isAuthorized(groups []string, email string, authorizationAccesses []*config
 
 	// Not found case
 	return false
+}
+
+// IsValidRedirect checks whether the redirect URL is whitelisted
+func isValidRedirect(redirect string) bool {
+	return strings.HasPrefix(redirect, "http://") || strings.HasPrefix(redirect, "https://")
 }

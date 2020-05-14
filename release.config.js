@@ -11,9 +11,9 @@ module.exports = {
           { type: "feat", release: "minor" },
           { type: "fix", release: "patch" },
           { type: "perf", release: "patch" },
-          { type: "chore", scope: "deps", release: "patch" }
-        ]
-      }
+          { type: "chore", scope: "deps", release: "patch" },
+        ],
+      },
     ],
     [
       "@semantic-release/release-notes-generator",
@@ -22,7 +22,7 @@ module.exports = {
           transform: (commit, context) => {
             const issues = [];
 
-            commit.notes.forEach(note => {
+            commit.notes.forEach((note) => {
               note.title = "BREAKING CHANGES";
             });
 
@@ -97,7 +97,7 @@ module.exports = {
             }
 
             // remove references that already appear in the subject
-            commit.references = commit.references.filter(reference => {
+            commit.references = commit.references.filter((reference) => {
               if (issues.indexOf(reference.issue) === -1) {
                 return true;
               }
@@ -106,18 +106,18 @@ module.exports = {
             });
 
             return commit;
-          }
-        }
-      }
+          },
+        },
+      },
     ],
     "@semantic-release/github",
     [
       "@semantic-release/exec",
       {
-        publishCmd: "make release"
-      }
-    ]
+        publishCmd: "make release",
+      },
+    ],
   ],
   repositoryUrl: "git@github.com:oxyno-zeta/s3-proxy.git",
-  tagFormat: "${version}"
+  tagFormat: "v${version}",
 };
