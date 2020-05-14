@@ -55,6 +55,7 @@ I've created this project because I couldn't find any other that allow to proxy 
 - Multiple Basic Authentication support
 - OpenID Connect Authentication support
 - Multiple OpenID Connect Provider support
+- Redirect to original host and path with OpenID Connect authentication
 - Bucket mount point configuration with hostname and multiple path support
 - Authentication by path and http method on each bucket
 - Prometheus metrics
