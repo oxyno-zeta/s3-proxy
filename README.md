@@ -96,7 +96,7 @@ The DELETE request path must contain the file name. Example: `DELETE /dir1/dir2/
 
 ## AWS IAM Policy
 
-```json
+```js
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -108,7 +108,6 @@ The DELETE request path must contain the file name. Example: `DELETE /dir1/dir2/
         "s3:GetObject",
         // Needed for PUT API/Action
         "s3:PutObject",
-        "s3:HeadObject",
         // Needed for DELETE API/Action
         "s3:DeleteObject"
       ],
