@@ -136,7 +136,7 @@ First, write the configuration file in a config folder. That one will be mounted
 Run this command:
 
 ```shell
-docker run -d --name s3-proxy -p 8080:8080 -p 9090:9090 -v $PWD/config:/config oxynozeta/s3-proxy
+docker run -d --name s3-proxy -p 8080:8080 -p 9090:9090 -v $PWD/conf:/conf oxynozeta/s3-proxy
 ```
 
 ## TODO
