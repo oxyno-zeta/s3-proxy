@@ -14,7 +14,7 @@ jobs:
     working_directory: /go/src/github.com/oxyno-zeta/s3-proxy
     steps:
       - checkout
-      - run: make lint
+      - run: make code/lint
       - save_cache:
           key: go-mod-{{ checksum "go.mod"  }}
           paths:
@@ -28,7 +28,7 @@ jobs:
       - restore_cache:
           keys:
             - go-mod-{{ checksum "go.mod"  }}
-      - run: make build
+      - run: make code/build
   build-cross:
     docker:
       - image: circleci/golang:1.14
@@ -39,7 +39,7 @@ jobs:
       - restore_cache:
           keys:
             - go-mod-{{ checksum "go.mod"  }}
-      - run: make build-cross
+      - run: make code/build-cross
   test:
     machine:
       image: ubuntu-1604:202004-01
@@ -77,11 +77,11 @@ jobs:
             && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
             && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz;
             fi
-      - run: make test-prepare-local
+      - run: make setup/services
       - run: dockerize -wait tcp://localhost:8080 -timeout 5m
       - run: docker logs keycloak
-      - run: make test
-      - run: make coverage-report
+      - run: make test/all
+      - run: make test/coverage
       - run: mv coverage.html /tmp/artifacts
       - store_artifacts:
           path: /tmp/artifacts
