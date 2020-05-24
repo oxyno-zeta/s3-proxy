@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/Masterminds/sprig"
-	"github.com/oxyno-zeta/s3-proxy/pkg/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3client"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 )

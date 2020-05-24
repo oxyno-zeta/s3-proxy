@@ -10,11 +10,11 @@ builds:
     binary: s3-proxy
     ldflags:
       - -extldflags "-static"
-      - -X github.com/oxyno-zeta/s3-proxy/pkg/version.Version={{ .Tag }}
-      - -X github.com/oxyno-zeta/s3-proxy/pkg/version.GitCommit={{ .ShortCommit }}
-      - -X github.com/oxyno-zeta/s3-proxy/pkg/version.BuildDate={{ .Date }}
+      - -X github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version.Version={{ .Tag }}
+      - -X github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version.GitCommit={{ .ShortCommit }}
+      - -X github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version.BuildDate={{ .Date }}
       # Clear the "unreleased" string in Metadata
-      - -X github.com/oxyno-zeta/s3-proxy/pkg/version.Metadata=
+      - -X github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version.Metadata=
     env:
       - CGO_ENABLED=0
     goarch:

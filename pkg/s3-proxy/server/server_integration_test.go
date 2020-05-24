@@ -23,8 +23,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
-	"github.com/oxyno-zeta/s3-proxy/pkg/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/sirupsen/logrus"
 )
 
@@ -136,13 +136,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -182,13 +182,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -227,13 +227,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -279,13 +279,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -325,13 +325,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -377,13 +377,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -424,13 +424,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -471,13 +471,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
@@ -547,13 +547,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
@@ -623,13 +623,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
@@ -700,13 +700,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
@@ -779,13 +779,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
@@ -858,13 +858,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
@@ -930,13 +930,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
@@ -1010,13 +1010,13 @@ func TestPublicRouter(t *testing.T) {
 						},
 					},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -1096,13 +1096,13 @@ func TestPublicRouter(t *testing.T) {
 						},
 					},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -1176,13 +1176,13 @@ func TestPublicRouter(t *testing.T) {
 						},
 					},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -1258,13 +1258,13 @@ func TestPublicRouter(t *testing.T) {
 						},
 					},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -1340,13 +1340,13 @@ func TestPublicRouter(t *testing.T) {
 						},
 					},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -1401,13 +1401,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -1448,13 +1448,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -1495,13 +1495,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -1539,13 +1539,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -1584,13 +1584,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -1640,13 +1640,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -1704,13 +1704,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -1761,13 +1761,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -1817,13 +1817,13 @@ func TestPublicRouter(t *testing.T) {
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
 					Templates: &config.TemplateConfig{
-						FolderList:          "../../templates/folder-list.tpl",
-						TargetList:          "../../templates/target-list.tpl",
-						NotFound:            "../../templates/not-found.tpl",
-						Forbidden:           "../../templates/forbidden.tpl",
-						BadRequest:          "../../templates/bad-request.tpl",
-						InternalServerError: "../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../templates/unauthorized.tpl",
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
 					Targets: []*config.TargetConfig{
 						{
@@ -1979,13 +1979,13 @@ func TestOIDCAuthentication(t *testing.T) {
 	}
 
 	tplCfg := &config.TemplateConfig{
-		FolderList:          "../../templates/folder-list.tpl",
-		TargetList:          "../../templates/target-list.tpl",
-		NotFound:            "../../templates/not-found.tpl",
-		Forbidden:           "../../templates/forbidden.tpl",
-		BadRequest:          "../../templates/bad-request.tpl",
-		InternalServerError: "../../templates/internal-server-error.tpl",
-		Unauthorized:        "../../templates/unauthorized.tpl",
+		FolderList:          "../../../templates/folder-list.tpl",
+		TargetList:          "../../../templates/target-list.tpl",
+		NotFound:            "../../../templates/not-found.tpl",
+		Forbidden:           "../../../templates/forbidden.tpl",
+		BadRequest:          "../../../templates/bad-request.tpl",
+		InternalServerError: "../../../templates/internal-server-error.tpl",
+		Unauthorized:        "../../../templates/unauthorized.tpl",
 	}
 	targetsTpl := []*config.TargetConfig{
 		{

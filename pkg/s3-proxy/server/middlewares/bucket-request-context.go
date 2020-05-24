@@ -3,10 +3,10 @@ package middlewares
 import (
 	"net/http"
 
-	"github.com/oxyno-zeta/s3-proxy/pkg/bucket"
-	"github.com/oxyno-zeta/s3-proxy/pkg/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
-	"github.com/oxyno-zeta/s3-proxy/pkg/server/utils"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 	"golang.org/x/net/context"
 )
 

@@ -24,9 +24,9 @@ GIT_TAG    = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
 DATE	   = $(shell date +%F_%T%Z)
 
 BINARY_VERSION = ${GIT_SHA}
-LDFLAGS += -X ${PKG}/pkg/version.Version=${BINARY_VERSION}
-LDFLAGS += -X ${PKG}/pkg/version.GitCommit=${GIT_COMMIT}
-LDFLAGS += -X ${PKG}/pkg/version.BuildDate=${DATE}
+LDFLAGS += -X ${PKG}/pkg/${PROJECT_NAME}/version.Version=${BINARY_VERSION}
+LDFLAGS += -X ${PKG}/pkg/${PROJECT_NAME}/version.GitCommit=${GIT_COMMIT}
+LDFLAGS += -X ${PKG}/pkg/${PROJECT_NAME}/version.BuildDate=${DATE}
 
 HAS_GORELEASER := $(shell command -v goreleaser;)
 
