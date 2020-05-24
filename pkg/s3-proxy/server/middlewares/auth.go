@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gobwas/glob"
-	"github.com/oxyno-zeta/s3-proxy/pkg/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/server/utils"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 	"github.com/thoas/go-funk"
 )
 

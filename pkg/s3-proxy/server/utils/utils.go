@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/Masterminds/sprig"
-	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/sirupsen/logrus"
 )
 

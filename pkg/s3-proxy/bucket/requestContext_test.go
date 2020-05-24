@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oxyno-zeta/s3-proxy/pkg/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3client"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	"github.com/sirupsen/logrus"
 )
 
@@ -640,7 +640,7 @@ func Test_requestContext_Get(t *testing.T) {
 					},
 				},
 				tplConfig: &config.TemplateConfig{
-					FolderList: "../../templates/folder-list.tpl",
+					FolderList: "../../../templates/folder-list.tpl",
 				},
 				mountPath: "/mount",
 				httpRW:    &respWriterTest{},
@@ -724,7 +724,7 @@ func Test_requestContext_Get(t *testing.T) {
 					},
 				},
 				tplConfig: &config.TemplateConfig{
-					FolderList: "../../templates/folder-list.tpl",
+					FolderList: "../../../templates/folder-list.tpl",
 				},
 				mountPath: "/mount",
 				httpRW: &respWriterTest{
@@ -803,7 +803,7 @@ func Test_requestContext_Get(t *testing.T) {
 					IndexDocument: "index.html",
 				},
 				tplConfig: &config.TemplateConfig{
-					FolderList: "../../templates/folder-list.tpl",
+					FolderList: "../../../templates/folder-list.tpl",
 				},
 				mountPath: "/mount",
 				httpRW: &respWriterTest{
@@ -854,7 +854,7 @@ func Test_requestContext_Get(t *testing.T) {
 					IndexDocument: "index.html",
 				},
 				tplConfig: &config.TemplateConfig{
-					FolderList: "../../templates/folder-list.tpl",
+					FolderList: "../../../templates/folder-list.tpl",
 				},
 				mountPath: "/mount",
 				httpRW:    &respWriterTest{},
@@ -900,7 +900,7 @@ func Test_requestContext_Get(t *testing.T) {
 					IndexDocument: "index.html",
 				},
 				tplConfig: &config.TemplateConfig{
-					FolderList: "../../templates/folder-list.tpl",
+					FolderList: "../../../templates/folder-list.tpl",
 				},
 				mountPath: "/mount",
 				httpRW:    &respWriterTest{},
@@ -938,7 +938,7 @@ func Test_requestContext_Get(t *testing.T) {
 					},
 				},
 				tplConfig: &config.TemplateConfig{
-					FolderList: "../../templates/folder-list.tpl",
+					FolderList: "../../../templates/folder-list.tpl",
 				},
 				mountPath: "/mount",
 				httpRW: &respWriterTest{
@@ -976,7 +976,7 @@ func Test_requestContext_Get(t *testing.T) {
 					},
 				},
 				tplConfig: &config.TemplateConfig{
-					FolderList: "../../templates/folder-list.tpl",
+					FolderList: "../../../templates/folder-list.tpl",
 				},
 				mountPath: "/mount",
 				httpRW:    &respWriterTest{},
@@ -1009,7 +1009,7 @@ func Test_requestContext_Get(t *testing.T) {
 					},
 				},
 				tplConfig: &config.TemplateConfig{
-					FolderList: "../../templates/folder-list.tpl",
+					FolderList: "../../../templates/folder-list.tpl",
 				},
 				mountPath: "/mount",
 				httpRW:    &respWriterTest{},

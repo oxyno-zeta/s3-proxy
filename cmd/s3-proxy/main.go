@@ -5,10 +5,10 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/oxyno-zeta/s3-proxy/pkg/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
-	"github.com/oxyno-zeta/s3-proxy/pkg/server"
-	"github.com/oxyno-zeta/s3-proxy/pkg/version"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version"
 	"github.com/sirupsen/logrus"
 )
 

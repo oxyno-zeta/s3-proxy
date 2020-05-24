@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3client"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 )
 
 func Test_setHeadersFromObjectOutput(t *testing.T) {

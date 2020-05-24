@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/sirupsen/logrus"
 )
 
@@ -37,12 +37,12 @@ func TestHandleInternalServerError(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
-					NotFound:            "../../../templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
-					Unauthorized:        "../../../templates/unauthorized.tpl",
-					Forbidden:           "../../../templates/forbidden.tpl",
-					BadRequest:          "../../../templates/bad-request.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
+					NotFound:            "../../../../templates/not-found.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
+					Unauthorized:        "../../../../templates/unauthorized.tpl",
+					Forbidden:           "../../../../templates/forbidden.tpl",
+					BadRequest:          "../../../../templates/bad-request.tpl",
 				},
 			},
 			expectedHTTPWriter: &respWriterTest{
@@ -127,12 +127,12 @@ func TestHandleInternalServerErrorWithTemplate(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
-					NotFound:            "../../../templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
-					Unauthorized:        "../../../templates/unauthorized.tpl",
-					Forbidden:           "../../../templates/forbidden.tpl",
-					BadRequest:          "../../../templates/bad-request.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
+					NotFound:            "../../../../templates/not-found.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
+					Unauthorized:        "../../../../templates/unauthorized.tpl",
+					Forbidden:           "../../../../templates/forbidden.tpl",
+					BadRequest:          "../../../../templates/bad-request.tpl",
 				},
 			},
 			expectedHTTPWriter: &respWriterTest{
@@ -159,12 +159,12 @@ func TestHandleInternalServerErrorWithTemplate(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
-					NotFound:            "../../../templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
-					Unauthorized:        "../../../templates/unauthorized.tpl",
-					Forbidden:           "../../../templates/forbidden.tpl",
-					BadRequest:          "../../../templates/bad-request.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
+					NotFound:            "../../../../templates/not-found.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
+					Unauthorized:        "../../../../templates/unauthorized.tpl",
+					Forbidden:           "../../../../templates/forbidden.tpl",
+					BadRequest:          "../../../../templates/bad-request.tpl",
 				},
 			},
 			expectedHTTPWriter: &respWriterTest{
@@ -239,12 +239,12 @@ func TestHandleNotFound(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
-					NotFound:            "../../../templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
-					Unauthorized:        "../../../templates/unauthorized.tpl",
-					Forbidden:           "../../../templates/forbidden.tpl",
-					BadRequest:          "../../../templates/bad-request.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
+					NotFound:            "../../../../templates/not-found.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
+					Unauthorized:        "../../../../templates/unauthorized.tpl",
+					Forbidden:           "../../../../templates/forbidden.tpl",
+					BadRequest:          "../../../../templates/bad-request.tpl",
 				},
 			},
 			expectedHTTPWriter: &respWriterTest{
@@ -268,12 +268,12 @@ func TestHandleNotFound(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
-					Unauthorized:        "../../../templates/unauthorized.tpl",
-					Forbidden:           "../../../templates/forbidden.tpl",
-					BadRequest:          "../../../templates/bad-request.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
+					Unauthorized:        "../../../../templates/unauthorized.tpl",
+					Forbidden:           "../../../../templates/forbidden.tpl",
+					BadRequest:          "../../../../templates/bad-request.tpl",
 				},
 			},
 			expectedHTTPWriter: &respWriterTest{
@@ -355,12 +355,12 @@ func TestHandleNotFoundWithTemplate(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
-					NotFound:            "../../../templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
-					Unauthorized:        "../../../templates/unauthorized.tpl",
-					Forbidden:           "../../../templates/forbidden.tpl",
-					BadRequest:          "../../../templates/bad-request.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
+					NotFound:            "../../../../templates/not-found.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
+					Unauthorized:        "../../../../templates/unauthorized.tpl",
+					Forbidden:           "../../../../templates/forbidden.tpl",
+					BadRequest:          "../../../../templates/bad-request.tpl",
 				},
 			},
 			expectedHTTPWriter: &respWriterTest{
@@ -385,12 +385,12 @@ func TestHandleNotFoundWithTemplate(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
-					NotFound:            "../../../templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
-					Unauthorized:        "../../../templates/unauthorized.tpl",
-					Forbidden:           "../../../templates/forbidden.tpl",
-					BadRequest:          "../../../templates/bad-request.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
+					NotFound:            "../../../../templates/not-found.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
+					Unauthorized:        "../../../../templates/unauthorized.tpl",
+					Forbidden:           "../../../../templates/forbidden.tpl",
+					BadRequest:          "../../../../templates/bad-request.tpl",
 				},
 			},
 			expectedHTTPWriter: &respWriterTest{
@@ -408,12 +408,12 @@ func TestHandleNotFoundWithTemplate(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
-					Unauthorized:        "../../../templates/unauthorized.tpl",
-					Forbidden:           "../../../templates/forbidden.tpl",
-					BadRequest:          "../../../templates/bad-request.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
+					Unauthorized:        "../../../../templates/unauthorized.tpl",
+					Forbidden:           "../../../../templates/forbidden.tpl",
+					BadRequest:          "../../../../templates/bad-request.tpl",
 				},
 			},
 			expectedHTTPWriter: &respWriterTest{
@@ -494,12 +494,12 @@ func TestHandleUnauthorized(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
-					NotFound:            "../../../templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
-					Unauthorized:        "../../../templates/unauthorized.tpl",
-					Forbidden:           "../../../templates/forbidden.tpl",
-					BadRequest:          "../../../templates/bad-request.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
+					NotFound:            "../../../../templates/not-found.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
+					Unauthorized:        "../../../../templates/unauthorized.tpl",
+					Forbidden:           "../../../../templates/forbidden.tpl",
+					BadRequest:          "../../../../templates/bad-request.tpl",
 				},
 			},
 			expectedHTTPWriter: &respWriterTest{
@@ -523,9 +523,9 @@ func TestHandleUnauthorized(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
 					Unauthorized:        "templates/unauthorized.tpl",
 					Forbidden:           "templates/forbidden.tpl",
 					BadRequest:          "templates/bad-request.tpl",
@@ -611,12 +611,12 @@ func TestHandleBadRequest(t *testing.T) {
 				err:         errors.New("fake"),
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
-					NotFound:            "../../../templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
-					Unauthorized:        "../../../templates/unauthorized.tpl",
-					Forbidden:           "../../../templates/forbidden.tpl",
-					BadRequest:          "../../../templates/bad-request.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
+					NotFound:            "../../../../templates/not-found.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
+					Unauthorized:        "../../../../templates/unauthorized.tpl",
+					Forbidden:           "../../../../templates/forbidden.tpl",
+					BadRequest:          "../../../../templates/bad-request.tpl",
 				},
 			},
 			expectedHTTPWriter: &respWriterTest{
@@ -641,9 +641,9 @@ func TestHandleBadRequest(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
 					Unauthorized:        "templates/unauthorized.tpl",
 					Forbidden:           "templates/forbidden.tpl",
 					BadRequest:          "templates/bad-request.tpl",
@@ -728,12 +728,12 @@ func TestHandleForbiddenWithTemplate(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
-					NotFound:            "../../../templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
-					Unauthorized:        "../../../templates/unauthorized.tpl",
-					Forbidden:           "../../../templates/forbidden.tpl",
-					BadRequest:          "../../../templates/bad-request.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
+					NotFound:            "../../../../templates/not-found.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
+					Unauthorized:        "../../../../templates/unauthorized.tpl",
+					Forbidden:           "../../../../templates/forbidden.tpl",
+					BadRequest:          "../../../../templates/bad-request.tpl",
 				},
 			},
 			expectedHTTPWriter: &respWriterTest{
@@ -758,12 +758,12 @@ func TestHandleForbiddenWithTemplate(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
-					NotFound:            "../../../templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
-					Unauthorized:        "../../../templates/unauthorized.tpl",
-					Forbidden:           "../../../templates/forbidden.tpl",
-					BadRequest:          "../../../templates/bad-request.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
+					NotFound:            "../../../../templates/not-found.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
+					Unauthorized:        "../../../../templates/unauthorized.tpl",
+					Forbidden:           "../../../../templates/forbidden.tpl",
+					BadRequest:          "../../../../templates/bad-request.tpl",
 				},
 			},
 			expectedHTTPWriter: &respWriterTest{
@@ -781,9 +781,9 @@ func TestHandleForbiddenWithTemplate(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
 					Unauthorized:        "templates/unauthorized.tpl",
 					Forbidden:           "templates/forbidden.tpl",
 					BadRequest:          "templates/bad-request.tpl",
@@ -867,12 +867,12 @@ func TestHandleForbidden(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
-					NotFound:            "../../../templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
-					Unauthorized:        "../../../templates/unauthorized.tpl",
-					Forbidden:           "../../../templates/forbidden.tpl",
-					BadRequest:          "../../../templates/bad-request.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
+					NotFound:            "../../../../templates/not-found.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
+					Unauthorized:        "../../../../templates/unauthorized.tpl",
+					Forbidden:           "../../../../templates/forbidden.tpl",
+					BadRequest:          "../../../../templates/bad-request.tpl",
 				},
 			},
 			expectedHTTPWriter: &respWriterTest{
@@ -896,9 +896,9 @@ func TestHandleForbidden(t *testing.T) {
 				requestPath: "/request1",
 				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
-					TargetList:          "../../../templates/target-list.tpl",
+					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "../../../templates/internal-server-error.tpl",
+					InternalServerError: "../../../../templates/internal-server-error.tpl",
 					Unauthorized:        "templates/unauthorized.tpl",
 					Forbidden:           "templates/forbidden.tpl",
 					BadRequest:          "templates/bad-request.tpl",
@@ -951,7 +951,7 @@ func TestHandleForbidden(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleForbidden( tt.args.rw, tt.args.requestPath, tt.args.logger, tt.args.tplCfg)
+			HandleForbidden(tt.args.rw, tt.args.requestPath, tt.args.logger, tt.args.tplCfg)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleForbidden() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}

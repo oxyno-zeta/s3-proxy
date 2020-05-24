@@ -5,7 +5,7 @@ package bucket
 import (
 	"net/http"
 
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3client"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 )
 
 type respWriterTest struct {

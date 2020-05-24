@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/oxyno-zeta/s3-proxy/pkg/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/sirupsen/logrus"
 )
 
