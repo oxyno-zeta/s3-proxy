@@ -5,8 +5,6 @@ PKG				  := github.com/oxyno-zeta/$(PROJECT_NAME)
 # go option
 GO        ?= go
 TAGS      :=
-TESTS     := .
-TESTFLAGS :=
 LDFLAGS   := -w -s
 GOFLAGS   := -i
 BINDIR    := $(CURDIR)/bin
@@ -29,24 +27,27 @@ LDFLAGS += -X ${PKG}/pkg/${PROJECT_NAME}/version.GitCommit=${GIT_COMMIT}
 LDFLAGS += -X ${PKG}/pkg/${PROJECT_NAME}/version.BuildDate=${DATE}
 
 HAS_GORELEASER := $(shell command -v goreleaser;)
+HAS_GIT := $(shell command -v git;)
+HAS_COLORGO := $(shell command -v colorgo;)
+HAS_GOLANGCI_LINT := $(shell command -v golangci-lint;)
+HAS_CURL:=$(shell command -v curl;)
+
+.DEFAULT_GOAL := code/lint
 
 #############
 #   Build   #
 #############
 
-.PHONY: all
-all: lint test build
-
-.PHONY: lint
-lint: dep
+.PHONY: code/lint
+code/lint: setup/dep/install
 	golangci-lint run ./...
 
-.PHONY: build
-build: clean dep
+.PHONY: code/build
+code/build: code/clean setup/dep/install
 	GOBIN=$(BINDIR) colorgo install $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' $(PKG)/cmd/${PROJECT_NAME}
 
-.PHONY: build-cross
-build-cross: clean dep
+.PHONY: code/build-cross
+code/build-cross: code/clean setup/dep/install
 ifdef HAS_GORELEASER
 	goreleaser --snapshot --skip-publish
 endif
@@ -54,8 +55,16 @@ ifndef HAS_GORELEASER
 	curl -sL https://git.io/goreleaser | bash -s -- --snapshot --skip-publish
 endif
 
-.PHONY: release
-release: clean dep
+.PHONY: code/clean
+code/clean:
+	@rm -rf $(BINDIR) $(DISTDIR)
+
+#############
+#  Release  #
+#############
+
+.PHONY: release/all
+release/all: code/clean setup/dep/install
 ifdef HAS_GORELEASER
 	goreleaser
 endif
@@ -63,46 +72,37 @@ ifndef HAS_GORELEASER
 	curl -sL https://git.io/goreleaser | bash
 endif
 
-.PHONY: test-prepare-local
-test-prepare-local:
-	docker run -d --rm --name keycloak -p 8080:8080 -e KEYCLOAK_IMPORT=/tmp/realm-export.json -v $(CURRENT_DIR)/tests/realm-export.json:/tmp/realm-export.json -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin jboss/keycloak:10.0.0
+#############
+#   Tests   #
+#############
 
-.PHONY: test
-test: dep
+.PHONY: test/all
+test/all: setup/dep/install
 	$(GO) test --tags=unit,integration -v -coverpkg=./pkg/... -coverprofile=c.out ./pkg/...
 
-.PHONY: test-unit
-test-unit: dep
+.PHONY: test/unit
+test/unit: setup/dep/install
 	$(GO) test --tags=unit -v -coverpkg=./pkg/... -coverprofile=c.out ./pkg/...
 
-.PHONY: test-integration
-test-integration: dep
+.PHONY: test/integration
+test/integration: setup/dep/install
 	$(GO) test --tags=integration -v -coverpkg=./pkg/... -coverprofile=c.out ./pkg/...
 
-.PHONY: coverage-report
-coverage-report:
+.PHONY: test/coverage
+test/coverage:
 	$(GO) tool cover -html=c.out -o coverage.html
 	$(GO) tool cover -func c.out
 
-.PHONY: clean
-clean:
-	@rm -rf $(BINDIR) $(DISTDIR)
-
-.PHONY: update-dep
-update-dep:
-	go get -u ./...
-
 #############
-# Bootstrap #
+#   Setup   #
 #############
 
-HAS_GIT := $(shell command -v git;)
-HAS_COLORGO := $(shell command -v colorgo;)
-HAS_GOLANGCI_LINT := $(shell command -v golangci-lint;)
-HAS_CURL:=$(shell command -v curl;)
+.PHONY: setup/services
+setup/services:
+	docker run -d --rm --name keycloak -p 8080:8080 -e KEYCLOAK_IMPORT=/tmp/realm-export.json -v $(CURRENT_DIR)/tests/realm-export.json:/tmp/realm-export.json -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin jboss/keycloak:10.0.0
 
-.PHONY: dep
-dep:
+.PHONY: setup/dep/install
+setup/dep/install:
 ifndef HAS_GOLANGCI_LINT
 	@echo "=> Installing golangci-lint tool"
 ifndef HAS_CURL
@@ -119,3 +119,7 @@ ifndef HAS_GIT
 endif
 	go mod download
 	go mod tidy
+
+.PHONY: setup/dep/update
+setup/dep/update:
+	go get -u ./...

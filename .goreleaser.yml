@@ -3,8 +3,8 @@
 project_name: s3-proxy
 before:
   hooks:
-    - make clean
-    - make dep
+    - make code/clean
+    - make setup/dep/install
 builds:
   - main: ./cmd/s3-proxy
     binary: s3-proxy
