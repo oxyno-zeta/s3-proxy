@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
-	"github.com/sirupsen/logrus"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 )
 
 func Test_isAuthorized(t *testing.T) {
@@ -203,7 +203,6 @@ func Test_getJWTToken(t *testing.T) {
 	validCookie := http.Header{}
 	validCookie.Add("Cookie", "oidc=TOKEN")
 	type args struct {
-		logEntry   logrus.FieldLogger
 		r          *http.Request
 		cookieName string
 	}
@@ -216,7 +215,6 @@ func Test_getJWTToken(t *testing.T) {
 		{
 			name: "Get token from Authorization header",
 			args: args{
-				logEntry: &logrus.Logger{},
 				r: &http.Request{
 					Header: validAuthorizationHeader,
 				},
@@ -228,7 +226,6 @@ func Test_getJWTToken(t *testing.T) {
 		{
 			name: "Get token from Authorization header (invalid 1)",
 			args: args{
-				logEntry: &logrus.Logger{},
 				r: &http.Request{
 					Header: invalidAuthorizationHeader1,
 				},
@@ -240,7 +237,6 @@ func Test_getJWTToken(t *testing.T) {
 		{
 			name: "Get token from Authorization header (invalid 2)",
 			args: args{
-				logEntry: &logrus.Logger{},
 				r: &http.Request{
 					Header: invalidAuthorizationHeader2,
 				},
@@ -252,7 +248,6 @@ func Test_getJWTToken(t *testing.T) {
 		{
 			name: "Get token from Authorization header (invalid 3)",
 			args: args{
-				logEntry: &logrus.Logger{},
 				r: &http.Request{
 					Header: invalidAuthorizationHeader3,
 				},
@@ -264,7 +259,6 @@ func Test_getJWTToken(t *testing.T) {
 		{
 			name: "Get token from cookie without any cookie",
 			args: args{
-				logEntry: &logrus.Logger{},
 				r: &http.Request{
 					Header: noHeader,
 				},
@@ -276,7 +270,6 @@ func Test_getJWTToken(t *testing.T) {
 		{
 			name: "Get token from cookie without any cookie",
 			args: args{
-				logEntry: &logrus.Logger{},
 				r: &http.Request{
 					Header: noHeader,
 				},
@@ -288,7 +281,6 @@ func Test_getJWTToken(t *testing.T) {
 		{
 			name: "Get token from cookie with valid cookie",
 			args: args{
-				logEntry: &logrus.Logger{},
 				r: &http.Request{
 					Header: validCookie,
 				},
@@ -300,7 +292,7 @@ func Test_getJWTToken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := getJWTToken(tt.args.logEntry, tt.args.r, tt.args.cookieName)
+			got, err := getJWTToken(log.NewLogger(), tt.args.r, tt.args.cookieName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getJWTToken() error = %v, wantErr %v", err, tt.wantErr)
 				return

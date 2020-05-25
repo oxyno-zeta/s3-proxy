@@ -13,8 +13,8 @@ import (
 
 	"github.com/Masterminds/sprig"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
-	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 )
 
@@ -24,7 +24,7 @@ var ErrRemovalFolder = errors.New("can't remove folder")
 // requestContext Bucket request context
 type requestContext struct {
 	s3Context      s3client.Client
-	logger         logrus.FieldLogger
+	logger         log.Logger
 	targetCfg      *config.TargetConfig
 	tplConfig      *config.TemplateConfig
 	mountPath      string

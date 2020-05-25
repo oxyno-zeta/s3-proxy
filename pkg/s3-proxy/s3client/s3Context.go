@@ -10,15 +10,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
-	"github.com/sirupsen/logrus"
 )
 
 type s3Context struct {
 	svcClient  s3iface.S3API
 	uploader   s3manageriface.UploaderAPI
 	target     *config.TargetConfig
-	logger     logrus.FieldLogger
+	logger     log.Logger
 	metricsCtx metrics.Client
 }
 

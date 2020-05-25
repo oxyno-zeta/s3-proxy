@@ -11,8 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
-	"github.com/sirupsen/logrus"
 )
 
 // Client S3 Context interface
@@ -74,7 +74,7 @@ type PutInput struct {
 }
 
 // NewS3Context New S3 Context
-func NewS3Context(tgt *config.TargetConfig, logger logrus.FieldLogger, metricsCtx metrics.Client) (Client, error) {
+func NewS3Context(tgt *config.TargetConfig, logger log.Logger, metricsCtx metrics.Client) (Client, error) {
 	sessionConfig := &aws.Config{
 		Region: aws.String(tgt.Bucket.Region),
 	}

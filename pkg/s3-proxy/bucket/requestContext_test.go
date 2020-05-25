@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
-	"github.com/sirupsen/logrus"
 )
 
 func Test_transformS3Entries(t *testing.T) {
@@ -83,18 +83,17 @@ func Test_requestContext_Delete(t *testing.T) {
 	handleNotFoundCalled := false
 	handleInternalServerErrorCalled := false
 	handleForbiddenCalled := false
-	handleNotFoundWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleNotFoundWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleNotFoundCalled = true
 	}
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleInternalServerErrorCalled = true
 	}
-	handleForbiddenWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleForbiddenWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleForbiddenCalled = true
 	}
 	type fields struct {
 		s3Context     s3client.Client
-		logger        logrus.FieldLogger
 		targetCfg     *config.TargetConfig
 		tplConfig     *config.TemplateConfig
 		mountPath     string
@@ -119,7 +118,6 @@ func Test_requestContext_Delete(t *testing.T) {
 			name: "Can't delete a directory with empty request path",
 			fields: fields{
 				s3Context: &s3clientTest{},
-				logger:    &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Bucket: &config.BucketConfig{Prefix: "/"},
 				},
@@ -140,7 +138,6 @@ func Test_requestContext_Delete(t *testing.T) {
 			name: "Can't delete a directory",
 			fields: fields{
 				s3Context: &s3clientTest{},
-				logger:    &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Bucket: &config.BucketConfig{Prefix: "/"},
 				},
@@ -163,7 +160,6 @@ func Test_requestContext_Delete(t *testing.T) {
 				s3Context: &s3clientTest{
 					DeleteErr: errors.New("test"),
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Bucket: &config.BucketConfig{Prefix: "/"},
 				},
@@ -186,7 +182,6 @@ func Test_requestContext_Delete(t *testing.T) {
 			name: "Delete file succeed",
 			fields: fields{
 				s3Context: &s3clientTest{},
-				logger:    &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Bucket: &config.BucketConfig{Prefix: "/"},
 				},
@@ -212,7 +207,7 @@ func Test_requestContext_Delete(t *testing.T) {
 			handleNotFoundCalled = false
 			rctx := &requestContext{
 				s3Context:      tt.fields.s3Context,
-				logger:         tt.fields.logger,
+				logger:         log.NewLogger(),
 				targetCfg:      tt.fields.targetCfg,
 				tplConfig:      tt.fields.tplConfig,
 				mountPath:      tt.fields.mountPath,
@@ -246,18 +241,17 @@ func Test_requestContext_Put(t *testing.T) {
 	handleNotFoundCalled := false
 	handleInternalServerErrorCalled := false
 	handleForbiddenCalled := false
-	handleNotFoundWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleNotFoundWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleNotFoundCalled = true
 	}
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleInternalServerErrorCalled = true
 	}
-	handleForbiddenWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleForbiddenWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleForbiddenCalled = true
 	}
 	type fields struct {
 		s3Context     s3client.Client
-		logger        logrus.FieldLogger
 		targetCfg     *config.TargetConfig
 		tplConfig     *config.TemplateConfig
 		mountPath     string
@@ -286,7 +280,6 @@ func Test_requestContext_Put(t *testing.T) {
 				s3Context: &s3clientTest{
 					PutErr: errors.New("test"),
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Bucket:  &config.BucketConfig{Prefix: "/"},
 					Actions: &config.ActionsConfig{},
@@ -322,7 +315,6 @@ func Test_requestContext_Put(t *testing.T) {
 				s3Context: &s3clientTest{
 					PutErr: errors.New("test"),
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Bucket: &config.BucketConfig{Prefix: "/"},
 					Actions: &config.ActionsConfig{
@@ -370,7 +362,6 @@ func Test_requestContext_Put(t *testing.T) {
 			name: "should be ok with allow override",
 			fields: fields{
 				s3Context: &s3clientTest{},
-				logger:    &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Bucket: &config.BucketConfig{Prefix: "/"},
 					Actions: &config.ActionsConfig{
@@ -421,7 +412,6 @@ func Test_requestContext_Put(t *testing.T) {
 				s3Context: &s3clientTest{
 					HeadErr: errors.New("test"),
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Bucket: &config.BucketConfig{Prefix: "/"},
 					Actions: &config.ActionsConfig{
@@ -460,7 +450,6 @@ func Test_requestContext_Put(t *testing.T) {
 				s3Context: &s3clientTest{
 					HeadResult: &s3client.HeadOutput{Key: "/test/file"},
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Bucket: &config.BucketConfig{Prefix: "/"},
 					Actions: &config.ActionsConfig{
@@ -499,7 +488,6 @@ func Test_requestContext_Put(t *testing.T) {
 				s3Context: &s3clientTest{
 					HeadResult: nil,
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Bucket: &config.BucketConfig{Prefix: "/"},
 					Actions: &config.ActionsConfig{
@@ -546,7 +534,7 @@ func Test_requestContext_Put(t *testing.T) {
 			handleNotFoundCalled = false
 			rctx := &requestContext{
 				s3Context:      tt.fields.s3Context,
-				logger:         tt.fields.logger,
+				logger:         log.NewLogger(),
 				targetCfg:      tt.fields.targetCfg,
 				tplConfig:      tt.fields.tplConfig,
 				mountPath:      tt.fields.mountPath,
@@ -587,13 +575,13 @@ func Test_requestContext_Get(t *testing.T) {
 	handleNotFoundCalled := false
 	handleInternalServerErrorCalled := false
 	handleForbiddenCalled := false
-	handleNotFoundWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleNotFoundWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleNotFoundCalled = true
 	}
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleInternalServerErrorCalled = true
 	}
-	handleForbiddenWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleForbiddenWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleForbiddenCalled = true
 	}
 	h := http.Header{}
@@ -602,7 +590,6 @@ func Test_requestContext_Get(t *testing.T) {
 	fakeIndexIoReadCloser2 := ioutil.NopCloser(strings.NewReader("fake-index.html-content"))
 	type fields struct {
 		s3Context     s3client.Client
-		logger        logrus.FieldLogger
 		targetCfg     *config.TargetConfig
 		tplConfig     *config.TemplateConfig
 		mountPath     string
@@ -631,7 +618,6 @@ func Test_requestContext_Get(t *testing.T) {
 				s3Context: &s3clientTest{
 					ListErr: errors.New("test"),
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Name: "target",
 					Bucket: &config.BucketConfig{
@@ -673,7 +659,6 @@ func Test_requestContext_Get(t *testing.T) {
 						},
 					},
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Name: "target",
 					Bucket: &config.BucketConfig{
@@ -715,7 +700,6 @@ func Test_requestContext_Get(t *testing.T) {
 						},
 					},
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Name: "target",
 					Bucket: &config.BucketConfig{
@@ -793,7 +777,6 @@ func Test_requestContext_Get(t *testing.T) {
 						ContentType: "text/html; charset=utf-8",
 					},
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Name: "target",
 					Bucket: &config.BucketConfig{
@@ -844,7 +827,6 @@ func Test_requestContext_Get(t *testing.T) {
 					},
 					GetErr: s3client.ErrNotFound,
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Name: "target",
 					Bucket: &config.BucketConfig{
@@ -890,7 +872,6 @@ func Test_requestContext_Get(t *testing.T) {
 					},
 					GetErr: errors.New("test-error"),
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Name: "target",
 					Bucket: &config.BucketConfig{
@@ -929,7 +910,6 @@ func Test_requestContext_Get(t *testing.T) {
 						ContentType: "text/html; charset=utf-8",
 					},
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Name: "target",
 					Bucket: &config.BucketConfig{
@@ -967,7 +947,6 @@ func Test_requestContext_Get(t *testing.T) {
 				s3Context: &s3clientTest{
 					GetErr: s3client.ErrNotFound,
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Name: "target",
 					Bucket: &config.BucketConfig{
@@ -1000,7 +979,6 @@ func Test_requestContext_Get(t *testing.T) {
 				s3Context: &s3clientTest{
 					GetErr: errors.New("test-error"),
 				},
-				logger: &logrus.Logger{},
 				targetCfg: &config.TargetConfig{
 					Name: "target",
 					Bucket: &config.BucketConfig{
@@ -1035,7 +1013,7 @@ func Test_requestContext_Get(t *testing.T) {
 			handleForbiddenCalled = false
 			rctx := &requestContext{
 				s3Context:      tt.fields.s3Context,
-				logger:         tt.fields.logger,
+				logger:         log.NewLogger(),
 				targetCfg:      tt.fields.targetCfg,
 				tplConfig:      tt.fields.tplConfig,
 				mountPath:      tt.fields.mountPath,
@@ -1077,7 +1055,7 @@ func Test_requestContext_HandleInternalServerError(t *testing.T) {
 	handleInternalServerErrorCalled := false
 	handleInternalServerErrorTmpl := ""
 	var handleInternalServerErrorErr error
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleInternalServerErrorTmpl = tplString
 		handleInternalServerErrorCalled = true
 		handleInternalServerErrorErr = err
@@ -1087,7 +1065,6 @@ func Test_requestContext_HandleInternalServerError(t *testing.T) {
 
 	type fields struct {
 		s3Context      s3client.Client
-		logger         logrus.FieldLogger
 		targetCfg      *config.TargetConfig
 		tplConfig      *config.TemplateConfig
 		mountPath      string
@@ -1111,7 +1088,6 @@ func Test_requestContext_HandleInternalServerError(t *testing.T) {
 			name: "should work without templates in target configuration",
 			fields: fields{
 				s3Context: &s3clientTest{},
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{},
 				tplConfig: &config.TemplateConfig{},
 				mountPath: "/test",
@@ -1134,7 +1110,6 @@ func Test_requestContext_HandleInternalServerError(t *testing.T) {
 				s3Context: &s3clientTest{
 					GetErr: thrownErr,
 				},
-				logger: logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						InternalServerError: &config.TargetTemplateConfigItem{
@@ -1166,7 +1141,6 @@ func Test_requestContext_HandleInternalServerError(t *testing.T) {
 						Body: &bodyReadCloser,
 					},
 				},
-				logger: logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						InternalServerError: &config.TargetTemplateConfigItem{
@@ -1194,7 +1168,6 @@ func Test_requestContext_HandleInternalServerError(t *testing.T) {
 			name: "should handle error from FS read",
 			fields: fields{
 				s3Context: nil,
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						InternalServerError: &config.TargetTemplateConfigItem{
@@ -1222,7 +1195,6 @@ func Test_requestContext_HandleInternalServerError(t *testing.T) {
 			name: "should read FS for file template",
 			fields: fields{
 				s3Context: nil,
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						InternalServerError: &config.TargetTemplateConfigItem{
@@ -1284,7 +1256,7 @@ func Test_requestContext_HandleInternalServerError(t *testing.T) {
 
 			rctx := &requestContext{
 				s3Context:      tt.fields.s3Context,
-				logger:         tt.fields.logger,
+				logger:         log.NewLogger(),
 				targetCfg:      tt.fields.targetCfg,
 				tplConfig:      tt.fields.tplConfig,
 				mountPath:      tt.fields.mountPath,
@@ -1313,7 +1285,7 @@ func Test_requestContext_HandleNotFound(t *testing.T) {
 	handleInternalServerErrorCalled := false
 	handleInternalServerErrorTmpl := ""
 	var handleInternalServerErrorErr error
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleInternalServerErrorTmpl = tplString
 		handleInternalServerErrorCalled = true
 		handleInternalServerErrorErr = err
@@ -1321,7 +1293,7 @@ func Test_requestContext_HandleNotFound(t *testing.T) {
 
 	handleNotFoundCalled := false
 	handleNotFoundTmpl := ""
-	handleNotFoundWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleNotFoundWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleNotFoundCalled = true
 		handleNotFoundTmpl = tplString
 	}
@@ -1330,7 +1302,6 @@ func Test_requestContext_HandleNotFound(t *testing.T) {
 
 	type fields struct {
 		s3Context      s3client.Client
-		logger         logrus.FieldLogger
 		targetCfg      *config.TargetConfig
 		tplConfig      *config.TemplateConfig
 		mountPath      string
@@ -1355,7 +1326,6 @@ func Test_requestContext_HandleNotFound(t *testing.T) {
 			name: "should work without templates in target configuration",
 			fields: fields{
 				s3Context: &s3clientTest{},
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{},
 				tplConfig: &config.TemplateConfig{},
 				mountPath: "/test",
@@ -1377,7 +1347,6 @@ func Test_requestContext_HandleNotFound(t *testing.T) {
 				s3Context: &s3clientTest{
 					GetErr: thrownErr,
 				},
-				logger: logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						NotFound: &config.TargetTemplateConfigItem{
@@ -1409,7 +1378,6 @@ func Test_requestContext_HandleNotFound(t *testing.T) {
 						Body: &bodyReadCloser,
 					},
 				},
-				logger: logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						NotFound: &config.TargetTemplateConfigItem{
@@ -1436,7 +1404,6 @@ func Test_requestContext_HandleNotFound(t *testing.T) {
 			name: "should handle error from FS read",
 			fields: fields{
 				s3Context: nil,
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						NotFound: &config.TargetTemplateConfigItem{
@@ -1464,7 +1431,6 @@ func Test_requestContext_HandleNotFound(t *testing.T) {
 			name: "should read FS for file template",
 			fields: fields{
 				s3Context: nil,
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						NotFound: &config.TargetTemplateConfigItem{
@@ -1527,7 +1493,7 @@ func Test_requestContext_HandleNotFound(t *testing.T) {
 
 			rctx := &requestContext{
 				s3Context:      tt.fields.s3Context,
-				logger:         tt.fields.logger,
+				logger:         log.NewLogger(),
 				targetCfg:      tt.fields.targetCfg,
 				tplConfig:      tt.fields.tplConfig,
 				mountPath:      tt.fields.mountPath,
@@ -1566,7 +1532,7 @@ func Test_requestContext_HandleForbidden(t *testing.T) {
 	handleInternalServerErrorCalled := false
 	handleInternalServerErrorTmpl := ""
 	var handleInternalServerErrorErr error
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleInternalServerErrorTmpl = tplString
 		handleInternalServerErrorCalled = true
 		handleInternalServerErrorErr = err
@@ -1574,7 +1540,7 @@ func Test_requestContext_HandleForbidden(t *testing.T) {
 
 	handleForbiddenCalled := false
 	handleForbiddenTmpl := ""
-	handleForbiddenWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleForbiddenWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleForbiddenCalled = true
 		handleForbiddenTmpl = tplString
 	}
@@ -1583,7 +1549,6 @@ func Test_requestContext_HandleForbidden(t *testing.T) {
 
 	type fields struct {
 		s3Context      s3client.Client
-		logger         logrus.FieldLogger
 		targetCfg      *config.TargetConfig
 		tplConfig      *config.TemplateConfig
 		mountPath      string
@@ -1608,7 +1573,6 @@ func Test_requestContext_HandleForbidden(t *testing.T) {
 			name: "should work without templates in target configuration",
 			fields: fields{
 				s3Context: &s3clientTest{},
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{},
 				tplConfig: &config.TemplateConfig{},
 				mountPath: "/test",
@@ -1630,7 +1594,6 @@ func Test_requestContext_HandleForbidden(t *testing.T) {
 				s3Context: &s3clientTest{
 					GetErr: thrownErr,
 				},
-				logger: logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						Forbidden: &config.TargetTemplateConfigItem{
@@ -1662,7 +1625,6 @@ func Test_requestContext_HandleForbidden(t *testing.T) {
 						Body: &bodyReadCloser,
 					},
 				},
-				logger: logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						Forbidden: &config.TargetTemplateConfigItem{
@@ -1689,7 +1651,6 @@ func Test_requestContext_HandleForbidden(t *testing.T) {
 			name: "should handle error from FS read",
 			fields: fields{
 				s3Context: nil,
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						Forbidden: &config.TargetTemplateConfigItem{
@@ -1717,7 +1678,6 @@ func Test_requestContext_HandleForbidden(t *testing.T) {
 			name: "should read FS for file template",
 			fields: fields{
 				s3Context: nil,
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						Forbidden: &config.TargetTemplateConfigItem{
@@ -1780,7 +1740,7 @@ func Test_requestContext_HandleForbidden(t *testing.T) {
 
 			rctx := &requestContext{
 				s3Context:      tt.fields.s3Context,
-				logger:         tt.fields.logger,
+				logger:         log.NewLogger(),
 				targetCfg:      tt.fields.targetCfg,
 				tplConfig:      tt.fields.tplConfig,
 				mountPath:      tt.fields.mountPath,
@@ -1820,7 +1780,7 @@ func Test_requestContext_HandleBadRequest(t *testing.T) {
 	handleInternalServerErrorCalled := false
 	handleInternalServerErrorTmpl := ""
 	var handleInternalServerErrorErr error
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleInternalServerErrorTmpl = tplString
 		handleInternalServerErrorCalled = true
 		handleInternalServerErrorErr = err
@@ -1829,7 +1789,7 @@ func Test_requestContext_HandleBadRequest(t *testing.T) {
 	handleBadRequestCalled := false
 	handleBadRequestTmpl := ""
 	var handleBadRequestErr error
-	handleBadRequestWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, err error, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleBadRequestWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, err error, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleBadRequestCalled = true
 		handleBadRequestTmpl = tplString
 		handleBadRequestErr = err
@@ -1839,7 +1799,6 @@ func Test_requestContext_HandleBadRequest(t *testing.T) {
 
 	type fields struct {
 		s3Context      s3client.Client
-		logger         logrus.FieldLogger
 		targetCfg      *config.TargetConfig
 		tplConfig      *config.TemplateConfig
 		mountPath      string
@@ -1866,7 +1825,6 @@ func Test_requestContext_HandleBadRequest(t *testing.T) {
 			name: "should work without templates in target configuration",
 			fields: fields{
 				s3Context: &s3clientTest{},
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{},
 				tplConfig: &config.TemplateConfig{},
 				mountPath: "/test",
@@ -1890,7 +1848,6 @@ func Test_requestContext_HandleBadRequest(t *testing.T) {
 				s3Context: &s3clientTest{
 					GetErr: thrownErr,
 				},
-				logger: logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						BadRequest: &config.TargetTemplateConfigItem{
@@ -1923,7 +1880,6 @@ func Test_requestContext_HandleBadRequest(t *testing.T) {
 						Body: &bodyReadCloser,
 					},
 				},
-				logger: logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						BadRequest: &config.TargetTemplateConfigItem{
@@ -1952,7 +1908,6 @@ func Test_requestContext_HandleBadRequest(t *testing.T) {
 			name: "should handle error from FS read",
 			fields: fields{
 				s3Context: nil,
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						BadRequest: &config.TargetTemplateConfigItem{
@@ -1981,7 +1936,6 @@ func Test_requestContext_HandleBadRequest(t *testing.T) {
 			name: "should read FS for file template",
 			fields: fields{
 				s3Context: nil,
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						BadRequest: &config.TargetTemplateConfigItem{
@@ -2047,7 +2001,7 @@ func Test_requestContext_HandleBadRequest(t *testing.T) {
 
 			rctx := &requestContext{
 				s3Context:      tt.fields.s3Context,
-				logger:         tt.fields.logger,
+				logger:         log.NewLogger(),
 				targetCfg:      tt.fields.targetCfg,
 				tplConfig:      tt.fields.tplConfig,
 				mountPath:      tt.fields.mountPath,
@@ -2094,7 +2048,7 @@ func Test_requestContext_HandleUnauthorized(t *testing.T) {
 	handleInternalServerErrorCalled := false
 	handleInternalServerErrorTmpl := ""
 	var handleInternalServerErrorErr error
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleInternalServerErrorTmpl = tplString
 		handleInternalServerErrorCalled = true
 		handleInternalServerErrorErr = err
@@ -2102,7 +2056,7 @@ func Test_requestContext_HandleUnauthorized(t *testing.T) {
 
 	handleUnauthorizedCalled := false
 	handleUnauthorizedTmpl := ""
-	handleUnauthorizedWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger logrus.FieldLogger, tplCfg *config.TemplateConfig) {
+	handleUnauthorizedWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
 		handleUnauthorizedCalled = true
 		handleUnauthorizedTmpl = tplString
 	}
@@ -2111,7 +2065,6 @@ func Test_requestContext_HandleUnauthorized(t *testing.T) {
 
 	type fields struct {
 		s3Context      s3client.Client
-		logger         logrus.FieldLogger
 		targetCfg      *config.TargetConfig
 		tplConfig      *config.TemplateConfig
 		mountPath      string
@@ -2136,7 +2089,6 @@ func Test_requestContext_HandleUnauthorized(t *testing.T) {
 			name: "should work without templates in target configuration",
 			fields: fields{
 				s3Context: &s3clientTest{},
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{},
 				tplConfig: &config.TemplateConfig{},
 				mountPath: "/test",
@@ -2158,7 +2110,6 @@ func Test_requestContext_HandleUnauthorized(t *testing.T) {
 				s3Context: &s3clientTest{
 					GetErr: thrownErr,
 				},
-				logger: logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						Unauthorized: &config.TargetTemplateConfigItem{
@@ -2190,7 +2141,6 @@ func Test_requestContext_HandleUnauthorized(t *testing.T) {
 						Body: &bodyReadCloser,
 					},
 				},
-				logger: logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						Unauthorized: &config.TargetTemplateConfigItem{
@@ -2217,7 +2167,6 @@ func Test_requestContext_HandleUnauthorized(t *testing.T) {
 			name: "should handle error from FS read",
 			fields: fields{
 				s3Context: nil,
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						Unauthorized: &config.TargetTemplateConfigItem{
@@ -2245,7 +2194,6 @@ func Test_requestContext_HandleUnauthorized(t *testing.T) {
 			name: "should read FS for file template",
 			fields: fields{
 				s3Context: nil,
-				logger:    logrus.New(),
 				targetCfg: &config.TargetConfig{
 					Templates: &config.TargetTemplateConfig{
 						Unauthorized: &config.TargetTemplateConfigItem{
@@ -2308,7 +2256,7 @@ func Test_requestContext_HandleUnauthorized(t *testing.T) {
 
 			rctx := &requestContext{
 				s3Context:      tt.fields.s3Context,
-				logger:         tt.fields.logger,
+				logger:         log.NewLogger(),
 				targetCfg:      tt.fields.targetCfg,
 				tplConfig:      tt.fields.tplConfig,
 				mountPath:      tt.fields.mountPath,
