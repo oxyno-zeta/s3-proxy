@@ -8,40 +8,44 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 )
 
-func TestLoadAndValidateConfig(t *testing.T) {
+func Test_managercontext_Load(t *testing.T) {
 	tests := []struct {
-		name              string
-		configFileContent string
-		configFileName    string
-		envVariables      map[string]string
-		secretFiles       map[string]string
-		expectedResult    *Config
-		wantErr           bool
+		name           string
+		configs        map[string]string
+		envVariables   map[string]string
+		secretFiles    map[string]string
+		expectedResult *Config
+		wantErr        bool
 	}{
 		{
-			name:              "Configuration not found",
-			configFileName:    "config",
-			configFileContent: "",
-			wantErr:           true,
+			name: "Configuration not found",
+			configs: map[string]string{
+				"config": "",
+			},
+			wantErr: true,
 		},
 		{
-			name:              "Not a yaml",
-			configFileName:    "config.yaml",
-			configFileContent: "notayaml",
-			wantErr:           true,
+			name: "Not a yaml",
+			configs: map[string]string{
+				"config.yaml": "notayaml",
+			},
+			wantErr: true,
 		},
 		{
-			name:              "Empty",
-			configFileName:    "config.yaml",
-			configFileContent: "",
-			wantErr:           true,
+			name: "Empty",
+			configs: map[string]string{
+				"config.yaml": "",
+			},
+			wantErr: true,
 		},
 		{
-			name:           "Test all default values with minimal config",
-			configFileName: "config.yaml",
-			configFileContent: `
+			name: "Test all default values with minimal config",
+			configs: map[string]string{
+				"config.yaml": `
 targets:
 - name: test
   mount:
@@ -50,6 +54,7 @@ targets:
     name: bucket1
     region: us-east-1
 `,
+			},
 			wantErr: false,
 			expectedResult: &Config{
 				Log: &LogConfig{
@@ -93,9 +98,9 @@ targets:
 			},
 		},
 		{
-			name:           "Test secrets from environment variable",
-			configFileName: "config.yaml",
-			configFileContent: `
+			name: "Test secrets from environment variable",
+			configs: map[string]string{
+				"config.yaml": `
 targets:
 - name: test
   mount:
@@ -108,6 +113,7 @@ targets:
         env: ENV1
       secretKey:
         env: ENV2`,
+			},
 			envVariables: map[string]string{
 				"ENV1": "VALUE1",
 				"ENV2": "VALUE2",
@@ -165,9 +171,9 @@ targets:
 			},
 		},
 		{
-			name:           "Test secrets from environment variable with empty environment variable",
-			configFileName: "config.yaml",
-			configFileContent: `
+			name: "Test secrets from environment variable with empty environment variable",
+			configs: map[string]string{
+				"config.yaml": `
 targets:
 - name: test
   mount:
@@ -180,15 +186,16 @@ targets:
         env: ENV1
       secretKey:
         env: ENV2`,
+			},
 			envVariables: map[string]string{
 				"ENV1": "VALUE1",
 			},
 			wantErr: true,
 		},
 		{
-			name:           "Test secrets from a not found file",
-			configFileName: "config.yaml",
-			configFileContent: `
+			name: "Test secrets from a not found file",
+			configs: map[string]string{
+				"config.yaml": `
 targets:
 - name: test
   mount:
@@ -201,12 +208,13 @@ targets:
         path: ` + os.TempDir() + `/secret1
       secretKey:
         value: VALUE2`,
+			},
 			wantErr: true,
 		},
 		{
-			name:           "Test secrets from a file and direct value",
-			configFileName: "config.yaml",
-			configFileContent: `
+			name: "Test secrets from a file and direct value",
+			configs: map[string]string{
+				"config.yaml": `
 targets:
 - name: test
   mount:
@@ -219,6 +227,7 @@ targets:
         path: ` + os.TempDir() + `/secret1
       secretKey:
         value: VALUE2`,
+			},
 			secretFiles: map[string]string{
 				os.TempDir() + "/secret1": "VALUE1",
 			},
@@ -274,9 +283,9 @@ targets:
 			},
 		},
 		{
-			name:           "should fail when target templates configuration are invalid",
-			configFileName: "config.yaml",
-			configFileContent: `
+			name: "should fail when target templates configuration are invalid",
+			configs: map[string]string{
+				"config.yaml": `
 targets:
 - name: test
   mount:
@@ -292,12 +301,13 @@ targets:
         value: ENV1
       secretKey:
         value: ENV2`,
+			},
 			wantErr: true,
 		},
 		{
-			name:           "should load complete configuration with target custom templates",
-			configFileName: "config.yaml",
-			configFileContent: `
+			name: "should load complete configuration with target custom templates",
+			configs: map[string]string{
+				"config.yaml": `
 targets:
 - name: test
   mount:
@@ -317,6 +327,7 @@ targets:
         value: VALUE1
       secretKey:
         value: VALUE2`,
+			},
 			wantErr: false,
 			expectedResult: &Config{
 				Log: &LogConfig{
@@ -376,6 +387,77 @@ targets:
 				},
 			},
 		},
+		{
+			name: "Test with multiple configuration files",
+			configs: map[string]string{
+				"log.yaml": `
+log:
+  level: error
+`,
+				"targets.yaml": `
+targets:
+- name: test
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+    credentials:
+      accessKey:
+        value: value1
+      secretKey:
+        value: value2`,
+			},
+			wantErr: false,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "error",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port: 8080,
+				},
+				InternalServer: &ServerConfig{
+					Port: 9090,
+				},
+				Templates: &TemplateConfig{
+					FolderList:          "templates/folder-list.tpl",
+					TargetList:          "templates/target-list.tpl",
+					NotFound:            "templates/not-found.tpl",
+					InternalServerError: "templates/internal-server-error.tpl",
+					Unauthorized:        "templates/unauthorized.tpl",
+					Forbidden:           "templates/forbidden.tpl",
+					BadRequest:          "templates/bad-request.tpl",
+				},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: []*TargetConfig{
+					{
+						Name: "test",
+						Mount: &MountConfig{
+							Path: []string{"/test/"},
+						},
+						Bucket: &BucketConfig{
+							Name:   "bucket1",
+							Region: "us-east-1",
+							Credentials: &BucketCredentialConfig{
+								AccessKey: &CredentialConfig{
+									Value: "value1",
+								},
+								SecretKey: &CredentialConfig{
+									Value: "value2",
+								},
+							},
+						},
+						Actions: &ActionsConfig{
+							GET: &GetActionConfig{Enabled: true},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -386,11 +468,13 @@ targets:
 			}
 
 			defer os.RemoveAll(dir) // clean up
-			tmpfn := filepath.Join(dir, tt.configFileName)
-			err = ioutil.WriteFile(tmpfn, []byte(tt.configFileContent), 0666)
-			if err != nil {
-				t.Error(err)
-				return
+			for k, v := range tt.configs {
+				tmpfn := filepath.Join(dir, k)
+				err = ioutil.WriteFile(tmpfn, []byte(v), 0666)
+				if err != nil {
+					t.Error(err)
+					return
+				}
 			}
 
 			// Set environment variables
@@ -416,14 +500,24 @@ targets:
 			}
 
 			// Change var for main configuration file
-			MainConfigFolderPath = dir
+			mainConfigFolderPath = dir
+
+			ctx := &managercontext{
+				logger: log.NewLogger(),
+			}
+
 			// Load config
-			res, err := Load()
+			err = ctx.Load()
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Load() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
-			if !tt.wantErr && !reflect.DeepEqual(res, tt.expectedResult) {
+
+			// Get configuration
+			res := ctx.GetConfig()
+
+			if !reflect.DeepEqual(res, tt.expectedResult) {
 				t.Errorf("Load() source = %+v, want %+v", res, tt.expectedResult)
 			}
 		})

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
-	"github.com/sirupsen/logrus"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 )
 
 func TestHandleInternalServerError(t *testing.T) {
@@ -19,7 +19,6 @@ func TestHandleInternalServerError(t *testing.T) {
 		rw          http.ResponseWriter
 		err         error
 		requestPath string
-		logger      logrus.FieldLogger
 		tplCfg      *config.TemplateConfig
 	}
 	tests := []struct {
@@ -35,7 +34,6 @@ func TestHandleInternalServerError(t *testing.T) {
 				},
 				err:         errors.New("fake"),
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "../../../../templates/not-found.tpl",
@@ -66,7 +64,6 @@ func TestHandleInternalServerError(t *testing.T) {
 				},
 				err:         errors.New("fake"),
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
@@ -93,7 +90,7 @@ func TestHandleInternalServerError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleInternalServerError(tt.args.rw, tt.args.err, tt.args.requestPath, tt.args.logger, tt.args.tplCfg)
+			HandleInternalServerError(tt.args.rw, tt.args.err, tt.args.requestPath, log.NewLogger(), tt.args.tplCfg)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleInternalServerError() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}
@@ -109,7 +106,6 @@ func TestHandleInternalServerErrorWithTemplate(t *testing.T) {
 		rw          http.ResponseWriter
 		err         error
 		requestPath string
-		logger      logrus.FieldLogger
 		tplCfg      *config.TemplateConfig
 	}
 	tests := []struct {
@@ -125,7 +121,6 @@ func TestHandleInternalServerErrorWithTemplate(t *testing.T) {
 				},
 				err:         errors.New("fake"),
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "../../../../templates/not-found.tpl",
@@ -157,7 +152,6 @@ func TestHandleInternalServerErrorWithTemplate(t *testing.T) {
 				},
 				err:         errors.New("fake"),
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "../../../../templates/not-found.tpl",
@@ -181,7 +175,6 @@ func TestHandleInternalServerErrorWithTemplate(t *testing.T) {
 				},
 				err:         errors.New("fake"),
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
@@ -208,7 +201,7 @@ func TestHandleInternalServerErrorWithTemplate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleInternalServerErrorWithTemplate(tt.args.tplString, tt.args.rw, tt.args.err, tt.args.requestPath, tt.args.logger, tt.args.tplCfg)
+			HandleInternalServerErrorWithTemplate(tt.args.tplString, tt.args.rw, tt.args.err, tt.args.requestPath, log.NewLogger(), tt.args.tplCfg)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleInternalServerError() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}
@@ -222,7 +215,6 @@ func TestHandleNotFound(t *testing.T) {
 	type args struct {
 		rw          http.ResponseWriter
 		requestPath string
-		logger      logrus.FieldLogger
 		tplCfg      *config.TemplateConfig
 	}
 	tests := []struct {
@@ -237,7 +229,6 @@ func TestHandleNotFound(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "../../../../templates/not-found.tpl",
@@ -266,7 +257,6 @@ func TestHandleNotFound(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
@@ -296,7 +286,6 @@ func TestHandleNotFound(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
@@ -323,7 +312,7 @@ func TestHandleNotFound(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleNotFound(tt.args.rw, tt.args.requestPath, tt.args.logger, tt.args.tplCfg)
+			HandleNotFound(tt.args.rw, tt.args.requestPath, log.NewLogger(), tt.args.tplCfg)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleNotFound() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}
@@ -338,7 +327,6 @@ func TestHandleNotFoundWithTemplate(t *testing.T) {
 		tplString   string
 		rw          http.ResponseWriter
 		requestPath string
-		logger      logrus.FieldLogger
 		tplCfg      *config.TemplateConfig
 	}
 	tests := []struct {
@@ -353,7 +341,6 @@ func TestHandleNotFoundWithTemplate(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "../../../../templates/not-found.tpl",
@@ -383,7 +370,6 @@ func TestHandleNotFoundWithTemplate(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "../../../../templates/not-found.tpl",
@@ -406,7 +392,6 @@ func TestHandleNotFoundWithTemplate(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
@@ -436,7 +421,6 @@ func TestHandleNotFoundWithTemplate(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
@@ -463,7 +447,7 @@ func TestHandleNotFoundWithTemplate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleNotFoundWithTemplate(tt.args.tplString, tt.args.rw, tt.args.requestPath, tt.args.logger, tt.args.tplCfg)
+			HandleNotFoundWithTemplate(tt.args.tplString, tt.args.rw, tt.args.requestPath, log.NewLogger(), tt.args.tplCfg)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleNotFound() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}
@@ -477,7 +461,6 @@ func TestHandleUnauthorized(t *testing.T) {
 	type args struct {
 		rw          http.ResponseWriter
 		requestPath string
-		logger      logrus.FieldLogger
 		tplCfg      *config.TemplateConfig
 	}
 	tests := []struct {
@@ -492,7 +475,6 @@ func TestHandleUnauthorized(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "../../../../templates/not-found.tpl",
@@ -521,7 +503,6 @@ func TestHandleUnauthorized(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
@@ -551,7 +532,6 @@ func TestHandleUnauthorized(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
@@ -578,7 +558,7 @@ func TestHandleUnauthorized(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleUnauthorized(tt.args.rw, tt.args.requestPath, tt.args.logger, tt.args.tplCfg)
+			HandleUnauthorized(tt.args.rw, tt.args.requestPath, log.NewLogger(), tt.args.tplCfg)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleUnauthorized() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}
@@ -593,7 +573,6 @@ func TestHandleBadRequest(t *testing.T) {
 		rw          http.ResponseWriter
 		requestPath string
 		err         error
-		logger      logrus.FieldLogger
 		tplCfg      *config.TemplateConfig
 	}
 	tests := []struct {
@@ -609,7 +588,6 @@ func TestHandleBadRequest(t *testing.T) {
 				},
 				requestPath: "/request1",
 				err:         errors.New("fake"),
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "../../../../templates/not-found.tpl",
@@ -639,7 +617,6 @@ func TestHandleBadRequest(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
@@ -669,7 +646,6 @@ func TestHandleBadRequest(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
@@ -696,7 +672,7 @@ func TestHandleBadRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleBadRequest(tt.args.rw, tt.args.requestPath, tt.args.err, tt.args.logger, tt.args.tplCfg)
+			HandleBadRequest(tt.args.rw, tt.args.requestPath, tt.args.err, log.NewLogger(), tt.args.tplCfg)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleBadRequest() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}
@@ -711,7 +687,6 @@ func TestHandleForbiddenWithTemplate(t *testing.T) {
 		tplString   string
 		rw          http.ResponseWriter
 		requestPath string
-		logger      logrus.FieldLogger
 		tplCfg      *config.TemplateConfig
 	}
 	tests := []struct {
@@ -726,7 +701,6 @@ func TestHandleForbiddenWithTemplate(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "../../../../templates/not-found.tpl",
@@ -756,7 +730,6 @@ func TestHandleForbiddenWithTemplate(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "../../../../templates/not-found.tpl",
@@ -779,7 +752,6 @@ func TestHandleForbiddenWithTemplate(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
@@ -809,7 +781,6 @@ func TestHandleForbiddenWithTemplate(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
@@ -836,7 +807,7 @@ func TestHandleForbiddenWithTemplate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleForbiddenWithTemplate(tt.args.tplString, tt.args.rw, tt.args.requestPath, tt.args.logger, tt.args.tplCfg)
+			HandleForbiddenWithTemplate(tt.args.tplString, tt.args.rw, tt.args.requestPath, log.NewLogger(), tt.args.tplCfg)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleForbidden() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}
@@ -850,7 +821,6 @@ func TestHandleForbidden(t *testing.T) {
 	type args struct {
 		rw          http.ResponseWriter
 		requestPath string
-		logger      logrus.FieldLogger
 		tplCfg      *config.TemplateConfig
 	}
 	tests := []struct {
@@ -865,7 +835,6 @@ func TestHandleForbidden(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "../../../../templates/not-found.tpl",
@@ -894,7 +863,6 @@ func TestHandleForbidden(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "../../../../templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
@@ -924,7 +892,6 @@ func TestHandleForbidden(t *testing.T) {
 					Headers: http.Header{},
 				},
 				requestPath: "/request1",
-				logger:      &logrus.Logger{},
 				tplCfg: &config.TemplateConfig{
 					TargetList:          "templates/target-list.tpl",
 					NotFound:            "templates/not-found.tpl",
@@ -951,7 +918,7 @@ func TestHandleForbidden(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleForbidden(tt.args.rw, tt.args.requestPath, tt.args.logger, tt.args.tplCfg)
+			HandleForbidden(tt.args.rw, tt.args.requestPath, log.NewLogger(), tt.args.tplCfg)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleForbidden() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}

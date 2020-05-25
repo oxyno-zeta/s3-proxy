@@ -11,8 +11,8 @@ import (
 	oidc "github.com/coreos/go-oidc"
 	"github.com/go-chi/chi"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
-	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 
 	"golang.org/x/net/context"
@@ -331,7 +331,7 @@ func parseAndValidateJWTToken(jwtContent string) (map[string]interface{}, error)
 	return nil, errors.New("jwt token cannot be open with oidc providers in configuration, maybe a forged token ?")
 }
 
-func getJWTToken(logEntry logrus.FieldLogger, r *http.Request, cookieName string) (string, error) {
+func getJWTToken(logEntry log.Logger, r *http.Request, cookieName string) (string, error) {
 	logEntry.Debug("Try to get Authorization header from request")
 	// Get Authorization header
 	authHd := r.Header.Get("Authorization")

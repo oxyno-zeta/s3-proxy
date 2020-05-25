@@ -9,15 +9,15 @@ import (
 	"github.com/go-chi/hostrouter"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
-	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 )
 
 // GenerateInternalRouter Generate internal router
-func GenerateInternalRouter(logger logrus.FieldLogger, metricsCtx metrics.Client) http.Handler {
+func GenerateInternalRouter(logger log.Logger, metricsCtx metrics.Client) http.Handler {
 	r := chi.NewRouter()
 
 	// A good base middleware stack
@@ -54,7 +54,7 @@ const (
 )
 
 // GenerateRouter Generate router
-func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Client) (http.Handler, error) {
+func GenerateRouter(logger log.Logger, cfg *config.Config, metricsCtx metrics.Client) (http.Handler, error) {
 	r := chi.NewRouter()
 
 	// A good base middleware stack
@@ -218,7 +218,7 @@ func GenerateRouter(logger logrus.FieldLogger, cfg *config.Config, metricsCtx me
 	return r, nil
 }
 
-func generateTargetList(rw http.ResponseWriter, path string, logger logrus.FieldLogger, cfg *config.Config) {
+func generateTargetList(rw http.ResponseWriter, path string, logger log.Logger, cfg *config.Config) {
 	err := utils.TemplateExecution(cfg.Templates.TargetList, "", logger, rw, struct{ Targets []*config.TargetConfig }{Targets: cfg.Targets}, 200)
 	if err != nil {
 		logger.Error(err)

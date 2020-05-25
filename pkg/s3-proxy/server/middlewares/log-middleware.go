@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/middleware"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 	"github.com/sirupsen/logrus"
 )
@@ -13,19 +14,19 @@ import (
 // Copied and modified from https://github.com/go-chi/chi/blob/master/_examples/logging/main.go
 
 // NewStructuredLogger Generate a new structured logger
-func NewStructuredLogger(logger logrus.FieldLogger) func(next http.Handler) http.Handler {
+func NewStructuredLogger(logger log.Logger) func(next http.Handler) http.Handler {
 	return middleware.RequestLogger(&StructuredLogger{logger})
 }
 
 // StructuredLogger structured logger
 type StructuredLogger struct {
-	Logger logrus.FieldLogger
+	Logger log.Logger
 }
 
 // NewLogEntry new log entry
 func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	entry := &StructuredLoggerEntry{Logger: l.Logger}
-	logFields := logrus.Fields{}
+	logFields := map[string]interface{}{}
 
 	if reqID := middleware.GetReqID(r.Context()); reqID != "" {
 		logFields["req_id"] = reqID
@@ -55,7 +56,7 @@ func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 
 // StructuredLoggerEntry Structured logger entry
 type StructuredLoggerEntry struct {
-	Logger logrus.FieldLogger
+	Logger log.Logger
 }
 
 // Write Write
@@ -94,7 +95,7 @@ func (l *StructuredLoggerEntry) Panic(v interface{}, stack []byte) {
 // with a call to .Print(), .Info(), etc.
 
 // GetLogEntry get log entry
-func GetLogEntry(r *http.Request) logrus.FieldLogger {
+func GetLogEntry(r *http.Request) log.Logger {
 	entry := middleware.GetLogEntry(r).(*StructuredLoggerEntry)
 	return entry.Logger
 }

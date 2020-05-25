@@ -24,8 +24,8 @@ import (
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
-	"github.com/sirupsen/logrus"
 )
 
 // Generate metrics instance
@@ -57,7 +57,7 @@ func TestInternalRouter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := GenerateInternalRouter(&logrus.Logger{}, metricsCtx)
+			got := GenerateInternalRouter(log.NewLogger(), metricsCtx)
 			w := httptest.NewRecorder()
 			req, err := http.NewRequest(
 				tt.inputMethod,
@@ -1873,7 +1873,7 @@ func TestPublicRouter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GenerateRouter(&logrus.Logger{}, tt.args.cfg, metricsCtx)
+			got, err := GenerateRouter(log.NewLogger(), tt.args.cfg, metricsCtx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateRouter() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -2205,7 +2205,7 @@ func TestOIDCAuthentication(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GenerateRouter(&logrus.Logger{}, tt.args.cfg, metricsCtx)
+			got, err := GenerateRouter(log.NewLogger(), tt.args.cfg, metricsCtx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateRouter() error = %v, wantErr %v", err, tt.wantErr)
 				return
