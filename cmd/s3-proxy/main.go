@@ -30,7 +30,7 @@ func main() {
 	// Get configuration
 	cfg := cfgManager.GetConfig()
 	// Configure logger
-	err = logger.Configure(cfg.Log.Level, cfg.Log.Format)
+	err = logger.Configure(cfg.Log.Level, cfg.Log.Format, cfg.Log.FilePath)
 	if err != nil {
 		logger.Fatal(err)
 	}

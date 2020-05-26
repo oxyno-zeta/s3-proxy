@@ -245,8 +245,9 @@ type CredentialConfig struct {
 
 // LogConfig Log configuration
 type LogConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"`
+	Level    string `mapstructure:"level" validate:"required"`
+	Format   string `mapstructure:"format" validate:"required"`
+	FilePath string `mapstructure:"filePath"`
 }
 
 // GetRootPrefix Get bucket root prefix
