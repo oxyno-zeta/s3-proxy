@@ -5,7 +5,7 @@ import (
 )
 
 type Logger interface {
-	Configure(level string, format string) error
+	Configure(level string, format string, filePath string) error
 
 	WithField(key string, value interface{}) Logger
 	WithFields(fields map[string]interface{}) Logger
