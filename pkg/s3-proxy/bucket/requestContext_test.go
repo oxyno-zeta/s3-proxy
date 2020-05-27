@@ -83,13 +83,13 @@ func Test_requestContext_Delete(t *testing.T) {
 	handleNotFoundCalled := false
 	handleInternalServerErrorCalled := false
 	handleForbiddenCalled := false
-	handleNotFoundWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleNotFoundWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 		handleNotFoundCalled = true
 	}
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) {
 		handleInternalServerErrorCalled = true
 	}
-	handleForbiddenWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleForbiddenWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 		handleForbiddenCalled = true
 	}
 	type fields struct {
@@ -241,13 +241,13 @@ func Test_requestContext_Put(t *testing.T) {
 	handleNotFoundCalled := false
 	handleInternalServerErrorCalled := false
 	handleForbiddenCalled := false
-	handleNotFoundWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleNotFoundWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 		handleNotFoundCalled = true
 	}
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) {
 		handleInternalServerErrorCalled = true
 	}
-	handleForbiddenWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleForbiddenWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 		handleForbiddenCalled = true
 	}
 	type fields struct {
@@ -575,13 +575,13 @@ func Test_requestContext_Get(t *testing.T) {
 	handleNotFoundCalled := false
 	handleInternalServerErrorCalled := false
 	handleForbiddenCalled := false
-	handleNotFoundWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleNotFoundWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 		handleNotFoundCalled = true
 	}
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) {
 		handleInternalServerErrorCalled = true
 	}
-	handleForbiddenWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleForbiddenWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 		handleForbiddenCalled = true
 	}
 	h := http.Header{}
@@ -1055,7 +1055,7 @@ func Test_requestContext_HandleInternalServerError(t *testing.T) {
 	handleInternalServerErrorCalled := false
 	handleInternalServerErrorTmpl := ""
 	var handleInternalServerErrorErr error
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) {
 		handleInternalServerErrorTmpl = tplString
 		handleInternalServerErrorCalled = true
 		handleInternalServerErrorErr = err
@@ -1285,7 +1285,7 @@ func Test_requestContext_HandleNotFound(t *testing.T) {
 	handleInternalServerErrorCalled := false
 	handleInternalServerErrorTmpl := ""
 	var handleInternalServerErrorErr error
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) {
 		handleInternalServerErrorTmpl = tplString
 		handleInternalServerErrorCalled = true
 		handleInternalServerErrorErr = err
@@ -1293,7 +1293,7 @@ func Test_requestContext_HandleNotFound(t *testing.T) {
 
 	handleNotFoundCalled := false
 	handleNotFoundTmpl := ""
-	handleNotFoundWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleNotFoundWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 		handleNotFoundCalled = true
 		handleNotFoundTmpl = tplString
 	}
@@ -1532,7 +1532,7 @@ func Test_requestContext_HandleForbidden(t *testing.T) {
 	handleInternalServerErrorCalled := false
 	handleInternalServerErrorTmpl := ""
 	var handleInternalServerErrorErr error
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) {
 		handleInternalServerErrorTmpl = tplString
 		handleInternalServerErrorCalled = true
 		handleInternalServerErrorErr = err
@@ -1540,7 +1540,7 @@ func Test_requestContext_HandleForbidden(t *testing.T) {
 
 	handleForbiddenCalled := false
 	handleForbiddenTmpl := ""
-	handleForbiddenWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleForbiddenWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 		handleForbiddenCalled = true
 		handleForbiddenTmpl = tplString
 	}
@@ -1780,7 +1780,7 @@ func Test_requestContext_HandleBadRequest(t *testing.T) {
 	handleInternalServerErrorCalled := false
 	handleInternalServerErrorTmpl := ""
 	var handleInternalServerErrorErr error
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) {
 		handleInternalServerErrorTmpl = tplString
 		handleInternalServerErrorCalled = true
 		handleInternalServerErrorErr = err
@@ -1789,7 +1789,7 @@ func Test_requestContext_HandleBadRequest(t *testing.T) {
 	handleBadRequestCalled := false
 	handleBadRequestTmpl := ""
 	var handleBadRequestErr error
-	handleBadRequestWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, err error, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleBadRequestWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) {
 		handleBadRequestCalled = true
 		handleBadRequestTmpl = tplString
 		handleBadRequestErr = err
@@ -2048,7 +2048,7 @@ func Test_requestContext_HandleUnauthorized(t *testing.T) {
 	handleInternalServerErrorCalled := false
 	handleInternalServerErrorTmpl := ""
 	var handleInternalServerErrorErr error
-	handleInternalServerErrorWithTemplate := func(tplString string, rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleInternalServerErrorWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) {
 		handleInternalServerErrorTmpl = tplString
 		handleInternalServerErrorCalled = true
 		handleInternalServerErrorErr = err
@@ -2056,7 +2056,7 @@ func Test_requestContext_HandleUnauthorized(t *testing.T) {
 
 	handleUnauthorizedCalled := false
 	handleUnauthorizedTmpl := ""
-	handleUnauthorizedWithTemplate := func(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+	handleUnauthorizedWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 		handleUnauthorizedCalled = true
 		handleUnauthorizedTmpl = tplString
 	}

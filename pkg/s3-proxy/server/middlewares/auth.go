@@ -28,7 +28,7 @@ func AuthMiddleware(cfg *config.Config, resources []*config.Resource) func(http.
 				logEntry.Error(err)
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleInternalServerError(w, err, requestURI, logEntry, cfg.Templates)
+					utils.HandleInternalServerError(logEntry, w, cfg.Templates, requestURI, err)
 				} else {
 					brctx.HandleInternalServerError(err, requestURI)
 				}
@@ -48,7 +48,7 @@ func AuthMiddleware(cfg *config.Config, resources []*config.Resource) func(http.
 				logEntry.Errorf("no resource found for path %s => Forbidden access", requestURI)
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleForbidden(w, requestURI, logEntry, cfg.Templates)
+					utils.HandleForbidden(logEntry, w, cfg.Templates, requestURI)
 				} else {
 					brctx.HandleForbidden(requestURI)
 				}
@@ -80,7 +80,7 @@ func AuthMiddleware(cfg *config.Config, resources []*config.Resource) func(http.
 			logEntry.Error(err)
 			// Check if bucket request context doesn't exist to use local default files
 			if brctx == nil {
-				utils.HandleInternalServerError(w, err, requestURI, logEntry, cfg.Templates)
+				utils.HandleInternalServerError(logEntry, w, cfg.Templates, requestURI, err)
 			} else {
 				brctx.HandleInternalServerError(err, requestURI)
 			}

@@ -26,7 +26,7 @@ func basicAuthMiddleware(basicConfig *config.BasicAuthConfig,
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleUnauthorized(w, path, logEntry, templateConfig)
+					utils.HandleUnauthorized(logEntry, w, templateConfig, path)
 				} else {
 					brctx.HandleUnauthorized(path)
 				}
@@ -43,7 +43,7 @@ func basicAuthMiddleware(basicConfig *config.BasicAuthConfig,
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleUnauthorized(w, path, logEntry, templateConfig)
+					utils.HandleUnauthorized(logEntry, w, templateConfig, path)
 				} else {
 					brctx.HandleUnauthorized(path)
 				}
@@ -56,7 +56,7 @@ func basicAuthMiddleware(basicConfig *config.BasicAuthConfig,
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleUnauthorized(w, path, logEntry, templateConfig)
+					utils.HandleUnauthorized(logEntry, w, templateConfig, path)
 				} else {
 					brctx.HandleUnauthorized(path)
 				}

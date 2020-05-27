@@ -41,7 +41,7 @@ func BucketRequestContext(
 			brctx, err := bucket.NewClient(tgt, tplConfig, logEntry, path, rw, metricsCli, errorhandlers)
 			if err != nil {
 				logEntry.Error(err)
-				utils.HandleInternalServerError(rw, err, requestURI, logEntry, tplConfig)
+				utils.HandleInternalServerError(logEntry, rw, tplConfig, requestURI, err)
 				// Stop
 				return
 			}
