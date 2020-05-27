@@ -79,7 +79,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 			// Check if error exists
 			if err != nil {
 				logEntry.Error(err)
-				utils.HandleInternalServerError(w, err, oidcCfg.LoginPath, logEntry, tplConfig)
+				utils.HandleInternalServerError(logEntry, w, tplConfig, oidcCfg.LoginPath, err)
 				return
 			}
 			qsValues := oidcRedirectURL.Query()
@@ -110,7 +110,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if rdVal != "" && !isValidRedirect(rdVal) {
 			err := errors.New("redirect url is invalid")
 			logEntry.Error(err)
-			utils.HandleBadRequest(w, oidcCfg.CallbackPath, err, logEntry, tplConfig)
+			utils.HandleBadRequest(logEntry, w, tplConfig, oidcCfg.CallbackPath, err)
 			return
 		}
 
@@ -123,7 +123,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if r.URL.Query().Get("state") != state {
 			err := errors.New("state did not match")
 			logEntry.Error(err)
-			utils.HandleBadRequest(w, oidcCfg.CallbackPath, err, logEntry, tplConfig)
+			utils.HandleBadRequest(logEntry, w, tplConfig, oidcCfg.CallbackPath, err)
 			return
 		}
 
@@ -131,7 +131,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if err != nil {
 			err = errors.New("failed to exchange token: " + err.Error())
 			logEntry.Error(err)
-			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, logEntry, tplConfig)
+			utils.HandleInternalServerError(logEntry, w, tplConfig, oidcCfg.CallbackPath, err)
 			return
 		}
 
@@ -139,7 +139,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if !ok {
 			err = errors.New("no id_token field in token")
 			logEntry.Error(err)
-			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, logEntry, tplConfig)
+			utils.HandleInternalServerError(logEntry, w, tplConfig, oidcCfg.CallbackPath, err)
 			return
 		}
 
@@ -147,7 +147,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if err != nil {
 			err = errors.New("failed to verify ID Token: " + err.Error())
 			logEntry.Error(err)
-			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, logEntry, tplConfig)
+			utils.HandleInternalServerError(logEntry, w, tplConfig, oidcCfg.CallbackPath, err)
 			return
 		}
 
@@ -157,7 +157,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		err = idToken.Claims(&resp)
 		if err != nil {
 			logEntry.Error(err)
-			utils.HandleInternalServerError(w, err, oidcCfg.CallbackPath, logEntry, tplConfig)
+			utils.HandleInternalServerError(logEntry, w, tplConfig, oidcCfg.CallbackPath, err)
 			return
 		}
 		// Now, we know that we can open jwt token to get claims
@@ -202,7 +202,7 @@ func oidcAuthorizationMiddleware(
 
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
+					utils.HandleInternalServerError(logEntry, w, tplConfig, path, err)
 				} else {
 					brctx.HandleInternalServerError(err, path)
 				}
@@ -235,7 +235,7 @@ func oidcAuthorizationMiddleware(
 				logEntry.Error(err)
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleInternalServerError(w, err, path, logEntry, tplConfig)
+					utils.HandleInternalServerError(logEntry, w, tplConfig, path, err)
 				} else {
 					brctx.HandleInternalServerError(err, path)
 				}
@@ -259,7 +259,7 @@ func oidcAuthorizationMiddleware(
 						logEntry.Errorf("Email not verified for %s", email)
 						// Check if bucket request context doesn't exist to use local default files
 						if brctx == nil {
-							utils.HandleForbidden(w, path, logEntry, tplConfig)
+							utils.HandleForbidden(logEntry, w, tplConfig, path)
 						} else {
 							brctx.HandleForbidden(path)
 						}
@@ -283,7 +283,7 @@ func oidcAuthorizationMiddleware(
 				logEntry.Errorf("Forbidden user %s", email)
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleForbidden(w, path, logEntry, tplConfig)
+					utils.HandleForbidden(logEntry, w, tplConfig, path)
 				} else {
 					brctx.HandleForbidden(path)
 				}

@@ -223,7 +223,7 @@ func generateTargetList(rw http.ResponseWriter, path string, logger log.Logger, 
 	if err != nil {
 		logger.Error(err)
 		// ! In this case, use default default local files for error
-		utils.HandleInternalServerError(rw, err, path, logger, cfg.Templates)
+		utils.HandleInternalServerError(logger, rw, cfg.Templates, path, err)
 		// Stop here
 		return
 	}

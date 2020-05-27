@@ -79,7 +79,7 @@ func (rctx *requestContext) HandleInternalServerError(err error, requestPath str
 		}
 	}
 
-	rctx.errorsHandlers.HandleInternalServerErrorWithTemplate(content, rctx.httpRW, err, requestPath, rctx.logger, rctx.tplConfig)
+	rctx.errorsHandlers.HandleInternalServerErrorWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, requestPath, err)
 }
 
 func (rctx *requestContext) HandleNotFound(requestPath string) {
@@ -99,7 +99,7 @@ func (rctx *requestContext) HandleNotFound(requestPath string) {
 		}
 	}
 
-	rctx.errorsHandlers.HandleNotFoundWithTemplate(content, rctx.httpRW, requestPath, rctx.logger, rctx.tplConfig)
+	rctx.errorsHandlers.HandleNotFoundWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, requestPath)
 }
 
 func (rctx *requestContext) HandleForbidden(requestPath string) {
@@ -119,7 +119,7 @@ func (rctx *requestContext) HandleForbidden(requestPath string) {
 		}
 	}
 
-	rctx.errorsHandlers.HandleForbiddenWithTemplate(content, rctx.httpRW, requestPath, rctx.logger, rctx.tplConfig)
+	rctx.errorsHandlers.HandleForbiddenWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, requestPath)
 }
 
 func (rctx *requestContext) HandleBadRequest(err error, requestPath string) {
@@ -139,7 +139,7 @@ func (rctx *requestContext) HandleBadRequest(err error, requestPath string) {
 		}
 	}
 
-	rctx.errorsHandlers.HandleBadRequestWithTemplate(content, rctx.httpRW, requestPath, err, rctx.logger, rctx.tplConfig)
+	rctx.errorsHandlers.HandleBadRequestWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, requestPath, err)
 }
 
 func (rctx *requestContext) HandleUnauthorized(requestPath string) {
@@ -159,7 +159,7 @@ func (rctx *requestContext) HandleUnauthorized(requestPath string) {
 		}
 	}
 
-	rctx.errorsHandlers.HandleUnauthorizedWithTemplate(content, rctx.httpRW, requestPath, rctx.logger, rctx.tplConfig)
+	rctx.errorsHandlers.HandleUnauthorizedWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, requestPath)
 }
 
 // Get proxy GET requests

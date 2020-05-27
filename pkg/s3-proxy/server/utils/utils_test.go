@@ -90,7 +90,7 @@ func TestHandleInternalServerError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleInternalServerError(tt.args.rw, tt.args.err, tt.args.requestPath, log.NewLogger(), tt.args.tplCfg)
+			HandleInternalServerError(log.NewLogger(), tt.args.rw, tt.args.tplCfg, tt.args.requestPath, tt.args.err)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleInternalServerError() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}
@@ -201,7 +201,7 @@ func TestHandleInternalServerErrorWithTemplate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleInternalServerErrorWithTemplate(tt.args.tplString, tt.args.rw, tt.args.err, tt.args.requestPath, log.NewLogger(), tt.args.tplCfg)
+			HandleInternalServerErrorWithTemplate(log.NewLogger(), tt.args.rw, tt.args.tplCfg, tt.args.tplString, tt.args.requestPath, tt.args.err)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleInternalServerError() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}
@@ -312,7 +312,7 @@ func TestHandleNotFound(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleNotFound(tt.args.rw, tt.args.requestPath, log.NewLogger(), tt.args.tplCfg)
+			HandleNotFound(log.NewLogger(), tt.args.rw, tt.args.tplCfg, tt.args.requestPath)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleNotFound() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}
@@ -447,7 +447,7 @@ func TestHandleNotFoundWithTemplate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleNotFoundWithTemplate(tt.args.tplString, tt.args.rw, tt.args.requestPath, log.NewLogger(), tt.args.tplCfg)
+			HandleNotFoundWithTemplate(log.NewLogger(), tt.args.rw, tt.args.tplCfg, tt.args.tplString, tt.args.requestPath)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleNotFound() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}
@@ -558,7 +558,7 @@ func TestHandleUnauthorized(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleUnauthorized(tt.args.rw, tt.args.requestPath, log.NewLogger(), tt.args.tplCfg)
+			HandleUnauthorized(log.NewLogger(), tt.args.rw, tt.args.tplCfg, tt.args.requestPath)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleUnauthorized() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}
@@ -672,7 +672,7 @@ func TestHandleBadRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleBadRequest(tt.args.rw, tt.args.requestPath, tt.args.err, log.NewLogger(), tt.args.tplCfg)
+			HandleBadRequest(log.NewLogger(), tt.args.rw, tt.args.tplCfg, tt.args.requestPath, tt.args.err)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleBadRequest() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}
@@ -807,7 +807,7 @@ func TestHandleForbiddenWithTemplate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleForbiddenWithTemplate(tt.args.tplString, tt.args.rw, tt.args.requestPath, log.NewLogger(), tt.args.tplCfg)
+			HandleForbiddenWithTemplate(log.NewLogger(), tt.args.rw, tt.args.tplCfg, tt.args.tplString, tt.args.requestPath)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleForbidden() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}
@@ -918,7 +918,7 @@ func TestHandleForbidden(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			HandleForbidden(tt.args.rw, tt.args.requestPath, log.NewLogger(), tt.args.tplCfg)
+			HandleForbidden(log.NewLogger(), tt.args.rw, tt.args.tplCfg, tt.args.requestPath)
 			if !reflect.DeepEqual(tt.expectedHTTPWriter, tt.args.rw) {
 				t.Errorf("HandleForbidden() => httpWriter = %+v, want %+v", tt.args.rw, tt.expectedHTTPWriter)
 			}

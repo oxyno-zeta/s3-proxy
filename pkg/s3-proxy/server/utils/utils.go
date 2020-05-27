@@ -14,8 +14,7 @@ import (
 
 // HandleInternalServerErrorWithTemplate Handle internal server error following response template given in parameter
 // nolint:whitespace
-func HandleInternalServerErrorWithTemplate(tplString string, rw http.ResponseWriter, err error, requestPath string,
-	logger log.Logger, tplCfg *config.TemplateConfig) {
+func HandleInternalServerErrorWithTemplate(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) {
 	err2 := TemplateExecution(tplCfg.InternalServerError, tplString, logger, rw, struct {
 		Path  string
 		Error error
@@ -43,71 +42,70 @@ func HandleInternalServerErrorWithTemplate(tplString string, rw http.ResponseWri
 
 // HandleInternalServerError Handle internal server error following response template
 // nolint:whitespace
-func HandleInternalServerError(rw http.ResponseWriter, err error, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
-	HandleInternalServerErrorWithTemplate("", rw, err, requestPath, logger, tplCfg)
+func HandleInternalServerError(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, requestPath string, err error) {
+	HandleInternalServerErrorWithTemplate(logger, rw, tplCfg, "", requestPath, err)
 }
 
 // HandleNotFoundWithTemplate Handle not found error following response template with given template in parameter
-func HandleNotFoundWithTemplate(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+func HandleNotFoundWithTemplate(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 	err := TemplateExecution(tplCfg.NotFound, tplString, logger, rw, struct{ Path string }{Path: requestPath}, http.StatusNotFound)
 	if err != nil {
 		logger.Error(err)
-		HandleInternalServerError(rw, err, requestPath, logger, tplCfg)
+		HandleInternalServerError(logger, rw, tplCfg, requestPath, err)
 	}
 }
 
 // HandleNotFound Handle not found error following response template
-func HandleNotFound(rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
-	HandleNotFoundWithTemplate("", rw, requestPath, logger, tplCfg)
+func HandleNotFound(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, requestPath string) {
+	HandleNotFoundWithTemplate(logger, rw, tplCfg, "", requestPath)
 }
 
 // HandleUnauthorized Handle unauthorized error following response template with given template in parameter
-func HandleUnauthorizedWithTemplate(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+func HandleUnauthorizedWithTemplate(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 	err := TemplateExecution(tplCfg.Unauthorized, tplString, logger, rw, struct{ Path string }{Path: requestPath}, http.StatusUnauthorized)
 	if err != nil {
 		logger.Error(err)
-		HandleInternalServerError(rw, err, requestPath, logger, tplCfg)
+		HandleInternalServerError(logger, rw, tplCfg, requestPath, err)
 	}
 }
 
 // HandleUnauthorized Handle unauthorized error following response template
-func HandleUnauthorized(rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
-	HandleUnauthorizedWithTemplate("", rw, requestPath, logger, tplCfg)
+func HandleUnauthorized(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, requestPath string) {
+	HandleUnauthorizedWithTemplate(logger, rw, tplCfg, "", requestPath)
 }
 
 // HandleBadRequest Handle bad request error following response template with given template in parameter
 // nolint:whitespace
-func HandleBadRequestWithTemplate(tplString string, rw http.ResponseWriter, requestPath string, err error,
-	logger log.Logger, tplCfg *config.TemplateConfig) {
+func HandleBadRequestWithTemplate(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) {
 	err2 := TemplateExecution(tplCfg.BadRequest, "", logger, rw, struct {
 		Path  string
 		Error error
 	}{Path: requestPath, Error: err}, http.StatusBadRequest)
 	if err2 != nil {
 		logger.Error(err2)
-		HandleInternalServerError(rw, err2, requestPath, logger, tplCfg)
+		HandleInternalServerError(logger, rw, tplCfg, requestPath, err2)
 	}
 }
 
 // HandleBadRequest Handle bad request error following response template
-func HandleBadRequest(rw http.ResponseWriter, requestPath string, err error, logger log.Logger, tplCfg *config.TemplateConfig) {
-	HandleBadRequestWithTemplate("", rw, requestPath, err, logger, tplCfg)
+func HandleBadRequest(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, requestPath string, err error) {
+	HandleBadRequestWithTemplate(logger, rw, tplCfg, "", requestPath, err)
 }
 
 // HandleForbiddenWithTemplate Handle forbidden error following response template given in parameters
-func HandleForbiddenWithTemplate(tplString string, rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
+func HandleForbiddenWithTemplate(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 	err := TemplateExecution(tplCfg.Forbidden, tplString, logger, rw, struct {
 		Path string
 	}{Path: requestPath}, http.StatusForbidden)
 	if err != nil {
 		logger.Error(err)
-		HandleInternalServerError(rw, err, requestPath, logger, tplCfg)
+		HandleInternalServerError(logger, rw, tplCfg, requestPath, err)
 	}
 }
 
 // HandleForbidden Handle forbidden error following response template
-func HandleForbidden(rw http.ResponseWriter, requestPath string, logger log.Logger, tplCfg *config.TemplateConfig) {
-	HandleForbiddenWithTemplate("", rw, requestPath, logger, tplCfg)
+func HandleForbidden(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, requestPath string) {
+	HandleForbiddenWithTemplate(logger, rw, tplCfg, "", requestPath)
 }
 
 // ClientIP will return client ip from request
