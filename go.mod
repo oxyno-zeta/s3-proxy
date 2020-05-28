@@ -10,10 +10,12 @@ require (
 	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/dimiro1/health v0.0.0-20191019130555-c5cbb4d46ffc
 	github.com/dustin/go-humanize v1.0.0
+	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-chi/chi v4.1.1+incompatible
 	github.com/go-chi/hostrouter v0.0.0-20180220162504-7bff2694dfd9
 	github.com/go-playground/validator/v10 v10.2.0
 	github.com/gobwas/glob v0.2.3
+	github.com/golang/mock v1.4.3
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/huandu/xstrings v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
@@ -33,6 +35,8 @@ require (
 	golang.org/x/crypto v0.0.0-20200208060501-ecb85df21340 // indirect
 	golang.org/x/net v0.0.0-20200506145744-7e3656a0809f
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
+	golang.org/x/tools v0.0.0-20200528185414-6be401e3f76e // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/ini.v1 v1.52.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.4.1 // indirect

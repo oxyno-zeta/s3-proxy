@@ -1,3 +1,5 @@
+// +build integration
+
 package server
 
 import (
@@ -17,81 +19,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/johannesboyne/gofakes3"
-	"github.com/johannesboyne/gofakes3/backend/s3mem"
+	"github.com/golang/mock/gomock"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	cmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config/mocks"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 )
-
-// Generate metrics instance
-var metricsCtx = metrics.NewClient()
-
-func TestInternalRouter(t *testing.T) {
-	tests := []struct {
-		name            string
-		inputMethod     string
-		inputURL        string
-		expectedCode    int
-		expectedBody    string
-		notExpectedBody string
-	}{
-		{
-			name:         "Should be ok to call /health",
-			inputMethod:  "GET",
-			inputURL:     "http://localhost/health",
-			expectedCode: 200,
-			expectedBody: "{\"status\":\"UP\"}\n",
-		},
-		{
-			name:         "Should be ok to call /metrics",
-			inputMethod:  "GET",
-			inputURL:     "http://localhost/metrics",
-			expectedCode: 200,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := GenerateInternalRouter(log.NewLogger(), metricsCtx)
-			w := httptest.NewRecorder()
-			req, err := http.NewRequest(
-				tt.inputMethod,
-				tt.inputURL,
-				nil,
-			)
-			if err != nil {
-				t.Error(err)
-				return
-			}
-			got.ServeHTTP(w, req)
-			if tt.expectedCode != w.Code {
-				t.Errorf("Integration test on GenerateRouter() status code = %v, expected status code %v", w.Code, tt.expectedCode)
-				return
-			}
-
-			if tt.expectedBody != "" {
-				body := w.Body.String()
-				if tt.expectedBody != body {
-					t.Errorf("Integration test on GenerateRouter() body = \"%v\", expected body \"%v\"", body, tt.expectedBody)
-					return
-				}
-			}
-
-			if tt.notExpectedBody != "" {
-				body := w.Body.String()
-				if tt.notExpectedBody == body {
-					t.Errorf("Integration test on GenerateRouter() body = \"%v\", not expected body \"%v\"", body, tt.notExpectedBody)
-					return
-				}
-			}
-		})
-	}
-}
 
 func TestPublicRouter(t *testing.T) {
 	trueValue := true
@@ -1873,7 +1805,19 @@ func TestPublicRouter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GenerateRouter(log.NewLogger(), tt.args.cfg, metricsCtx)
+			// Create go mock controller
+			ctrl := gomock.NewController(t)
+			cfgManagerMock := cmocks.NewMockManager(ctrl)
+
+			// Load configuration in manager
+			cfgManagerMock.EXPECT().GetConfig().Return(tt.args.cfg)
+
+			svr := &Server{
+				logger:     log.NewLogger(),
+				cfgManager: cfgManagerMock,
+				metricsCl:  metricsCtx,
+			}
+			got, err := svr.generateRouter()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateRouter() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -2205,9 +2149,21 @@ func TestOIDCAuthentication(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GenerateRouter(log.NewLogger(), tt.args.cfg, metricsCtx)
+			// Create go mock controller
+			ctrl := gomock.NewController(t)
+			cfgManagerMock := cmocks.NewMockManager(ctrl)
+
+			// Load configuration in manager
+			cfgManagerMock.EXPECT().GetConfig().Return(tt.args.cfg)
+
+			ssvr := &Server{
+				logger:     log.NewLogger(),
+				cfgManager: cfgManagerMock,
+				metricsCl:  metricsCtx,
+			}
+			got, err := ssvr.generateRouter()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GenerateRouter() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("generateRouter() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			// If want error at this moment => stop
@@ -2328,52 +2284,4 @@ func TestOIDCAuthentication(t *testing.T) {
 			}
 		})
 	}
-}
-
-func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*httptest.Server, error) {
-	backend := s3mem.New()
-	faker := gofakes3.New(backend)
-	ts := httptest.NewServer(faker.Server())
-
-	// configure S3 client
-	s3Config := &aws.Config{
-		Credentials:      credentials.NewStaticCredentials(accessKey, secretAccessKey, ""),
-		Endpoint:         aws.String(ts.URL),
-		Region:           aws.String(region),
-		DisableSSL:       aws.Bool(true),
-		S3ForcePathStyle: aws.Bool(true),
-	}
-	newSession := session.New(s3Config)
-
-	s3Client := s3.New(newSession)
-	cparams := &s3.CreateBucketInput{
-		Bucket: aws.String(bucket),
-	}
-
-	// Create a new bucket using the CreateBucket call.
-	_, err := s3Client.CreateBucket(cparams)
-	if err != nil {
-		return nil, err
-	}
-
-	files := map[string]string{
-		"folder1/test.txt":          "Hello folder1!",
-		"folder1/index.html":        "<!DOCTYPE html><html><body><h1>Hello folder1!</h1></body></html>",
-		"folder2/index.html":        "<!DOCTYPE html><html><body><h1>Hello folder2!</h1></body></html>",
-		"templates/folder-list.tpl": "fake template !",
-	}
-
-	// Upload files
-	for k, v := range files {
-		_, err = s3Client.PutObject(&s3.PutObjectInput{
-			Body:   strings.NewReader(v),
-			Bucket: aws.String(bucket),
-			Key:    aws.String(k),
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return ts, nil
 }
