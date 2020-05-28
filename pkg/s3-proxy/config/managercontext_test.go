@@ -346,7 +346,8 @@ func Test_loadAllCredentials(t *testing.T) {
 		name    string
 		args    args
 		wantErr bool
-		result  *Config
+		result  []*CredentialConfig
+		cfg     *Config
 	}{
 		{
 			name: "Skip all load credential",
@@ -354,7 +355,8 @@ func Test_loadAllCredentials(t *testing.T) {
 				out: &Config{},
 			},
 			wantErr: false,
-			result:  &Config{},
+			cfg:     &Config{},
+			result:  []*CredentialConfig{},
 		},
 		{
 			name: "Skip target load credential",
@@ -368,13 +370,14 @@ func Test_loadAllCredentials(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			result: &Config{
+			cfg: &Config{
 				Targets: []*TargetConfig{
 					{
 						Bucket: &BucketConfig{},
 					},
 				},
 			},
+			result: []*CredentialConfig{},
 		},
 		{
 			name: "Skip target resource basic auth load credential",
@@ -391,7 +394,7 @@ func Test_loadAllCredentials(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			result: &Config{
+			cfg: &Config{
 				Targets: []*TargetConfig{
 					{
 						Resources: []*Resource{
@@ -401,6 +404,7 @@ func Test_loadAllCredentials(t *testing.T) {
 					},
 				},
 			},
+			result: []*CredentialConfig{},
 		},
 		{
 			name: "Load target resource basic auth credentials",
@@ -427,7 +431,7 @@ func Test_loadAllCredentials(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			result: &Config{
+			cfg: &Config{
 				Targets: []*TargetConfig{
 					{
 						Resources: []*Resource{
@@ -445,6 +449,11 @@ func Test_loadAllCredentials(t *testing.T) {
 						},
 						Bucket: &BucketConfig{},
 					},
+				},
+			},
+			result: []*CredentialConfig{
+				{
+					Value: "value1",
 				},
 			},
 		},
@@ -469,7 +478,7 @@ func Test_loadAllCredentials(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			result: &Config{
+			cfg: &Config{
 				Targets: []*TargetConfig{
 					{
 						Bucket: &BucketConfig{
@@ -483,6 +492,14 @@ func Test_loadAllCredentials(t *testing.T) {
 							},
 						},
 					},
+				},
+			},
+			result: []*CredentialConfig{
+				{
+					Value: "value1",
+				},
+				{
+					Value: "value2",
 				},
 			},
 		},
@@ -506,7 +523,7 @@ func Test_loadAllCredentials(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			result: &Config{
+			cfg: &Config{
 				ListTargets: &ListTargetsConfig{
 					Resource: &Resource{
 						Basic: &ResourceBasic{
@@ -519,6 +536,11 @@ func Test_loadAllCredentials(t *testing.T) {
 							},
 						},
 					},
+				},
+			},
+			result: []*CredentialConfig{
+				{
+					Value: "value1",
 				},
 			},
 		},
@@ -538,7 +560,7 @@ func Test_loadAllCredentials(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			result: &Config{
+			cfg: &Config{
 				AuthProviders: &AuthProviderConfig{
 					OIDC: map[string]*OIDCAuthConfig{
 						"test": {
@@ -549,16 +571,25 @@ func Test_loadAllCredentials(t *testing.T) {
 					},
 				},
 			},
+			result: []*CredentialConfig{
+				{
+					Value: "value1",
+				},
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := loadAllCredentials(tt.args.out)
+			res, err := loadAllCredentials(tt.args.out)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("loadAllCredentials() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
-			if !tt.wantErr && !reflect.DeepEqual(tt.args.out, tt.result) {
-				t.Errorf("loadAllCredentials() source = %+v, want %+v", tt.args.out, tt.result)
+			if !reflect.DeepEqual(tt.cfg, tt.args.out) {
+				t.Errorf("loadAllCredentials() source = %+v, want %+v", tt.cfg, tt.args.out)
+			}
+			if !reflect.DeepEqual(tt.result, res) {
+				t.Errorf("loadAllCredentials() result = %+v, want %+v", res, tt.result)
 			}
 		})
 	}

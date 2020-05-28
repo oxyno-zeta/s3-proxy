@@ -6,9 +6,12 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/go-playground/validator/v10"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/spf13/viper"
@@ -21,9 +24,15 @@ var mainConfigFolderPath = "conf/"
 var validate = validator.New()
 
 type managercontext struct {
-	cfg     *Config
-	configs []*viper.Viper
-	logger  log.Logger
+	cfg                       *Config
+	configs                   []*viper.Viper
+	onChangeHooks             []func()
+	logger                    log.Logger
+	internalFileWatchChannels []chan bool
+}
+
+func (ctx *managercontext) AddOnChangeHook(hook func()) {
+	ctx.onChangeHooks = append(ctx.onChangeHooks, hook)
 }
 
 func (ctx *managercontext) Load() error {
@@ -45,7 +54,95 @@ func (ctx *managercontext) Load() error {
 		return err
 	}
 
-	return err
+	// Loop over config files
+	for _, vip := range ctx.configs {
+		// Add hooks for on change events
+		vip.OnConfigChange(func(in fsnotify.Event) {
+			ctx.logger.Infof("Reload configuration detected for file %s", in.Name)
+
+			// Reload config
+			err2 := ctx.loadConfiguration()
+			if err2 != nil {
+				ctx.logger.Error(err2)
+				// Stop here and do not call hooks => configuration is unstable
+				return
+			}
+			// Call all hooks
+			funk.ForEach(ctx.onChangeHooks, func(hook func()) { hook() })
+		})
+		// Watch for configuration changes
+		vip.WatchConfig()
+	}
+
+	return nil
+}
+
+// Imported and modified from viper v1.7.0
+func (ctx *managercontext) watchInternalFile(filePath string, forceStop chan bool, onChange func()) {
+	initWG := sync.WaitGroup{}
+	initWG.Add(1)
+
+	go func() {
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
+			ctx.logger.Fatal(err)
+		}
+		defer watcher.Close()
+
+		configFile := filepath.Clean(filePath)
+		configDir, _ := filepath.Split(configFile)
+		realConfigFile, _ := filepath.EvalSymlinks(filePath)
+
+		eventsWG := sync.WaitGroup{}
+		eventsWG.Add(1)
+
+		go func() {
+			for {
+				select {
+				case <-forceStop:
+					eventsWG.Done()
+					return
+				case event, ok := <-watcher.Events:
+					if !ok { // 'Events' channel is closed
+						eventsWG.Done()
+						return
+					}
+
+					currentConfigFile, _ := filepath.EvalSymlinks(filePath)
+					// we only care about the config file with the following cases:
+					// 1 - if the config file was modified or created
+					// 2 - if the real path to the config file changed (eg: k8s ConfigMap replacement)
+					const writeOrCreateMask = fsnotify.Write | fsnotify.Create
+					if (filepath.Clean(event.Name) == configFile &&
+						event.Op&writeOrCreateMask != 0) ||
+						(currentConfigFile != "" && currentConfigFile != realConfigFile) { // nolint: whiteline
+						realConfigFile = currentConfigFile
+
+						// Call on change
+						onChange()
+					} else if filepath.Clean(event.Name) == configFile && event.Op&fsnotify.Remove&fsnotify.Remove != 0 {
+						eventsWG.Done()
+						return
+					}
+
+				case err, ok := <-watcher.Errors:
+					if ok { // 'Errors' channel is not closed
+						ctx.logger.Errorf("watcher error: %v\n", err)
+					}
+
+					eventsWG.Done()
+
+					return
+				}
+			}
+		}()
+
+		_ = watcher.Add(configDir)
+
+		initWG.Done()   // done initializing the watch in this go routine, so the parent routine can move on...
+		eventsWG.Wait() // now, wait for event loop to end in this go-routine...
+	}()
+	initWG.Wait() // make sure that the go routine above fully ended before returning
 }
 
 func (ctx *managercontext) loadDefaultConfigurationValues() {
@@ -87,6 +184,13 @@ func generateViperInstances(files []os.FileInfo) []*viper.Viper {
 }
 
 func (ctx *managercontext) loadConfiguration() error {
+	// Load must start by flushing all existing watcher on internal files
+	for i := 0; i < len(ctx.internalFileWatchChannels); i++ {
+		ch := ctx.internalFileWatchChannels[i]
+		// Send the force stop
+		ch <- true
+	}
+
 	// Loop over configs
 	for _, vip := range ctx.configs {
 		err := vip.ReadInConfig()
@@ -121,10 +225,39 @@ func (ctx *managercontext) loadConfiguration() error {
 	}
 
 	// Load all credentials
-	err = loadAllCredentials(&out)
+	credentials, err := loadAllCredentials(&out)
 	if err != nil {
 		return err
 	}
+	// Initialize or flush watch internal file channels
+	internalFileWatchChannels := make([]chan bool, 0)
+	ctx.internalFileWatchChannels = internalFileWatchChannels
+	// Loop over all credentials in order to watch file change
+	funk.ForEach(credentials, func(item interface{}) {
+		cred := item.(*CredentialConfig)
+		// Check if credential is about a path
+		if cred.Path != "" {
+			// Create channel
+			ch := make(chan bool)
+			// Run the watch file
+			ctx.watchInternalFile(cred.Path, ch, func() {
+				// File change detected
+				ctx.logger.Infof("Reload credential file detected for path %s", cred.Path)
+
+				// Reload config
+				err2 := loadCredential(cred)
+				if err2 != nil {
+					ctx.logger.Error(err2)
+					// Stop here and do not call hooks => configuration is unstable
+					return
+				}
+				// Call all hooks
+				funk.ForEach(ctx.onChangeHooks, func(hook func()) { hook() })
+			})
+			// Add channel to list of channels
+			ctx.internalFileWatchChannels = append(ctx.internalFileWatchChannels, ch)
+		}
+	})
 
 	err = validateBusinessConfig(&out)
 	if err != nil {
@@ -141,7 +274,10 @@ func (ctx *managercontext) GetConfig() *Config {
 	return ctx.cfg
 }
 
-func loadAllCredentials(out *Config) error {
+func loadAllCredentials(out *Config) ([]*CredentialConfig, error) {
+	// Initialize answer
+	result := make([]*CredentialConfig, 0)
+
 	// Load credentials from declaration
 	for _, item := range out.Targets {
 		// Check if resources are declared
@@ -156,8 +292,10 @@ func loadAllCredentials(out *Config) error {
 						// Load credential
 						err := loadCredential(it.Password)
 						if err != nil {
-							return err
+							return nil, err
 						}
+						// Save credential
+						result = append(result, it.Password)
 					}
 				}
 			}
@@ -167,13 +305,15 @@ func loadAllCredentials(out *Config) error {
 			// Manage access key
 			err := loadCredential(item.Bucket.Credentials.AccessKey)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			// Manage secret key
 			err = loadCredential(item.Bucket.Credentials.SecretKey)
 			if err != nil {
-				return err
+				return nil, err
 			}
+			// Save credential
+			result = append(result, item.Bucket.Credentials.AccessKey, item.Bucket.Credentials.SecretKey)
 		}
 	}
 
@@ -187,8 +327,10 @@ func loadAllCredentials(out *Config) error {
 				if v.ClientSecret != nil {
 					err := loadCredential(v.ClientSecret)
 					if err != nil {
-						return err
+						return nil, err
 					}
+					// Save credential
+					result = append(result, v.ClientSecret)
 				}
 			}
 		}
@@ -204,12 +346,14 @@ func loadAllCredentials(out *Config) error {
 			// Load credential
 			err := loadCredential(it.Password)
 			if err != nil {
-				return err
+				return nil, err
 			}
+			// Save credential
+			result = append(result, it.Password)
 		}
 	}
 
-	return nil
+	return result, nil
 }
 
 func loadCredential(credCfg *CredentialConfig) error {

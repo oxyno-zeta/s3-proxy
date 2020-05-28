@@ -2,8 +2,8 @@ package server
 
 import (
 	"net/http"
+	"strconv"
 
-	"github.com/dimiro1/health"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/hostrouter"
@@ -16,45 +16,63 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-// GenerateInternalRouter Generate internal router
-func GenerateInternalRouter(logger log.Logger, metricsCtx metrics.Client) http.Handler {
-	r := chi.NewRouter()
-
-	// A good base middleware stack
-	r.Use(middleware.Compress(
-		5,
-		"text/html",
-		"text/css",
-		"text/plain",
-		"text/javascript",
-		"application/javascript",
-		"application/x-javascript",
-		"application/json",
-		"application/atom+xml",
-		"application/rss+xml",
-		"image/svg+xml",
-	))
-	r.Use(middleware.NoCache)
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middlewares.NewStructuredLogger(logger))
-	r.Use(metricsCtx.Instrument())
-	r.Use(middleware.Recoverer)
-
-	healthHandler := health.NewHandler()
-	// Listen path
-	r.Handle("/metrics", metricsCtx.GetExposeHandler())
-	r.Handle("/health", healthHandler)
-
-	return r
-}
-
 const (
 	defaultMaxMemory = 32 << 20 // 32 MB
 )
 
-// GenerateRouter Generate router
-func GenerateRouter(logger log.Logger, cfg *config.Config, metricsCtx metrics.Client) (http.Handler, error) {
+type Server struct {
+	logger     log.Logger
+	cfgManager config.Manager
+	metricsCl  metrics.Client
+}
+
+func NewServer(logger log.Logger, cfgManager config.Manager, metricsCl metrics.Client) *Server {
+	return &Server{
+		logger:     logger,
+		cfgManager: cfgManager,
+		metricsCl:  metricsCl,
+	}
+}
+
+func (svr *Server) Listen() error {
+	// Get configuration
+	cfg := svr.cfgManager.GetConfig()
+	// Generate router
+	r, err := svr.generateRouter()
+	if err != nil {
+		return err
+	}
+
+	// Create server
+	addr := cfg.Server.ListenAddr + ":" + strconv.Itoa(cfg.Server.Port)
+	server := &http.Server{
+		Addr:    addr,
+		Handler: r,
+	}
+
+	// Prepare for configuration onChange
+	svr.cfgManager.AddOnChangeHook(func() {
+		// Generate router
+		r, err2 := svr.generateRouter()
+		if err2 != nil {
+			svr.logger.Fatal(err2)
+		}
+		// Change server handler
+		server.Handler = r
+		svr.logger.Info("Server handler reloaded")
+	})
+
+	svr.logger.Infof("Server listening on %s", addr)
+
+	err = server.ListenAndServe()
+
+	return err
+}
+
+func (svr *Server) generateRouter() (http.Handler, error) {
+	// Get configuration
+	cfg := svr.cfgManager.GetConfig()
+	// Create router
 	r := chi.NewRouter()
 
 	// A good base middleware stack
@@ -74,8 +92,8 @@ func GenerateRouter(logger log.Logger, cfg *config.Config, metricsCtx metrics.Cl
 	r.Use(middleware.NoCache)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(middlewares.NewStructuredLogger(logger))
-	r.Use(metricsCtx.Instrument())
+	r.Use(middlewares.NewStructuredLogger(svr.logger))
+	r.Use(svr.metricsCl.Instrument())
 	r.Use(middleware.Recoverer)
 	// Check if auth if enabled and oidc enabled
 	if cfg.AuthProviders != nil && cfg.AuthProviders.OIDC != nil {
@@ -136,7 +154,7 @@ func GenerateRouter(logger log.Logger, cfg *config.Config, metricsCtx metrics.Cl
 		funk.ForEach(tgt.Mount.Path, func(path string) {
 			rt.Route(path, func(rt2 chi.Router) {
 				// Add Bucket request context middleware to initialize it
-				rt2.Use(middlewares.BucketRequestContext(tgt, cfg.Templates, path, metricsCtx))
+				rt2.Use(middlewares.BucketRequestContext(tgt, cfg.Templates, path, svr.metricsCl))
 
 				// Add auth middleware to router
 				rt2.Use(middlewares.AuthMiddleware(cfg, tgt.Resources))

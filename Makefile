@@ -31,6 +31,7 @@ HAS_GIT := $(shell command -v git;)
 HAS_COLORGO := $(shell command -v colorgo;)
 HAS_GOLANGCI_LINT := $(shell command -v golangci-lint;)
 HAS_CURL:=$(shell command -v curl;)
+HAS_MOCKGEN:=$(shell command -v mockgen;)
 
 .DEFAULT_GOAL := code/lint
 
@@ -78,18 +79,19 @@ endif
 
 .PHONY: test/all
 test/all: setup/dep/install
-	$(GO) test --tags=unit,integration -v -coverpkg=./pkg/... -coverprofile=c.out ./pkg/...
+	$(GO) test --tags=unit,integration -v -coverpkg=./pkg/... -coverprofile=c.out.tmp ./pkg/...
 
 .PHONY: test/unit
 test/unit: setup/dep/install
-	$(GO) test --tags=unit -v -coverpkg=./pkg/... -coverprofile=c.out ./pkg/...
+	$(GO) test --tags=unit -v -coverpkg=./pkg/... -coverprofile=c.out.tmp ./pkg/...
 
 .PHONY: test/integration
 test/integration: setup/dep/install
-	$(GO) test --tags=integration -v -coverpkg=./pkg/... -coverprofile=c.out ./pkg/...
+	$(GO) test --tags=integration -v -coverpkg=./pkg/... -coverprofile=c.out.tmp ./pkg/...
 
 .PHONY: test/coverage
 test/coverage:
+	cat c.out.tmp | grep -v "mock_" > c.out
 	$(GO) tool cover -html=c.out -o coverage.html
 	$(GO) tool cover -func c.out
 
@@ -100,6 +102,10 @@ test/coverage:
 .PHONY: setup/services
 setup/services:
 	docker run -d --rm --name keycloak -p 8080:8080 -e KEYCLOAK_IMPORT=/tmp/realm-export.json -v $(CURRENT_DIR)/tests/realm-export.json:/tmp/realm-export.json -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin jboss/keycloak:10.0.0
+
+.PHONY: setup/mocks
+setup/mocks:
+	go generate ./...
 
 .PHONY: setup/dep/install
 setup/dep/install:
@@ -116,6 +122,10 @@ ifndef HAS_COLORGO
 endif
 ifndef HAS_GIT
 	$(error You must install Git)
+endif
+ifndef HAS_MOCKGEN
+	@echo "=> Installing mockgen tool"
+	go get -u github.com/golang/mock/mockgen@v1.4.3
 endif
 	go mod download
 	go mod tidy

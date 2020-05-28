@@ -1,15 +1,12 @@
 package main
 
 import (
-	"net/http"
-	"os"
-	"strconv"
-
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version"
+	"golang.org/x/sync/errgroup"
 )
 
 // Main package
@@ -35,6 +32,17 @@ func main() {
 		logger.Fatal(err)
 	}
 
+	// Watch change for logger (special case)
+	cfgManager.AddOnChangeHook(func() {
+		// Get configuration
+		cfg := cfgManager.GetConfig()
+		// Configure logger
+		err = logger.Configure(cfg.Log.Level, cfg.Log.Format, cfg.Log.FilePath)
+		if err != nil {
+			logger.Error(err)
+		}
+	})
+
 	logger.Debug("Configuration successfully loaded and logger configured")
 
 	// Getting version
@@ -44,51 +52,17 @@ func main() {
 	// Generate metrics instance
 	metricsCtx := metrics.NewClient()
 
-	// Listen
-	go internalServe(logger, cfg, metricsCtx)
-	serve(logger, cfg, metricsCtx)
-}
-
-func internalServe(logger log.Logger, cfg *config.Config, metricsCtx metrics.Client) {
-	r := server.GenerateInternalRouter(logger, metricsCtx)
+	// Create internal server
+	intSvr := server.NewInternalServer(logger, cfgManager, metricsCtx)
 	// Create server
-	addr := cfg.InternalServer.ListenAddr + ":" + strconv.Itoa(cfg.InternalServer.Port)
-	server := &http.Server{
-		Addr:    addr,
-		Handler: r,
-	}
+	svr := server.NewServer(logger, cfgManager, metricsCtx)
 
-	logger.Infof("Server listening on %s", addr)
+	var g errgroup.Group
 
-	err := server.ListenAndServe()
-	// Check if error exists
-	if err != nil {
-		logger.Fatalf("Unable to start http server: %v", err)
-		os.Exit(1)
-	}
-}
+	g.Go(svr.Listen)
+	g.Go(intSvr.Listen)
 
-func serve(logger log.Logger, cfg *config.Config, metricsCtx metrics.Client) {
-	// Generate router
-	r, err := server.GenerateRouter(logger, cfg, metricsCtx)
-	if err != nil {
-		logger.Fatalf("Unable to setup http server: %v", err)
-		os.Exit(1)
-	}
-
-	// Create server
-	addr := cfg.Server.ListenAddr + ":" + strconv.Itoa(cfg.Server.Port)
-	server := &http.Server{
-		Addr:    addr,
-		Handler: r,
-	}
-
-	logger.Infof("Server listening on %s", addr)
-
-	err = server.ListenAndServe()
-	// Check if error exists
-	if err != nil {
-		logger.Fatalf("Unable to start http server: %v", err)
-		os.Exit(1)
+	if err := g.Wait(); err != nil {
+		logger.Fatal(err)
 	}
 }
