@@ -115,7 +115,7 @@ func (ctx *managercontext) watchInternalFile(filePath string, forceStop chan boo
 					const writeOrCreateMask = fsnotify.Write | fsnotify.Create
 					if (filepath.Clean(event.Name) == configFile &&
 						event.Op&writeOrCreateMask != 0) ||
-						(currentConfigFile != "" && currentConfigFile != realConfigFile) { // nolint: whiteline
+						(currentConfigFile != "" && currentConfigFile != realConfigFile) { // nolint: whitespace
 						realConfigFile = currentConfigFile
 
 						// Call on change
