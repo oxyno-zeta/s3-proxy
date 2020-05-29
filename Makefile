@@ -101,7 +101,7 @@ test/coverage:
 
 .PHONY: setup/services
 setup/services:
-	docker run -d --rm --name keycloak -p 8080:8080 -e KEYCLOAK_IMPORT=/tmp/realm-export.json -v $(CURRENT_DIR)/tests/realm-export.json:/tmp/realm-export.json -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin jboss/keycloak:10.0.0
+	docker run -d --rm --name keycloak -p 8088:8080 -e KEYCLOAK_IMPORT=/tmp/realm-export.json -v $(CURRENT_DIR)/tests/realm-export.json:/tmp/realm-export.json -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin jboss/keycloak:10.0.0
 
 .PHONY: setup/mocks
 setup/mocks:

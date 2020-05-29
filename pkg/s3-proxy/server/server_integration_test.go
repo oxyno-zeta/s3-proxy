@@ -2019,9 +2019,9 @@ func TestOIDCAuthentication(t *testing.T) {
 								ClientID:     "client-with-secret",
 								ClientSecret: &config.CredentialConfig{Value: "565f78f2-a706-41cd-a1a0-431d7df29443"},
 								CookieName:   "oidc",
-								RedirectURL:  "http://localhost:18080/",
+								RedirectURL:  "http://localhost:8080/",
 								CallbackPath: "/auth/provider1/callback",
-								IssuerURL:    "http://localhost:8080/auth/realms/integration",
+								IssuerURL:    "http://localhost:8088/auth/realms/integration",
 								LoginPath:    "/auth/provider1/",
 							},
 						},
@@ -2029,7 +2029,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Targets: targetsTpl,
 				},
 			},
-			inputURL: "http://localhost:18080/mount/folder1/test.txt",
+			inputURL: "http://localhost:8080/mount/folder1/test.txt",
 			wantErr:  false,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-store, must-revalidate, max-age=0",
@@ -2051,9 +2051,9 @@ func TestOIDCAuthentication(t *testing.T) {
 								ClientID:     "client-with-secret",
 								ClientSecret: &config.CredentialConfig{Value: "565f78f2-a706-41cd-a1a0-431d7df29443"},
 								CookieName:   "oidc",
-								RedirectURL:  "http://localhost:18080/",
+								RedirectURL:  "http://localhost:8080/",
 								CallbackPath: "/auth/provider1/callback",
-								IssuerURL:    "http://localhost:8080/auth/realms/integration",
+								IssuerURL:    "http://localhost:8088/auth/realms/integration",
 								LoginPath:    "/auth/provider1/",
 							},
 						},
@@ -2061,7 +2061,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Targets: targetsTpl,
 				},
 			},
-			inputURL:               "http://localhost:18080/mount/folder1/test.txt",
+			inputURL:               "http://localhost:8080/mount/folder1/test.txt",
 			inputForgeOIDCHeader:   true,
 			inputForgeOIDCUsername: "user",
 			inputForgeOIDCPassword: "password",
@@ -2070,7 +2070,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/plain; charset=utf-8",
 			},
-			expectedResponseHost: "localhost:18080",
+			expectedResponseHost: "localhost:8080",
 			expectedResponsePath: "/mount/folder1/test.txt",
 			expectedCode:         200,
 		},
@@ -2086,9 +2086,9 @@ func TestOIDCAuthentication(t *testing.T) {
 								ClientID:      "client-with-secret",
 								ClientSecret:  &config.CredentialConfig{Value: "565f78f2-a706-41cd-a1a0-431d7df29443"},
 								CookieName:    "oidc",
-								RedirectURL:   "http://localhost:18080/",
+								RedirectURL:   "http://localhost:8080/",
 								CallbackPath:  "/auth/provider1/callback",
-								IssuerURL:     "http://localhost:8080/auth/realms/integration",
+								IssuerURL:     "http://localhost:8088/auth/realms/integration",
 								LoginPath:     "/auth/provider1/",
 								EmailVerified: true,
 							},
@@ -2097,7 +2097,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Targets: targetsTpl,
 				},
 			},
-			inputURL:               "http://localhost:18080/mount/folder1/test.txt",
+			inputURL:               "http://localhost:8080/mount/folder1/test.txt",
 			inputForgeOIDCHeader:   true,
 			inputForgeOIDCUsername: "user",
 			inputForgeOIDCPassword: "password",
@@ -2106,7 +2106,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/plain; charset=utf-8",
 			},
-			expectedResponseHost: "localhost:18080",
+			expectedResponseHost: "localhost:8080",
 			expectedResponsePath: "/mount/folder1/test.txt",
 			expectedCode:         200,
 		},
@@ -2122,9 +2122,9 @@ func TestOIDCAuthentication(t *testing.T) {
 								ClientID:      "client-with-secret",
 								ClientSecret:  &config.CredentialConfig{Value: "565f78f2-a706-41cd-a1a0-431d7df29443"},
 								CookieName:    "oidc",
-								RedirectURL:   "http://localhost:18080/",
+								RedirectURL:   "http://localhost:8080/",
 								CallbackPath:  "/auth/provider1/callback",
-								IssuerURL:     "http://localhost:8080/auth/realms/integration",
+								IssuerURL:     "http://localhost:8088/auth/realms/integration",
 								LoginPath:     "/auth/provider1/",
 								EmailVerified: true,
 							},
@@ -2133,7 +2133,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Targets: targetsTpl,
 				},
 			},
-			inputURL:               "http://localhost:18080/mount/folder1/test.txt",
+			inputURL:               "http://localhost:8080/mount/folder1/test.txt",
 			inputForgeOIDCHeader:   true,
 			inputForgeOIDCUsername: "user-not-verified",
 			inputForgeOIDCPassword: "password",
@@ -2142,7 +2142,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/html; charset=utf-8",
 			},
-			expectedResponseHost: "localhost:18080",
+			expectedResponseHost: "localhost:8080",
 			expectedResponsePath: "/mount/folder1/test.txt",
 			expectedCode:         403,
 		},
@@ -2175,7 +2175,7 @@ func TestOIDCAuthentication(t *testing.T) {
 
 			// Create a real server this time
 			svr := http.Server{
-				Addr:    ":18080",
+				Addr:    ":8080",
 				Handler: got,
 			}
 			// Add a wait
@@ -2206,7 +2206,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				data.Set("grant_type", "password")
 				data.Set("scope", "openid profile")
 
-				authentUrlStr := "http://localhost:8080/auth/realms/integration/protocol/openid-connect/token"
+				authentUrlStr := "http://localhost:8088/auth/realms/integration/protocol/openid-connect/token"
 
 				clientAuth := &http.Client{}
 				r, err := http.NewRequest("POST", authentUrlStr, strings.NewReader(data.Encode())) // URL-encoded payload
