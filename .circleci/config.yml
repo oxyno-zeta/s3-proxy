@@ -78,7 +78,7 @@ jobs:
             && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz;
             fi
       - run: make setup/services
-      - run: dockerize -wait tcp://localhost:8080 -timeout 5m
+      - run: dockerize -wait tcp://localhost:8088 -timeout 5m
       - run: docker logs keycloak
       - run: make test/all
       - run: make test/coverage
