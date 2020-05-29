@@ -17,6 +17,7 @@ type InternalServer struct {
 	logger     log.Logger
 	cfgManager config.Manager
 	metricsCl  metrics.Client
+	server     *http.Server
 }
 
 func NewInternalServer(logger log.Logger, cfgManager config.Manager, metricsCl metrics.Client) *InternalServer {
@@ -38,6 +39,8 @@ func (svr *InternalServer) Listen() error {
 		Addr:    addr,
 		Handler: r,
 	}
+	// Store server
+	svr.server = server
 
 	svr.logger.Infof("Internal server listening on %s", addr)
 
