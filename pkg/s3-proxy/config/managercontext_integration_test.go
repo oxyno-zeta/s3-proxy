@@ -591,7 +591,7 @@ targets:
 	// Get configuration
 	res := ctx.GetConfig()
 
-	assert.Equal(t, res, &Config{
+	assert.Equal(t, &Config{
 		Log: &LogConfig{
 			Level:  "error",
 			Format: "json",
@@ -639,7 +639,7 @@ targets:
 				Templates: &TargetTemplateConfig{},
 			},
 		},
-	})
+	}, res)
 
 	configs = map[string]string{
 		"log.yaml": `
@@ -661,7 +661,7 @@ log:
 		// Get configuration
 		res = ctx.GetConfig()
 
-		assert.Equal(t, res, &Config{
+		assert.Equal(t, &Config{
 			Log: &LogConfig{
 				Level:  "debug",
 				Format: "text",
@@ -709,7 +709,7 @@ log:
 					Templates: &TargetTemplateConfig{},
 				},
 			},
-		})
+		}, res)
 		return
 	case <-time.After(5 * time.Second):
 		assert.FailNow(t, "shouldn't call this")
@@ -781,7 +781,7 @@ targets:
 	// Get configuration
 	res := ctx.GetConfig()
 
-	assert.Equal(t, res, &Config{
+	assert.Equal(t, &Config{
 		Log: &LogConfig{
 			Level:  "error",
 			Format: "text",
@@ -829,7 +829,7 @@ targets:
 				Templates: &TargetTemplateConfig{},
 			},
 		},
-	})
+	}, res)
 
 	secretFiles = map[string]string{
 		os.TempDir() + "/secret1": "SECRET1",
@@ -849,7 +849,7 @@ targets:
 		// Get configuration
 		res = ctx.GetConfig()
 
-		assert.Equal(t, res, &Config{
+		assert.Equal(t, &Config{
 			Log: &LogConfig{
 				Level:  "error",
 				Format: "text",
@@ -897,7 +897,7 @@ targets:
 					Templates: &TargetTemplateConfig{},
 				},
 			},
-		})
+		}, res)
 		return
 	case <-time.After(5 * time.Second):
 		assert.FailNow(t, "shouldn't call this")
