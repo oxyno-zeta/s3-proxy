@@ -14,7 +14,8 @@ import (
 
 // HandleInternalServerErrorWithTemplate Handle internal server error following response template given in parameter
 // nolint:whitespace
-func HandleInternalServerErrorWithTemplate(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) {
+func HandleInternalServerErrorWithTemplate(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig,
+	tplString string, requestPath string, err error) {
 	err2 := TemplateExecution(tplCfg.InternalServerError, tplString, logger, rw, struct {
 		Path  string
 		Error error
