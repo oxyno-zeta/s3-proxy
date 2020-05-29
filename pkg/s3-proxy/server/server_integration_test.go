@@ -2035,7 +2035,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				"Cache-Control": "no-store, must-revalidate, max-age=0",
 				"Content-Type":  "text/html;charset=utf-8",
 			},
-			expectedResponseHost: "localhost:8080",
+			expectedResponseHost: "localhost:8088",
 			expectedResponsePath: "/auth/realms/integration/protocol/openid-connect/auth",
 			expectedCode:         200,
 		},
