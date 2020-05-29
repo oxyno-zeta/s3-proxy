@@ -5,11 +5,14 @@ package server
 import (
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	cmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config/mocks"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInternalServer_generateInternalRouter(t *testing.T) {
@@ -82,4 +85,40 @@ func TestInternalServer_generateInternalRouter(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestInternal_Server_Listen(t *testing.T) {
+	// Create go mock controller
+	ctrl := gomock.NewController(t)
+	cfgManagerMock := cmocks.NewMockManager(ctrl)
+
+	// Load configuration in manager
+	cfgManagerMock.EXPECT().GetConfig().Return(&config.Config{
+		InternalServer: &config.ServerConfig{
+			ListenAddr: "",
+			Port:       8080,
+		},
+	})
+
+	svr := NewInternalServer(log.NewLogger(), cfgManagerMock, metricsCtx)
+
+	var wg sync.WaitGroup
+	// Add a wait
+	wg.Add(1)
+	// Listen and synchronize wait
+	go func() error {
+		wg.Done()
+		return svr.Listen()
+	}()
+	// Wait server up and running
+	wg.Wait()
+
+	// Do a request
+	resp, err := http.Get("http://localhost:8080/health")
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, 200, resp.StatusCode)
+	// Defer close server
+	err = svr.server.Close()
+	assert.NoError(t, err)
 }
