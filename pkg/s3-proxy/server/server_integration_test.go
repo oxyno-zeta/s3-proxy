@@ -2196,6 +2196,8 @@ func TestOIDCAuthentication(t *testing.T) {
 			}()
 			// Wait server up and running
 			wg.Wait()
+			// Force a sleep in order to wait server up and running
+			time.Sleep(time.Second)
 			// Defer close server
 			defer func() {
 				err := ssvr.server.Close()
