@@ -29,6 +29,13 @@ func NewInternalServer(logger log.Logger, cfgManager config.Manager, metricsCl m
 }
 
 func (svr *InternalServer) Listen() error {
+	svr.logger.Infof("Internal server listening on %s", svr.server.Addr)
+	err := svr.server.ListenAndServe()
+
+	return err
+}
+
+func (svr *InternalServer) GenerateServer() {
 	// Get configuration
 	cfg := svr.cfgManager.GetConfig()
 	// Generate internal router
@@ -41,12 +48,6 @@ func (svr *InternalServer) Listen() error {
 	}
 	// Store server
 	svr.server = server
-
-	svr.logger.Infof("Internal server listening on %s", addr)
-
-	err := server.ListenAndServe()
-
-	return err
 }
 
 func (svr *InternalServer) generateInternalRouter() http.Handler {

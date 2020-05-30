@@ -101,6 +101,8 @@ func TestInternal_Server_Listen(t *testing.T) {
 	})
 
 	svr := NewInternalServer(log.NewLogger(), cfgManagerMock, metricsCtx)
+	// Generate server
+	svr.GenerateServer()
 
 	var wg sync.WaitGroup
 	// Add a wait

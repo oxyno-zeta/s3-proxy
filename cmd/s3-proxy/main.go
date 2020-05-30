@@ -54,8 +54,15 @@ func main() {
 
 	// Create internal server
 	intSvr := server.NewInternalServer(logger, cfgManager, metricsCtx)
+	// Generate server
+	intSvr.GenerateServer()
 	// Create server
 	svr := server.NewServer(logger, cfgManager, metricsCtx)
+	// Generate server
+	err = svr.GenerateServer()
+	if err != nil {
+		logger.Fatal(err)
+	}
 
 	var g errgroup.Group
 
