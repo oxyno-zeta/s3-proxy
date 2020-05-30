@@ -9,7 +9,7 @@ LDFLAGS   := -w -s
 GOFLAGS   := -i
 BINDIR    := $(CURDIR)/bin
 DISTDIR   := dist
-CURRENT_DIR = $(shell pwd)
+CURRENT_DIR = $(CURDIR)
 
 # Required for globs to work correctly
 SHELL=/usr/bin/env bash
@@ -28,7 +28,6 @@ LDFLAGS += -X ${PKG}/pkg/${PROJECT_NAME}/version.BuildDate=${DATE}
 
 HAS_GORELEASER := $(shell command -v goreleaser;)
 HAS_GIT := $(shell command -v git;)
-HAS_COLORGO := $(shell command -v colorgo;)
 HAS_GOLANGCI_LINT := $(shell command -v golangci-lint;)
 HAS_CURL:=$(shell command -v curl;)
 HAS_MOCKGEN:=$(shell command -v mockgen;)
@@ -45,7 +44,7 @@ code/lint: setup/dep/install
 
 .PHONY: code/build
 code/build: code/clean setup/dep/install
-	GOBIN=$(BINDIR) colorgo install $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' $(PKG)/cmd/${PROJECT_NAME}
+	$(GO) build -o $(BINDIR)/$(PROJECT_NAME) $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' $(PKG)/cmd/${PROJECT_NAME}
 
 .PHONY: code/build-cross
 code/build-cross: code/clean setup/dep/install
@@ -115,10 +114,6 @@ ifndef HAS_CURL
 	$(error You must install curl)
 endif
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.27.0
-endif
-ifndef HAS_COLORGO
-	@echo "=> Installing colorgo tool"
-	go get -u github.com/songgao/colorgo
 endif
 ifndef HAS_GIT
 	$(error You must install Git)
