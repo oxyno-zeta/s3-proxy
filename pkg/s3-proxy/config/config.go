@@ -94,8 +94,8 @@ type AuthProviderConfig struct {
 type OIDCAuthConfig struct {
 	ClientID      string            `mapstructure:"clientID" validate:"required"`
 	ClientSecret  *CredentialConfig `mapstructure:"clientSecret" validate:"omitempty,dive"`
-	IssuerURL     string            `mapstructure:"issuerUrl" validate:"required"`
-	RedirectURL   string            `mapstructure:"redirectUrl" validate:"required"`
+	IssuerURL     string            `mapstructure:"issuerUrl" validate:"required,url"`
+	RedirectURL   string            `mapstructure:"redirectUrl" validate:"required,url"`
 	Scopes        []string          `mapstructure:"scope"`
 	State         string            `mapstructure:"state" validate:"required"`
 	GroupClaim    string            `mapstructure:"groupClaim"`
