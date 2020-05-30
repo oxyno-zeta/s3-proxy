@@ -72,6 +72,7 @@ func (svr *Server) GenerateServer() error {
 
 	// Store server
 	svr.server = server
+
 	return nil
 }
 
