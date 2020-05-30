@@ -24,6 +24,7 @@ type Server struct {
 	logger     log.Logger
 	cfgManager config.Manager
 	metricsCl  metrics.Client
+	server     *http.Server
 }
 
 func NewServer(logger log.Logger, cfgManager config.Manager, metricsCl metrics.Client) *Server {
@@ -35,6 +36,13 @@ func NewServer(logger log.Logger, cfgManager config.Manager, metricsCl metrics.C
 }
 
 func (svr *Server) Listen() error {
+	svr.logger.Infof("Server listening on %s", svr.server.Addr)
+	err := svr.server.ListenAndServe()
+
+	return err
+}
+
+func (svr *Server) GenerateServer() error {
 	// Get configuration
 	cfg := svr.cfgManager.GetConfig()
 	// Generate router
@@ -62,11 +70,9 @@ func (svr *Server) Listen() error {
 		svr.logger.Info("Server handler reloaded")
 	})
 
-	svr.logger.Infof("Server listening on %s", addr)
-
-	err = server.ListenAndServe()
-
-	return err
+	// Store server
+	svr.server = server
+	return nil
 }
 
 func (svr *Server) generateRouter() (http.Handler, error) {

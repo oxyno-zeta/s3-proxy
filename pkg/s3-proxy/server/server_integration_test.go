@@ -23,6 +23,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	cmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config/mocks"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPublicRouter(t *testing.T) {
@@ -1962,6 +1963,10 @@ func TestOIDCAuthentication(t *testing.T) {
 			},
 		},
 	}
+	svrCfg := &config.ServerConfig{
+		ListenAddr: "",
+		Port:       8080,
+	}
 
 	type jwtToken struct {
 		IDToken string `json:"id_token"`
@@ -1988,6 +1993,7 @@ func TestOIDCAuthentication(t *testing.T) {
 			name: "Inject not working OIDC provider",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
@@ -2011,6 +2017,7 @@ func TestOIDCAuthentication(t *testing.T) {
 			name: "GET a file with redirect to oidc provider in case of no oidc cookie or bearer token",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
@@ -2043,6 +2050,7 @@ func TestOIDCAuthentication(t *testing.T) {
 			name: "GET a file with oidc bearer token should be ok",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
@@ -2078,6 +2086,7 @@ func TestOIDCAuthentication(t *testing.T) {
 			name: "GET a file with oidc bearer token and email verified flag enabled should be ok",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
@@ -2114,6 +2123,7 @@ func TestOIDCAuthentication(t *testing.T) {
 			name: "GET a file with oidc bearer token and email verified flag enabled should be forbidden",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
@@ -2154,16 +2164,13 @@ func TestOIDCAuthentication(t *testing.T) {
 			cfgManagerMock := cmocks.NewMockManager(ctrl)
 
 			// Load configuration in manager
-			cfgManagerMock.EXPECT().GetConfig().Return(tt.args.cfg)
+			cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(tt.args.cfg)
+			cfgManagerMock.EXPECT().AddOnChangeHook(gomock.Any()).AnyTimes()
 
-			ssvr := &Server{
-				logger:     log.NewLogger(),
-				cfgManager: cfgManagerMock,
-				metricsCl:  metricsCtx,
-			}
-			got, err := ssvr.generateRouter()
+			ssvr := NewServer(log.NewLogger(), cfgManagerMock, metricsCtx)
+			err := ssvr.GenerateServer()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("generateRouter() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("generateServer() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			// If want error at this moment => stop
@@ -2173,22 +2180,27 @@ func TestOIDCAuthentication(t *testing.T) {
 
 			var wg sync.WaitGroup
 
-			// Create a real server this time
-			svr := http.Server{
-				Addr:    ":8080",
-				Handler: got,
-			}
 			// Add a wait
 			wg.Add(1)
 			// Listen and synchronize wait
 			go func() error {
 				wg.Done()
-				return svr.ListenAndServe()
+				err := ssvr.Listen()
+
+				if err != http.ErrServerClosed {
+					assert.NoError(t, err)
+					return err
+				}
+
+				return nil
 			}()
-			// Defer close server
-			defer svr.Close()
 			// Wait server up and running
 			wg.Wait()
+			// Defer close server
+			defer func() {
+				err := ssvr.server.Close()
+				assert.NoError(t, err)
+			}()
 
 			request, err := http.NewRequest("GET", tt.inputURL, nil) // URL-encoded payload
 			// Check err
