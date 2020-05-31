@@ -7,6 +7,8 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/hostrouter"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/authentication"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/authorization"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
@@ -105,7 +107,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	// Check if auth if enabled and oidc enabled
 	if cfg.AuthProviders != nil && cfg.AuthProviders.OIDC != nil {
 		for _, v := range cfg.AuthProviders.OIDC {
-			err := middlewares.OIDCEndpoints(v, cfg.Templates, r)
+			err := authentication.OIDCEndpoints(v, cfg.Templates, r)
 			if err != nil {
 				return nil, err
 			}
@@ -128,7 +130,12 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 		// Loop over path list
 		funk.ForEach(cfg.ListTargets.Mount.Path, func(path string) {
 			rt.Route(path, func(rt2 chi.Router) {
-				rt2 = rt2.With(middlewares.AuthMiddleware(cfg, resources))
+				// Add authentication middleware to router
+				rt2 = rt2.With(authentication.AuthenticationMiddleware(cfg, resources))
+
+				// Add authorization middleware to router
+				rt2 = rt2.With(authorization.AuthorizationMiddleware(cfg, cfg.Templates))
+
 				rt2.Get("/", func(rw http.ResponseWriter, req *http.Request) {
 					logEntry := middlewares.GetLogEntry(req)
 					generateTargetList(rw, req.RequestURI, logEntry, cfg)
@@ -163,8 +170,11 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				// Add Bucket request context middleware to initialize it
 				rt2.Use(middlewares.BucketRequestContext(tgt, cfg.Templates, path, svr.metricsCl))
 
-				// Add auth middleware to router
-				rt2.Use(middlewares.AuthMiddleware(cfg, tgt.Resources))
+				// Add authentication middleware to router
+				rt2.Use(authentication.AuthenticationMiddleware(cfg, tgt.Resources))
+
+				// Add authorization middleware to router
+				rt2 = rt2.With(authorization.AuthorizationMiddleware(cfg, cfg.Templates))
 
 				// Check if GET action is enabled
 				if tgt.Actions.GET != nil && tgt.Actions.GET.Enabled {
