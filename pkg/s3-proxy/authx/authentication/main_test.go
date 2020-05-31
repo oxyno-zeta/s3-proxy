@@ -1,6 +1,6 @@
 // +build unit
 
-package middlewares
+package authentication
 
 import (
 	"reflect"

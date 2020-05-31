@@ -1,4 +1,4 @@
-package middlewares
+package authentication
 
 import (
 	"errors"
@@ -10,10 +10,11 @@ import (
 
 	oidc "github.com/coreos/go-oidc"
 	"github.com/go-chi/chi"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
-	"github.com/thoas/go-funk"
 
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -65,7 +66,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 
 	mux.HandleFunc(oidcCfg.LoginPath, func(w http.ResponseWriter, r *http.Request) {
 		// Get logger from request
-		logEntry := GetLogEntry(r)
+		logEntry := middlewares.GetLogEntry(r)
 		// Parse query params from request
 		qs := r.URL.Query()
 		// Get redirect query from query params
@@ -98,7 +99,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 
 	mux.HandleFunc(mainRedirectURLObject.Path, func(w http.ResponseWriter, r *http.Request) {
 		// Get logger from request
-		logEntry := GetLogEntry(r)
+		logEntry := middlewares.GetLogEntry(r)
 
 		// ! In this particular case, no bucket request context because mounted in general and not per target
 
@@ -184,15 +185,14 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 func oidcAuthorizationMiddleware(
 	oidcAuthCfg *config.OIDCAuthConfig,
 	tplConfig *config.TemplateConfig,
-	authorizationAccesses []*config.OIDCAuthorizationAccess,
 ) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Get logger from request
-			logEntry := GetLogEntry(r)
+			logEntry := middlewares.GetLogEntry(r)
 			path := r.URL.RequestURI()
 			// Get bucket request context from request
-			brctx := GetBucketRequestContext(r)
+			brctx := middlewares.GetBucketRequestContext(r)
 
 			// Get JWT Token from header or cookie
 			jwtContent, err := getJWTToken(logEntry, r, oidcAuthCfg.CookieName)
@@ -278,19 +278,18 @@ func oidcAuthorizationMiddleware(
 				}
 			}
 
-			// Check if authorized
-			if !isAuthorized(groups, email, authorizationAccesses) {
-				logEntry.Errorf("Forbidden user %s", email)
-				// Check if bucket request context doesn't exist to use local default files
-				if brctx == nil {
-					utils.HandleForbidden(logEntry, w, tplConfig, path)
-				} else {
-					brctx.HandleForbidden(path)
-				}
-				return
+			// Create Basic auth user
+			ouser := &models.OIDCUser{
+				Email:  email,
+				Groups: groups,
 			}
 
-			logEntry.Infof("User authorized and authenticated: %s", email)
+			// Add user to request context by creating a new context
+			ctx := context.WithValue(r.Context(), userContextKey, ouser)
+			// Create new request with new context
+			r = r.WithContext(ctx)
+
+			logEntry.Infof("OIDC User authenticated: %s", email)
 
 			// Next
 			next.ServeHTTP(w, r)
@@ -368,52 +367,6 @@ func getJWTToken(logEntry log.Logger, r *http.Request, cookieName string) (strin
 	}
 
 	return "", nil
-}
-
-func isAuthorized(groups []string, email string, authorizationAccesses []*config.OIDCAuthorizationAccess) bool {
-	// Check if there is a list of groups or email
-	if len(authorizationAccesses) == 0 {
-		// No group or email => consider this as authentication only required => ok
-		return true
-	}
-
-	// Loop over groups and email
-	for _, item := range authorizationAccesses {
-		if item.Regexp {
-			// Regex case
-			// Check group case
-			if item.Group != "" {
-				for _, grp := range groups {
-					// Try matching for group regexp
-					if item.GroupRegexp.MatchString(grp) {
-						return true
-					}
-				}
-			}
-
-			// Check email case
-			if item.Email != "" && item.EmailRegexp.MatchString(email) {
-				return true
-			}
-		} else {
-			// Not a regex case
-
-			// Check group case
-			if item.Group != "" {
-				result := funk.Contains(groups, item.Group)
-				if result {
-					return true
-				}
-			}
-			// Check email case
-			if item.Email != "" && item.Email == email {
-				return true
-			}
-		}
-	}
-
-	// Not found case
-	return false
 }
 
 // IsValidRedirect checks whether the redirect URL is whitelisted
