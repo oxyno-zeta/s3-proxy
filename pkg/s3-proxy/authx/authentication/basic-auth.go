@@ -12,8 +12,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-var bucketRequestContextKey = &contextKey{name: "bucket-request-context"}
-
 // nolint:whitespace
 func basicAuthMiddleware(basicConfig *config.BasicAuthConfig,
 	basicAuthUserConfigList []*config.BasicAuthUserConfig, templateConfig *config.TemplateConfig) func(http.Handler) http.Handler {
