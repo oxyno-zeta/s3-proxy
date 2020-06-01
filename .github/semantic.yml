@@ -11,6 +11,9 @@ scopes:
   - server
   - version
   - templates
+  - authentication
+  - authorization
+  - authx
 
 # By default types specified in commitizen/conventional-commit-types is used.
 # See: https://github.com/commitizen/conventional-commit-types/blob/v2.3.0/index.json
