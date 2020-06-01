@@ -13,7 +13,7 @@ import (
 
 var errAuthorizationMiddlewareNotSupported = errors.New("authorization not supported")
 
-func AuthorizationMiddleware(cfg *config.Config, tplConfig *config.TemplateConfig) func(http.Handler) http.Handler {
+func Middleware(cfg *config.Config, tplConfig *config.TemplateConfig) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			logger := middlewares.GetLogEntry(r)
@@ -62,8 +62,30 @@ func AuthorizationMiddleware(cfg *config.Config, tplConfig *config.TemplateConfi
 			if resource.OIDC != nil {
 				// Cast user in oidc user
 				ouser := user.(*models.OIDCUser)
-				// Check if authorized
-				if !isAuthorized(ouser.Groups, ouser.Email, resource.OIDC.AuthorizationAccesses) {
+
+				// Authorization part
+
+				authorized := false
+				// Check if case of opa server
+				if resource.OIDC.AuthorizationOPAServer != nil {
+					var err error
+					authorized, err = isOPAServerAuthorized(r, ouser, resource)
+					if err != nil {
+						logger.Error(err)
+						// Check if bucket request context doesn't exist to use local default files
+						if brctx == nil {
+							utils.HandleInternalServerError(logger, w, cfg.Templates, requestURI, err)
+						} else {
+							brctx.HandleInternalServerError(err, requestURI)
+						}
+						return
+					}
+				} else {
+					authorized = isOIDCAuthorizedBasic(ouser.Groups, ouser.Email, resource.OIDC.AuthorizationAccesses)
+				}
+
+				// Check if not authorized
+				if !authorized {
 					logger.Errorf("Forbidden user %s", ouser.Email)
 					// Check if bucket request context doesn't exist to use local default files
 					if brctx == nil {
@@ -73,6 +95,9 @@ func AuthorizationMiddleware(cfg *config.Config, tplConfig *config.TemplateConfi
 					}
 					return
 				}
+
+				// User is authorized
+
 				logger.Info("OIDC user %s authorized", ouser.Email)
 				next.ServeHTTP(w, r)
 				return

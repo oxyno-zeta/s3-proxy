@@ -163,6 +163,10 @@ func validateResource(beginErrorMessage string, res *Resource, authProviders *Au
 		if res.OIDC != nil && authProviders.OIDC[res.Provider] == nil {
 			return errors.New(beginErrorMessage + " must use a valid authentication configuration with selected authentication provider: oidc not allowed")
 		}
+		// Check that oidc authorization is valid
+		if res.OIDC != nil && res.OIDC.AuthorizationOPAServer != nil && len(res.OIDC.AuthorizationAccesses) != 0 {
+			return errors.New(beginErrorMessage + " cannot contain oidc authorization accesses and OPA server together at the same time")
+		}
 	}
 	// Check if resource path contains mount path item
 	pathMatch := false
