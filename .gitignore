@@ -137,3 +137,4 @@ config.yaml
 dist/
 _dist/
 coverage.html
+bundle.tar.gz

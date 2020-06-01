@@ -217,7 +217,13 @@ type ResourceBasic struct {
 
 // ResourceOIDC OIDC auth Resource
 type ResourceOIDC struct {
-	AuthorizationAccesses []*OIDCAuthorizationAccess `mapstructure:"authorizationAccesses" validate:"dive"`
+	AuthorizationAccesses  []*OIDCAuthorizationAccess `mapstructure:"authorizationAccesses" validate:"omitempty,dive"`
+	AuthorizationOPAServer *OPAServerAuthorization    `mapstructure:"authorizationOPAServer" validate:"omitempty,dive"`
+}
+
+// OPAServerAuthorization OPA Server authorization
+type OPAServerAuthorization struct {
+	URL string `mapstructure:"url" validate:"required,url"`
 }
 
 // BucketConfig Bucket configuration

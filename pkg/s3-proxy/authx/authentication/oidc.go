@@ -242,6 +242,9 @@ func oidcAuthorizationMiddleware(
 				return
 			}
 
+			// Create OIDC user
+			ouser := &models.OIDCUser{}
+
 			// Initialize email
 			email := ""
 
@@ -265,8 +268,13 @@ func oidcAuthorizationMiddleware(
 						}
 						return
 					}
+					// Update email verified in user
+					ouser.EmailVerified = emailVerified
 				}
 			}
+
+			// Update user
+			ouser.Email = email
 
 			// Get groups
 			groupsInterface := claims[oidcAuthCfg.GroupClaim]
@@ -278,10 +286,21 @@ func oidcAuthorizationMiddleware(
 				}
 			}
 
-			// Create Basic auth user
-			ouser := &models.OIDCUser{
-				Email:  email,
-				Groups: groups,
+			// Update user
+			ouser.Groups = groups
+
+			// Finishing building user
+			if claims["family_name"] != nil {
+				ouser.FamilyName = claims["family_name"].(string)
+			}
+			if claims["given_name"] != nil {
+				ouser.GivenName = claims["given_name"].(string)
+			}
+			if claims["name"] != nil {
+				ouser.Name = claims["name"].(string)
+			}
+			if claims["preferred_username"] != nil {
+				ouser.PreferredUsername = claims["preferred_username"].(string)
 			}
 
 			// Add user to request context by creating a new context

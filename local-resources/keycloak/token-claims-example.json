@@ -1,0 +1,20 @@
+{
+  "exp": 1591014904,
+  "iat": 1591014604,
+  "auth_time": 1591014604,
+  "jti": "6e55fb8d-c62e-444b-af49-a18689c2d22d",
+  "iss": "http://localhost:8088/auth/realms/integration",
+  "aud": "client-without-secret",
+  "sub": "cca463ec-c780-4b7b-966e-84883b85d11f",
+  "typ": "ID",
+  "azp": "client-without-secret",
+  "session_state": "da91d7d6-e21b-45c5-875e-ad231903bf84",
+  "acr": "1",
+  "email_verified": true,
+  "name": "Sample User",
+  "groups": ["group1"],
+  "preferred_username": "user",
+  "given_name": "Sample",
+  "family_name": "User",
+  "email": "sample-user@example.com"
+}

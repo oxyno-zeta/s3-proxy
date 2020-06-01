@@ -131,10 +131,10 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 		funk.ForEach(cfg.ListTargets.Mount.Path, func(path string) {
 			rt.Route(path, func(rt2 chi.Router) {
 				// Add authentication middleware to router
-				rt2 = rt2.With(authentication.AuthenticationMiddleware(cfg, resources))
+				rt2 = rt2.With(authentication.Middleware(cfg, resources))
 
 				// Add authorization middleware to router
-				rt2 = rt2.With(authorization.AuthorizationMiddleware(cfg, cfg.Templates))
+				rt2 = rt2.With(authorization.Middleware(cfg, cfg.Templates))
 
 				rt2.Get("/", func(rw http.ResponseWriter, req *http.Request) {
 					logEntry := middlewares.GetLogEntry(req)
@@ -171,10 +171,10 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				rt2.Use(middlewares.BucketRequestContext(tgt, cfg.Templates, path, svr.metricsCl))
 
 				// Add authentication middleware to router
-				rt2.Use(authentication.AuthenticationMiddleware(cfg, tgt.Resources))
+				rt2.Use(authentication.Middleware(cfg, tgt.Resources))
 
 				// Add authorization middleware to router
-				rt2 = rt2.With(authorization.AuthorizationMiddleware(cfg, cfg.Templates))
+				rt2.Use(authorization.Middleware(cfg, cfg.Templates))
 
 				// Check if GET action is enabled
 				if tgt.Actions.GET != nil && tgt.Actions.GET.Enabled {

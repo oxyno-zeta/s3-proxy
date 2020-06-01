@@ -25,8 +25,8 @@ var resourceContextKey = &contextKey{name: "RESOURCE_CONTEXT_KEY"}
 
 var errAuthenticationMiddlewareNotSupported = errors.New("authentication not supported")
 
-// AuthenticationMiddleware will redirect authentication to basic auth or OIDC depending on request path and resources declared
-func AuthenticationMiddleware(cfg *config.Config, resources []*config.Resource) func(http.Handler) http.Handler {
+// Middleware will redirect authentication to basic auth or OIDC depending on request path and resources declared
+func Middleware(cfg *config.Config, resources []*config.Resource) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			logEntry := middlewares.GetLogEntry(r)
