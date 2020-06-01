@@ -351,7 +351,6 @@
       ]
     }
   },
-  "groups": [],
   "defaultRoles": ["offline_access", "uma_authorization"],
   "requiredCredentials": ["password"],
   "otpPolicyType": "totp",
@@ -392,7 +391,7 @@
         "account": ["manage-account", "view-profile"]
       },
       "notBefore": 1568805598,
-      "groups": []
+      "groups": ["/group1"]
     },
     {
       "id": "cca463ec-c780-4b7b-966e-84883b85d11a",
@@ -425,6 +424,49 @@
       },
       "notBefore": 1568805598,
       "groups": []
+    },
+    {
+      "id": "cca463ec-c780-4b7b-966e-84883b85d11b",
+      "username": "user-without-group",
+      "enabled": true,
+      "totp": false,
+      "emailVerified": true,
+      "firstName": "Sample",
+      "lastName": "User",
+      "email": "sample2@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "hashedSaltedValue": "mJv6xPFut8d51dNLq+yzxZgMhABXnRmsNJ1R2nWoG7cGXkBwgDEvyVGG4QgegERo+oXO6F79sbiWhwXlCFzd7A==",
+          "salt": "+5rkdJ6Vmh6IKDCFkRac3A==",
+          "hashIterations": 27500,
+          "counter": 0,
+          "algorithm": "pbkdf2-sha256",
+          "digits": 0,
+          "period": 0,
+          "createdDate": 1568711625425,
+          "config": {}
+        }
+      ],
+      "disableableCredentialTypes": ["password"],
+      "requiredActions": [],
+      "realmRoles": ["user"],
+      "clientRoles": {
+        "account": ["manage-account", "view-profile"]
+      },
+      "notBefore": 1568805598,
+      "groups": []
+    }
+  ],
+  "groups": [
+    {
+      "id": "ae31a622-a292-4752-8f00-7abe72610254",
+      "name": "group1",
+      "path": "/group1",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
     }
   ],
   "webAuthnPolicyRpEntityName": "keycloak",
@@ -1071,6 +1113,20 @@
         "consent.screen.text": "${profileScopeConsentText}"
       },
       "protocolMappers": [
+        {
+          "id": "4f1438d2-c08d-454b-b74d-4bbb885252bc",
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "consentRequired": false,
+          "config": {
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "groups",
+            "userinfo.token.claim": "true"
+          }
+        },
         {
           "id": "85308864-e597-41de-87f7-e473da52ab14",
           "name": "gender",

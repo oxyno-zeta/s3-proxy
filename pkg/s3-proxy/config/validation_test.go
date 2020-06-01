@@ -220,6 +220,33 @@ func Test_validateResource(t *testing.T) {
 			errorString: "begin error must use a valid authentication configuration with selected authentication provider: oidc not allowed",
 		},
 		{
+			name: "Resource with invalid oidc authorization methods",
+			args: args{
+				beginErrorMessage: "begin error",
+				res: &Resource{
+					Methods:   []string{"GET"},
+					WhiteList: &falseValue,
+					Provider:  "test",
+					OIDC: &ResourceOIDC{
+						AuthorizationAccesses: []*OIDCAuthorizationAccess{
+							{Email: "fake@fake.com"},
+						},
+						AuthorizationOPAServer: &OPAServerAuthorization{
+							URL: "http://fake.com",
+						},
+					},
+				},
+				authProviders: &AuthProviderConfig{
+					OIDC: map[string]*OIDCAuthConfig{
+						"test": {},
+					},
+				},
+				mountPathList: []string{"/"},
+			},
+			wantErr:     true,
+			errorString: "begin error cannot contain oidc authorization accesses and OPA server together at the same time",
+		},
+		{
 			name: "Resource path must begin by mount path",
 			args: args{
 				beginErrorMessage: "begin error",
