@@ -1993,6 +1993,39 @@ func TestOIDCAuthentication(t *testing.T) {
 				GET: &config.GetActionConfig{Enabled: true},
 			},
 		},
+		{
+			Name: "target-with-group",
+			Bucket: &config.BucketConfig{
+				Name:       bucket,
+				Region:     region,
+				S3Endpoint: s3server.URL,
+				Credentials: &config.BucketCredentialConfig{
+					AccessKey: &config.CredentialConfig{Value: accessKey},
+					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+				},
+				DisableSSL: true,
+			},
+			Mount: &config.MountConfig{
+				Path: []string{"/mount-with-group/"},
+			},
+			Resources: []*config.Resource{
+				{
+					Path:     "/mount-with-group/folder1/*",
+					Methods:  []string{"GET"},
+					Provider: "provider1",
+					OIDC: &config.ResourceOIDC{
+						AuthorizationAccesses: []*config.OIDCAuthorizationAccess{
+							&config.OIDCAuthorizationAccess{
+								Group: "group1",
+							},
+						},
+					},
+				},
+			},
+			Actions: &config.ActionsConfig{
+				GET: &config.GetActionConfig{Enabled: true},
+			},
+		},
 	}
 	svrCfg := &config.ServerConfig{
 		ListenAddr: "",
@@ -2186,6 +2219,82 @@ func TestOIDCAuthentication(t *testing.T) {
 			expectedResponseHost: "localhost:8080",
 			expectedResponsePath: "/mount/folder1/test.txt",
 			expectedCode:         403,
+		},
+		{
+			name: "GET a file with oidc bearer token and group authorization enabled should be forbidden",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Templates:   tplCfg,
+					AuthProviders: &config.AuthProviderConfig{
+						OIDC: map[string]*config.OIDCAuthConfig{
+							"provider1": {
+								ClientID:      "client-with-secret",
+								ClientSecret:  &config.CredentialConfig{Value: "565f78f2-a706-41cd-a1a0-431d7df29443"},
+								CookieName:    "oidc",
+								RedirectURL:   "http://localhost:8080/",
+								CallbackPath:  "/auth/provider1/callback",
+								IssuerURL:     "http://localhost:8088/auth/realms/integration",
+								LoginPath:     "/auth/provider1/",
+								EmailVerified: true,
+								GroupClaim:    "groups",
+							},
+						},
+					},
+					Targets: targetsTpl,
+				},
+			},
+			inputURL:               "http://localhost:8080/mount-with-group/folder1/test.txt",
+			inputForgeOIDCHeader:   true,
+			inputForgeOIDCUsername: "user-without-group",
+			inputForgeOIDCPassword: "password",
+			wantErr:                false,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+			expectedResponseHost: "localhost:8080",
+			expectedResponsePath: "/mount-with-group/folder1/test.txt",
+			expectedCode:         403,
+		},
+		{
+			name: "GET a file with oidc bearer token and group authorization enabled should be ok",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Templates:   tplCfg,
+					AuthProviders: &config.AuthProviderConfig{
+						OIDC: map[string]*config.OIDCAuthConfig{
+							"provider1": {
+								ClientID:      "client-with-secret",
+								ClientSecret:  &config.CredentialConfig{Value: "565f78f2-a706-41cd-a1a0-431d7df29443"},
+								CookieName:    "oidc",
+								RedirectURL:   "http://localhost:8080/",
+								CallbackPath:  "/auth/provider1/callback",
+								IssuerURL:     "http://localhost:8088/auth/realms/integration",
+								LoginPath:     "/auth/provider1/",
+								EmailVerified: true,
+								GroupClaim:    "groups",
+							},
+						},
+					},
+					Targets: targetsTpl,
+				},
+			},
+			inputURL:               "http://localhost:8080/mount-with-group/folder1/test.txt",
+			inputForgeOIDCHeader:   true,
+			inputForgeOIDCUsername: "user",
+			inputForgeOIDCPassword: "password",
+			wantErr:                false,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
+			expectedResponseHost: "localhost:8080",
+			expectedResponsePath: "/mount-with-group/folder1/test.txt",
+			expectedCode:         200,
 		},
 		{
 			name: "GET a file with oidc bearer token and opa server enabled should be forbidden",
