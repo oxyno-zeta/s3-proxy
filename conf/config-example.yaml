@@ -84,11 +84,11 @@ log:
 targets:
   - name: first-bucket
     # ## Mount point
-    # mount:
-    #   path:
-    #     - /
-    #   # A specific host can be added for filtering. Otherwise, all hosts will be accepted
-    #   # host: localhost:8080
+    mount:
+      path:
+        - /
+      # A specific host can be added for filtering. Otherwise, all hosts will be accepted
+      # host: localhost:8080
     # ## Resources declaration
     # resources:
     #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
