@@ -83,13 +83,14 @@ log:
 # Targets
 targets:
   - name: first-bucket
-    # ## Mount point
+    ## Mount point
     mount:
       path:
         - /
       # A specific host can be added for filtering. Otherwise, all hosts will be accepted
       # host: localhost:8080
     # ## Resources declaration
+    # ## WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /* otherwise, it will be public.
     # resources:
     #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /
