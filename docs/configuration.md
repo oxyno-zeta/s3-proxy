@@ -1,7 +1,10 @@
 # Configuration
 
-The configuration must be set in a YAML file located in `conf/` folder from the current working directory. The file name is `config.yaml`.
-The full path is `conf/config.yaml`.
+The configuration must be set in multiple YAML files located in `conf/` folder from the current working directory.
+
+You can create multiple files containing different part of the configuration. A global merge will be done across all data in all files.
+
+Moreover, the configuration files will be watched for modifications.
 
 You can see a full example in the [Example section](#example)
 
