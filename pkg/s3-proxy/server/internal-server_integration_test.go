@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
@@ -114,6 +115,8 @@ func TestInternal_Server_Listen(t *testing.T) {
 	}()
 	// Wait server up and running
 	wg.Wait()
+	// Sleep 1 second in order to wait again start server
+	time.Sleep(time.Second)
 
 	// Do a request
 	resp, err := http.Get("http://localhost:8080/health")
