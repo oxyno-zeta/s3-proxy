@@ -355,6 +355,14 @@ targets:
     #         - user: user1
     #           password:
     #             path: password1-in-file
+    #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
+    #   - path: /opa-protected/*
+    #     # OIDC section for access filter
+    #     oidc:
+    #       # Authorization through OPA server configuration
+    #       authorizationOPAServer:
+    #         # OPA server url with data path
+    #         url: http://localhost:8181/v1/data/example/authz/allowed
     # ## Index document to display if exists in folder
     # indexDocument: index.html
     # ## Actions
