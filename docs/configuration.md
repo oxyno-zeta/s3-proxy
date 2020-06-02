@@ -176,9 +176,16 @@ You can see a full example in the [Example section](#example)
 
 # ResourceOIDC
 
-| Key                   | Type                                                      | Required | Default | Description                                                                                                                                           |
-| --------------------- | --------------------------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| authorizationAccesses | [[OIDCAuthorizationAccesses]](#oidcauthorizationaccesses) | No       | None    | Authorization accesses matrix by group or email. If not set, authenticated users will be authorized (no group or email validation will be performed). |
+| Key                    | Type                                                      | Required | Default | Description                                                                                                                                                                               |
+| ---------------------- | --------------------------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| authorizationAccesses  | [[OIDCAuthorizationAccesses]](#oidcauthorizationaccesses) | No       | None    | Authorization accesses matrix by group or email. If not set, authenticated users will be authorized (no group or email validation will be performed if authorizationOPAServer isn't set). |
+| authorizationOPAServer | [OPAServerAuthorization](#opaserverauthorization)         | No       | None    | Authorization through an OPA (Open Policy Agent) server                                                                                                                                   |
+
+## OPAServerAuthorization
+
+| Key | Type   | Required | Default | Description                                                                                   |
+| --- | ------ | -------- | ------- | --------------------------------------------------------------------------------------------- |
+| url | String | Yes      | None    | URL of the OPA server including the data path (see the dedicated section for [opa](./opa.md)) |
 
 ## OIDCAuthorizationAccesses
 

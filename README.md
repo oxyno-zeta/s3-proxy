@@ -61,6 +61,7 @@ I've created this project because I couldn't find any other that allow to proxy 
 - Prometheus metrics
 - Allow to publish files on S3 bucket
 - Allow to delete files on S3 bucket
+- Open Policy Agent integration for authorizations
 
 ## Configuration
 
@@ -69,6 +70,10 @@ See here: [Configuration](./docs/configuration.md)
 ## Templates
 
 See here: [Templates](./docs/templates.md)
+
+## Open Policy Agent (OPA)
+
+See here: [OPA](./docs/opa.md) and in the configuration here: [OPA Configuration](./docs/configuration.md#opaserverauthorization)
 
 ## API
 
