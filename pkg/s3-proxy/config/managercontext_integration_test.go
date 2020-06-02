@@ -903,3 +903,191 @@ targets:
 		assert.FailNow(t, "shouldn't call this")
 	}
 }
+
+func Test_Load_reload_config_with_wrong_config(t *testing.T) {
+	// Channel for wait watch
+	waitCh := make(chan bool)
+
+	dir, err := ioutil.TempDir("", "s3-proxy-config-reload-wrong-config")
+	assert.NoError(t, err)
+
+	configs := map[string]string{
+		"log.yaml": `
+log:
+  level: error
+  format: text
+`,
+		"targets.yaml": `
+targets:
+- name: test
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+    credentials:
+      accessKey:
+        path: ` + os.TempDir() + `/secret1
+      secretKey:
+        value: value2`,
+	}
+
+	defer os.RemoveAll(dir) // clean up
+	for k, v := range configs {
+		tmpfn := filepath.Join(dir, k)
+		err = ioutil.WriteFile(tmpfn, []byte(v), 0666)
+		assert.NoError(t, err)
+	}
+
+	secretFiles := map[string]string{
+		os.TempDir() + "/secret1": "VALUE1",
+	}
+	// Create secret files
+	for k, v := range secretFiles {
+		dirToCr := filepath.Dir(k)
+		err = os.MkdirAll(dirToCr, 0666)
+		assert.NoError(t, err)
+		err = ioutil.WriteFile(k, []byte(v), 0666)
+		assert.NoError(t, err)
+		defer os.Remove(k)
+	}
+
+	// Change var for main configuration file
+	mainConfigFolderPath = dir
+
+	ctx := &managercontext{
+		logger: log.NewLogger(),
+	}
+
+	ctx.AddOnChangeHook(func() {
+		waitCh <- true
+	})
+
+	// Load config
+	err = ctx.Load()
+	assert.NoError(t, err)
+	// Get configuration
+	res := ctx.GetConfig()
+
+	assert.Equal(t, &Config{
+		Log: &LogConfig{
+			Level:  "error",
+			Format: "text",
+		},
+		Server: &ServerConfig{
+			Port: 8080,
+		},
+		InternalServer: &ServerConfig{
+			Port: 9090,
+		},
+		Templates: &TemplateConfig{
+			FolderList:          "templates/folder-list.tpl",
+			TargetList:          "templates/target-list.tpl",
+			NotFound:            "templates/not-found.tpl",
+			InternalServerError: "templates/internal-server-error.tpl",
+			Unauthorized:        "templates/unauthorized.tpl",
+			Forbidden:           "templates/forbidden.tpl",
+			BadRequest:          "templates/bad-request.tpl",
+		},
+		ListTargets: &ListTargetsConfig{
+			Enabled: false,
+		},
+		Targets: []*TargetConfig{
+			{
+				Name: "test",
+				Mount: &MountConfig{
+					Path: []string{"/test/"},
+				},
+				Bucket: &BucketConfig{
+					Name:   "bucket1",
+					Region: "us-east-1",
+					Credentials: &BucketCredentialConfig{
+						AccessKey: &CredentialConfig{
+							Value: "VALUE1",
+							Path:  path.Join(os.TempDir(), "/secret1"),
+						},
+						SecretKey: &CredentialConfig{
+							Value: "value2",
+						},
+					},
+				},
+				Actions: &ActionsConfig{
+					GET: &GetActionConfig{Enabled: true},
+				},
+				Templates: &TargetTemplateConfig{},
+			},
+		},
+	}, res)
+
+	configs = map[string]string{
+		"log.yaml": `
+configuration with error
+`,
+	}
+
+	defer os.RemoveAll(dir) // clean up
+	for k, v := range configs {
+		tmpfn := filepath.Join(dir, k)
+		err = ioutil.WriteFile(tmpfn, []byte(v), 0666)
+		assert.NoError(t, err)
+	}
+
+	select {
+	case <-waitCh:
+		assert.FailNow(t, "shouldn't call this")
+		return
+	case <-time.After(5 * time.Second):
+		// Get configuration
+		res = ctx.GetConfig()
+
+		assert.Equal(t, &Config{
+			Log: &LogConfig{
+				Level:  "error",
+				Format: "text",
+			},
+			Server: &ServerConfig{
+				Port: 8080,
+			},
+			InternalServer: &ServerConfig{
+				Port: 9090,
+			},
+			Templates: &TemplateConfig{
+				FolderList:          "templates/folder-list.tpl",
+				TargetList:          "templates/target-list.tpl",
+				NotFound:            "templates/not-found.tpl",
+				InternalServerError: "templates/internal-server-error.tpl",
+				Unauthorized:        "templates/unauthorized.tpl",
+				Forbidden:           "templates/forbidden.tpl",
+				BadRequest:          "templates/bad-request.tpl",
+			},
+			ListTargets: &ListTargetsConfig{
+				Enabled: false,
+			},
+			Targets: []*TargetConfig{
+				{
+					Name: "test",
+					Mount: &MountConfig{
+						Path: []string{"/test/"},
+					},
+					Bucket: &BucketConfig{
+						Name:   "bucket1",
+						Region: "us-east-1",
+						Credentials: &BucketCredentialConfig{
+							AccessKey: &CredentialConfig{
+								Value: "VALUE1",
+								Path:  path.Join(os.TempDir(), "/secret1"),
+							},
+							SecretKey: &CredentialConfig{
+								Value: "value2",
+							},
+						},
+					},
+					Actions: &ActionsConfig{
+						GET: &GetActionConfig{Enabled: true},
+					},
+					Templates: &TargetTemplateConfig{},
+				},
+			},
+		}, res)
+	}
+}
