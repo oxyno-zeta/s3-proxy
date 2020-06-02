@@ -48,15 +48,15 @@ You can see a full example in the [Example section](#example)
 
 ## TargetConfiguration
 
-| Key           | Type                                          | Required | Default            | Description                                                                                              |
-| ------------- | --------------------------------------------- | -------- | ------------------ | -------------------------------------------------------------------------------------------------------- |
-| name          | String                                        | Yes      | None               | Target name. (This will used in urls and list of targets.)                                               |
-| bucket        | [BucketConfiguration](#bucketconfiguration)   | Yes      | None               | Bucket configuration                                                                                     |
-| indexDocument | String                                        | No       | `""`               | The index document name. If this document is found, get it instead of list folder. Example: `index.html` |
-| resources     | [[Resource]](#resource)                       | No       | None               | Resources declaration for path whitelist or specific authentication on path list                         |
-| mount         | [MountConfiguration](#mountconfiguration)     | Yes      | None               | Mount point configuration                                                                                |
-| actions       | [ActionsConfiguration](#actionsconfiguration) | No       | GET action enabled | Actions allowed on target (GET, PUT or DELETE)                                                           |
-| templates     | [TargetTemplateConfig](#targettemplateconfig) | No       | None               | Custom target templates from files on local filesystem or in bucket                                      |
+| Key           | Type                                          | Required | Default            | Description                                                                                                                                                                                                                             |
+| ------------- | --------------------------------------------- | -------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| name          | String                                        | Yes      | None               | Target name. (This will used in urls and list of targets.)                                                                                                                                                                              |
+| bucket        | [BucketConfiguration](#bucketconfiguration)   | Yes      | None               | Bucket configuration                                                                                                                                                                                                                    |
+| indexDocument | String                                        | No       | `""`               | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                                                                                                                                |
+| resources     | [[Resource]](#resource)                       | No       | None               | Resources declaration for path whitelist or specific authentication on path list. WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /* otherwise, it will be public. |
+| mount         | [MountConfiguration](#mountconfiguration)     | Yes      | None               | Mount point configuration                                                                                                                                                                                                               |
+| actions       | [ActionsConfiguration](#actionsconfiguration) | No       | GET action enabled | Actions allowed on target (GET, PUT or DELETE)                                                                                                                                                                                          |
+| templates     | [TargetTemplateConfig](#targettemplateconfig) | No       | None               | Custom target templates from files on local filesystem or in bucket                                                                                                                                                                     |
 
 ## TargetTemplateConfig
 
@@ -314,13 +314,14 @@ log:
 # Targets
 targets:
   - name: first-bucket
-    # ## Mount point
+    ## Mount point
     mount:
       path:
         - /
       # A specific host can be added for filtering. Otherwise, all hosts will be accepted
       # host: localhost:8080
     # ## Resources declaration
+    # ## WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /* otherwise, it will be public.
     # resources:
     #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /
