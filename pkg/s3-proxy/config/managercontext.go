@@ -45,9 +45,6 @@ func (ctx *managercontext) Load() error {
 	// Generate viper instances for static configs
 	ctx.configs = generateViperInstances(files)
 
-	// Put default values
-	ctx.loadDefaultConfigurationValues()
-
 	// Load configuration
 	err = ctx.loadConfiguration()
 	if err != nil {
@@ -145,19 +142,19 @@ func (ctx *managercontext) watchInternalFile(filePath string, forceStop chan boo
 	initWG.Wait() // make sure that the go routine above fully ended before returning
 }
 
-func (ctx *managercontext) loadDefaultConfigurationValues() {
+func (ctx *managercontext) loadDefaultConfigurationValues(vip *viper.Viper) {
 	// Load default configuration
-	viper.SetDefault("log.level", DefaultLogLevel)
-	viper.SetDefault("log.format", DefaultLogFormat)
-	viper.SetDefault("server.port", DefaultPort)
-	viper.SetDefault("internalServer.port", DefaultInternalPort)
-	viper.SetDefault("templates.folderList", DefaultTemplateFolderListPath)
-	viper.SetDefault("templates.targetList", DefaultTemplateTargetListPath)
-	viper.SetDefault("templates.notFound", DefaultTemplateNotFoundPath)
-	viper.SetDefault("templates.internalServerError", DefaultTemplateInternalServerErrorPath)
-	viper.SetDefault("templates.unauthorized", DefaultTemplateUnauthorizedErrorPath)
-	viper.SetDefault("templates.forbidden", DefaultTemplateForbiddenErrorPath)
-	viper.SetDefault("templates.badRequest", DefaultTemplateBadRequestErrorPath)
+	vip.SetDefault("log.level", DefaultLogLevel)
+	vip.SetDefault("log.format", DefaultLogFormat)
+	vip.SetDefault("server.port", DefaultPort)
+	vip.SetDefault("internalServer.port", DefaultInternalPort)
+	vip.SetDefault("templates.folderList", DefaultTemplateFolderListPath)
+	vip.SetDefault("templates.targetList", DefaultTemplateTargetListPath)
+	vip.SetDefault("templates.notFound", DefaultTemplateNotFoundPath)
+	vip.SetDefault("templates.internalServerError", DefaultTemplateInternalServerErrorPath)
+	vip.SetDefault("templates.unauthorized", DefaultTemplateUnauthorizedErrorPath)
+	vip.SetDefault("templates.forbidden", DefaultTemplateForbiddenErrorPath)
+	vip.SetDefault("templates.badRequest", DefaultTemplateBadRequestErrorPath)
 }
 
 func generateViperInstances(files []os.FileInfo) []*viper.Viper {
@@ -191,6 +188,12 @@ func (ctx *managercontext) loadConfiguration() error {
 		ch <- true
 	}
 
+	// Create a viper instance for default value and merging
+	globalViper := viper.New()
+
+	// Put default values
+	ctx.loadDefaultConfigurationValues(globalViper)
+
 	// Loop over configs
 	for _, vip := range ctx.configs {
 		err := vip.ReadInConfig()
@@ -198,7 +201,7 @@ func (ctx *managercontext) loadConfiguration() error {
 			return err
 		}
 
-		err = viper.MergeConfigMap(vip.AllSettings())
+		err = globalViper.MergeConfigMap(vip.AllSettings())
 		if err != nil {
 			return err
 		}
@@ -207,7 +210,7 @@ func (ctx *managercontext) loadConfiguration() error {
 	// Prepare configuration object
 	var out Config
 	// Quick unmarshal.
-	err := viper.Unmarshal(&out)
+	err := globalViper.Unmarshal(&out)
 	if err != nil {
 		return err
 	}
