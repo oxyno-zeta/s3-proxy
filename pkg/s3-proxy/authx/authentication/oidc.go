@@ -22,10 +22,8 @@ import (
 
 const redirectQueryKey = "rd"
 
-var allVerifiers = make([]*oidc.IDTokenVerifier, 0)
-
 // OIDCEndpoints will set OpenID Connect endpoints for authentication and callback
-func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateConfig, mux chi.Router) error {
+func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) error {
 	ctx := context.Background()
 
 	provider, err := oidc.NewProvider(ctx, oidcCfg.IssuerURL)
@@ -62,7 +60,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 	state := oidcCfg.State
 
 	// Store provider verifier in map
-	allVerifiers = append(allVerifiers, verifier)
+	s.allVerifiers = append(s.allVerifiers, verifier)
 
 	mux.HandleFunc(oidcCfg.LoginPath, func(w http.ResponseWriter, r *http.Request) {
 		// Get logger from request
@@ -80,7 +78,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 			// Check if error exists
 			if err != nil {
 				logEntry.Error(err)
-				utils.HandleInternalServerError(logEntry, w, tplConfig, oidcCfg.LoginPath, err)
+				utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.LoginPath, err)
 				return
 			}
 			qsValues := oidcRedirectURL.Query()
@@ -111,7 +109,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if rdVal != "" && !isValidRedirect(rdVal) {
 			err := errors.New("redirect url is invalid")
 			logEntry.Error(err)
-			utils.HandleBadRequest(logEntry, w, tplConfig, oidcCfg.CallbackPath, err)
+			utils.HandleBadRequest(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
 			return
 		}
 
@@ -124,7 +122,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if r.URL.Query().Get("state") != state {
 			err := errors.New("state did not match")
 			logEntry.Error(err)
-			utils.HandleBadRequest(logEntry, w, tplConfig, oidcCfg.CallbackPath, err)
+			utils.HandleBadRequest(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
 			return
 		}
 
@@ -132,7 +130,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if err != nil {
 			err = errors.New("failed to exchange token: " + err.Error())
 			logEntry.Error(err)
-			utils.HandleInternalServerError(logEntry, w, tplConfig, oidcCfg.CallbackPath, err)
+			utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
 			return
 		}
 
@@ -140,7 +138,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if !ok {
 			err = errors.New("no id_token field in token")
 			logEntry.Error(err)
-			utils.HandleInternalServerError(logEntry, w, tplConfig, oidcCfg.CallbackPath, err)
+			utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
 			return
 		}
 
@@ -148,7 +146,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		if err != nil {
 			err = errors.New("failed to verify ID Token: " + err.Error())
 			logEntry.Error(err)
-			utils.HandleInternalServerError(logEntry, w, tplConfig, oidcCfg.CallbackPath, err)
+			utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
 			return
 		}
 
@@ -158,7 +156,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 		err = idToken.Claims(&resp)
 		if err != nil {
 			logEntry.Error(err)
-			utils.HandleInternalServerError(logEntry, w, tplConfig, oidcCfg.CallbackPath, err)
+			utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
 			return
 		}
 		// Now, we know that we can open jwt token to get claims
@@ -182,10 +180,7 @@ func OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, tplConfig *config.TemplateCon
 }
 
 // nolint:whitespace
-func oidcAuthorizationMiddleware(
-	oidcAuthCfg *config.OIDCAuthConfig,
-	tplConfig *config.TemplateConfig,
-) func(http.Handler) http.Handler {
+func (s *service) oidcAuthorizationMiddleware(oidcAuthCfg *config.OIDCAuthConfig) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Get logger from request
@@ -202,7 +197,7 @@ func oidcAuthorizationMiddleware(
 
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleInternalServerError(logEntry, w, tplConfig, path, err)
+					utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, path, err)
 				} else {
 					brctx.HandleInternalServerError(err, path)
 				}
@@ -230,12 +225,12 @@ func oidcAuthorizationMiddleware(
 			}
 
 			// Parse JWT token
-			claims, err := parseAndValidateJWTToken(jwtContent)
+			claims, err := parseAndValidateJWTToken(jwtContent, s.allVerifiers)
 			if err != nil {
 				logEntry.Error(err)
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleInternalServerError(logEntry, w, tplConfig, path, err)
+					utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, path, err)
 				} else {
 					brctx.HandleInternalServerError(err, path)
 				}
@@ -262,7 +257,7 @@ func oidcAuthorizationMiddleware(
 						logEntry.Errorf("Email not verified for %s", email)
 						// Check if bucket request context doesn't exist to use local default files
 						if brctx == nil {
-							utils.HandleForbidden(logEntry, w, tplConfig, path)
+							utils.HandleForbidden(logEntry, w, s.cfg.Templates, path)
 						} else {
 							brctx.HandleForbidden(path)
 						}
@@ -316,7 +311,7 @@ func oidcAuthorizationMiddleware(
 	}
 }
 
-func parseAndValidateJWTToken(jwtContent string) (map[string]interface{}, error) {
+func parseAndValidateJWTToken(jwtContent string, allVerifiers []*oidc.IDTokenVerifier) (map[string]interface{}, error) {
 	ctx := context.Background()
 	// Create result map
 	var res map[string]interface{}
