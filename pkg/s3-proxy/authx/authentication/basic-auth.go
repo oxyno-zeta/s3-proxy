@@ -13,8 +13,8 @@ import (
 )
 
 // nolint:whitespace
-func basicAuthMiddleware(basicConfig *config.BasicAuthConfig,
-	basicAuthUserConfigList []*config.BasicAuthUserConfig, templateConfig *config.TemplateConfig) func(http.Handler) http.Handler {
+func (s *service) basicAuthMiddleware(basicConfig *config.BasicAuthConfig,
+	basicAuthUserConfigList []*config.BasicAuthUserConfig) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			logEntry := middlewares.GetLogEntry(r)
@@ -29,7 +29,7 @@ func basicAuthMiddleware(basicConfig *config.BasicAuthConfig,
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleUnauthorized(logEntry, w, templateConfig, path)
+					utils.HandleUnauthorized(logEntry, w, s.cfg.Templates, path)
 				} else {
 					brctx.HandleUnauthorized(path)
 				}
@@ -46,7 +46,7 @@ func basicAuthMiddleware(basicConfig *config.BasicAuthConfig,
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleUnauthorized(logEntry, w, templateConfig, path)
+					utils.HandleUnauthorized(logEntry, w, s.cfg.Templates, path)
 				} else {
 					brctx.HandleUnauthorized(path)
 				}
@@ -59,7 +59,7 @@ func basicAuthMiddleware(basicConfig *config.BasicAuthConfig,
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleUnauthorized(logEntry, w, templateConfig, path)
+					utils.HandleUnauthorized(logEntry, w, s.cfg.Templates, path)
 				} else {
 					brctx.HandleUnauthorized(path)
 				}

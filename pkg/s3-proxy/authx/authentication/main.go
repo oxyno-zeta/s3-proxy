@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	oidc "github.com/coreos/go-oidc"
 	"github.com/gobwas/glob"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
@@ -13,20 +14,17 @@ import (
 	"golang.org/x/net/context"
 )
 
-// contextKey is a value for use with context.WithValue. It's used as
-// a pointer so it fits in an interface{} without allocation. This technique
-// for defining context keys was copied from Go 1.7's new use of context in net/http.
-type contextKey struct {
-	name string
-}
-
 var userContextKey = &contextKey{name: "USER_CONTEXT_KEY"}
 var resourceContextKey = &contextKey{name: "RESOURCE_CONTEXT_KEY"}
-
 var errAuthenticationMiddlewareNotSupported = errors.New("authentication not supported")
 
+type service struct {
+	allVerifiers []*oidc.IDTokenVerifier
+	cfg          *config.Config
+}
+
 // Middleware will redirect authentication to basic auth or OIDC depending on request path and resources declared
-func Middleware(cfg *config.Config, resources []*config.Resource) func(http.Handler) http.Handler {
+func (s *service) Middleware(resources []*config.Resource) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			logEntry := middlewares.GetLogEntry(r)
@@ -51,7 +49,7 @@ func Middleware(cfg *config.Config, resources []*config.Resource) func(http.Hand
 				logEntry.Error(err)
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleInternalServerError(logEntry, w, cfg.Templates, requestURI, err)
+					utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, requestURI, err)
 				} else {
 					brctx.HandleInternalServerError(err, requestURI)
 				}
@@ -65,7 +63,7 @@ func Middleware(cfg *config.Config, resources []*config.Resource) func(http.Hand
 				logEntry.Errorf("no resource found for path %s and method %s => Forbidden access", requestURI, httpMethod)
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleForbidden(logEntry, w, cfg.Templates, requestURI)
+					utils.HandleForbidden(logEntry, w, s.cfg.Templates, requestURI)
 				} else {
 					brctx.HandleForbidden(requestURI)
 				}
@@ -82,14 +80,14 @@ func Middleware(cfg *config.Config, resources []*config.Resource) func(http.Hand
 			// Check if OIDC is enabled
 			if res.OIDC != nil {
 				logEntry.Debug("authentication with oidc detected")
-				oidcAuthorizationMiddleware(cfg.AuthProviders.OIDC[res.Provider], cfg.Templates)(next).ServeHTTP(w, r)
+				s.oidcAuthorizationMiddleware(s.cfg.AuthProviders.OIDC[res.Provider])(next).ServeHTTP(w, r)
 				return
 			}
 
 			// Check if Basic auth is enabled
 			if res.Basic != nil {
 				logEntry.Debug("authentication with basic auth detected")
-				basicAuthMiddleware(cfg.AuthProviders.Basic[res.Provider], res.Basic.Credentials, cfg.Templates)(next).ServeHTTP(w, r)
+				s.basicAuthMiddleware(s.cfg.AuthProviders.Basic[res.Provider], res.Basic.Credentials)(next).ServeHTTP(w, r)
 				return
 			}
 
@@ -105,7 +103,7 @@ func Middleware(cfg *config.Config, resources []*config.Resource) func(http.Hand
 			logEntry.Error(err)
 			// Check if bucket request context doesn't exist to use local default files
 			if brctx == nil {
-				utils.HandleInternalServerError(logEntry, w, cfg.Templates, requestURI, err)
+				utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, requestURI, err)
 			} else {
 				brctx.HandleInternalServerError(err, requestURI)
 			}
