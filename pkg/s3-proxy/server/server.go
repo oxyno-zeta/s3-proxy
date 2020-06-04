@@ -81,6 +81,10 @@ func (svr *Server) GenerateServer() error {
 func (svr *Server) generateRouter() (http.Handler, error) {
 	// Get configuration
 	cfg := svr.cfgManager.GetConfig()
+
+	// Create authentication service
+	authenticationSvc := authentication.NewAuthenticationService(cfg)
+
 	// Create router
 	r := chi.NewRouter()
 
@@ -107,7 +111,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	// Check if auth if enabled and oidc enabled
 	if cfg.AuthProviders != nil && cfg.AuthProviders.OIDC != nil {
 		for _, v := range cfg.AuthProviders.OIDC {
-			err := authentication.OIDCEndpoints(v, cfg.Templates, r)
+			err := authenticationSvc.OIDCEndpoints(v, r)
 			if err != nil {
 				return nil, err
 			}
@@ -131,7 +135,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 		funk.ForEach(cfg.ListTargets.Mount.Path, func(path string) {
 			rt.Route(path, func(rt2 chi.Router) {
 				// Add authentication middleware to router
-				rt2 = rt2.With(authentication.Middleware(cfg, resources))
+				rt2 = rt2.With(authenticationSvc.Middleware(resources))
 
 				// Add authorization middleware to router
 				rt2 = rt2.With(authorization.Middleware(cfg, cfg.Templates))
@@ -171,7 +175,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				rt2.Use(middlewares.BucketRequestContext(tgt, cfg.Templates, path, svr.metricsCl))
 
 				// Add authentication middleware to router
-				rt2.Use(authentication.Middleware(cfg, tgt.Resources))
+				rt2.Use(authenticationSvc.Middleware(tgt.Resources))
 
 				// Add authorization middleware to router
 				rt2.Use(authorization.Middleware(cfg, cfg.Templates))
