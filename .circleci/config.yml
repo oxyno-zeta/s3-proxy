@@ -79,6 +79,7 @@ jobs:
             fi
       - run: make setup/services
       - run: dockerize -wait tcp://localhost:8088 -timeout 5m
+      - run: dockerize -wait tcp://localhost:8181 -timeout 5m
       - run: docker logs keycloak
       - run: make test/all
       - run: make test/coverage
