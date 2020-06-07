@@ -8,6 +8,7 @@ import (
 	"github.com/gobwas/glob"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 	"github.com/thoas/go-funk"
@@ -21,6 +22,7 @@ var errAuthenticationMiddlewareNotSupported = errors.New("authentication not sup
 type service struct {
 	allVerifiers []*oidc.IDTokenVerifier
 	cfg          *config.Config
+	metricsCl    metrics.Client
 }
 
 // Middleware will redirect authentication to basic auth or OIDC depending on request path and resources declared
@@ -80,14 +82,14 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 			// Check if OIDC is enabled
 			if res.OIDC != nil {
 				logEntry.Debug("authentication with oidc detected")
-				s.oidcAuthorizationMiddleware(s.cfg.AuthProviders.OIDC[res.Provider])(next).ServeHTTP(w, r)
+				s.oidcAuthorizationMiddleware(res)(next).ServeHTTP(w, r)
 				return
 			}
 
 			// Check if Basic auth is enabled
 			if res.Basic != nil {
 				logEntry.Debug("authentication with basic auth detected")
-				s.basicAuthMiddleware(s.cfg.AuthProviders.Basic[res.Provider], res.Basic.Credentials)(next).ServeHTTP(w, r)
+				s.basicAuthMiddleware(res)(next).ServeHTTP(w, r)
 				return
 			}
 

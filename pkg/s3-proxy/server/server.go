@@ -83,7 +83,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	cfg := svr.cfgManager.GetConfig()
 
 	// Create authentication service
-	authenticationSvc := authentication.NewAuthenticationService(cfg)
+	authenticationSvc := authentication.NewAuthenticationService(cfg, svr.metricsCl)
 
 	// Create router
 	r := chi.NewRouter()
@@ -106,7 +106,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middlewares.NewStructuredLogger(svr.logger))
-	r.Use(svr.metricsCl.Instrument())
+	r.Use(svr.metricsCl.Instrument("business"))
 	r.Use(middleware.Recoverer)
 	// Check if auth if enabled and oidc enabled
 	if cfg.AuthProviders != nil && cfg.AuthProviders.OIDC != nil {
@@ -138,7 +138,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				rt2 = rt2.With(authenticationSvc.Middleware(resources))
 
 				// Add authorization middleware to router
-				rt2 = rt2.With(authorization.Middleware(cfg, cfg.Templates))
+				rt2 = rt2.With(authorization.Middleware(cfg, svr.metricsCl))
 
 				rt2.Get("/", func(rw http.ResponseWriter, req *http.Request) {
 					logEntry := middlewares.GetLogEntry(req)
@@ -178,7 +178,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				rt2.Use(authenticationSvc.Middleware(tgt.Resources))
 
 				// Add authorization middleware to router
-				rt2.Use(authorization.Middleware(cfg, cfg.Templates))
+				rt2.Use(authorization.Middleware(cfg, svr.metricsCl))
 
 				// Check if GET action is enabled
 				if tgt.Actions.GET != nil && tgt.Actions.GET.Enabled {
