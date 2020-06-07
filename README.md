@@ -127,6 +127,8 @@ The DELETE request path must contain the file name. Example: `DELETE /dir1/dir2/
 
 This project exports Prometheus metrics. Here is an example of Prometheus dashboard that you can import as JSON file: [dashboard](docs/s3-proxy-dashboard.json).
 
+This dashboard has been done and tested on Grafana 7.0.
+
 ## Deployment
 
 ### Kubernetes - Helm

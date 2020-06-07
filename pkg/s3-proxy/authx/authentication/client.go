@@ -6,6 +6,7 @@ import (
 	oidc "github.com/coreos/go-oidc"
 	"github.com/go-chi/chi"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 )
 
 type Client interface {
@@ -15,9 +16,10 @@ type Client interface {
 	OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) error
 }
 
-func NewAuthenticationService(cfg *config.Config) Client {
+func NewAuthenticationService(cfg *config.Config, metricsCl metrics.Client) Client {
 	return &service{
 		allVerifiers: make([]*oidc.IDTokenVerifier, 0),
 		cfg:          cfg,
+		metricsCl:    metricsCl,
 	}
 }

@@ -180,9 +180,10 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 }
 
 // nolint:whitespace
-func (s *service) oidcAuthorizationMiddleware(oidcAuthCfg *config.OIDCAuthConfig) func(http.Handler) http.Handler {
+func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			oidcAuthCfg := s.cfg.AuthProviders.OIDC[res.Provider]
 			// Get logger from request
 			logEntry := middlewares.GetLogEntry(r)
 			path := r.URL.RequestURI()
@@ -304,6 +305,7 @@ func (s *service) oidcAuthorizationMiddleware(oidcAuthCfg *config.OIDCAuthConfig
 			r = r.WithContext(ctx)
 
 			logEntry.Infof("OIDC User authenticated: %s", email)
+			s.metricsCl.IncAuthenticated("oidc", res.Provider)
 
 			// Next
 			next.ServeHTTP(w, r)
