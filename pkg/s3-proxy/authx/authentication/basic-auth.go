@@ -13,10 +13,13 @@ import (
 )
 
 // nolint:whitespace
-func (s *service) basicAuthMiddleware(basicConfig *config.BasicAuthConfig,
-	basicAuthUserConfigList []*config.BasicAuthUserConfig) func(http.Handler) http.Handler {
+func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Get data
+			basicConfig := s.cfg.AuthProviders.Basic[res.Provider]
+			basicAuthUserConfigList := res.Basic.Credentials
+			// Get logger from request
 			logEntry := middlewares.GetLogEntry(r)
 			path := r.URL.RequestURI()
 			// Get bucket request context from request
@@ -75,6 +78,7 @@ func (s *service) basicAuthMiddleware(basicConfig *config.BasicAuthConfig,
 			r = r.WithContext(ctx)
 
 			logEntry.Info("Basic auth user %s authenticated", username)
+			s.metricsCl.IncAuthenticated("basic-auth", res.Provider)
 
 			next.ServeHTTP(w, r)
 		})

@@ -71,7 +71,7 @@ func (svr *InternalServer) generateInternalRouter() http.Handler {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middlewares.NewStructuredLogger(svr.logger))
-	r.Use(svr.metricsCl.Instrument())
+	r.Use(svr.metricsCl.Instrument("internal"))
 	r.Use(middleware.Recoverer)
 
 	healthHandler := health.NewHandler()

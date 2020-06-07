@@ -75,7 +75,7 @@ func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*ListElementOutpu
 			return lastPage
 		})
 	// Metrics
-	s3ctx.metricsCtx.IncS3Operations(ListObjectsOperation)
+	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, ListObjectsOperation)
 	// Check if errors exists
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (s3ctx *s3Context) GetObject(key string) (*GetOutput, error) {
 		Key:    aws.String(key),
 	})
 	// Metrics
-	s3ctx.metricsCtx.IncS3Operations(GetObjectOperation)
+	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, GetObjectOperation)
 	// Check if error exists
 	if err != nil {
 		// Try to cast error into an AWS Error if possible
@@ -173,7 +173,7 @@ func (s3ctx *s3Context) PutObject(input *PutInput) error {
 	// Upload to S3 bucket
 	_, err := s3ctx.uploader.Upload(inp)
 	// Metrics
-	s3ctx.metricsCtx.IncS3Operations(PutObjectOperation)
+	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, PutObjectOperation)
 	// Return error
 	return err
 }
@@ -185,7 +185,7 @@ func (s3ctx *s3Context) HeadObject(key string) (*HeadOutput, error) {
 		Key:    aws.String(key),
 	})
 	// Metrics
-	s3ctx.metricsCtx.IncS3Operations(HeadObjectOperation)
+	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, HeadObjectOperation)
 	// Test error
 	if err != nil {
 		// Try to cast error into an AWS Error if possible
@@ -215,7 +215,7 @@ func (s3ctx *s3Context) DeleteObject(key string) error {
 		Key:    aws.String(key),
 	})
 	// Metrics
-	s3ctx.metricsCtx.IncS3Operations(DeleteObjectOperation)
+	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, DeleteObjectOperation)
 	// Return error
 	return err
 }

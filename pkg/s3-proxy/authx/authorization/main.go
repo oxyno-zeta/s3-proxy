@@ -7,13 +7,14 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/authentication"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 )
 
 var errAuthorizationMiddlewareNotSupported = errors.New("authorization not supported")
 
-func Middleware(cfg *config.Config, tplConfig *config.TemplateConfig) func(http.Handler) http.Handler {
+func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			logger := middlewares.GetLogEntry(r)
@@ -47,6 +48,7 @@ func Middleware(cfg *config.Config, tplConfig *config.TemplateConfig) func(http.
 				// Resource is basic authenticated
 				logger.Debug("authorization for basic authentication => nothing needed")
 				logger.Info("Basic auth user %s authorized", buser.Username)
+				metricsCl.IncAuthorized("basic-auth")
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -65,9 +67,11 @@ func Middleware(cfg *config.Config, tplConfig *config.TemplateConfig) func(http.
 
 				// Authorization part
 
+				authorizationProvider := ""
 				authorized := false
 				// Check if case of opa server
 				if resource.OIDC.AuthorizationOPAServer != nil {
+					authorizationProvider = "oidc-opa"
 					var err error
 					authorized, err = isOPAServerAuthorized(r, ouser, resource)
 					if err != nil {
@@ -81,6 +85,7 @@ func Middleware(cfg *config.Config, tplConfig *config.TemplateConfig) func(http.
 						return
 					}
 				} else {
+					authorizationProvider = "oidc-basic"
 					authorized = isOIDCAuthorizedBasic(ouser.Groups, ouser.Email, resource.OIDC.AuthorizationAccesses)
 				}
 
@@ -89,7 +94,7 @@ func Middleware(cfg *config.Config, tplConfig *config.TemplateConfig) func(http.
 					logger.Errorf("Forbidden user %s", ouser.Email)
 					// Check if bucket request context doesn't exist to use local default files
 					if brctx == nil {
-						utils.HandleForbidden(logger, w, tplConfig, requestURI)
+						utils.HandleForbidden(logger, w, cfg.Templates, requestURI)
 					} else {
 						brctx.HandleForbidden(requestURI)
 					}
@@ -99,6 +104,7 @@ func Middleware(cfg *config.Config, tplConfig *config.TemplateConfig) func(http.
 				// User is authorized
 
 				logger.Info("OIDC user %s authorized", ouser.Email)
+				metricsCl.IncAuthorized(authorizationProvider)
 				next.ServeHTTP(w, r)
 				return
 			}
