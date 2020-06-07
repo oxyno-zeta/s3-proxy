@@ -103,6 +103,16 @@ down/services:
 	docker rm -f opa || true
 	docker rm -f keycloak || true
 
+.PHONY: down/metrics-services
+down/metrics-services:
+	docker rm -f prometheus || true
+	docker rm -f grafana || true
+
+.PHONY: setup/metrics-services
+setup/metrics-services:
+	docker run --rm -d --name prometheus -v $(CURRENT_DIR)/local-resources/prometheus/prometheus.yml:/prometheus/prometheus.yml --network=host prom/prometheus:v2.18.0 --web.listen-address=:9191
+	docker run --rm -d --name grafana --network=host grafana/grafana:7.0.3
+
 .PHONY: setup/services
 setup/services: down/services
 	tar czvf local-resources/opa/bundle.tar.gz --directory=local-resources/opa/bundle example/
