@@ -1,0 +1,13 @@
+scrape_configs:
+  - job_name: "prometheus"
+
+    scrape_interval: 5s
+    scrape_timeout: 5s
+
+    static_configs:
+      - targets: ["localhost:9191"]
+
+  - job_name: "s3-proxy"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["localhost:9090"]
