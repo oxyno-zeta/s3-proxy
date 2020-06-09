@@ -1,4 +1,4 @@
-<h1 align="center">S3 Proxy</h1>
+<h1 align="center"><img width="350" height="350" src="https://raw.githubusercontent.com/oxyno-zeta/s3-proxy/master/docs/logo/logo.png" /></h1>
 
 <p align="center">
   <a href="https://github.com/avelino/awesome-go" rel="noopener noreferer" target="_blank"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" /></a>
