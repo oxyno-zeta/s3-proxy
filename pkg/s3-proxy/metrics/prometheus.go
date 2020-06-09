@@ -73,7 +73,7 @@ func (ctx *prometheusClient) register() {
 	ctx.reqCnt = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "http_requests_total",
-			Help: "How many HTTP requests processed, partitioned by status code and HTTP method.",
+			Help: "How many HTTP requests have been processed ?",
 		},
 		[]string{"server", "status_code", "method", "host", "path"},
 	)
