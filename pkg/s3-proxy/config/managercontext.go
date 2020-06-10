@@ -164,8 +164,8 @@ func generateViperInstances(files []os.FileInfo) []*viper.Viper {
 		filename := file.Name()
 		// Create config file name
 		cfgFileName := strings.TrimSuffix(filename, path.Ext(filename))
-		// Test if config file name is compliant (ignore hidden files like .keep)
-		if cfgFileName != "" {
+		// Test if config file name is compliant (ignore hidden files like .keep or directory)
+		if !strings.HasPrefix(filename, ".") && cfgFileName != "" && !file.IsDir() {
 			// Create new viper instance
 			vip := viper.New()
 			// Set config name
