@@ -52,10 +52,13 @@ func (ctx *managercontext) Load() error {
 	}
 
 	// Loop over config files
-	for _, vip := range ctx.configs {
+	funk.ForEach(ctx.configs, func(vv interface{}) {
+		// Cast viper object
+		vip := vv.(*viper.Viper)
+
 		// Add hooks for on change events
 		vip.OnConfigChange(func(in fsnotify.Event) {
-			ctx.logger.Infof("Reload configuration detected for file %s", in.Name)
+			ctx.logger.Infof("Reload configuration detected for file %s", vip.ConfigFileUsed())
 
 			// Reload config
 			err2 := ctx.loadConfiguration()
@@ -69,7 +72,7 @@ func (ctx *managercontext) Load() error {
 		})
 		// Watch for configuration changes
 		vip.WatchConfig()
-	}
+	})
 
 	return nil
 }
