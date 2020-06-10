@@ -39,7 +39,7 @@ func main() {
 		// Configure logger
 		err = logger.Configure(cfg.Log.Level, cfg.Log.Format, cfg.Log.FilePath)
 		if err != nil {
-			logger.Error(err)
+			logger.Fatal(err)
 		}
 	})
 
