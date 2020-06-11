@@ -22,10 +22,11 @@ You can see a full example in the [Example section](#example)
 
 ## LogConfiguration
 
-| Key    | Type   | Required | Default | Description                                         |
-| ------ | ------ | -------- | ------- | --------------------------------------------------- |
-| level  | String | No       | `info`  | Log level                                           |
-| format | String | No       | `json`  | Log format (available values are: `json` or `text`) |
+| Key      | Type   | Required | Default | Description                                         |
+| -------- | ------ | -------- | ------- | --------------------------------------------------- |
+| level    | String | No       | `info`  | Log level                                           |
+| format   | String | No       | `json`  | Log format (available values are: `json` or `text`) |
+| filePath | String | No       | `""`    | Log file path                                       |
 
 ## ServerConfiguration
 
@@ -235,6 +236,8 @@ log:
   level: info
   # Log format
   format: text
+  # Log file path
+  # filePath:
 
 # Server configurations
 # server:
