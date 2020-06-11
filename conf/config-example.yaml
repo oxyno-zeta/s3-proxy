@@ -4,6 +4,8 @@ log:
   level: info
   # Log format
   format: text
+  # Log file path
+  # filePath:
 
 # Server configurations
 # server:
