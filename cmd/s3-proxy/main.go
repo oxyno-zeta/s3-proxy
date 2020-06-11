@@ -1,38 +1,47 @@
 package main
 
 import (
-	"net/http"
-	"os"
-	"strconv"
-
-	"github.com/oxyno-zeta/s3-proxy/pkg/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/metrics"
-	"github.com/oxyno-zeta/s3-proxy/pkg/server"
-	"github.com/oxyno-zeta/s3-proxy/pkg/version"
-	"github.com/sirupsen/logrus"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version"
+	"golang.org/x/sync/errgroup"
 )
 
 // Main package
 
 func main() {
-	// Create logger
-	logger := logrus.New()
-	// Set JSON as default for the moment
-	logger.SetFormatter(&logrus.JSONFormatter{})
+	// Create new logger
+	logger := log.NewLogger()
 
-	// Load configuration from file
-	cfg, err := config.Load()
+	// Create configuration manager
+	cfgManager := config.NewManager(logger)
+
+	// Load configuration
+	err := cfgManager.Load()
 	if err != nil {
 		logger.Fatal(err)
-		os.Exit(1)
 	}
 
+	// Get configuration
+	cfg := cfgManager.GetConfig()
 	// Configure logger
-	err = config.ConfigureLogger(logger, cfg.Log)
+	err = logger.Configure(cfg.Log.Level, cfg.Log.Format, cfg.Log.FilePath)
 	if err != nil {
 		logger.Fatal(err)
-		os.Exit(1)
 	}
+
+	// Watch change for logger (special case)
+	cfgManager.AddOnChangeHook(func() {
+		// Get configuration
+		cfg := cfgManager.GetConfig()
+		// Configure logger
+		err = logger.Configure(cfg.Log.Level, cfg.Log.Format, cfg.Log.FilePath)
+		if err != nil {
+			logger.Fatal(err)
+		}
+	})
 
 	logger.Debug("Configuration successfully loaded and logger configured")
 
@@ -43,51 +52,24 @@ func main() {
 	// Generate metrics instance
 	metricsCtx := metrics.NewClient()
 
-	// Listen
-	go internalServe(logger, cfg, metricsCtx)
-	serve(logger, cfg, metricsCtx)
-}
-
-func internalServe(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Client) {
-	r := server.GenerateInternalRouter(logger, metricsCtx)
+	// Create internal server
+	intSvr := server.NewInternalServer(logger, cfgManager, metricsCtx)
+	// Generate server
+	intSvr.GenerateServer()
 	// Create server
-	addr := cfg.InternalServer.ListenAddr + ":" + strconv.Itoa(cfg.InternalServer.Port)
-	server := &http.Server{
-		Addr:    addr,
-		Handler: r,
-	}
-
-	logger.Infof("Server listening on %s", addr)
-
-	err := server.ListenAndServe()
-	// Check if error exists
+	svr := server.NewServer(logger, cfgManager, metricsCtx)
+	// Generate server
+	err = svr.GenerateServer()
 	if err != nil {
-		logger.Fatalf("Unable to start http server: %v", err)
-		os.Exit(1)
-	}
-}
-
-func serve(logger logrus.FieldLogger, cfg *config.Config, metricsCtx metrics.Client) {
-	// Generate router
-	r, err := server.GenerateRouter(logger, cfg, metricsCtx)
-	if err != nil {
-		logger.Fatalf("Unable to setup http server: %v", err)
-		os.Exit(1)
+		logger.Fatal(err)
 	}
 
-	// Create server
-	addr := cfg.Server.ListenAddr + ":" + strconv.Itoa(cfg.Server.Port)
-	server := &http.Server{
-		Addr:    addr,
-		Handler: r,
-	}
+	var g errgroup.Group
 
-	logger.Infof("Server listening on %s", addr)
+	g.Go(svr.Listen)
+	g.Go(intSvr.Listen)
 
-	err = server.ListenAndServe()
-	// Check if error exists
-	if err != nil {
-		logger.Fatalf("Unable to start http server: %v", err)
-		os.Exit(1)
+	if err := g.Wait(); err != nil {
+		logger.Fatal(err)
 	}
 }

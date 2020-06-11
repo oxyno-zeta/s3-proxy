@@ -1,4 +1,4 @@
-<h1 align="center">S3 Proxy</h1>
+<h1 align="center"><img width="350" height="350" src="https://raw.githubusercontent.com/oxyno-zeta/s3-proxy/master/docs/logo/logo.png" /></h1>
 
 <p align="center">
   <a href="https://github.com/avelino/awesome-go" rel="noopener noreferer" target="_blank"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" /></a>
@@ -22,12 +22,14 @@
 - [Features](#features)
 - [Configuration](#configuration)
 - [Templates](#templates)
+- [Open Policy Agent (OPA)](#open-policy-agent-opa)
 - [API](#api)
   - [GET](#get)
   - [PUT](#put)
   - [DELETE](#delete)
 - [AWS IAM Policy](#aws-iam-policy)
 - [Grafana Dashboard](#grafana-dashboard)
+- [Prometheus metrics](#prometheus-metrics)
 - [Deployment](#deployment)
   - [Kubernetes - Helm](#kubernetes---helm)
   - [Docker](#docker)
@@ -61,6 +63,8 @@ I've created this project because I couldn't find any other that allow to proxy 
 - Prometheus metrics
 - Allow to publish files on S3 bucket
 - Allow to delete files on S3 bucket
+- Open Policy Agent integration for authorizations
+- Configuration hot reload
 
 ## Configuration
 
@@ -69,6 +73,10 @@ See here: [Configuration](./docs/configuration.md)
 ## Templates
 
 See here: [Templates](./docs/templates.md)
+
+## Open Policy Agent (OPA)
+
+See here: [OPA](./docs/opa.md) and in the configuration here: [OPA Configuration](./docs/configuration.md#opaserverauthorization)
 
 ## API
 
@@ -120,6 +128,12 @@ The DELETE request path must contain the file name. Example: `DELETE /dir1/dir2/
 ## Grafana Dashboard
 
 This project exports Prometheus metrics. Here is an example of Prometheus dashboard that you can import as JSON file: [dashboard](docs/s3-proxy-dashboard.json).
+
+This dashboard has been done and tested on Grafana 7.0.
+
+## Prometheus metrics
+
+See here: [Prometheus metrics](./docs/metrics.md)
 
 ## Deployment
 

@@ -1,7 +1,10 @@
 # Configuration
 
-The configuration must be set in a YAML file located in `conf/` folder from the current working directory. The file name is `config.yaml`.
-The full path is `conf/config.yaml`.
+The configuration must be set in multiple YAML files located in `conf/` folder from the current working directory.
+
+You can create multiple files containing different part of the configuration. A global merge will be done across all data in all files.
+
+Moreover, the configuration files will be watched for modifications.
 
 You can see a full example in the [Example section](#example)
 
@@ -19,10 +22,11 @@ You can see a full example in the [Example section](#example)
 
 ## LogConfiguration
 
-| Key    | Type   | Required | Default | Description                                         |
-| ------ | ------ | -------- | ------- | --------------------------------------------------- |
-| level  | String | No       | `info`  | Log level                                           |
-| format | String | No       | `json`  | Log format (available values are: `json` or `text`) |
+| Key      | Type   | Required | Default | Description                                         |
+| -------- | ------ | -------- | ------- | --------------------------------------------------- |
+| level    | String | No       | `info`  | Log level                                           |
+| format   | String | No       | `json`  | Log format (available values are: `json` or `text`) |
+| filePath | String | No       | `""`    | Log file path                                       |
 
 ## ServerConfiguration
 
@@ -45,15 +49,15 @@ You can see a full example in the [Example section](#example)
 
 ## TargetConfiguration
 
-| Key           | Type                                          | Required | Default            | Description                                                                                              |
-| ------------- | --------------------------------------------- | -------- | ------------------ | -------------------------------------------------------------------------------------------------------- |
-| name          | String                                        | Yes      | None               | Target name. (This will used in urls and list of targets.)                                               |
-| bucket        | [BucketConfiguration](#bucketconfiguration)   | Yes      | None               | Bucket configuration                                                                                     |
-| indexDocument | String                                        | No       | `""`               | The index document name. If this document is found, get it instead of list folder. Example: `index.html` |
-| resources     | [[Resource]](#resource)                       | No       | None               | Resources declaration for path whitelist or specific authentication on path list                         |
-| mount         | [MountConfiguration](#mountconfiguration)     | Yes      | None               | Mount point configuration                                                                                |
-| actions       | [ActionsConfiguration](#actionsconfiguration) | No       | GET action enabled | Actions allowed on target (GET, PUT or DELETE)                                                           |
-| templates     | [TargetTemplateConfig](#targettemplateconfig) | No       | None               | Custom target templates from files on local filesystem or in bucket                                      |
+| Key           | Type                                          | Required | Default            | Description                                                                                                                                                                                                                             |
+| ------------- | --------------------------------------------- | -------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| name          | String                                        | Yes      | None               | Target name. (This will used in urls and list of targets.)                                                                                                                                                                              |
+| bucket        | [BucketConfiguration](#bucketconfiguration)   | Yes      | None               | Bucket configuration                                                                                                                                                                                                                    |
+| indexDocument | String                                        | No       | `""`               | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                                                                                                                                |
+| resources     | [[Resource]](#resource)                       | No       | None               | Resources declaration for path whitelist or specific authentication on path list. WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /* otherwise, it will be public. |
+| mount         | [MountConfiguration](#mountconfiguration)     | Yes      | None               | Mount point configuration                                                                                                                                                                                                               |
+| actions       | [ActionsConfiguration](#actionsconfiguration) | No       | GET action enabled | Actions allowed on target (GET, PUT or DELETE)                                                                                                                                                                                          |
+| templates     | [TargetTemplateConfig](#targettemplateconfig) | No       | None               | Custom target templates from files on local filesystem or in bucket                                                                                                                                                                     |
 
 ## TargetTemplateConfig
 
@@ -176,9 +180,16 @@ You can see a full example in the [Example section](#example)
 
 # ResourceOIDC
 
-| Key                   | Type                                                      | Required | Default | Description                                                                                                                                           |
-| --------------------- | --------------------------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| authorizationAccesses | [[OIDCAuthorizationAccesses]](#oidcauthorizationaccesses) | No       | None    | Authorization accesses matrix by group or email. If not set, authenticated users will be authorized (no group or email validation will be performed). |
+| Key                    | Type                                                      | Required | Default | Description                                                                                                                                                                               |
+| ---------------------- | --------------------------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| authorizationAccesses  | [[OIDCAuthorizationAccesses]](#oidcauthorizationaccesses) | No       | None    | Authorization accesses matrix by group or email. If not set, authenticated users will be authorized (no group or email validation will be performed if authorizationOPAServer isn't set). |
+| authorizationOPAServer | [OPAServerAuthorization](#opaserverauthorization)         | No       | None    | Authorization through an OPA (Open Policy Agent) server                                                                                                                                   |
+
+## OPAServerAuthorization
+
+| Key | Type   | Required | Default | Description                                                                                   |
+| --- | ------ | -------- | ------- | --------------------------------------------------------------------------------------------- |
+| url | String | Yes      | None    | URL of the OPA server including the data path (see the dedicated section for [opa](./opa.md)) |
 
 ## OIDCAuthorizationAccesses
 
@@ -225,6 +236,8 @@ log:
   level: info
   # Log format
   format: text
+  # Log file path
+  # filePath:
 
 # Server configurations
 # server:
@@ -304,13 +317,14 @@ log:
 # Targets
 targets:
   - name: first-bucket
-    # ## Mount point
-    # mount:
-    #   path:
-    #     - /
-    #   # A specific host can be added for filtering. Otherwise, all hosts will be accepted
-    #   # host: localhost:8080
+    ## Mount point
+    mount:
+      path:
+        - /
+      # A specific host can be added for filtering. Otherwise, all hosts will be accepted
+      # host: localhost:8080
     # ## Resources declaration
+    # ## WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /* otherwise, it will be public.
     # resources:
     #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /
@@ -345,6 +359,14 @@ targets:
     #         - user: user1
     #           password:
     #             path: password1-in-file
+    #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
+    #   - path: /opa-protected/*
+    #     # OIDC section for access filter
+    #     oidc:
+    #       # Authorization through OPA server configuration
+    #       authorizationOPAServer:
+    #         # OPA server url with data path
+    #         url: http://localhost:8181/v1/data/example/authz/allowed
     # ## Index document to display if exists in folder
     # indexDocument: index.html
     # ## Actions

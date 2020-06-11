@@ -10,6 +10,7 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+*.out.tmp
 
 .vscode/*
 !.vscode/settings.json
@@ -136,3 +137,4 @@ config.yaml
 dist/
 _dist/
 coverage.html
+bundle.tar.gz
