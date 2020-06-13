@@ -295,7 +295,7 @@ func TestPublicRouter(t *testing.T) {
 			expectedBody: `<!DOCTYPE html>
 <html>
   <body>
-    <h1>Not Found folder1/test.txt-not-existing</h1>
+    <h1>Not Found /mount/folder1/test.txt-not-existing</h1>
   </body>
 </html>
 `,

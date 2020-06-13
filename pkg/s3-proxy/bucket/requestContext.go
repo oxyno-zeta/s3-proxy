@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -79,7 +80,8 @@ func (rctx *requestContext) HandleInternalServerError(err error, requestPath str
 		}
 	}
 
-	rctx.errorsHandlers.HandleInternalServerErrorWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, requestPath, err)
+	rpath := path.Join(rctx.mountPath, requestPath)
+	rctx.errorsHandlers.HandleInternalServerErrorWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath, err)
 }
 
 func (rctx *requestContext) HandleNotFound(requestPath string) {
@@ -99,7 +101,8 @@ func (rctx *requestContext) HandleNotFound(requestPath string) {
 		}
 	}
 
-	rctx.errorsHandlers.HandleNotFoundWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, requestPath)
+	rpath := path.Join(rctx.mountPath, requestPath)
+	rctx.errorsHandlers.HandleNotFoundWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath)
 }
 
 func (rctx *requestContext) HandleForbidden(requestPath string) {
@@ -119,7 +122,8 @@ func (rctx *requestContext) HandleForbidden(requestPath string) {
 		}
 	}
 
-	rctx.errorsHandlers.HandleForbiddenWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, requestPath)
+	rpath := path.Join(rctx.mountPath, requestPath)
+	rctx.errorsHandlers.HandleForbiddenWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath)
 }
 
 func (rctx *requestContext) HandleBadRequest(err error, requestPath string) {
@@ -139,7 +143,8 @@ func (rctx *requestContext) HandleBadRequest(err error, requestPath string) {
 		}
 	}
 
-	rctx.errorsHandlers.HandleBadRequestWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, requestPath, err)
+	rpath := path.Join(rctx.mountPath, requestPath)
+	rctx.errorsHandlers.HandleBadRequestWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath, err)
 }
 
 func (rctx *requestContext) HandleUnauthorized(requestPath string) {
@@ -159,7 +164,8 @@ func (rctx *requestContext) HandleUnauthorized(requestPath string) {
 		}
 	}
 
-	rctx.errorsHandlers.HandleUnauthorizedWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, requestPath)
+	rpath := path.Join(rctx.mountPath, requestPath)
+	rctx.errorsHandlers.HandleUnauthorizedWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath)
 }
 
 // Get proxy GET requests
