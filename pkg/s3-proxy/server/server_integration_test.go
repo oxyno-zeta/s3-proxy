@@ -345,10 +345,16 @@ func TestPublicRouter(t *testing.T) {
 			inputMethod:  "GET",
 			inputURL:     "http://localhost/mount/folder1/test.txt",
 			expectedCode: 404,
-			expectedBody: "Not Found\n",
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /mount/folder1/test.txt</h1>
+  </body>
+</html>
+`,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
-				"Content-Type":  "text/plain; charset=utf-8",
+				"Content-Type":  "text/html; charset=utf-8",
 			},
 		},
 		{
