@@ -12,7 +12,6 @@ require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-chi/chi v4.1.2+incompatible
-	github.com/go-chi/hostrouter v0.0.0-20180220162504-7bff2694dfd9
 	github.com/go-playground/validator/v10 v10.3.0
 	github.com/gobwas/glob v0.2.3
 	github.com/golang/mock v1.4.3
