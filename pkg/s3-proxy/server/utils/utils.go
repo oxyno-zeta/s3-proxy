@@ -173,5 +173,5 @@ func GetRequestURI(r *http.Request) string {
 		scheme = "https"
 	}
 
-	return fmt.Sprintf("%s://%s%s", scheme, r.Host, r.RequestURI)
+	return fmt.Sprintf("%s://%s%s", scheme, r.Host, r.URL.RequestURI())
 }

@@ -925,3 +925,16 @@ func TestHandleForbidden(t *testing.T) {
 		})
 	}
 }
+
+func TestGetRequestURI(t *testing.T) {
+	req, err := http.NewRequest("GET", "http://localhost:989/fake/path", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := "http://localhost:989/fake/path"
+	got := GetRequestURI(req)
+	if got != want {
+		t.Errorf("GetRequestURI() = %v, want %v", got, want)
+	}
+}
