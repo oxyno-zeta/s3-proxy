@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/hostrouter"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/authentication"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/authorization"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
@@ -118,8 +117,26 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 		}
 	}
 
+	notFoundHandler := func(w http.ResponseWriter, r *http.Request) {
+		// Get logger
+		logger := middlewares.GetLogEntry(r)
+		// Get request URI
+		requestURI := r.URL.RequestURI()
+		utils.HandleNotFound(logger, w, cfg.Templates, requestURI)
+	}
+
+	internalServerHandlerGen := func(err error) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			// Get logger
+			logger := middlewares.GetLogEntry(r)
+			// Get request URI
+			requestURI := r.URL.RequestURI()
+			utils.HandleInternalServerError(logger, w, cfg.Templates, requestURI, err)
+		}
+	}
+
 	// Create host router
-	hr := hostrouter.New()
+	hr := NewHostRouter(notFoundHandler, internalServerHandlerGen)
 
 	// Load main route only if main bucket path support option isn't enabled
 	if cfg.ListTargets.Enabled {
@@ -163,7 +180,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 			domain = "*"
 		}
 		// Get router from hostrouter if exists
-		rt := hr[domain]
+		rt := hr.Get(domain)
 		if rt == nil {
 			// Create a new router
 			rt = chi.NewRouter()
