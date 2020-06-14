@@ -214,10 +214,10 @@ You can see a full example in the [Example section](#example)
 
 ## MountConfiguration
 
-| Key  | Type     | Required | Default | Description                                            |
-| ---- | -------- | -------- | ------- | ------------------------------------------------------ |
-| host | String   | No       | `""`    | Host domain requested (eg: localhost:888 or google.fr) |
-| path | [String] | Yes      | None    | A path list for mounting point                         |
+| Key  | Type     | Required | Default | Description                                                                                                                            |
+| ---- | -------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| host | String   | No       | `""`    | Host domain requested (eg: localhost:888 or google.fr). Put empty for all domains. Note: Glob patterns for host domains are supported. |
+| path | [String] | Yes      | None    | A path list for mounting point                                                                                                         |
 
 ## ListTargetsConfiguration
 
