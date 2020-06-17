@@ -8,6 +8,7 @@ import (
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 )
 
 type inputOPA struct {
@@ -57,7 +58,7 @@ func isOPAServerAuthorized(req *http.Request, oidcUser *models.OIDCUser, resourc
 				Headers:    headers,
 				RemoteAddr: req.RemoteAddr,
 				Scheme:     scheme,
-				Host:       req.Host,
+				Host:       utils.RequestHost(req),
 				ParsedPath: parsedPath,
 				Path:       req.RequestURI,
 			},
