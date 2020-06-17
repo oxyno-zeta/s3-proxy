@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/gobwas/glob"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 )
 
 // Fork dead project https://github.com/go-chi/hostrouter/
@@ -36,7 +37,7 @@ func (hr HostRouter) Map(host string, h chi.Router) {
 
 func (hr HostRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Get host
-	host := requestHost(r)
+	host := utils.RequestHost(r)
 
 	// Check if host is matching directly
 	if router, ok := hr.routes[strings.ToLower(host)]; ok {
@@ -58,52 +59,6 @@ func (hr HostRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hr.notFoundHandler(w, r)
-}
-
-func requestHost(r *http.Request) string {
-	// not standard, but most popular
-	host := r.Header.Get("X-Forwarded-Host")
-	if host != "" {
-		return host
-	}
-
-	// RFC 7239
-	host = r.Header.Get("Forwarded")
-	_, _, host = parseForwarded(host)
-
-	if host != "" {
-		return host
-	}
-
-	// if all else fails fall back to request host
-	host = r.Host
-
-	return host
-}
-
-func parseForwarded(forwarded string) (addr, proto, host string) {
-	if forwarded == "" {
-		return
-	}
-
-	for _, forwardedPair := range strings.Split(forwarded, ";") {
-		if tv := strings.SplitN(forwardedPair, "=", 2); len(tv) == 2 {
-			token, value := tv[0], tv[1]
-			token = strings.TrimSpace(token)
-			value = strings.TrimSpace(strings.Trim(value, `"`))
-
-			switch strings.ToLower(token) {
-			case "for":
-				addr = value
-			case "proto":
-				proto = value
-			case "host":
-				host = value
-			}
-		}
-	}
-
-	return
 }
 
 func (hr HostRouter) getRouterWithWildcard(host string) (chi.Router, error) {
