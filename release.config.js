@@ -114,7 +114,7 @@ module.exports = {
     [
       "@semantic-release/exec",
       {
-        publishCmd: "make release",
+        publishCmd: "make release/all",
       },
     ],
   ],
