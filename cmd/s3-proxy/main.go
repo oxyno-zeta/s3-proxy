@@ -5,6 +5,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version"
 	"golang.org/x/sync/errgroup"
 )
@@ -52,12 +53,26 @@ func main() {
 	// Generate metrics instance
 	metricsCtx := metrics.NewClient()
 
+	// Generate tracing service instance
+	tracingSvc, err := tracing.New(cfgManager, logger)
+	// Check error
+	if err != nil {
+		logger.Fatal(err)
+	}
+	// Prepare on reload hook
+	cfgManager.AddOnChangeHook(func() {
+		err2 := tracingSvc.Reload()
+		if err2 != nil {
+			logger.Fatal(err2)
+		}
+	})
+
 	// Create internal server
 	intSvr := server.NewInternalServer(logger, cfgManager, metricsCtx)
 	// Generate server
 	intSvr.GenerateServer()
 	// Create server
-	svr := server.NewServer(logger, cfgManager, metricsCtx)
+	svr := server.NewServer(logger, cfgManager, metricsCtx, tracingSvc)
 	// Generate server
 	err = svr.GenerateServer()
 	if err != nil {

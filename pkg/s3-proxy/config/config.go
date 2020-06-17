@@ -51,6 +51,9 @@ const DefaultOIDCGroupClaim = "groups"
 // DefaultOIDCCookieName Default OIDC Cookie name
 const DefaultOIDCCookieName = "oidc"
 
+// DefaultTracingFixedTags Default fixed tags for tracing configuration
+var DefaultTracingFixedTags = map[string]interface{}{}
+
 // ErrMainBucketPathSupportNotValid Error thrown when main bucket path support option isn't valid
 var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support option can be enabled only when only one bucket is configured")
 
@@ -63,12 +66,23 @@ const oidcCallbackPathTemplate = "/auth/%s/callback"
 // Config Application Configuration
 type Config struct {
 	Log            *LogConfig          `mapstructure:"log"`
+	Tracing        *TracingConfig      `mapstructure:"tracing"`
 	Server         *ServerConfig       `mapstructure:"server"`
 	InternalServer *ServerConfig       `mapstructure:"internalServer"`
 	Targets        []*TargetConfig     `mapstructure:"targets" validate:"gte=0,required,dive,required"`
 	Templates      *TemplateConfig     `mapstructure:"templates"`
 	AuthProviders  *AuthProviderConfig `mapstructure:"authProviders"`
 	ListTargets    *ListTargetsConfig  `mapstructure:"listTargets"`
+}
+
+// TracingConfig represents the Tracing configuration structure
+type TracingConfig struct {
+	Enabled       bool                   `mapstructure:"enabled"`
+	LogSpan       bool                   `mapstructure:"logSpan"`
+	FlushInterval string                 `mapstructure:"flushInterval"`
+	UDPHost       string                 `mapstructure:"udpHost"`
+	QueueSize     int                    `mapstructure:"queueSize"`
+	FixedTags     map[string]interface{} `mapstructure:"fixedTags"`
 }
 
 // ListTargetsConfig List targets configuration

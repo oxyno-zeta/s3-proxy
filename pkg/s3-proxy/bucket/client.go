@@ -8,6 +8,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 )
 
 // Client represents a client in order to GET, PUT or DELETE file on a bucket with a html output
@@ -54,8 +55,9 @@ func NewClient(
 	mountPath string, httpRW http.ResponseWriter,
 	metricsCtx metrics.Client,
 	errorHandlers *ErrorHandlers,
+	parentTrace tracing.Trace,
 ) (Client, error) {
-	s3ctx, err := s3client.NewS3Context(tgt, logger, metricsCtx)
+	s3ctx, err := s3client.NewS3Context(tgt, logger, metricsCtx, parentTrace)
 	if err != nil {
 		return nil, err
 	}

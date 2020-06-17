@@ -479,6 +479,11 @@ func loadBusinessDefaultValues(out *Config) error {
 		out.ListTargets = &ListTargetsConfig{Enabled: false}
 	}
 
+	// Manage default value for tracing
+	if out.Tracing == nil {
+		out.Tracing = &TracingConfig{Enabled: false}
+	}
+
 	return nil
 }
 

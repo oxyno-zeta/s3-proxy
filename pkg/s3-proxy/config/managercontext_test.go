@@ -28,6 +28,20 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 			wantErr: false,
 			result: &Config{
 				ListTargets: &ListTargetsConfig{Enabled: false},
+				Tracing:     &TracingConfig{Enabled: false},
+			},
+		},
+		{
+			name: "Load default values skipped for tracing configuration",
+			args: args{
+				out: &Config{
+					Tracing: &TracingConfig{Enabled: false, LogSpan: true},
+				},
+			},
+			wantErr: false,
+			result: &Config{
+				ListTargets: &ListTargetsConfig{Enabled: false},
+				Tracing:     &TracingConfig{Enabled: false, LogSpan: true},
 			},
 		},
 		{
@@ -50,6 +64,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 						Path: []string{"/"},
 					},
 				},
+				Tracing: &TracingConfig{Enabled: false},
 			},
 		},
 		{
@@ -88,6 +103,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 						Path: []string{"/"},
 					},
 				},
+				Tracing: &TracingConfig{Enabled: false},
 			},
 		},
 		{
@@ -111,6 +127,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 							Path: []string{"/"},
 						},
 					},
+					Tracing: &TracingConfig{Enabled: false},
 				},
 			},
 			wantErr: false,
@@ -132,6 +149,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 						Path: []string{"/"},
 					},
 				},
+				Tracing: &TracingConfig{Enabled: false},
 			},
 		},
 		{
@@ -152,6 +170,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 						Methods: []string{"GET"},
 					},
 				},
+				Tracing: &TracingConfig{Enabled: false},
 			},
 		},
 		{
@@ -190,6 +209,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 						},
 					},
 				},
+				Tracing: &TracingConfig{Enabled: false},
 			},
 		},
 		{
@@ -228,6 +248,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 						},
 					},
 				},
+				Tracing: &TracingConfig{Enabled: false},
 			},
 		},
 		{
@@ -248,6 +269,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					},
 				},
 				ListTargets: &ListTargetsConfig{Enabled: false},
+				Tracing:     &TracingConfig{Enabled: false},
 			},
 		},
 		{
@@ -273,6 +295,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					},
 				},
 				ListTargets: &ListTargetsConfig{Enabled: false},
+				Tracing:     &TracingConfig{Enabled: false},
 			},
 		},
 		{
@@ -324,6 +347,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					},
 				},
 				ListTargets: &ListTargetsConfig{Enabled: false},
+				Tracing:     &TracingConfig{Enabled: false},
 			},
 		},
 	}

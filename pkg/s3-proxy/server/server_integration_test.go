@@ -23,6 +23,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	cmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config/mocks"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -43,6 +44,8 @@ func TestPublicRouter(t *testing.T) {
 		t.Error(err)
 		return
 	}
+
+	tracingConfig := &config.TracingConfig{}
 
 	type args struct {
 		cfg *config.Config
@@ -68,6 +71,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -114,6 +118,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -159,6 +164,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -211,6 +217,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -257,6 +264,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -309,6 +317,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -362,6 +371,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -409,6 +419,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -485,6 +496,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -561,6 +573,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -638,6 +651,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -717,6 +731,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -796,6 +811,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -868,6 +884,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -948,6 +965,7 @@ func TestPublicRouter(t *testing.T) {
 							Path: []string{"/"},
 						},
 					},
+					Tracing: tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -1027,6 +1045,7 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
+					Tracing: tracingConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
 							"provider1": {
@@ -1107,6 +1126,7 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
+					Tracing: tracingConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
 							"provider1": {
@@ -1189,6 +1209,7 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
+					Tracing: tracingConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
 							"provider1": {
@@ -1271,6 +1292,7 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
+					Tracing: tracingConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
 							"provider1": {
@@ -1339,6 +1361,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -1386,6 +1409,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -1433,6 +1457,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -1477,6 +1502,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -1522,6 +1548,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -1578,6 +1605,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -1642,6 +1670,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -1699,6 +1728,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -1755,6 +1785,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
 						FolderList:          "../../../templates/folder-list.tpl",
 						TargetList:          "../../../templates/target-list.tpl",
@@ -1817,12 +1848,233 @@ func TestPublicRouter(t *testing.T) {
 			cfgManagerMock := cmocks.NewMockManager(ctrl)
 
 			// Load configuration in manager
-			cfgManagerMock.EXPECT().GetConfig().Return(tt.args.cfg)
+			cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(tt.args.cfg)
+
+			logger := log.NewLogger()
+			// Create tracing service
+			tsvc, err := tracing.New(cfgManagerMock, logger)
+			assert.NoError(t, err)
 
 			svr := &Server{
-				logger:     log.NewLogger(),
+				logger:     logger,
 				cfgManager: cfgManagerMock,
 				metricsCl:  metricsCtx,
+				tracingSvc: tsvc,
+			}
+			got, err := svr.generateRouter()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GenerateRouter() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			// If want error at this moment => stop
+			if tt.wantErr {
+				return
+			}
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(
+				tt.inputMethod,
+				tt.inputURL,
+				nil,
+			)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			// multipart form
+			if tt.inputBody != "" {
+				body := &bytes.Buffer{}
+				writer := multipart.NewWriter(body)
+				part, err := writer.CreateFormFile(tt.inputFileKey, filepath.Base(tt.inputFileName))
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				_, err = io.Copy(part, strings.NewReader(tt.inputBody))
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				err = writer.Close()
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				req, err = http.NewRequest(
+					tt.inputMethod,
+					tt.inputURL,
+					body,
+				)
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				req.Header.Set("Content-Type", writer.FormDataContentType())
+			}
+			// Add basic auth
+			if tt.inputBasicUser != "" {
+				req.SetBasicAuth(tt.inputBasicUser, tt.inputBasicPassword)
+			}
+			got.ServeHTTP(w, req)
+
+			if tt.expectedBody != "" {
+				body := w.Body.String()
+				if tt.expectedBody != body {
+					t.Errorf("Integration test on GenerateRouter() body = \"%v\", expected body \"%v\"", body, tt.expectedBody)
+				}
+			}
+
+			if tt.notExpectedBody != "" {
+				body := w.Body.String()
+				if tt.notExpectedBody == body {
+					t.Errorf("Integration test on GenerateRouter() body = \"%v\", not expected body \"%v\"", body, tt.notExpectedBody)
+				}
+			}
+
+			if tt.expectedHeaders != nil {
+				for key, val := range tt.expectedHeaders {
+					wheader := w.HeaderMap.Get(key)
+					if val != wheader {
+						t.Errorf("Integration test on GenerateRouter() header %s = %v, expected %v", key, wheader, val)
+					}
+				}
+			}
+
+			if tt.expectedCode != w.Code {
+				t.Errorf("Integration test on GenerateRouter() status code = %v, expected status code %v", w.Code, tt.expectedCode)
+			}
+		})
+	}
+}
+
+func TestTracing(t *testing.T) {
+	// trueValue := true
+	accessKey := "YOUR-ACCESSKEYID"
+	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	region := "eu-central-1"
+	bucket := "test-bucket"
+	s3server, err := setupFakeS3(
+		accessKey,
+		secretAccessKey,
+		region,
+		bucket,
+	)
+	defer s3server.Close()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	tplConfig := &config.TemplateConfig{
+		FolderList:          "../../../templates/folder-list.tpl",
+		TargetList:          "../../../templates/target-list.tpl",
+		NotFound:            "../../../templates/not-found.tpl",
+		Forbidden:           "../../../templates/forbidden.tpl",
+		BadRequest:          "../../../templates/bad-request.tpl",
+		InternalServerError: "../../../templates/internal-server-error.tpl",
+		Unauthorized:        "../../../templates/unauthorized.tpl",
+	}
+	targetsCfg := []*config.TargetConfig{
+		{
+			Name: "target1",
+			Bucket: &config.BucketConfig{
+				Name:       bucket,
+				Region:     region,
+				S3Endpoint: s3server.URL,
+				Credentials: &config.BucketCredentialConfig{
+					AccessKey: &config.CredentialConfig{Value: accessKey},
+					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+				},
+				DisableSSL: true,
+			},
+			Mount: &config.MountConfig{
+				Path: []string{"/mount/"},
+			},
+			Actions: &config.ActionsConfig{
+				GET: &config.GetActionConfig{Enabled: true},
+			},
+		},
+	}
+	type args struct {
+		cfg *config.Config
+	}
+	tests := []struct {
+		name               string
+		args               args
+		inputMethod        string
+		inputURL           string
+		inputBasicUser     string
+		inputBasicPassword string
+		inputBody          string
+		inputFileName      string
+		inputFileKey       string
+		expectedCode       int
+		expectedBody       string
+		expectedHeaders    map[string]string
+		notExpectedBody    string
+		wantErr            bool
+	}{
+		{
+			name: "GET a not found path without any tracing configuration",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     &config.TracingConfig{},
+					Templates:   tplConfig,
+					Targets:     targetsCfg,
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/not-found/",
+			expectedCode: 404,
+			expectedBody: "404 page not found\n",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name: "GET a not found path with a tracing configuration",
+			args: args{
+				cfg: &config.Config{
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing: &config.TracingConfig{
+						Enabled:       true,
+						UDPHost:       "localhost:6831",
+						FlushInterval: "120s",
+					},
+					Templates: tplConfig,
+					Targets:   targetsCfg,
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/not-found/",
+			expectedCode: 404,
+			expectedBody: "404 page not found\n",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create go mock controller
+			ctrl := gomock.NewController(t)
+			cfgManagerMock := cmocks.NewMockManager(ctrl)
+
+			// Load configuration in manager
+			cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(tt.args.cfg)
+
+			logger := log.NewLogger()
+			// Create tracing service
+			tsvc, err := tracing.New(cfgManagerMock, logger)
+			assert.NoError(t, err)
+
+			svr := &Server{
+				logger:     logger,
+				cfgManager: cfgManagerMock,
+				metricsCl:  metricsCtx,
+				tracingSvc: tsvc,
 			}
 			got, err := svr.generateRouter()
 			if (err != nil) != tt.wantErr {
@@ -1938,6 +2190,7 @@ func TestOIDCAuthentication(t *testing.T) {
 		InternalServerError: "../../../templates/internal-server-error.tpl",
 		Unauthorized:        "../../../templates/unauthorized.tpl",
 	}
+	tracingConfig := &config.TracingConfig{}
 	targetsTpl := []*config.TargetConfig{
 		{
 			Name: "target1",
@@ -2096,6 +2349,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				cfg: &config.Config{
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
@@ -2120,6 +2374,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				cfg: &config.Config{
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
@@ -2153,6 +2408,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				cfg: &config.Config{
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
@@ -2189,6 +2445,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				cfg: &config.Config{
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
@@ -2226,6 +2483,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				cfg: &config.Config{
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
@@ -2263,6 +2521,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				cfg: &config.Config{
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
@@ -2301,6 +2560,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				cfg: &config.Config{
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
@@ -2339,6 +2599,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				cfg: &config.Config{
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
@@ -2377,6 +2638,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				cfg: &config.Config{
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
@@ -2415,6 +2677,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				cfg: &config.Config{
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
 					Templates:   tplCfg,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
@@ -2458,8 +2721,13 @@ func TestOIDCAuthentication(t *testing.T) {
 			cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(tt.args.cfg)
 			cfgManagerMock.EXPECT().AddOnChangeHook(gomock.Any()).AnyTimes()
 
-			ssvr := NewServer(log.NewLogger(), cfgManagerMock, metricsCtx)
-			err := ssvr.GenerateServer()
+			logger := log.NewLogger()
+			// Create tracing service
+			tsvc, err := tracing.New(cfgManagerMock, logger)
+			assert.NoError(t, err)
+
+			ssvr := NewServer(logger, cfgManagerMock, metricsCtx, tsvc)
+			err = ssvr.GenerateServer()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("generateServer() error = %v, wantErr %v", err, tt.wantErr)
 				return
