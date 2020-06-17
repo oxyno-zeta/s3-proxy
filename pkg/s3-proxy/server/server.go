@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/httptracer"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/authentication"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/authorization"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
@@ -14,6 +15,8 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version"
 	"github.com/thoas/go-funk"
 )
 
@@ -26,13 +29,15 @@ type Server struct {
 	cfgManager config.Manager
 	metricsCl  metrics.Client
 	server     *http.Server
+	tracingSvc tracing.Service
 }
 
-func NewServer(logger log.Logger, cfgManager config.Manager, metricsCl metrics.Client) *Server {
+func NewServer(logger log.Logger, cfgManager config.Manager, metricsCl metrics.Client, tracingSvc tracing.Service) *Server {
 	return &Server{
 		logger:     logger,
 		cfgManager: cfgManager,
 		metricsCl:  metricsCl,
+		tracingSvc: tracingSvc,
 	}
 }
 
@@ -104,9 +109,22 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	r.Use(middleware.NoCache)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
+	r.Use(middleware.Recoverer)
+	// Manage tracing
+	// Create http tracer configuration
+	httptraCfg := httptracer.Config{
+		ServiceName:    "s3-proxy",
+		ServiceVersion: version.GetVersion().Version,
+		SampleRate:     1,
+		OperationName:  "http.request",
+		Tags:           cfg.Tracing.FixedTags,
+	}
+	// Put tracing middlewares
+	r.Use(httptracer.Tracer(svr.tracingSvc.GetTracer(), httptraCfg))
+	r.Use(middlewares.ImproveTracing())
 	r.Use(middlewares.NewStructuredLogger(svr.logger))
 	r.Use(svr.metricsCl.Instrument("business"))
-	r.Use(middleware.Recoverer)
+
 	// Check if auth if enabled and oidc enabled
 	if cfg.AuthProviders != nil && cfg.AuthProviders.OIDC != nil {
 		for _, v := range cfg.AuthProviders.OIDC {

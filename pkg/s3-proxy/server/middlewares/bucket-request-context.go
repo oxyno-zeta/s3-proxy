@@ -7,6 +7,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"golang.org/x/net/context"
 )
 
@@ -37,8 +38,10 @@ func BucketRequestContext(
 				HandleBadRequestWithTemplate:          utils.HandleBadRequestWithTemplate,
 				HandleUnauthorizedWithTemplate:        utils.HandleUnauthorizedWithTemplate,
 			}
+			// Get request trace
+			trace := tracing.GetTraceFromRequest(req)
 			// Generate new bucket client
-			brctx, err := bucket.NewClient(tgt, tplConfig, logEntry, path, rw, metricsCli, errorhandlers)
+			brctx, err := bucket.NewClient(tgt, tplConfig, logEntry, path, rw, metricsCli, errorhandlers, trace)
 			if err != nil {
 				logEntry.Error(err)
 				utils.HandleInternalServerError(logEntry, rw, tplConfig, requestURI, err)

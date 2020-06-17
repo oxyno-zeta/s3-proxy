@@ -12,14 +12,16 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 )
 
 type s3Context struct {
-	svcClient  s3iface.S3API
-	uploader   s3manageriface.UploaderAPI
-	target     *config.TargetConfig
-	logger     log.Logger
-	metricsCtx metrics.Client
+	svcClient   s3iface.S3API
+	uploader    s3manageriface.UploaderAPI
+	target      *config.TargetConfig
+	logger      log.Logger
+	metricsCtx  metrics.Client
+	parentTrace tracing.Trace
 }
 
 // ListObjectsOperation List objects operation
@@ -39,6 +41,16 @@ const DeleteObjectOperation = "delete-object"
 
 // ListFilesAndDirectories List files and directories
 func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*ListElementOutput, error) {
+	// Create child trace
+	childTrace := s3ctx.parentTrace.GetChildTrace("s3-bucket.list-objects-request")
+	childTrace.SetTag("s3-bucket.bucket-name", s3ctx.target.Bucket.Name)
+	childTrace.SetTag("s3-bucket.bucket-region", s3ctx.target.Bucket.Region)
+	childTrace.SetTag("s3-bucket.bucket-prefix", s3ctx.target.Bucket.Prefix)
+	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3ctx.target.Bucket.S3Endpoint)
+	childTrace.SetTag("s3-proxy.target-name", s3ctx.target.Name)
+
+	defer childTrace.Finish()
+
 	// List files on path
 	folders := make([]*ListElementOutput, 0)
 	files := make([]*ListElementOutput, 0)
@@ -88,6 +100,16 @@ func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*ListElementOutpu
 
 // GetObject Get object from S3 bucket
 func (s3ctx *s3Context) GetObject(key string) (*GetOutput, error) {
+	// Create child trace
+	childTrace := s3ctx.parentTrace.GetChildTrace("s3-bucket.get-object-request")
+	childTrace.SetTag("s3-bucket.bucket-name", s3ctx.target.Bucket.Name)
+	childTrace.SetTag("s3-bucket.bucket-region", s3ctx.target.Bucket.Region)
+	childTrace.SetTag("s3-bucket.bucket-prefix", s3ctx.target.Bucket.Prefix)
+	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3ctx.target.Bucket.S3Endpoint)
+	childTrace.SetTag("s3-proxy.target-name", s3ctx.target.Name)
+
+	defer childTrace.Finish()
+
 	obj, err := s3ctx.svcClient.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(s3ctx.target.Bucket.Name),
 		Key:    aws.String(key),
@@ -153,6 +175,16 @@ func (s3ctx *s3Context) GetObject(key string) (*GetOutput, error) {
 }
 
 func (s3ctx *s3Context) PutObject(input *PutInput) error {
+	// Create child trace
+	childTrace := s3ctx.parentTrace.GetChildTrace("s3-bucket.put-object-request")
+	childTrace.SetTag("s3-bucket.bucket-name", s3ctx.target.Bucket.Name)
+	childTrace.SetTag("s3-bucket.bucket-region", s3ctx.target.Bucket.Region)
+	childTrace.SetTag("s3-bucket.bucket-prefix", s3ctx.target.Bucket.Prefix)
+	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3ctx.target.Bucket.S3Endpoint)
+	childTrace.SetTag("s3-proxy.target-name", s3ctx.target.Name)
+
+	defer childTrace.Finish()
+
 	inp := &s3manager.UploadInput{
 		Bucket: aws.String(s3ctx.target.Bucket.Name),
 		Key:    aws.String(input.Key),
@@ -179,6 +211,16 @@ func (s3ctx *s3Context) PutObject(input *PutInput) error {
 }
 
 func (s3ctx *s3Context) HeadObject(key string) (*HeadOutput, error) {
+	// Create child trace
+	childTrace := s3ctx.parentTrace.GetChildTrace("s3-bucket.head-object-request")
+	childTrace.SetTag("s3-bucket.bucket-name", s3ctx.target.Bucket.Name)
+	childTrace.SetTag("s3-bucket.bucket-region", s3ctx.target.Bucket.Region)
+	childTrace.SetTag("s3-bucket.bucket-prefix", s3ctx.target.Bucket.Prefix)
+	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3ctx.target.Bucket.S3Endpoint)
+	childTrace.SetTag("s3-proxy.target-name", s3ctx.target.Name)
+
+	defer childTrace.Finish()
+
 	// Head object in bucket
 	_, err := s3ctx.svcClient.HeadObject(&s3.HeadObjectInput{
 		Bucket: aws.String(s3ctx.target.Bucket.Name),
@@ -209,6 +251,16 @@ func (s3ctx *s3Context) HeadObject(key string) (*HeadOutput, error) {
 }
 
 func (s3ctx *s3Context) DeleteObject(key string) error {
+	// Create child trace
+	childTrace := s3ctx.parentTrace.GetChildTrace("s3-bucket.delete-object-request")
+	childTrace.SetTag("s3-bucket.bucket-name", s3ctx.target.Bucket.Name)
+	childTrace.SetTag("s3-bucket.bucket-region", s3ctx.target.Bucket.Region)
+	childTrace.SetTag("s3-bucket.bucket-prefix", s3ctx.target.Bucket.Prefix)
+	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3ctx.target.Bucket.S3Endpoint)
+	childTrace.SetTag("s3-proxy.target-name", s3ctx.target.Name)
+
+	defer childTrace.Finish()
+
 	// Delete object
 	_, err := s3ctx.svcClient.DeleteObject(&s3.DeleteObjectInput{
 		Bucket: aws.String(s3ctx.target.Bucket.Name),

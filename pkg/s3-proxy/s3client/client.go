@@ -13,6 +13,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 )
 
 // Client S3 Context interface
@@ -74,7 +75,7 @@ type PutInput struct {
 }
 
 // NewS3Context New S3 Context
-func NewS3Context(tgt *config.TargetConfig, logger log.Logger, metricsCtx metrics.Client) (Client, error) {
+func NewS3Context(tgt *config.TargetConfig, logger log.Logger, metricsCtx metrics.Client, parentTrace tracing.Trace) (Client, error) {
 	sessionConfig := &aws.Config{
 		Region: aws.String(tgt.Bucket.Region),
 	}
@@ -102,5 +103,12 @@ func NewS3Context(tgt *config.TargetConfig, logger log.Logger, metricsCtx metric
 	// Create S3 uploader client
 	uploader := s3manager.NewUploader(sess)
 
-	return &s3Context{svcClient: svcClient, uploader: uploader, logger: logger, target: tgt, metricsCtx: metricsCtx}, nil
+	return &s3Context{
+		svcClient:   svcClient,
+		uploader:    uploader,
+		logger:      logger,
+		target:      tgt,
+		metricsCtx:  metricsCtx,
+		parentTrace: parentTrace,
+	}, nil
 }

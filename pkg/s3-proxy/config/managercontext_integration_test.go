@@ -79,6 +79,7 @@ targets:
 					Forbidden:           "templates/forbidden.tpl",
 					BadRequest:          "templates/bad-request.tpl",
 				},
+				Tracing: &TracingConfig{Enabled: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -142,6 +143,7 @@ targets:
 					Forbidden:           "templates/forbidden.tpl",
 					BadRequest:          "templates/bad-request.tpl",
 				},
+				Tracing: &TracingConfig{Enabled: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -255,6 +257,7 @@ targets:
 					Forbidden:           "templates/forbidden.tpl",
 					BadRequest:          "templates/bad-request.tpl",
 				},
+				Tracing: &TracingConfig{Enabled: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -352,6 +355,7 @@ targets:
 					Forbidden:           "templates/forbidden.tpl",
 					BadRequest:          "templates/bad-request.tpl",
 				},
+				Tracing: &TracingConfig{Enabled: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -432,6 +436,7 @@ targets:
 					Forbidden:           "templates/forbidden.tpl",
 					BadRequest:          "templates/bad-request.tpl",
 				},
+				Tracing: &TracingConfig{Enabled: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -611,6 +616,7 @@ targets:
 			Forbidden:           "templates/forbidden.tpl",
 			BadRequest:          "templates/bad-request.tpl",
 		},
+		Tracing: &TracingConfig{Enabled: false},
 		ListTargets: &ListTargetsConfig{
 			Enabled: false,
 		},
@@ -681,6 +687,7 @@ log:
 				Forbidden:           "templates/forbidden.tpl",
 				BadRequest:          "templates/bad-request.tpl",
 			},
+			Tracing: &TracingConfig{Enabled: false},
 			ListTargets: &ListTargetsConfig{
 				Enabled: false,
 			},
@@ -801,6 +808,7 @@ targets:
 			Forbidden:           "templates/forbidden.tpl",
 			BadRequest:          "templates/bad-request.tpl",
 		},
+		Tracing: &TracingConfig{Enabled: false},
 		ListTargets: &ListTargetsConfig{
 			Enabled: false,
 		},
@@ -869,6 +877,7 @@ targets:
 				Forbidden:           "templates/forbidden.tpl",
 				BadRequest:          "templates/bad-request.tpl",
 			},
+			Tracing: &TracingConfig{Enabled: false},
 			ListTargets: &ListTargetsConfig{
 				Enabled: false,
 			},
@@ -989,6 +998,7 @@ targets:
 			Forbidden:           "templates/forbidden.tpl",
 			BadRequest:          "templates/bad-request.tpl",
 		},
+		Tracing: &TracingConfig{Enabled: false},
 		ListTargets: &ListTargetsConfig{
 			Enabled: false,
 		},
@@ -1060,6 +1070,7 @@ configuration with error
 				Forbidden:           "templates/forbidden.tpl",
 				BadRequest:          "templates/bad-request.tpl",
 			},
+			Tracing: &TracingConfig{Enabled: false},
 			ListTargets: &ListTargetsConfig{
 				Enabled: false,
 			},
@@ -1190,6 +1201,7 @@ targets:
 				"provider2": {Realm: "prov2"},
 			},
 		},
+		Tracing: &TracingConfig{Enabled: false},
 		ListTargets: &ListTargetsConfig{
 			Enabled: false,
 		},
@@ -1261,6 +1273,7 @@ authProviders:
 				Forbidden:           "templates/forbidden.tpl",
 				BadRequest:          "templates/bad-request.tpl",
 			},
+			Tracing: &TracingConfig{Enabled: false},
 			ListTargets: &ListTargetsConfig{
 				Enabled: false,
 			},
@@ -1394,6 +1407,7 @@ targets:
 		InternalServer: &ServerConfig{
 			Port: 9090,
 		},
+		Tracing: &TracingConfig{Enabled: false},
 		Templates: &TemplateConfig{
 			FolderList:          "templates/folder-list.tpl",
 			TargetList:          "templates/target-list.tpl",

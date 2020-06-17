@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/sirupsen/logrus"
 )
 
@@ -27,6 +28,15 @@ type StructuredLogger struct {
 func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	entry := &StructuredLoggerEntry{Logger: l.Logger}
 	logFields := map[string]interface{}{}
+
+	// Get request trace
+	trace := tracing.GetTraceFromRequest(r)
+	if trace != nil {
+		traceIDStr := trace.GetTraceID()
+		if traceIDStr != "" {
+			logFields["span_id"] = traceIDStr
+		}
+	}
 
 	if reqID := middleware.GetReqID(r.Context()); reqID != "" {
 		logFields["req_id"] = reqID

@@ -37,6 +37,14 @@ type Logger interface {
 	Errorln(args ...interface{})
 	Fatalln(args ...interface{})
 	Panicln(args ...interface{})
+
+	GetTracingLogger() TracingLogger
+}
+
+type TracingLogger interface {
+	Error(msg string)
+	Infof(msg string, args ...interface{})
+	Debugf(msg string, args ...interface{})
 }
 
 func NewLogger() Logger {

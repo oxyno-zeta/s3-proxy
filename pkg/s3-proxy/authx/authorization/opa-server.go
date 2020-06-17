@@ -9,6 +9,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 )
 
 type inputOPA struct {
@@ -37,6 +38,14 @@ type opaAnswer struct {
 }
 
 func isOPAServerAuthorized(req *http.Request, oidcUser *models.OIDCUser, resource *config.Resource) (bool, error) {
+	// Get trace from request
+	trace := tracing.GetTraceFromRequest(req)
+	// Generate child trace
+	childTrace := trace.GetChildTrace("opa-server.request")
+	defer childTrace.Finish()
+	// Add data
+	childTrace.SetTag("opa.uri", resource.OIDC.AuthorizationOPAServer.URL)
+
 	// Transform headers into map
 	headers := make(map[string]string)
 	for k, v := range req.Header {
