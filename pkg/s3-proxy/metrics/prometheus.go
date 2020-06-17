@@ -14,7 +14,7 @@ type prometheusClient struct {
 	resSz              *prometheus.SummaryVec
 	reqDur             *prometheus.SummaryVec
 	reqSz              *prometheus.SummaryVec
-	up                 prometheus.Gauge
+	up                 *prometheus.GaugeVec
 	s3OperationsTotal  *prometheus.CounterVec
 	authenticatedTotal *prometheus.CounterVec
 	authorizedTotal    *prometheus.CounterVec
@@ -106,13 +106,14 @@ func (ctx *prometheusClient) register() {
 	)
 	prometheus.MustRegister(ctx.resSz)
 
-	ctx.up = prometheus.NewGauge(
+	ctx.up = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "up",
 			Help: "1 = up, 0 = down",
 		},
+		[]string{"component"},
 	)
-	ctx.up.Set(1)
+	ctx.up.WithLabelValues("s3-proxy").Set(1)
 	prometheus.MustRegister(ctx.up)
 
 	ctx.s3OperationsTotal = prometheus.NewCounterVec(
