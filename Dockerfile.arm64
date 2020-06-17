@@ -1,4 +1,4 @@
-FROM arm64v8/alpine:3.11
+FROM arm64v8/alpine:3.12
 
 RUN which apk
 RUN which apk && apk add --update ca-certificates && rm -rf /var/cache/apk/*
