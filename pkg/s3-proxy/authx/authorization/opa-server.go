@@ -16,8 +16,9 @@ type inputOPA struct {
 }
 
 type inputDataOPA struct {
-	User    *models.OIDCUser `json:"user"`
-	Request *requestDataOPA  `json:"request"`
+	User    *models.OIDCUser  `json:"user"`
+	Request *requestDataOPA   `json:"request"`
+	Tags    map[string]string `json:"tags"`
 }
 
 type requestDataOPA struct {
@@ -52,6 +53,7 @@ func isOPAServerAuthorized(req *http.Request, oidcUser *models.OIDCUser, resourc
 	input := &inputOPA{
 		Input: &inputDataOPA{
 			User: oidcUser,
+			Tags: resource.OIDC.AuthorizationOPAServer.Tags,
 			Request: &requestDataOPA{
 				Method:     req.Method,
 				Protocol:   req.Proto,

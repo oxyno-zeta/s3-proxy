@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"regexp"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_loadBusinessDefaultValues(t *testing.T) {
@@ -591,6 +593,57 @@ func Test_loadAllCredentials(t *testing.T) {
 			if !reflect.DeepEqual(tt.result, res) {
 				t.Errorf("loadAllCredentials() result = %+v, want %+v", res, tt.result)
 			}
+		})
+	}
+}
+
+func Test_loadResourceValues(t *testing.T) {
+	type args struct {
+		res *Resource
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+		out     *Resource
+	}{
+		{
+			name: "default http methods",
+			args: args{
+				res: &Resource{},
+			},
+			out: &Resource{
+				Methods: []string{"GET"},
+			},
+		},
+		{
+			name: "default OPA tags",
+			args: args{
+				res: &Resource{
+					OIDC: &ResourceOIDC{
+						AuthorizationOPAServer: &OPAServerAuthorization{
+							URL: "http://opa",
+						},
+					},
+				},
+			},
+			out: &Resource{
+				Methods: []string{"GET"},
+				OIDC: &ResourceOIDC{
+					AuthorizationOPAServer: &OPAServerAuthorization{
+						URL:  "http://opa",
+						Tags: map[string]string{},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := loadResourceValues(tt.args.res); (err != nil) != tt.wantErr {
+				t.Errorf("loadResourceValues() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			assert.Equal(t, tt.out, tt.args.res)
 		})
 	}
 }
