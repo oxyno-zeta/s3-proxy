@@ -223,7 +223,8 @@ type ResourceOIDC struct {
 
 // OPAServerAuthorization OPA Server authorization
 type OPAServerAuthorization struct {
-	URL string `mapstructure:"url" validate:"required,url"`
+	URL  string            `mapstructure:"url" validate:"required,url"`
+	Tags map[string]string `mapstructure:"tags"`
 }
 
 // BucketConfig Bucket configuration

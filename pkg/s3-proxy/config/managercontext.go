@@ -384,6 +384,31 @@ func loadCredential(credCfg *CredentialConfig) error {
 	return nil
 }
 
+func loadResourceValues(res *Resource) error {
+	// Check if resource has methods
+	if res.Methods == nil {
+		// Set default values
+		res.Methods = []string{http.MethodGet}
+	}
+
+	// Check if regexp is enabled in OIDC Authorization groups
+	if res.OIDC != nil && res.OIDC.AuthorizationAccesses != nil {
+		for _, item := range res.OIDC.AuthorizationAccesses {
+			err2 := loadRegexOIDCAuthorizationAccess(item)
+			if err2 != nil {
+				return err2
+			}
+		}
+	}
+
+	// Check if tags are set in OPA server authorizations
+	if res.OIDC != nil && res.OIDC.AuthorizationOPAServer != nil && res.OIDC.AuthorizationOPAServer.Tags == nil {
+		res.OIDC.AuthorizationOPAServer.Tags = map[string]string{}
+	}
+
+	return nil
+}
+
 func loadBusinessDefaultValues(out *Config) error {
 	// Manage default values for targets
 	for _, item := range out.Targets {
@@ -402,20 +427,10 @@ func loadBusinessDefaultValues(out *Config) error {
 		// Manage default value for resources methods
 		if item.Resources != nil {
 			for _, res := range item.Resources {
-				// Check if resource has methods
-				if res.Methods == nil {
-					// Set default values
-					res.Methods = []string{http.MethodGet}
-				}
-
-				// Check if regexp is enabled in OIDC Authorization groups
-				if res.OIDC != nil && res.OIDC.AuthorizationAccesses != nil {
-					for _, item := range res.OIDC.AuthorizationAccesses {
-						err2 := loadRegexOIDCAuthorizationAccess(item)
-						if err2 != nil {
-							return err2
-						}
-					}
+				// Load default resource values
+				err := loadResourceValues(res)
+				if err != nil {
+					return err
 				}
 			}
 		}
@@ -426,21 +441,10 @@ func loadBusinessDefaultValues(out *Config) error {
 		// Store resource object
 		res := out.ListTargets.Resource
 
-		// Manage default values for http methods
-		if res.Methods == nil {
-			// Set default values
-			res.Methods = []string{http.MethodGet}
-		}
-
-		// Manage regexp values
-		// Check if regexp is enabled in OIDC Authorization groups
-		if res.OIDC != nil && res.OIDC.AuthorizationAccesses != nil {
-			for _, item := range res.OIDC.AuthorizationAccesses {
-				err2 := loadRegexOIDCAuthorizationAccess(item)
-				if err2 != nil {
-					return err2
-				}
-			}
+		// Load default resource values
+		err := loadResourceValues(res)
+		if err != nil {
+			return err
 		}
 	}
 

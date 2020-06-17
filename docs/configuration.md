@@ -187,9 +187,10 @@ You can see a full example in the [Example section](#example)
 
 ## OPAServerAuthorization
 
-| Key | Type   | Required | Default | Description                                                                                   |
-| --- | ------ | -------- | ------- | --------------------------------------------------------------------------------------------- |
-| url | String | Yes      | None    | URL of the OPA server including the data path (see the dedicated section for [opa](./opa.md)) |
+| Key  | Type                | Required | Default | Description                                                                                           |
+| ---- | ------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------- |
+| url  | String              | Yes      | None    | URL of the OPA server including the data path (see the dedicated section for [OPA](./opa.md))         |
+| tags | `map[string]string` | No       | `{}`    | Data that will be added as tags in the OPA input data (see the dedicated section for [OPA](./opa.md)) |
 
 ## OIDCAuthorizationAccesses
 
