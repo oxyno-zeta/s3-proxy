@@ -9,3 +9,7 @@ type BasicAuthUser struct {
 func (u *BasicAuthUser) GetType() string {
 	return BasicAuthUserType
 }
+
+func (u *BasicAuthUser) GetIdentifier() string {
+	return u.Username
+}

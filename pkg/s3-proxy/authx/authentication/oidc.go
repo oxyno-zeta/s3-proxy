@@ -304,7 +304,7 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 			// Create new request with new context
 			r = r.WithContext(ctx)
 
-			logEntry.Infof("OIDC User authenticated: %s", email)
+			logEntry.Infof("OIDC User authenticated: %s", ouser.GetIdentifier())
 			s.metricsCl.IncAuthenticated("oidc", res.Provider)
 
 			// Next

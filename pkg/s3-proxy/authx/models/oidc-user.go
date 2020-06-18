@@ -15,3 +15,11 @@ type OIDCUser struct {
 func (u *OIDCUser) GetType() string {
 	return OIDCUserType
 }
+
+func (u *OIDCUser) GetIdentifier() string {
+	if u.Email != "" {
+		return u.Email
+	}
+
+	return u.PreferredUsername
+}
