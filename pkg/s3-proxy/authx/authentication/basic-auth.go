@@ -77,7 +77,7 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 			// Create new request with new context
 			r = r.WithContext(ctx)
 
-			logEntry.Info("Basic auth user %s authenticated", username)
+			logEntry.Info("Basic auth user %s authenticated", buser.GetIdentifier())
 			s.metricsCl.IncAuthenticated("basic-auth", res.Provider)
 
 			next.ServeHTTP(w, r)

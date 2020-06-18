@@ -4,4 +4,6 @@ package models
 type GenericUser interface {
 	// Get type of user
 	GetType() string
+	// Get identifier
+	GetIdentifier() string
 }
