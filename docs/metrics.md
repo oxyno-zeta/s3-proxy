@@ -95,6 +95,10 @@ Prometheus data:
 
 Description: 1 = up (hardcoded)
 
+| Field name | Description                                |
+| ---------- | ------------------------------------------ |
+| component  | Component name (hardcoded with `s3-proxy`) |
+
 ## s3_operations_total
 
 Type: Counter
