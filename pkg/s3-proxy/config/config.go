@@ -51,9 +51,6 @@ const DefaultOIDCGroupClaim = "groups"
 // DefaultOIDCCookieName Default OIDC Cookie name
 const DefaultOIDCCookieName = "oidc"
 
-// DefaultTracingFixedTags Default fixed tags for tracing configuration
-var DefaultTracingFixedTags = map[string]interface{}{}
-
 // ErrMainBucketPathSupportNotValid Error thrown when main bucket path support option isn't valid
 var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support option can be enabled only when only one bucket is configured")
 
