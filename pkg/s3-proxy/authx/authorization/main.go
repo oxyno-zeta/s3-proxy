@@ -47,7 +47,7 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 				buser := user.(*models.BasicAuthUser)
 				// Resource is basic authenticated
 				logger.Debug("authorization for basic authentication => nothing needed")
-				logger.Info("Basic auth user %s authorized", buser.Username)
+				logger.Infof("Basic auth user %s authorized", buser.GetIdentifier())
 				metricsCl.IncAuthorized("basic-auth")
 				next.ServeHTTP(w, r)
 				return
@@ -91,7 +91,7 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 
 				// Check if not authorized
 				if !authorized {
-					logger.Errorf("Forbidden user %s", ouser.Email)
+					logger.Errorf("Forbidden user %s", ouser.GetIdentifier())
 					// Check if bucket request context doesn't exist to use local default files
 					if brctx == nil {
 						utils.HandleForbidden(logger, w, cfg.Templates, requestURI)
@@ -103,7 +103,7 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 
 				// User is authorized
 
-				logger.Info("OIDC user %s authorized", ouser.Email)
+				logger.Infof("OIDC user %s authorized", ouser.GetIdentifier())
 				metricsCl.IncAuthorized(authorizationProvider)
 				next.ServeHTTP(w, r)
 				return
