@@ -20,10 +20,6 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-const (
-	defaultMaxMemory = 32 << 20 // 32 MB
-)
-
 type Server struct {
 	logger     log.Logger
 	cfgManager config.Manager
@@ -244,7 +240,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 							return
 						}
 						// Parse multipart form
-						err := req.ParseMultipartForm(defaultMaxMemory)
+						err := req.ParseMultipartForm(0)
 						if err != nil {
 							logEntry.Error(err)
 							brctx.HandleInternalServerError(err, path)
@@ -263,6 +259,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 							Filename:    fileHeader.Filename,
 							Body:        file,
 							ContentType: fileHeader.Header.Get("Content-Type"),
+							ContentSize: fileHeader.Size,
 						}
 						brctx.Put(inp)
 					})

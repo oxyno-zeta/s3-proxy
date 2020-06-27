@@ -35,8 +35,9 @@ type Client interface {
 type PutInput struct {
 	RequestPath string
 	Filename    string
-	Body        io.Reader
+	Body        io.ReadSeeker
 	ContentType string
+	ContentSize int64
 }
 
 // ErrorHandlers error handlers

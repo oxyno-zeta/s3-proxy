@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
@@ -17,7 +15,6 @@ import (
 
 type s3Context struct {
 	svcClient   s3iface.S3API
-	uploader    s3manageriface.UploaderAPI
 	target      *config.TargetConfig
 	logger      log.Logger
 	metricsCtx  metrics.Client
@@ -185,11 +182,13 @@ func (s3ctx *s3Context) PutObject(input *PutInput) error {
 
 	defer childTrace.Finish()
 
-	inp := &s3manager.UploadInput{
-		Bucket: aws.String(s3ctx.target.Bucket.Name),
-		Key:    aws.String(input.Key),
-		Body:   input.Body,
+	inp := &s3.PutObjectInput{
+		Body:          input.Body,
+		ContentLength: aws.Int64(input.ContentSize),
+		Bucket:        aws.String(s3ctx.target.Bucket.Name),
+		Key:           aws.String(input.Key),
 	}
+
 	// Manage content type case
 	if input.ContentType != "" {
 		inp.ContentType = aws.String(input.ContentType)
@@ -202,8 +201,9 @@ func (s3ctx *s3Context) PutObject(input *PutInput) error {
 	if input.StorageClass != "" {
 		inp.StorageClass = aws.String(input.StorageClass)
 	}
+
 	// Upload to S3 bucket
-	_, err := s3ctx.uploader.Upload(inp)
+	_, err := s3ctx.svcClient.PutObject(inp)
 	// Metrics
 	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, PutObjectOperation)
 	// Return error

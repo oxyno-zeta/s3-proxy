@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
@@ -68,8 +67,9 @@ type GetOutput struct {
 // PutInput Put input object for PUT request
 type PutInput struct {
 	Key          string
-	Body         io.Reader
+	Body         io.ReadSeeker
 	ContentType  string
+	ContentSize  int64
 	Metadata     map[string]string
 	StorageClass string
 }
@@ -100,12 +100,8 @@ func NewS3Context(tgt *config.TargetConfig, logger log.Logger, metricsCtx metric
 	// Create s3 client
 	svcClient := s3.New(sess)
 
-	// Create S3 uploader client
-	uploader := s3manager.NewUploader(sess)
-
 	return &s3Context{
 		svcClient:   svcClient,
-		uploader:    uploader,
 		logger:      logger,
 		target:      tgt,
 		metricsCtx:  metricsCtx,
