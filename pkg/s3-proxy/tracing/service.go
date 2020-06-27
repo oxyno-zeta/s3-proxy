@@ -14,10 +14,11 @@ import (
 )
 
 type service struct {
-	closer     io.Closer
-	tracer     opentracing.Tracer
-	cfgManager config.Manager
-	logger     log.Logger
+	closer         io.Closer
+	tracer         opentracing.Tracer
+	cfgManager     config.Manager
+	logger         log.Logger
+	metricsFactory *jaegerprom.Factory
 }
 
 func (s *service) GetTracer() opentracing.Tracer {
@@ -81,13 +82,10 @@ func (s *service) setup() error {
 		}
 	}
 
-	// Create prometheus metrics factory
-	factory := jaegerprom.New()
-
 	// Initialize tracer with a logger and a metrics factory
 	tracer, closer, err := jcfg.NewTracer(
 		jaegercfg.Logger(s.logger.GetTracingLogger()),
-		jaegercfg.Metrics(factory),
+		jaegercfg.Metrics(s.metricsFactory),
 	)
 	// Check error
 	if err != nil {
@@ -103,9 +101,13 @@ func (s *service) setup() error {
 }
 
 func newService(cfgManager config.Manager, logger log.Logger) (*service, error) {
+	// Create prometheus metrics factory
+	factory := jaegerprom.New()
+
 	svc := &service{
-		cfgManager: cfgManager,
-		logger:     logger,
+		cfgManager:     cfgManager,
+		logger:         logger,
+		metricsFactory: factory,
 	}
 
 	// Run setup

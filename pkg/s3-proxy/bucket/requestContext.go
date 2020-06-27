@@ -314,6 +314,7 @@ func (rctx *requestContext) Put(inp *PutInput) {
 		Key:         key,
 		Body:        inp.Body,
 		ContentType: inp.ContentType,
+		ContentSize: inp.ContentSize,
 	}
 
 	// Check if post actions configuration exists

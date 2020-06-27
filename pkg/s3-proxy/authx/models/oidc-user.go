@@ -17,9 +17,9 @@ func (u *OIDCUser) GetType() string {
 }
 
 func (u *OIDCUser) GetIdentifier() string {
-	if u.Email != "" {
-		return u.Email
+	if u.PreferredUsername != "" {
+		return u.PreferredUsername
 	}
 
-	return u.PreferredUsername
+	return u.Email
 }

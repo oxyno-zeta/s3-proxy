@@ -90,7 +90,7 @@ func TestOIDCUser_GetIdentifier(t *testing.T) {
 				PreferredUsername: "username",
 				Email:             "email",
 			},
-			want: "email",
+			want: "username",
 		},
 	}
 	for _, tt := range tests {
