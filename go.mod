@@ -35,7 +35,7 @@ require (
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/thoas/go-funk v0.7.0
-	github.com/uber/jaeger-client-go v2.24.0+incompatible
+	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible
 	golang.org/x/net v0.0.0-20200625001655-4c5254603344
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
