@@ -16,7 +16,7 @@ require (
 	github.com/go-chi/httptracer v0.2.0
 	github.com/go-playground/validator/v10 v10.3.0
 	github.com/gobwas/glob v0.2.3
-	github.com/golang/mock v1.4.3
+	github.com/golang/mock v1.4.4
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/huandu/xstrings v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
