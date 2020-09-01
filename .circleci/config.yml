@@ -45,27 +45,12 @@ jobs:
       image: ubuntu-1604:202004-01
     working_directory: /home/circleci/go/src/github.com/oxyno-zeta/s3-proxy
     environment:
-      GO_VERSION: "1.14.2"
+      GO_VERSION: "1.15.1"
       DOCKERIZE_VERSION: v0.6.0
       OS: linux
       ARCH: amd64
-      GOPATH: /home/circleci/go
-      GOBIN: /home/circleci/go/bin
-      GOROOT: /home/circleci/golang/go
     steps:
       - checkout
-      - restore_cache:
-          key: go-machine-dl-1.14.2
-      - run: |-
-          mkdir -p /home/circleci/golang /home/circleci/dl
-          if [ ! -f /home/circleci/dl/go-$GO_VERSION.tar.gz ]; then
-            wget https://dl.google.com/go/go$GO_VERSION.$OS-$ARCH.tar.gz -O /home/circleci/dl/go-$GO_VERSION.tar.gz
-          fi
-          tar -C /home/circleci/golang -xzf /home/circleci/dl/go-$GO_VERSION.tar.gz
-      - save_cache:
-          key: go-machine-dl-1.14.2
-          paths:
-            - /home/circleci/dl/go-1.14.2.tar.gz
       - restore_cache:
           keys:
             - go-mod-machine-{{ checksum "go.mod"  }}
