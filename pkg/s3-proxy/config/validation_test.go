@@ -550,6 +550,47 @@ func Test_validateBusinessConfig(t *testing.T) {
 			errorString: "path 0 in list targets must ends with /",
 		},
 		{
+			name: "OIDC provider with wrong state",
+			args: args{
+				out: &Config{
+					AuthProviders: &AuthProviderConfig{
+						OIDC: map[string]*OIDCAuthConfig{
+							"provider1": {
+								State: "fake:fake",
+							},
+						},
+					},
+					Targets: []*TargetConfig{
+						{
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1/"},
+							},
+							Resources: nil,
+							Actions: &ActionsConfig{
+								GET:    &GetActionConfig{Enabled: true},
+								PUT:    &PutActionConfig{Enabled: false},
+								DELETE: &DeleteActionConfig{Enabled: false},
+							},
+						},
+					},
+					ListTargets: &ListTargetsConfig{
+						Enabled: true,
+						Mount: &MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: nil,
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "provider provider1 state can't contain ':' character",
+		},
+		{
 			name: "OIDC provider with wrong callback path",
 			args: args{
 				out: &Config{
