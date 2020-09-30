@@ -21,6 +21,7 @@ import (
 )
 
 const redirectQueryKey = "rd"
+const stateRedirectSeparator = ":"
 
 // OIDCEndpoints will set OpenID Connect endpoints for authentication and callback
 func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) error {
@@ -48,9 +49,10 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 
 	// Create OIDC configuration
 	config := oauth2.Config{
-		ClientID: oidcCfg.ClientID,
-		Endpoint: provider.Endpoint(),
-		Scopes:   oidcCfg.Scopes,
+		ClientID:    oidcCfg.ClientID,
+		Endpoint:    provider.Endpoint(),
+		RedirectURL: mainRedirectURLStr,
+		Scopes:      oidcCfg.Scopes,
 	}
 	if oidcCfg.ClientSecret != nil {
 		config.ClientSecret = oidcCfg.ClientSecret.Value
@@ -63,22 +65,15 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 	s.allVerifiers = append(s.allVerifiers, verifier)
 
 	mux.HandleFunc(oidcCfg.LoginPath, func(w http.ResponseWriter, r *http.Request) {
-		// Get logger from request
-		logEntry := middlewares.GetLogEntry(r)
 		// Parse query params from request
 		qs := r.URL.Query()
 		// Get redirect query from query params
 		rdVal := qs.Get(redirectQueryKey)
-		// Need to build new oidc redirect url
-		authParam, err := buildOauthRedirectURIParam(mainRedirectURLStr, rdVal)
-		// Check if error exists
-		if err != nil {
-			logEntry.Error(err)
-			utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.LoginPath, err)
-			return
-		}
+		// Build new state with redirect value
+		// Same solution as here: https://github.com/oauth2-proxy/oauth2-proxy/blob/3fa42edb7350219d317c4bd47faf5da6192dc70f/oauthproxy.go#L751
+		newState := state + stateRedirectSeparator + rdVal
 
-		http.Redirect(w, r, config.AuthCodeURL(state, authParam), http.StatusFound)
+		http.Redirect(w, r, config.AuthCodeURL(newState), http.StatusFound)
 	})
 
 	mux.HandleFunc(mainRedirectURLObject.Path, func(w http.ResponseWriter, r *http.Request) {
@@ -87,10 +82,34 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 
 		// ! In this particular case, no bucket request context because mounted in general and not per target
 
-		// Get query parameters
-		qs := r.URL.Query()
-		// Get redirect url
-		rdVal := qs.Get(redirectQueryKey)
+		// Get state from request
+		reqQueryState := r.URL.Query().Get("state")
+		// Check if state exists
+		if reqQueryState == "" {
+			err := errors.New("state not found in request")
+			logEntry.Error(err)
+			utils.HandleBadRequest(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+			return
+		}
+
+		// Split request query state to get redirect url and original state
+		split := strings.SplitN(reqQueryState, stateRedirectSeparator, 2)
+		// Prepare and affect values
+		reqState := split[0]
+		rdVal := ""
+		// Check if length is ok to include a redirect url
+		if len(split) == 2 {
+			rdVal = split[1]
+		}
+
+		// Check state
+		if reqState != state {
+			err := errors.New("state did not match")
+			logEntry.Error(err)
+			utils.HandleBadRequest(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+			return
+		}
+
 		// Check if rdVal exists and that redirect url value is valid
 		if rdVal != "" && !isValidRedirect(rdVal) {
 			err := errors.New("redirect url is invalid")
@@ -99,24 +118,7 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 			return
 		}
 
-		// Check state
-		if r.URL.Query().Get("state") != state {
-			err := errors.New("state did not match")
-			logEntry.Error(err)
-			utils.HandleBadRequest(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
-			return
-		}
-
-		// Build auth param
-		authParam, err := buildOauthRedirectURIParam(mainRedirectURLStr, rdVal)
-		// Check if error exists
-		if err != nil {
-			logEntry.Error(err)
-			utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
-			return
-		}
-
-		oauth2Token, err := config.Exchange(ctx, r.URL.Query().Get("code"), authParam)
+		oauth2Token, err := config.Exchange(ctx, r.URL.Query().Get("code"))
 		if err != nil {
 			err = errors.New("failed to exchange token: " + err.Error())
 			logEntry.Error(err)
@@ -306,29 +308,6 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 			next.ServeHTTP(w, r)
 		})
 	}
-}
-
-func buildOauthRedirectURIParam(mainRedirectURLStr, rdVal string) (oauth2.AuthCodeOption, error) {
-	oidcRedirectURL, err := url.Parse(mainRedirectURLStr)
-	// Check if error exists
-	if err != nil {
-		return nil, err
-	}
-	// Get query params
-	qsValues := oidcRedirectURL.Query()
-	// Check if redirect value exists
-	if rdVal != "" {
-		// Add query param
-		qsValues.Add(redirectQueryKey, rdVal)
-	}
-	// Add query params to oidc redirect url
-	oidcRedirectURL.RawQuery = qsValues.Encode()
-	// Build new oidc redirect url string
-	oidcRedirectURLStr := oidcRedirectURL.String()
-
-	authP := oauth2.SetAuthURLParam("redirect_uri", oidcRedirectURLStr)
-
-	return authP, nil
 }
 
 func parseAndValidateJWTToken(jwtContent string, allVerifiers []*oidc.IDTokenVerifier) (map[string]interface{}, error) {
