@@ -39,12 +39,17 @@ type Logger interface {
 	Panicln(args ...interface{})
 
 	GetTracingLogger() TracingLogger
+	GetCorsLogger() CorsLogger
 }
 
 type TracingLogger interface {
 	Error(msg string)
 	Infof(msg string, args ...interface{})
 	Debugf(msg string, args ...interface{})
+}
+
+type CorsLogger interface {
+	Printf(string, ...interface{})
 }
 
 func NewLogger() Logger {

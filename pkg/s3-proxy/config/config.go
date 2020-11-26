@@ -150,8 +150,23 @@ type TemplateConfig struct {
 
 // ServerConfig Server configuration
 type ServerConfig struct {
-	ListenAddr string `mapstructure:"listenAddr"`
-	Port       int    `mapstructure:"port" validate:"required"`
+	ListenAddr string            `mapstructure:"listenAddr"`
+	Port       int               `mapstructure:"port" validate:"required"`
+	CORS       *ServerCorsConfig `mapstructure:"cors" validate:"omitempty"`
+}
+
+// ServerCorsConfig Server CORS configuration.
+type ServerCorsConfig struct {
+	Enabled            bool     `mapstructure:"enabled"`
+	AllowAll           bool     `mapstructure:"allowAll"`
+	AllowOrigins       []string `mapstructure:"allowOrigins"`
+	AllowMethods       []string `mapstructure:"allowMethods"`
+	AllowHeaders       []string `mapstructure:"allowHeaders"`
+	ExposeHeaders      []string `mapstructure:"exposeHeaders"`
+	MaxAge             *int     `mapstructure:"maxAge"`
+	AllowCredentials   *bool    `mapstructure:"allowCredentials"`
+	Debug              *bool    `mapstructure:"debug"`
+	OptionsPassthrough *bool    `mapstructure:"optionsPassthrough"`
 }
 
 // TargetConfig Bucket instance configuration
