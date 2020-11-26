@@ -64,6 +64,7 @@ I've created this project because I couldn't find any other that allow to proxy 
 - Allow to delete files on S3 bucket
 - Open Policy Agent integration for authorizations
 - Configuration hot reload
+- CORS support
 
 ## Configuration
 
