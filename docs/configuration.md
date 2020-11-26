@@ -30,10 +30,28 @@ You can see a full example in the [Example section](#example)
 
 ## ServerConfiguration
 
-| Key        | Type    | Required | Default | Description    |
-| ---------- | ------- | -------- | ------- | -------------- |
-| listenAddr | String  | No       | `""`    | Listen Address |
-| port       | Integer | No       | `8080`  | Listening Port |
+| Key        | Type                                  | Required | Default | Description        |
+| ---------- | ------------------------------------- | -------- | ------- | ------------------ |
+| listenAddr | String                                | No       | `""`    | Listen Address     |
+| port       | Integer                               | No       | `8080`  | Listening Port     |
+| cors       | [ServerCorsConfig](#servercorsconfig) | No       | `nil`   | CORS configuration |
+
+## ServerCorsConfig
+
+This feature is powered by [go-chi/cors](https://github.com/go-chi/cors). You can read more documentation about all field there.
+
+| Key                | Type     | Required | Default                                                                        | Description                                                       |
+| ------------------ | -------- | -------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| enabled            | Boolean  | No       | `false`                                                                        | Is CORS support enabled ?                                         |
+| allowAll           | Boolean  | No       | `false`                                                                        | Allow all CORS requests with all origins, all HTTP methods, etc ? |
+| allowOrigins       | [String] | No       | Allow origins array. Example: https://fake.com. This support stars in origins. |
+| allowMethods       | [String] | No       | Allow HTTP Methods                                                             |
+| allowHeaders       | [String] | No       | Allow headers                                                                  |
+| exposeHeaders      | [String] | No       | Expose headers                                                                 |
+| maxAge             | Integer  | No       | Max age. 300 is the maximum value not ignored by any of major browsers.        |
+| allowCredentials   | Boolean  | No       | Allow credentials                                                              |
+| debug              | Boolean  | No       | Debug mode for [go-chi/cors](https://github.com/go-chi/cors)                   |
+| optionsPassthrough | Boolean  | No       | OPTIONS method Passthrough                                                     |
 
 ## TemplateConfiguration
 
@@ -49,15 +67,15 @@ You can see a full example in the [Example section](#example)
 
 ## TargetConfiguration
 
-| Key           | Type                                          | Required | Default            | Description                                                                                                                                                                                                                             |
-| ------------- | --------------------------------------------- | -------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| name          | String                                        | Yes      | None               | Target name. (This will used in urls and list of targets.)                                                                                                                                                                              |
-| bucket        | [BucketConfiguration](#bucketconfiguration)   | Yes      | None               | Bucket configuration                                                                                                                                                                                                                    |
-| indexDocument | String                                        | No       | `""`               | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                                                                                                                                |
-| resources     | [[Resource]](#resource)                       | No       | None               | Resources declaration for path whitelist or specific authentication on path list. WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /* otherwise, it will be public. |
-| mount         | [MountConfiguration](#mountconfiguration)     | Yes      | None               | Mount point configuration                                                                                                                                                                                                               |
-| actions       | [ActionsConfiguration](#actionsconfiguration) | No       | GET action enabled | Actions allowed on target (GET, PUT or DELETE)                                                                                                                                                                                          |
-| templates     | [TargetTemplateConfig](#targettemplateconfig) | No       | None               | Custom target templates from files on local filesystem or in bucket                                                                                                                                                                     |
+| Key           | Type                                          | Required | Default            | Description                                                                                                                                                                                                                              |
+| ------------- | --------------------------------------------- | -------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| name          | String                                        | Yes      | None               | Target name. (This will used in urls and list of targets.)                                                                                                                                                                               |
+| bucket        | [BucketConfiguration](#bucketconfiguration)   | Yes      | None               | Bucket configuration                                                                                                                                                                                                                     |
+| indexDocument | String                                        | No       | `""`               | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                                                                                                                                 |
+| resources     | [[Resource]](#resource)                       | No       | None               | Resources declaration for path whitelist or specific authentication on path list. WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /\* otherwise, it will be public. |
+| mount         | [MountConfiguration](#mountconfiguration)     | Yes      | None               | Mount point configuration                                                                                                                                                                                                                |
+| actions       | [ActionsConfiguration](#actionsconfiguration) | No       | GET action enabled | Actions allowed on target (GET, PUT or DELETE)                                                                                                                                                                                           |
+| templates     | [TargetTemplateConfig](#targettemplateconfig) | No       | None               | Custom target templates from files on local filesystem or in bucket                                                                                                                                                                      |
 
 ## TargetTemplateConfig
 
