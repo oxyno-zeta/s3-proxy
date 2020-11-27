@@ -2858,3 +2858,371 @@ func TestOIDCAuthentication(t *testing.T) {
 		})
 	}
 }
+
+func TestCORS(t *testing.T) {
+	// trueValue := true
+	accessKey := "YOUR-ACCESSKEYID"
+	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	region := "eu-central-1"
+	bucket := "test-bucket"
+	s3server, err := setupFakeS3(
+		accessKey,
+		secretAccessKey,
+		region,
+		bucket,
+	)
+	defer s3server.Close()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	tplConfig := &config.TemplateConfig{
+		FolderList:          "../../../templates/folder-list.tpl",
+		TargetList:          "../../../templates/target-list.tpl",
+		NotFound:            "../../../templates/not-found.tpl",
+		Forbidden:           "../../../templates/forbidden.tpl",
+		BadRequest:          "../../../templates/bad-request.tpl",
+		InternalServerError: "../../../templates/internal-server-error.tpl",
+		Unauthorized:        "../../../templates/unauthorized.tpl",
+	}
+	targetsCfg := []*config.TargetConfig{
+		{
+			Name: "target1",
+			Bucket: &config.BucketConfig{
+				Name:       bucket,
+				Region:     region,
+				S3Endpoint: s3server.URL,
+				Credentials: &config.BucketCredentialConfig{
+					AccessKey: &config.CredentialConfig{Value: accessKey},
+					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+				},
+				DisableSSL: true,
+			},
+			Mount: &config.MountConfig{
+				Path: []string{"/mount/"},
+			},
+			Actions: &config.ActionsConfig{
+				GET: &config.GetActionConfig{Enabled: true},
+			},
+		},
+	}
+	type args struct {
+		cfg *config.Config
+	}
+	tests := []struct {
+		name            string
+		args            args
+		inputMethod     string
+		inputURL        string
+		inputHeaders    map[string]string
+		expectedCode    int
+		expectedBody    string
+		expectedHeaders map[string]string
+		notExpectedBody string
+		wantErr         bool
+	}{
+		{
+			name: "CORS disabled",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Port: 8080,
+						CORS: &config.ServerCorsConfig{
+							Enabled: false,
+						},
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     &config.TracingConfig{},
+					Templates:   tplConfig,
+					Targets:     targetsCfg,
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/not-found/",
+			inputHeaders: map[string]string{
+				"Origin": "https://test.fake",
+				"Host":   "localhost",
+			},
+			expectedCode: 404,
+			expectedBody: "404 page not found\n",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name: "CORS allow all",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Port: 8080,
+						CORS: &config.ServerCorsConfig{
+							Enabled:  true,
+							AllowAll: true,
+						},
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     &config.TracingConfig{},
+					Templates:   tplConfig,
+					Targets:     targetsCfg,
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/not-found/",
+			inputHeaders: map[string]string{
+				"Origin": "https://test.fake",
+				"Host":   "localhost",
+			},
+			expectedCode: 404,
+			expectedBody: "404 page not found\n",
+			expectedHeaders: map[string]string{
+				"Cache-Control":               "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":                "text/plain; charset=utf-8",
+				"Access-Control-Allow-Origin": "*",
+			},
+		},
+		{
+			name: "CORS enabled with fixed domain (allowed)",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Port: 8080,
+						CORS: &config.ServerCorsConfig{
+							Enabled:      true,
+							AllowAll:     false,
+							AllowMethods: []string{"GET"},
+							AllowOrigins: []string{"https://test.fake"},
+						},
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     &config.TracingConfig{},
+					Templates:   tplConfig,
+					Targets:     targetsCfg,
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/not-found/",
+			inputHeaders: map[string]string{
+				"Origin": "https://test.fake",
+				"Host":   "localhost",
+			},
+			expectedCode: 404,
+			expectedBody: "404 page not found\n",
+			expectedHeaders: map[string]string{
+				"Cache-Control":               "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":                "text/plain; charset=utf-8",
+				"Access-Control-Allow-Origin": "https://test.fake",
+			},
+		},
+		{
+			name: "CORS enabled with fixed domain (not allowed)",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Port: 8080,
+						CORS: &config.ServerCorsConfig{
+							Enabled:      true,
+							AllowAll:     false,
+							AllowMethods: []string{"GET"},
+							AllowOrigins: []string{"https://test.fake"},
+						},
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     &config.TracingConfig{},
+					Templates:   tplConfig,
+					Targets:     targetsCfg,
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/not-found/",
+			inputHeaders: map[string]string{
+				"Origin": "https://test.test",
+				"Host":   "localhost",
+			},
+			expectedCode: 404,
+			expectedBody: "404 page not found\n",
+			expectedHeaders: map[string]string{
+				"Cache-Control":               "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":                "text/plain; charset=utf-8",
+				"Access-Control-Allow-Origin": "",
+			},
+		},
+		{
+			name: "CORS enabled with star domain (allowed)",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Port: 8080,
+						CORS: &config.ServerCorsConfig{
+							Enabled:      true,
+							AllowAll:     false,
+							AllowMethods: []string{"GET"},
+							AllowOrigins: []string{"https://test.*"},
+						},
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     &config.TracingConfig{},
+					Templates:   tplConfig,
+					Targets:     targetsCfg,
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/not-found/",
+			inputHeaders: map[string]string{
+				"Origin": "https://test.fake",
+				"Host":   "localhost",
+			},
+			expectedCode: 404,
+			expectedBody: "404 page not found\n",
+			expectedHeaders: map[string]string{
+				"Cache-Control":               "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":                "text/plain; charset=utf-8",
+				"Access-Control-Allow-Origin": "https://test.fake",
+			},
+		},
+		{
+			name: "CORS enabled with star domain (not allowed)",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Port: 8080,
+						CORS: &config.ServerCorsConfig{
+							Enabled:      true,
+							AllowAll:     false,
+							AllowMethods: []string{"GET"},
+							AllowOrigins: []string{"https://test.*"},
+						},
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     &config.TracingConfig{},
+					Templates:   tplConfig,
+					Targets:     targetsCfg,
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/not-found/",
+			inputHeaders: map[string]string{
+				"Origin": "https://test2.test",
+				"Host":   "localhost",
+			},
+			expectedCode: 404,
+			expectedBody: "404 page not found\n",
+			expectedHeaders: map[string]string{
+				"Cache-Control":               "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":                "text/plain; charset=utf-8",
+				"Access-Control-Allow-Origin": "",
+			},
+		},
+		{
+			name: "CORS enabled with not allowed method",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Port: 8080,
+						CORS: &config.ServerCorsConfig{
+							Enabled:      true,
+							AllowAll:     false,
+							AllowMethods: []string{"DELETE"},
+							AllowOrigins: []string{"https://test.*"},
+						},
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     &config.TracingConfig{},
+					Templates:   tplConfig,
+					Targets:     targetsCfg,
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/not-found/",
+			inputHeaders: map[string]string{
+				"Origin": "https://test.test",
+				"Host":   "localhost",
+			},
+			expectedCode: 404,
+			expectedBody: "404 page not found\n",
+			expectedHeaders: map[string]string{
+				"Cache-Control":               "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":                "text/plain; charset=utf-8",
+				"Access-Control-Allow-Origin": "",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create go mock controller
+			ctrl := gomock.NewController(t)
+			cfgManagerMock := cmocks.NewMockManager(ctrl)
+
+			// Load configuration in manager
+			cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(tt.args.cfg)
+
+			logger := log.NewLogger()
+			// Create tracing service
+			tsvc, err := tracing.New(cfgManagerMock, logger)
+			assert.NoError(t, err)
+
+			svr := &Server{
+				logger:     logger,
+				cfgManager: cfgManagerMock,
+				metricsCl:  metricsCtx,
+				tracingSvc: tsvc,
+			}
+			got, err := svr.generateRouter()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GenerateRouter() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			// If want error at this moment => stop
+			if tt.wantErr {
+				return
+			}
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(
+				tt.inputMethod,
+				tt.inputURL,
+				nil,
+			)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			// Set input headers
+			if tt.inputHeaders != nil {
+				for k, v := range tt.inputHeaders {
+					req.Header.Set(k, v)
+				}
+			}
+
+			got.ServeHTTP(w, req)
+
+			if tt.expectedBody != "" {
+				body := w.Body.String()
+				if tt.expectedBody != body {
+					t.Errorf("Integration test on GenerateRouter() body = \"%v\", expected body \"%v\"", body, tt.expectedBody)
+				}
+			}
+
+			if tt.notExpectedBody != "" {
+				body := w.Body.String()
+				if tt.notExpectedBody == body {
+					t.Errorf("Integration test on GenerateRouter() body = \"%v\", not expected body \"%v\"", body, tt.notExpectedBody)
+				}
+			}
+
+			if tt.expectedHeaders != nil {
+				for key, val := range tt.expectedHeaders {
+					wheader := w.HeaderMap.Get(key)
+					if val != wheader {
+						t.Errorf("Integration test on GenerateRouter() header %s = %v, expected %v", key, wheader, val)
+					}
+				}
+			}
+
+			if tt.expectedCode != w.Code {
+				t.Errorf("Integration test on GenerateRouter() status code = %v, expected status code %v", w.Code, tt.expectedCode)
+			}
+		})
+	}
+}

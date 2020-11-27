@@ -11,6 +11,31 @@ log:
 # server:
 #   listenAddr: ""
 #   port: 8080
+#   # CORS configuration
+#   cors:
+#     # Enabled
+#     enabled: false
+#     # Allow all traffic
+#     allowAll: true
+#     # Allow Origins
+#     # Example: https://fake.com
+#     allowOrigins: []
+#     # Allow HTTP Methods
+#     allowMethods: []
+#     # Allow Headers
+#     allowHeaders: []
+#     # Expose Headers
+#     exposeHeaders: []
+#     # Max age
+#     # 300 is the maximum value not ignored by any of major browsers
+#     # Source: https://github.com/go-chi/cors
+#     maxAge: 0
+#     # Allow credentials
+#     allowCredentials: false
+#     # Run debug
+#     debug: false
+#     # OPTIONS method Passthrough
+#     optionsPassthrough: false
 
 # Template configurations
 # templates:

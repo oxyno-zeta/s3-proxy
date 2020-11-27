@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/cors"
 	"github.com/go-chi/httptracer"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/authentication"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/authorization"
@@ -120,6 +121,14 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	r.Use(middlewares.ImproveTracing())
 	r.Use(middlewares.NewStructuredLogger(svr.logger))
 	r.Use(svr.metricsCl.Instrument("business"))
+
+	// Check if cors is enabled
+	if cfg.Server != nil && cfg.Server.CORS != nil && cfg.Server.CORS.Enabled {
+		// Generate CORS
+		cc := generateCors(cfg.Server, svr.logger.GetCorsLogger())
+		// Apply CORS handler
+		r.Use(cc.Handler)
+	}
 
 	// Check if auth if enabled and oidc enabled
 	if cfg.AuthProviders != nil && cfg.AuthProviders.OIDC != nil {
@@ -287,6 +296,60 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	r.Mount("/", hr)
 
 	return r, nil
+}
+
+// Generate CORS
+func generateCors(cfg *config.ServerConfig, logger log.CorsLogger) *cors.Cors {
+	// Check if allow all is enabled
+	if cfg.CORS.AllowAll {
+		cc := cors.AllowAll()
+		// Add logger
+		cc.Log = logger
+		// Return
+		return cc
+	}
+
+	// for more ideas, see: https://developer.github.com/v3/#cross-origin-resource-sharing
+	corsOpt := cors.Options{}
+	// Check if allowed origins exist
+	if cfg.CORS.AllowOrigins != nil {
+		corsOpt.AllowedOrigins = cfg.CORS.AllowOrigins
+	}
+	// Check if allowed methods exist
+	if cfg.CORS.AllowMethods != nil {
+		corsOpt.AllowedMethods = cfg.CORS.AllowMethods
+	}
+	// Check if allowed headers exist
+	if cfg.CORS.AllowHeaders != nil {
+		corsOpt.AllowedHeaders = cfg.CORS.AllowHeaders
+	}
+	// Check if exposed headers exist
+	if cfg.CORS.ExposeHeaders != nil {
+		corsOpt.ExposedHeaders = cfg.CORS.ExposeHeaders
+	}
+	// Check if allow credentials exist
+	if cfg.CORS.AllowCredentials != nil {
+		corsOpt.AllowCredentials = *cfg.CORS.AllowCredentials
+	}
+	// Check if max age exists
+	// 300 = Maximum value not ignored by any of major browsers
+	if cfg.CORS.MaxAge != nil {
+		corsOpt.MaxAge = *cfg.CORS.MaxAge
+	}
+	// Check if debug option exists
+	if cfg.CORS.Debug != nil {
+		corsOpt.Debug = *cfg.CORS.Debug
+	}
+	// Check if Options Passthrough exists
+	if cfg.CORS.OptionsPassthrough != nil {
+		corsOpt.OptionsPassthrough = *cfg.CORS.OptionsPassthrough
+	}
+
+	cc := cors.New(corsOpt)
+	// Add logger
+	cc.Log = logger
+	// Return
+	return cc
 }
 
 func generateTargetList(rw http.ResponseWriter, path string, logger log.Logger, cfg *config.Config) {
