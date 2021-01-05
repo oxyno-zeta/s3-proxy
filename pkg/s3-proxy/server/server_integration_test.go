@@ -1405,7 +1405,7 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
-			name: "GET a path with index document enabled with success",
+			name: "GET a folder path with index document enabled and index document not found with success",
 			args: args{
 				cfg: &config.Config{
 					ListTargets: &config.ListTargetsConfig{},
