@@ -1,4 +1,4 @@
-// +build unit
+//+build unit
 
 package bucket
 
@@ -609,6 +609,8 @@ func Test_requestContext_Get(t *testing.T) {
 		expectedHTTPWriter                      *respWriterTest
 		expectedS3ClientListCalled              bool
 		expectedS3ClientListInput               string
+		expectedS3ClientHeadCalled              bool
+		expectedS3ClientHeadInput               string
 		expectedS3ClientGetCalled               bool
 		expectedS3ClientGetInput                string
 	}{
@@ -762,15 +764,9 @@ func Test_requestContext_Get(t *testing.T) {
 			name: "should be ok to find and load index document",
 			fields: fields{
 				s3Context: &s3clientTest{
-					ListResult: []*s3client.ListElementOutput{
-						{
-							Name:         "index.html",
-							Type:         "FILE",
-							ETag:         "etag",
-							LastModified: fakeDate,
-							Size:         300,
-							Key:          "/folder/index.html",
-						},
+					HeadResult: &s3client.HeadOutput{
+						Type: "FILE",
+						Key:  "/folder/index.html",
 					},
 					GetResult: &s3client.GetOutput{
 						Body:        &fakeIndexIoReadCloser,
@@ -801,10 +797,10 @@ func Test_requestContext_Get(t *testing.T) {
 			args: args{
 				requestPath: "/folder/",
 			},
-			expectedS3ClientListCalled: true,
-			expectedS3ClientListInput:  "/folder/",
 			expectedS3ClientGetCalled:  true,
 			expectedS3ClientGetInput:   "/folder/index.html",
+			expectedS3ClientHeadCalled: true,
+			expectedS3ClientHeadInput:  "/folder/index.html",
 			expectedHTTPWriter: &respWriterTest{
 				Headers: h,
 				Status:  http.StatusOK,
@@ -812,18 +808,126 @@ func Test_requestContext_Get(t *testing.T) {
 			},
 		},
 		{
-			name: "should fail to find and load index document with not found error",
+			name: "should be ok to not find index document when index document is enabled",
 			fields: fields{
 				s3Context: &s3clientTest{
+					HeadErr: s3client.ErrNotFound,
+					GetResult: &s3client.GetOutput{
+						Body:        &fakeIndexIoReadCloser,
+						ContentType: "text/html; charset=utf-8",
+					},
 					ListResult: []*s3client.ListElementOutput{
 						{
-							Name:         "index.html",
+							Name:         "file1",
 							Type:         "FILE",
 							ETag:         "etag",
 							LastModified: fakeDate,
 							Size:         300,
-							Key:          "/folder/index.html",
+							Key:          "/folder/file1",
 						},
+					},
+				},
+				targetCfg: &config.TargetConfig{
+					Name: "target",
+					Bucket: &config.BucketConfig{
+						Name:   "bucket1",
+						Prefix: "/",
+					},
+					IndexDocument: "index.html",
+				},
+				tplConfig: &config.TemplateConfig{
+					FolderList: "../../../templates/folder-list.tpl",
+				},
+				mountPath: "/mount",
+				httpRW: &respWriterTest{
+					Headers: http.Header{},
+				},
+				errorHandlers: &ErrorHandlers{
+					HandleForbiddenWithTemplate:           handleForbiddenWithTemplate,
+					HandleNotFoundWithTemplate:            handleNotFoundWithTemplate,
+					HandleInternalServerErrorWithTemplate: handleInternalServerErrorWithTemplate,
+				},
+			},
+			args: args{
+				requestPath: "/folder/",
+			},
+			expectedS3ClientHeadCalled: true,
+			expectedS3ClientHeadInput:  "/folder/index.html",
+			expectedS3ClientListCalled: true,
+			expectedS3ClientListInput:  "/folder/",
+			expectedHTTPWriter: &respWriterTest{
+				Headers: h,
+				Status:  http.StatusOK,
+				Resp: []byte(`<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Index of /mount/folder/</h1>
+    <table style="width:100%">
+        <thead>
+            <tr>
+                <th style="border-right:1px solid black;text-align:start">Entry</th>
+                <th style="border-right:1px solid black;text-align:start">Size</th>
+                <th style="border-right:1px solid black;text-align:start">Last modified</th>
+            </tr>
+        </thead>
+        <tbody style="border-top:1px solid black">
+          <tr>
+            <td style="border-right:1px solid black;padding: 0 5px"><a href="..">..</a></td>
+            <td style="border-right:1px solid black;padding: 0 5px"> - </td>
+            <td style="padding: 0 5px"> - </td>
+          </tr>
+          <tr>
+              <td style="border-right:1px solid black;padding: 0 5px"><a href="/mountfolder/file1">file1</a></td>
+              <td style="border-right:1px solid black;padding: 0 5px">300 B</td>
+              <td style="padding: 0 5px">1990-12-25 01:01:01.000000001 &#43;0000 UTC</td>
+          </tr>
+        </tbody>
+    </table>
+  </body>
+</html>
+`),
+			},
+		},
+		{
+			name: "should fail to find and load index document with unknown error on head file",
+			fields: fields{
+				s3Context: &s3clientTest{
+					HeadErr: errors.New("error"),
+				},
+				targetCfg: &config.TargetConfig{
+					Name: "target",
+					Bucket: &config.BucketConfig{
+						Name:   "bucket1",
+						Prefix: "/",
+					},
+					IndexDocument: "index.html",
+				},
+				tplConfig: &config.TemplateConfig{
+					FolderList: "../../../templates/folder-list.tpl",
+				},
+				mountPath: "/mount",
+				httpRW:    &respWriterTest{},
+				errorHandlers: &ErrorHandlers{
+					HandleForbiddenWithTemplate:           handleForbiddenWithTemplate,
+					HandleNotFoundWithTemplate:            handleNotFoundWithTemplate,
+					HandleInternalServerErrorWithTemplate: handleInternalServerErrorWithTemplate,
+				},
+			},
+			args: args{
+				requestPath: "/folder/",
+			},
+			expectedS3ClientHeadCalled:              true,
+			expectedS3ClientHeadInput:               "/folder/index.html",
+			expectedHTTPWriter:                      &respWriterTest{},
+			expectedHandleInternalServerErrorCalled: true,
+		},
+		{
+			name: "should fail to find and load index document with not found error on get file",
+			fields: fields{
+				s3Context: &s3clientTest{
+					HeadResult: &s3client.HeadOutput{
+						Type: "FILE",
+						Key:  "/folder/index.html",
 					},
 					GetErr: s3client.ErrNotFound,
 				},
@@ -849,26 +953,20 @@ func Test_requestContext_Get(t *testing.T) {
 			args: args{
 				requestPath: "/folder/",
 			},
-			expectedS3ClientListCalled:   true,
-			expectedS3ClientListInput:    "/folder/",
+			expectedS3ClientHeadCalled:   true,
+			expectedS3ClientHeadInput:    "/folder/index.html",
 			expectedS3ClientGetCalled:    true,
 			expectedS3ClientGetInput:     "/folder/index.html",
 			expectedHTTPWriter:           &respWriterTest{},
 			expectedHandleNotFoundCalled: true,
 		},
 		{
-			name: "should fail to find and load index document with error",
+			name: "should fail to find and load index document with error on get file",
 			fields: fields{
 				s3Context: &s3clientTest{
-					ListResult: []*s3client.ListElementOutput{
-						{
-							Name:         "index.html",
-							Type:         "FILE",
-							ETag:         "etag",
-							LastModified: fakeDate,
-							Size:         300,
-							Key:          "/folder/index.html",
-						},
+					HeadResult: &s3client.HeadOutput{
+						Type: "FILE",
+						Key:  "/folder/index.html",
 					},
 					GetErr: errors.New("test-error"),
 				},
@@ -894,8 +992,8 @@ func Test_requestContext_Get(t *testing.T) {
 			args: args{
 				requestPath: "/folder/",
 			},
-			expectedS3ClientListCalled:              true,
-			expectedS3ClientListInput:               "/folder/",
+			expectedS3ClientHeadCalled:              true,
+			expectedS3ClientHeadInput:               "/folder/index.html",
 			expectedS3ClientGetCalled:               true,
 			expectedS3ClientGetInput:                "/folder/index.html",
 			expectedHTTPWriter:                      &respWriterTest{},
@@ -1029,6 +1127,12 @@ func Test_requestContext_Get(t *testing.T) {
 			}
 			if handleForbiddenCalled != tt.expectedHandleForbiddenCalled {
 				t.Errorf("requestContext.Get() => handleForbiddenCalled = %+v, want %+v", handleForbiddenCalled, tt.expectedHandleForbiddenCalled)
+			}
+			if tt.expectedS3ClientHeadCalled != tt.fields.s3Context.(*s3clientTest).HeadCalled {
+				t.Errorf("requestContext.Get() => s3client.HeadCalled = %+v, want %+v", tt.fields.s3Context.(*s3clientTest).HeadCalled, tt.expectedS3ClientHeadCalled)
+			}
+			if !reflect.DeepEqual(tt.expectedS3ClientHeadInput, tt.fields.s3Context.(*s3clientTest).HeadInput) {
+				t.Errorf("requestContext.Get() => s3client.HeadInput = %+v, want %+v", tt.fields.s3Context.(*s3clientTest).HeadInput, tt.expectedS3ClientHeadInput)
 			}
 			if tt.expectedS3ClientListCalled != tt.fields.s3Context.(*s3clientTest).ListCalled {
 				t.Errorf("requestContext.Get() => s3client.ListCalled = %+v, want %+v", tt.fields.s3Context.(*s3clientTest).ListCalled, tt.expectedS3ClientListCalled)
