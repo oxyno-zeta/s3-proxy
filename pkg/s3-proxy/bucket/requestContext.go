@@ -16,7 +16,6 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
-	"github.com/thoas/go-funk"
 )
 
 // ErrRemovalFolder will be raised when end user is trying to delete a folder and not a file
@@ -198,29 +197,25 @@ func (rctx *requestContext) Get(requestPath string) {
 }
 
 func (rctx *requestContext) manageGetFolder(key, requestPath string) {
-	// Directory listing case
-	s3Entries, err := rctx.s3Context.ListFilesAndDirectories(key)
-	if err != nil {
-		rctx.logger.Error(err)
-		rctx.HandleInternalServerError(err, requestPath)
-		// Stop
-		return
-	}
-
-	// Transform entries in entry with path objects
-	bucketRootPrefixKey := rctx.targetCfg.Bucket.GetRootPrefix()
-	entries := transformS3Entries(s3Entries, rctx, bucketRootPrefixKey)
-
 	// Check if index document is activated
 	if rctx.targetCfg.IndexDocument != "" {
-		// Search if the file is present
-		indexDocumentEntry := funk.Find(entries, func(ent *Entry) bool {
-			return rctx.targetCfg.IndexDocument == ent.Name
-		})
-		// Check if index document entry exists
-		if indexDocumentEntry != nil {
+		// Create index key path
+		indexKey := path.Join(key, rctx.targetCfg.IndexDocument)
+		// Head index file in bucket
+		headOutput, err := rctx.s3Context.HeadObject(indexKey)
+		// Check if error exists and not a not found error
+		if err != nil && err != s3client.ErrNotFound {
+			// Log error
+			rctx.logger.Error(err)
+			// Manage error response
+			rctx.HandleInternalServerError(err, requestPath)
+			// Stop
+			return
+		}
+		// Check that we found the file
+		if headOutput != nil {
 			// Get data
-			err = rctx.streamFileForResponse(indexDocumentEntry.(*Entry).Key)
+			err = rctx.streamFileForResponse(headOutput.Key)
 			// Check if error exists
 			if err != nil {
 				// Check if error is a not found error
@@ -240,6 +235,19 @@ func (rctx *requestContext) manageGetFolder(key, requestPath string) {
 			return
 		}
 	}
+
+	// Directory listing case
+	s3Entries, err := rctx.s3Context.ListFilesAndDirectories(key)
+	if err != nil {
+		rctx.logger.Error(err)
+		rctx.HandleInternalServerError(err, requestPath)
+		// Stop
+		return
+	}
+
+	// Transform entries in entry with path objects
+	bucketRootPrefixKey := rctx.targetCfg.Bucket.GetRootPrefix()
+	entries := transformS3Entries(s3Entries, rctx, bucketRootPrefixKey)
 
 	var tmpl *template.Template
 	// Check if per target template is declared
