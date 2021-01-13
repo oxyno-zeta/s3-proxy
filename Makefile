@@ -103,6 +103,10 @@ down/services:
 	docker rm -f opa || true
 	docker rm -f keycloak || true
 
+.PHONY: down/tracing-services
+down/tracing-services:
+	docker rm -f jaeger || true
+
 .PHONY: down/metrics-services
 down/metrics-services:
 	docker rm -f prometheus || true
@@ -112,6 +116,11 @@ down/metrics-services:
 setup/metrics-services:
 	docker run --rm -d --name prometheus -v $(CURRENT_DIR)/local-resources/prometheus/prometheus.yml:/prometheus/prometheus.yml --network=host prom/prometheus:v2.18.0 --web.listen-address=:9191
 	docker run --rm -d --name grafana --network=host grafana/grafana:7.0.3
+
+.PHONY: setup/tracing-services
+setup/tracing-services: down/tracing-services
+	@echo "Setup tracing services"
+	docker run --name jaeger -d -p 6831:6831/udp -p 16686:16686 jaegertracing/all-in-one:latest
 
 .PHONY: setup/services
 setup/services: down/services
