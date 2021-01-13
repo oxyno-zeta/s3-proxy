@@ -36,59 +36,103 @@ const PutObjectOperation = "put-object"
 // DeleteObjectOperation Delete object operation
 const DeleteObjectOperation = "delete-object"
 
+const s3MaxKeys int64 = 1000
+
 // ListFilesAndDirectories List files and directories
 func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*ListElementOutput, error) {
-	// Create child trace
-	childTrace := s3ctx.parentTrace.GetChildTrace("s3-bucket.list-objects-request")
-	childTrace.SetTag("s3-bucket.bucket-name", s3ctx.target.Bucket.Name)
-	childTrace.SetTag("s3-bucket.bucket-region", s3ctx.target.Bucket.Region)
-	childTrace.SetTag("s3-bucket.bucket-prefix", s3ctx.target.Bucket.Prefix)
-	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3ctx.target.Bucket.S3Endpoint)
-	childTrace.SetTag("s3-proxy.target-name", s3ctx.target.Name)
-
-	defer childTrace.Finish()
-
 	// List files on path
 	folders := make([]*ListElementOutput, 0)
 	files := make([]*ListElementOutput, 0)
-	err := s3ctx.svcClient.ListObjectsV2Pages(
-		&s3.ListObjectsV2Input{
-			Bucket:    aws.String(s3ctx.target.Bucket.Name),
-			Prefix:    aws.String(key),
-			Delimiter: aws.String("/"),
-		},
-		func(page *s3.ListObjectsV2Output, lastPage bool) bool {
-			// Manage folders
-			for _, item := range page.CommonPrefixes {
-				name := strings.TrimPrefix(*item.Prefix, key)
-				folders = append(folders, &ListElementOutput{
-					Type: FolderType,
-					Key:  *item.Prefix,
-					Name: name,
-				})
-			}
-			// Manage files
-			for _, item := range page.Contents {
-				name := strings.TrimPrefix(*item.Key, key)
-				if name != "" {
-					files = append(files, &ListElementOutput{
-						Type:         FileType,
-						ETag:         *item.ETag,
-						Name:         name,
-						LastModified: *item.LastModified,
-						Size:         *item.Size,
-						Key:          *item.Key,
+	// Prepare next token structure
+	var nextToken *string
+	// Temporary max elements for limits
+	tmpMaxElements := s3ctx.target.Bucket.S3ListMaxKeys
+	// Loop control
+	loopControl := true
+	// Initialize max keys
+	maxKeys := s3MaxKeys
+	// Check size of max keys
+	if s3ctx.target.Bucket.S3ListMaxKeys < maxKeys {
+		maxKeys = s3ctx.target.Bucket.S3ListMaxKeys
+	}
+
+	// Loop
+	for loopControl {
+		// Create child trace
+		childTrace := s3ctx.parentTrace.GetChildTrace("s3-bucket.list-objects-request")
+		childTrace.SetTag("s3-bucket.bucket-name", s3ctx.target.Bucket.Name)
+		childTrace.SetTag("s3-bucket.bucket-region", s3ctx.target.Bucket.Region)
+		childTrace.SetTag("s3-bucket.bucket-prefix", s3ctx.target.Bucket.Prefix)
+		childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3ctx.target.Bucket.S3Endpoint)
+		childTrace.SetTag("s3-proxy.target-name", s3ctx.target.Name)
+
+		// Request S3
+		err := s3ctx.svcClient.ListObjectsV2Pages(
+			&s3.ListObjectsV2Input{
+				Bucket:            aws.String(s3ctx.target.Bucket.Name),
+				Prefix:            aws.String(key),
+				Delimiter:         aws.String("/"),
+				MaxKeys:           aws.Int64(maxKeys),
+				ContinuationToken: nextToken,
+			},
+			func(page *s3.ListObjectsV2Output, lastPage bool) bool {
+				// Store next token
+				nextToken = page.NextContinuationToken
+
+				// Check if keycount exists
+				if page.KeyCount != nil {
+					// Remove current keys to tmp max elements
+					tmpMaxElements -= *page.KeyCount
+					// Update max keys if needed
+					if tmpMaxElements < maxKeys {
+						maxKeys = tmpMaxElements
+					}
+				}
+
+				// Manage loop control
+				loopControl = nextToken != nil && tmpMaxElements > 0
+
+				// Manage folders
+				for _, item := range page.CommonPrefixes {
+					name := strings.TrimPrefix(*item.Prefix, key)
+					folders = append(folders, &ListElementOutput{
+						Type: FolderType,
+						Key:  *item.Prefix,
+						Name: name,
 					})
 				}
-			}
-			return lastPage
-		})
-	// Metrics
-	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, ListObjectsOperation)
-	// Check if errors exists
-	if err != nil {
-		return nil, err
+
+				// Manage files
+				for _, item := range page.Contents {
+					name := strings.TrimPrefix(*item.Key, key)
+					if name != "" {
+						files = append(files, &ListElementOutput{
+							Type:         FileType,
+							ETag:         *item.ETag,
+							Name:         name,
+							LastModified: *item.LastModified,
+							Size:         *item.Size,
+							Key:          *item.Key,
+						})
+					}
+				}
+
+				return lastPage
+			},
+		)
+
+		// Metrics
+		s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, ListObjectsOperation)
+
+		// End trace
+		childTrace.Finish()
+
+		// Check if errors exists
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	// Concat folders and files
 	all := append(folders, files...)
 
