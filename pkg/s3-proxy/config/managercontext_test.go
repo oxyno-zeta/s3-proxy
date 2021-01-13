@@ -290,7 +290,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 				Targets: []*TargetConfig{
 					{
 						Actions:   &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
-						Bucket:    &BucketConfig{Region: DefaultBucketRegion},
+						Bucket:    &BucketConfig{Region: DefaultBucketRegion, S3ListMaxKeys: DefaultBucketS3ListMaxKeys},
 						Templates: &TargetTemplateConfig{},
 					},
 				},
@@ -305,7 +305,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					Targets: []*TargetConfig{
 						{
 							Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
-							Bucket:  &BucketConfig{Region: "test"},
+							Bucket:  &BucketConfig{Region: "test", S3ListMaxKeys: 100},
 							Resources: []*Resource{
 								{
 									OIDC: &ResourceOIDC{
@@ -328,7 +328,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 				Targets: []*TargetConfig{
 					{
 						Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
-						Bucket:  &BucketConfig{Region: "test"},
+						Bucket:  &BucketConfig{Region: "test", S3ListMaxKeys: 100},
 						Resources: []*Resource{
 							{
 								Methods: []string{"GET"},

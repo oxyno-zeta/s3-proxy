@@ -21,6 +21,9 @@ const DefaultLogFormat = "json"
 // DefaultBucketRegion Default bucket region
 const DefaultBucketRegion = "us-east-1"
 
+// DefaultBucketS3ListMaxKeys Default bucket S3 list max keys
+const DefaultBucketS3ListMaxKeys int64 = 1000
+
 // DefaultTemplateFolderListPath Default template folder list path
 const DefaultTemplateFolderListPath = "templates/folder-list.tpl"
 
@@ -255,12 +258,13 @@ type OPAServerAuthorization struct {
 
 // BucketConfig Bucket configuration
 type BucketConfig struct {
-	Name        string                  `mapstructure:"name" validate:"required"`
-	Prefix      string                  `mapstructure:"prefix"`
-	Region      string                  `mapstructure:"region"`
-	S3Endpoint  string                  `mapstructure:"s3Endpoint"`
-	Credentials *BucketCredentialConfig `mapstructure:"credentials" validate:"omitempty,dive"`
-	DisableSSL  bool                    `mapstructure:"disableSSL"`
+	Name          string                  `mapstructure:"name" validate:"required"`
+	Prefix        string                  `mapstructure:"prefix"`
+	Region        string                  `mapstructure:"region"`
+	S3Endpoint    string                  `mapstructure:"s3Endpoint"`
+	Credentials   *BucketCredentialConfig `mapstructure:"credentials" validate:"omitempty,dive"`
+	DisableSSL    bool                    `mapstructure:"disableSSL"`
+	S3ListMaxKeys int64                   `mapstructure:"s3ListMaxKeys" validate:"gt=0"`
 }
 
 // BucketCredentialConfig Bucket Credentials configurations
