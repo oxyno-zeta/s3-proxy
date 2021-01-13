@@ -132,14 +132,15 @@ This feature is powered by [go-chi/cors](https://github.com/go-chi/cors). You ca
 
 ## BucketConfiguration
 
-| Key         | Type                                                            | Required | Default     | Description                              |
-| ----------- | --------------------------------------------------------------- | -------- | ----------- | ---------------------------------------- |
-| name        | String                                                          | Yes      | None        | Bucket name in S3 provider               |
-| prefix      | String                                                          | No       | None        | Bucket prefix                            |
-| region      | String                                                          | No       | `us-east-1` | Bucket region                            |
-| s3Endpoint  | String                                                          | No       | None        | Custom S3 Endpoint for non AWS S3 bucket |
-| credentials | [BucketCredentialConfiguration](#bucketcredentialconfiguration) | No       | None        | Credentials to access S3 bucket          |
-| disableSSL  | Boolean                                                         | No       | `false`     | Disable SSL connection                   |
+| Key           | Type                                                            | Required | Default     | Description                                                                                                                                                                                                                                                                              |
+| ------------- | --------------------------------------------------------------- | -------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| name          | String                                                          | Yes      | None        | Bucket name in S3 provider                                                                                                                                                                                                                                                               |
+| prefix        | String                                                          | No       | None        | Bucket prefix                                                                                                                                                                                                                                                                            |
+| region        | String                                                          | No       | `us-east-1` | Bucket region                                                                                                                                                                                                                                                                            |
+| s3Endpoint    | String                                                          | No       | None        | Custom S3 Endpoint for non AWS S3 bucket                                                                                                                                                                                                                                                 |
+| credentials   | [BucketCredentialConfiguration](#bucketcredentialconfiguration) | No       | None        | Credentials to access S3 bucket                                                                                                                                                                                                                                                          |
+| disableSSL    | Boolean                                                         | No       | `false`     | Disable SSL connection                                                                                                                                                                                                                                                                   |
+| s3ListMaxKeys | Integer                                                         | No       | `1000`      | This flag will be used for the max pagination list management of files and "folders" in S3. In S3 list requests, the limit is fixed to 1000 items maximum. S3-Proxy will allow to increase this by making multiple requests to S3. Warning: This will increase the memory and CPU usage. |
 
 ## BucketCredentialConfiguration
 
@@ -470,6 +471,7 @@ targets:
       region: eu-west-1
       s3Endpoint:
       disableSSL: false
+      # s3ListMaxKeys: 1000
       # credentials:
       #   accessKey:
       #     env: AWS_ACCESS_KEY_ID
