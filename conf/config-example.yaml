@@ -219,6 +219,7 @@ targets:
       region: eu-west-1
       s3Endpoint:
       disableSSL: false
+      # s3ListMaxKeys: 1000
       # credentials:
       #   accessKey:
       #     env: AWS_ACCESS_KEY_ID
