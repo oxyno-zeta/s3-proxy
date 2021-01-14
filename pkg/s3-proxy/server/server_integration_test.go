@@ -1947,7 +1947,6 @@ func TestPublicRouter(t *testing.T) {
 }
 
 func TestTracing(t *testing.T) {
-	// trueValue := true
 	accessKey := "YOUR-ACCESSKEYID"
 	secretAccessKey := "YOUR-SECRETACCESSKEY"
 	region := "eu-central-1"
@@ -2163,7 +2162,6 @@ func TestTracing(t *testing.T) {
 
 // This is in a separate test because this one will need a real server to discuss with OIDC server
 func TestOIDCAuthentication(t *testing.T) {
-	// trueValue := true
 	accessKey := "YOUR-ACCESSKEYID"
 	secretAccessKey := "YOUR-SECRETACCESSKEY"
 	region := "eu-central-1"
@@ -2860,7 +2858,6 @@ func TestOIDCAuthentication(t *testing.T) {
 }
 
 func TestCORS(t *testing.T) {
-	// trueValue := true
 	accessKey := "YOUR-ACCESSKEYID"
 	secretAccessKey := "YOUR-SECRETACCESSKEY"
 	region := "eu-central-1"
@@ -3224,5 +3221,433 @@ func TestCORS(t *testing.T) {
 				t.Errorf("Integration test on GenerateRouter() status code = %v, expected status code %v", w.Code, tt.expectedCode)
 			}
 		})
+	}
+}
+
+func TestIndexLargeBucket(t *testing.T) {
+	accessKey := "YOUR-ACCESSKEYID"
+	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	region := "eu-central-1"
+	bucket := "test-bucket"
+	s3server, err := setupFakeS3(
+		accessKey,
+		secretAccessKey,
+		region,
+		bucket,
+	)
+	defer s3server.Close()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	tplConfig := &config.TemplateConfig{
+		FolderList:          "../../../templates/folder-list.tpl",
+		TargetList:          "../../../templates/target-list.tpl",
+		NotFound:            "../../../templates/not-found.tpl",
+		Forbidden:           "../../../templates/forbidden.tpl",
+		BadRequest:          "../../../templates/bad-request.tpl",
+		InternalServerError: "../../../templates/internal-server-error.tpl",
+		Unauthorized:        "../../../templates/unauthorized.tpl",
+	}
+	targetsCfg := []*config.TargetConfig{
+		{
+			Name: "target1",
+			Bucket: &config.BucketConfig{
+				Name:       bucket,
+				Region:     region,
+				S3Endpoint: s3server.URL,
+				Credentials: &config.BucketCredentialConfig{
+					AccessKey: &config.CredentialConfig{Value: accessKey},
+					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+				},
+				DisableSSL:    true,
+				S3ListMaxKeys: 1000,
+			},
+			Mount: &config.MountConfig{
+				Path: []string{"/"},
+			},
+			Actions: &config.ActionsConfig{
+				GET: &config.GetActionConfig{Enabled: true},
+			},
+			IndexDocument: "index.html",
+		},
+	}
+
+	// Create go mock controller
+	ctrl := gomock.NewController(t)
+	cfgManagerMock := cmocks.NewMockManager(ctrl)
+
+	// Load configuration in manager
+	cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(&config.Config{
+		Server: &config.ServerConfig{
+			Port: 8080,
+		},
+		ListTargets: &config.ListTargetsConfig{},
+		Tracing:     &config.TracingConfig{},
+		Templates:   tplConfig,
+		Targets:     targetsCfg,
+	})
+
+	logger := log.NewLogger()
+	// Create tracing service
+	tsvc, err := tracing.New(cfgManagerMock, logger)
+	assert.NoError(t, err)
+
+	svr := &Server{
+		logger:     logger,
+		cfgManager: cfgManagerMock,
+		metricsCl:  metricsCtx,
+		tracingSvc: tsvc,
+	}
+	got, err := svr.generateRouter()
+	if err != nil {
+		t.Errorf("TestIndexLargeBucket.GenerateRouter() error = %v", err)
+		return
+	}
+	w := httptest.NewRecorder()
+	req, err := http.NewRequest(
+		"GET",
+		"http://localhost/folder3/",
+		nil,
+	)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	got.ServeHTTP(w, req)
+
+	// Test status code
+	if w.Code != 200 {
+		t.Errorf("TestIndexLargeBucket.GenerateRouter() status code = %v, expected status code %v", w.Code, 200)
+	}
+	// Test body
+	body := w.Body.String()
+	expectedBody := "<!DOCTYPE html><html><body><h1>Hello folder3!</h1></body></html>"
+	if body != expectedBody {
+		t.Errorf("TestIndexLargeBucket.GenerateRouter() body = \"%v\", expected body \"%v\"", body, expectedBody)
+	}
+}
+
+func TestListLargeBucketAndSmallMaxKeys(t *testing.T) {
+	accessKey := "YOUR-ACCESSKEYID"
+	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	region := "eu-central-1"
+	bucket := "test-bucket"
+	maxKeys := 500
+	s3server, err := setupFakeS3(
+		accessKey,
+		secretAccessKey,
+		region,
+		bucket,
+	)
+	defer s3server.Close()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	tplConfig := &config.TemplateConfig{
+		FolderList:          "../../../templates/folder-list.tpl",
+		TargetList:          "../../../templates/target-list.tpl",
+		NotFound:            "../../../templates/not-found.tpl",
+		Forbidden:           "../../../templates/forbidden.tpl",
+		BadRequest:          "../../../templates/bad-request.tpl",
+		InternalServerError: "../../../templates/internal-server-error.tpl",
+		Unauthorized:        "../../../templates/unauthorized.tpl",
+	}
+	targetsCfg := []*config.TargetConfig{
+		{
+			Name: "target1",
+			Bucket: &config.BucketConfig{
+				Name:       bucket,
+				Region:     region,
+				S3Endpoint: s3server.URL,
+				Credentials: &config.BucketCredentialConfig{
+					AccessKey: &config.CredentialConfig{Value: accessKey},
+					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+				},
+				DisableSSL:    true,
+				S3ListMaxKeys: int64(maxKeys),
+			},
+			Mount: &config.MountConfig{
+				Path: []string{"/"},
+			},
+			Actions: &config.ActionsConfig{
+				GET: &config.GetActionConfig{Enabled: true},
+			},
+		},
+	}
+
+	// Create go mock controller
+	ctrl := gomock.NewController(t)
+	cfgManagerMock := cmocks.NewMockManager(ctrl)
+
+	// Load configuration in manager
+	cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(&config.Config{
+		Server: &config.ServerConfig{
+			Port: 8080,
+		},
+		ListTargets: &config.ListTargetsConfig{},
+		Tracing:     &config.TracingConfig{},
+		Templates:   tplConfig,
+		Targets:     targetsCfg,
+	})
+
+	logger := log.NewLogger()
+	// Create tracing service
+	tsvc, err := tracing.New(cfgManagerMock, logger)
+	assert.NoError(t, err)
+
+	svr := &Server{
+		logger:     logger,
+		cfgManager: cfgManagerMock,
+		metricsCl:  metricsCtx,
+		tracingSvc: tsvc,
+	}
+	got, err := svr.generateRouter()
+	if err != nil {
+		t.Errorf("TestListLargeBucketAndSmallMaxKeys.GenerateRouter() error = %v", err)
+		return
+	}
+	w := httptest.NewRecorder()
+	req, err := http.NewRequest(
+		"GET",
+		"http://localhost/folder3/",
+		nil,
+	)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	got.ServeHTTP(w, req)
+
+	// Test status code
+	if w.Code != 200 {
+		t.Errorf("TestListLargeBucketAndSmallMaxKeys.GenerateRouter() status code = %v, expected status code %v", w.Code, 200)
+	}
+	// Test body
+	body := w.Body.String()
+	if strings.Count(body, "\"/folder3/") != maxKeys {
+		t.Errorf("TestListLargeBucketAndSmallMaxKeys.GenerateRouter() body = \"%v\", must contains %d elements in the list", body, maxKeys)
+	}
+}
+
+func TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys(t *testing.T) {
+	accessKey := "YOUR-ACCESSKEYID"
+	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	region := "eu-central-1"
+	bucket := "test-bucket"
+	maxKeys := 1500
+	s3server, err := setupFakeS3(
+		accessKey,
+		secretAccessKey,
+		region,
+		bucket,
+	)
+	defer s3server.Close()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	tplConfig := &config.TemplateConfig{
+		FolderList:          "../../../templates/folder-list.tpl",
+		TargetList:          "../../../templates/target-list.tpl",
+		NotFound:            "../../../templates/not-found.tpl",
+		Forbidden:           "../../../templates/forbidden.tpl",
+		BadRequest:          "../../../templates/bad-request.tpl",
+		InternalServerError: "../../../templates/internal-server-error.tpl",
+		Unauthorized:        "../../../templates/unauthorized.tpl",
+	}
+	targetsCfg := []*config.TargetConfig{
+		{
+			Name: "target1",
+			Bucket: &config.BucketConfig{
+				Name:       bucket,
+				Region:     region,
+				S3Endpoint: s3server.URL,
+				Credentials: &config.BucketCredentialConfig{
+					AccessKey: &config.CredentialConfig{Value: accessKey},
+					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+				},
+				DisableSSL:    true,
+				S3ListMaxKeys: int64(maxKeys),
+			},
+			Mount: &config.MountConfig{
+				Path: []string{"/"},
+			},
+			Actions: &config.ActionsConfig{
+				GET: &config.GetActionConfig{Enabled: true},
+			},
+		},
+	}
+
+	// Create go mock controller
+	ctrl := gomock.NewController(t)
+	cfgManagerMock := cmocks.NewMockManager(ctrl)
+
+	// Load configuration in manager
+	cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(&config.Config{
+		Server: &config.ServerConfig{
+			Port: 8080,
+		},
+		ListTargets: &config.ListTargetsConfig{},
+		Tracing:     &config.TracingConfig{},
+		Templates:   tplConfig,
+		Targets:     targetsCfg,
+	})
+
+	logger := log.NewLogger()
+	// Create tracing service
+	tsvc, err := tracing.New(cfgManagerMock, logger)
+	assert.NoError(t, err)
+
+	svr := &Server{
+		logger:     logger,
+		cfgManager: cfgManagerMock,
+		metricsCl:  metricsCtx,
+		tracingSvc: tsvc,
+	}
+	got, err := svr.generateRouter()
+	if err != nil {
+		t.Errorf("TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys.GenerateRouter() error = %v", err)
+		return
+	}
+	w := httptest.NewRecorder()
+	req, err := http.NewRequest(
+		"GET",
+		"http://localhost/folder3/",
+		nil,
+	)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	got.ServeHTTP(w, req)
+
+	// Test status code
+	if w.Code != 200 {
+		t.Errorf("TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys.GenerateRouter() status code = %v, expected status code %v", w.Code, 200)
+	}
+	// Test body
+	body := w.Body.String()
+	if strings.Count(body, "\"/folder3/") != maxKeys {
+		t.Errorf("TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys.GenerateRouter() body = \"%v\", must contains %d elements in the list", body, maxKeys)
+	}
+}
+
+func TestFolderWithSubFolders(t *testing.T) {
+	accessKey := "YOUR-ACCESSKEYID"
+	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	region := "eu-central-1"
+	bucket := "test-bucket"
+	s3server, err := setupFakeS3(
+		accessKey,
+		secretAccessKey,
+		region,
+		bucket,
+	)
+	defer s3server.Close()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	tplConfig := &config.TemplateConfig{
+		FolderList:          "../../../templates/folder-list.tpl",
+		TargetList:          "../../../templates/target-list.tpl",
+		NotFound:            "../../../templates/not-found.tpl",
+		Forbidden:           "../../../templates/forbidden.tpl",
+		BadRequest:          "../../../templates/bad-request.tpl",
+		InternalServerError: "../../../templates/internal-server-error.tpl",
+		Unauthorized:        "../../../templates/unauthorized.tpl",
+	}
+	targetsCfg := []*config.TargetConfig{
+		{
+			Name: "target1",
+			Bucket: &config.BucketConfig{
+				Name:       bucket,
+				Region:     region,
+				S3Endpoint: s3server.URL,
+				Credentials: &config.BucketCredentialConfig{
+					AccessKey: &config.CredentialConfig{Value: accessKey},
+					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+				},
+				DisableSSL: true,
+			},
+			Mount: &config.MountConfig{
+				Path: []string{"/"},
+			},
+			Actions: &config.ActionsConfig{
+				GET: &config.GetActionConfig{Enabled: true},
+			},
+		},
+	}
+
+	// Create go mock controller
+	ctrl := gomock.NewController(t)
+	cfgManagerMock := cmocks.NewMockManager(ctrl)
+
+	// Load configuration in manager
+	cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(&config.Config{
+		Server: &config.ServerConfig{
+			Port: 8080,
+		},
+		ListTargets: &config.ListTargetsConfig{},
+		Tracing:     &config.TracingConfig{},
+		Templates:   tplConfig,
+		Targets:     targetsCfg,
+	})
+
+	logger := log.NewLogger()
+	// Create tracing service
+	tsvc, err := tracing.New(cfgManagerMock, logger)
+	assert.NoError(t, err)
+
+	svr := &Server{
+		logger:     logger,
+		cfgManager: cfgManagerMock,
+		metricsCl:  metricsCtx,
+		tracingSvc: tsvc,
+	}
+	got, err := svr.generateRouter()
+	if err != nil {
+		t.Errorf("TestFolderWithSubFolders.GenerateRouter() error = %v", err)
+		return
+	}
+	w := httptest.NewRecorder()
+	req, err := http.NewRequest(
+		"GET",
+		"http://localhost/folder4/",
+		nil,
+	)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	got.ServeHTTP(w, req)
+
+	// Test status code
+	if w.Code != 200 {
+		t.Errorf("TestFolderWithSubFolders.GenerateRouter() status code = %v, expected status code %v", w.Code, 200)
+	}
+	// Test body
+	body := w.Body.String()
+	if !strings.Contains(body, "\"/folder4/test.txt") {
+		t.Errorf("TestFolderWithSubFolders.GenerateRouter() body = \"%v\", must contains text.txt file", body)
+	}
+	if !strings.Contains(body, "\"/folder4/index.html") {
+		t.Errorf("TestFolderWithSubFolders.GenerateRouter() body = \"%v\", must contains index.html file", body)
+	}
+	if !strings.Contains(body, "\"/folder4/sub1/") {
+		t.Errorf("TestFolderWithSubFolders.GenerateRouter() body = \"%v\", must contains sub1 folder", body)
+	}
+	if !strings.Contains(body, "\"/folder4/sub2/") {
+		t.Errorf("TestFolderWithSubFolders.GenerateRouter() body = \"%v\", must contains sub2 folder", body)
 	}
 }

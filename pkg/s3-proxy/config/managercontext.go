@@ -416,6 +416,10 @@ func loadBusinessDefaultValues(out *Config) error {
 		if item.Bucket != nil && item.Bucket.Region == "" {
 			item.Bucket.Region = DefaultBucketRegion
 		}
+		// Manage default configuration for bucket S3 List Max Keys
+		if item.Bucket != nil && item.Bucket.S3ListMaxKeys == 0 {
+			item.Bucket.S3ListMaxKeys = DefaultBucketS3ListMaxKeys
+		}
 		// Manage default configuration for target actions
 		if item.Actions == nil {
 			item.Actions = &ActionsConfig{GET: &GetActionConfig{Enabled: true}}
