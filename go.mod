@@ -21,7 +21,7 @@ require (
 	github.com/google/uuid v1.1.4 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
-	github.com/johannesboyne/gofakes3 v0.0.0-20200716060623-6b2b4cb092cc
+	github.com/johannesboyne/gofakes3 v0.0.0-20210116212202-e8b5dbd08102
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/opentracing/opentracing-go v1.2.0
