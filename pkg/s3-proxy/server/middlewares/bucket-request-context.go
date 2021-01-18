@@ -41,7 +41,7 @@ func BucketRequestContext(
 			// Get request trace
 			trace := tracing.GetTraceFromRequest(req)
 			// Generate new bucket client
-			brctx, err := bucket.NewClient(tgt, tplConfig, logEntry, path, rw, metricsCli, errorhandlers, trace)
+			brctx, err := bucket.NewClient(tgt, tplConfig, logEntry, path, rw, req, metricsCli, errorhandlers, trace)
 			if err != nil {
 				logEntry.Error(err)
 				utils.HandleInternalServerError(logEntry, rw, tplConfig, requestURI, err)

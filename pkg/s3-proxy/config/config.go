@@ -226,7 +226,8 @@ type PutActionConfigConfig struct {
 
 // GetActionConfig Get action configuration
 type GetActionConfig struct {
-	Enabled bool `mapstructure:"enabled"`
+	Enabled                                  bool `mapstructure:"enabled"`
+	RedirectWithTrailingSlashForNotFoundFile bool `mapstructure:"redirectWithTrailingSlashForNotFoundFile"`
 }
 
 // Resource Resource
