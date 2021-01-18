@@ -3651,3 +3651,321 @@ func TestFolderWithSubFolders(t *testing.T) {
 		t.Errorf("TestFolderWithSubFolders.GenerateRouter() body = \"%v\", must contains sub2 folder", body)
 	}
 }
+
+func TestTrailingSlashRedirect(t *testing.T) {
+	accessKey := "YOUR-ACCESSKEYID"
+	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	region := "eu-central-1"
+	bucket := "test-bucket"
+	s3server, err := setupFakeS3(
+		accessKey,
+		secretAccessKey,
+		region,
+		bucket,
+	)
+	defer s3server.Close()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	tplConfig := &config.TemplateConfig{
+		FolderList:          "../../../templates/folder-list.tpl",
+		TargetList:          "../../../templates/target-list.tpl",
+		NotFound:            "../../../templates/not-found.tpl",
+		Forbidden:           "../../../templates/forbidden.tpl",
+		BadRequest:          "../../../templates/bad-request.tpl",
+		InternalServerError: "../../../templates/internal-server-error.tpl",
+		Unauthorized:        "../../../templates/unauthorized.tpl",
+	}
+	srvCfg := &config.ServerConfig{
+		Port: 8080,
+	}
+	bucketCfg := &config.BucketConfig{
+		Name:       bucket,
+		Region:     region,
+		S3Endpoint: s3server.URL,
+		Credentials: &config.BucketCredentialConfig{
+			AccessKey: &config.CredentialConfig{Value: accessKey},
+			SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+		},
+		DisableSSL: true,
+	}
+	type args struct {
+		cfg *config.Config
+	}
+	tests := []struct {
+		name            string
+		args            args
+		inputMethod     string
+		inputURL        string
+		inputHeaders    map[string]string
+		expectedCode    int
+		expectedBody    string
+		expectedHeaders map[string]string
+		notExpectedBody string
+		wantErr         bool
+	}{
+		{
+			name: "Don't force trailing slash because option disable",
+			args: args{
+				cfg: &config.Config{
+					Server:      srvCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     &config.TracingConfig{},
+					Templates:   tplConfig,
+					Targets: []*config.TargetConfig{
+						{
+							Name:   "target1",
+							Bucket: bucketCfg,
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{
+									Enabled:                                  true,
+									RedirectWithTrailingSlashForNotFoundFile: false,
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/mount/not-found",
+			inputHeaders: map[string]string{
+				"Origin": "https://test.fake",
+				"Host":   "localhost",
+			},
+			expectedCode: 404,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "Force trailing slash because option enable and file not found",
+			args: args{
+				cfg: &config.Config{
+					Server:      srvCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     &config.TracingConfig{},
+					Templates:   tplConfig,
+					Targets: []*config.TargetConfig{
+						{
+							Name:   "target1",
+							Bucket: bucketCfg,
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{
+									Enabled:                                  true,
+									RedirectWithTrailingSlashForNotFoundFile: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/mount/not-found",
+			inputHeaders: map[string]string{
+				"Origin": "https://test.fake",
+				"Host":   "localhost",
+			},
+			expectedCode: 302,
+			expectedHeaders: map[string]string{
+				"Location": "/mount/not-found/",
+			},
+		},
+		{
+			name: "Don't force trailing slash because option enable and file found",
+			args: args{
+				cfg: &config.Config{
+					Server:      srvCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     &config.TracingConfig{},
+					Templates:   tplConfig,
+					Targets: []*config.TargetConfig{
+						{
+							Name:   "target1",
+							Bucket: bucketCfg,
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{
+									Enabled:                                  true,
+									RedirectWithTrailingSlashForNotFoundFile: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/mount/folder1/test.txt",
+			inputHeaders: map[string]string{
+				"Origin": "https://test.fake",
+				"Host":   "localhost",
+			},
+			expectedCode: 200,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name: "Don't force trailing slash because option enable and folder found",
+			args: args{
+				cfg: &config.Config{
+					Server:      srvCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     &config.TracingConfig{},
+					Templates:   tplConfig,
+					Targets: []*config.TargetConfig{
+						{
+							Name:   "target1",
+							Bucket: bucketCfg,
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{
+									Enabled:                                  true,
+									RedirectWithTrailingSlashForNotFoundFile: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/mount/folder1/",
+			inputHeaders: map[string]string{
+				"Origin": "https://test.fake",
+				"Host":   "localhost",
+			},
+			expectedCode: 200,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "Don't force trailing slash because option enable and folder not found",
+			args: args{
+				cfg: &config.Config{
+					Server:      srvCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     &config.TracingConfig{},
+					Templates:   tplConfig,
+					Targets: []*config.TargetConfig{
+						{
+							Name:   "target1",
+							Bucket: bucketCfg,
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{
+									Enabled:                                  true,
+									RedirectWithTrailingSlashForNotFoundFile: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/mount/not-found/",
+			inputHeaders: map[string]string{
+				"Origin": "https://test.fake",
+				"Host":   "localhost",
+			},
+			expectedCode: 200,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create go mock controller
+			ctrl := gomock.NewController(t)
+			cfgManagerMock := cmocks.NewMockManager(ctrl)
+
+			// Load configuration in manager
+			cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(tt.args.cfg)
+
+			logger := log.NewLogger()
+			// Create tracing service
+			tsvc, err := tracing.New(cfgManagerMock, logger)
+			assert.NoError(t, err)
+
+			svr := &Server{
+				logger:     logger,
+				cfgManager: cfgManagerMock,
+				metricsCl:  metricsCtx,
+				tracingSvc: tsvc,
+			}
+			got, err := svr.generateRouter()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GenerateRouter() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			// If want error at this moment => stop
+			if tt.wantErr {
+				return
+			}
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(
+				tt.inputMethod,
+				tt.inputURL,
+				nil,
+			)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			// Set input headers
+			if tt.inputHeaders != nil {
+				for k, v := range tt.inputHeaders {
+					req.Header.Set(k, v)
+				}
+			}
+
+			got.ServeHTTP(w, req)
+
+			if tt.expectedBody != "" {
+				body := w.Body.String()
+				if tt.expectedBody != body {
+					t.Errorf("Integration test on TestTrailingSlashRedirect() body = \"%v\", expected body \"%v\"", body, tt.expectedBody)
+				}
+			}
+
+			if tt.notExpectedBody != "" {
+				body := w.Body.String()
+				if tt.notExpectedBody == body {
+					t.Errorf("Integration test on TestTrailingSlashRedirect() body = \"%v\", not expected body \"%v\"", body, tt.notExpectedBody)
+				}
+			}
+
+			if tt.expectedHeaders != nil {
+				for key, val := range tt.expectedHeaders {
+					wheader := w.HeaderMap.Get(key)
+					if val != wheader {
+						t.Errorf("Integration test on TestTrailingSlashRedirect() header %s = %v, expected %v", key, wheader, val)
+					}
+				}
+			}
+
+			if tt.expectedCode != w.Code {
+				t.Errorf("Integration test on TestTrailingSlashRedirect() status code = %v, expected status code %v", w.Code, tt.expectedCode)
+			}
+		})
+	}
+}
