@@ -53,7 +53,7 @@ type ErrorHandlers struct {
 // nolint:whitespace
 func NewClient(
 	tgt *config.TargetConfig, tplConfig *config.TemplateConfig, logger log.Logger,
-	mountPath string, httpRW http.ResponseWriter,
+	mountPath string, httpRW http.ResponseWriter, httpReq *http.Request,
 	metricsCtx metrics.Client,
 	errorHandlers *ErrorHandlers,
 	parentTrace tracing.Trace,
@@ -69,6 +69,7 @@ func NewClient(
 		targetCfg:      tgt,
 		mountPath:      mountPath,
 		httpRW:         httpRW,
+		httpReq:        httpReq,
 		tplConfig:      tplConfig,
 		errorsHandlers: errorHandlers,
 	}, nil

@@ -29,6 +29,7 @@ type requestContext struct {
 	tplConfig      *config.TemplateConfig
 	mountPath      string
 	httpRW         http.ResponseWriter
+	httpReq        *http.Request
 	errorsHandlers *ErrorHandlers
 }
 
@@ -182,6 +183,25 @@ func (rctx *requestContext) Get(requestPath string) {
 	if err != nil {
 		// Check if error is a not found error
 		if err == s3client.ErrNotFound {
+			// Test that redirect with trailing slash isn't asked and possible on this request
+			if rctx.targetCfg.Actions != nil && rctx.targetCfg.Actions.GET != nil &&
+				rctx.targetCfg.Actions.GET.RedirectWithTrailingSlashForNotFoundFile &&
+				!strings.HasSuffix(requestPath, "/") {
+				//  Get path
+				p := rctx.httpReq.URL.Path
+				// Check if path doesn't start with /
+				if !strings.HasPrefix(p, "/") {
+					p = "/" + p
+				}
+				// Check if path doesn't end with /
+				if !strings.HasSuffix(p, "/") {
+					p += "/"
+				}
+				// Redirect
+				http.Redirect(rctx.httpRW, rctx.httpReq, p, http.StatusFound)
+
+				return
+			}
 			// Not found
 			rctx.HandleNotFound(requestPath)
 			// Stop
