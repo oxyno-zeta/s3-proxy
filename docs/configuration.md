@@ -105,9 +105,10 @@ This feature is powered by [go-chi/cors](https://github.com/go-chi/cors). You ca
 
 ## GetActionConfiguration
 
-| Key     | Type    | Required | Default | Description             |
-| ------- | ------- | -------- | ------- | ----------------------- |
-| enabled | Boolean | No       | `false` | Will allow GET requests |
+| Key                                      | Type    | Required | Default | Description                                                                                                                       |
+| ---------------------------------------- | ------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| enabled                                  | Boolean | No       | `false` | Will allow GET requests                                                                                                           |
+| redirectWithTrailingSlashForNotFoundFile | Boolean | No       | `false` | This option allow to do a redirect with a trailing slash when a GET request on a file (not a folder) encountered a 404 not found. |
 
 ## PutActionConfiguration
 
@@ -420,6 +421,8 @@ targets:
     #   GET:
     #     # Will allow GET requests
     #     enabled: true
+    #     # Redirect with trailing slash when a file isn't found
+    #     redirectWithTrailingSlashForNotFoundFile: true
     #   # Action for PUT requests on target
     #   PUT:
     #     # Will allow PUT requests
