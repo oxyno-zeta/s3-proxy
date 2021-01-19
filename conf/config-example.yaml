@@ -168,6 +168,8 @@ targets:
     #   GET:
     #     # Will allow GET requests
     #     enabled: true
+    #     # Redirect with trailing slash when a file isn't found
+    #     redirectWithTrailingSlashForNotFoundFile: true
     #   # Action for PUT requests on target
     #   PUT:
     #     # Will allow PUT requests
