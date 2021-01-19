@@ -1,0 +1,51 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: master
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.4.0
+    hooks:
+      - id: check-json
+        stages: [commit]
+      - id: check-merge-conflict
+        stages: [commit]
+      - id: trailing-whitespace
+        stages: [commit]
+      - id: end-of-file-fixer
+        stages: [commit]
+      - id: check-yaml
+        stages: [commit]
+      - id: check-added-large-files
+        stages: [commit]
+      - id: check-executables-have-shebangs
+        stages: [commit]
+      - id: detect-aws-credentials
+        stages: [commit]
+      - id: detect-private-key
+        stages: [commit]
+  - repo: https://github.com/prettier/pre-commit
+    # Use the sha or branch you want to point at
+    rev: v2.0.0
+    hooks:
+      - id: prettier
+        stages: [commit]
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.7.1.1
+    hooks:
+      - id: shellcheck
+        stages: [commit]
+  - repo: local
+    hooks:
+      - id: backend-lint
+        stages: [commit]
+        files: \.go$
+        name: Backend Lint
+        entry: make
+        args:
+          - code/lint
+        require_serial: true
+        language: system
