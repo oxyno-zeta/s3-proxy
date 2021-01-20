@@ -24,7 +24,7 @@ const redirectQueryKey = "rd"
 const stateRedirectSeparator = ":"
 
 // OIDCEndpoints will set OpenID Connect endpoints for authentication and callback
-func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) error {
+func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConfig, mux chi.Router) error {
 	ctx := context.Background()
 
 	provider, err := oidc.NewProvider(ctx, oidcCfg.IssuerURL)
@@ -62,7 +62,7 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 	state := oidcCfg.State
 
 	// Store provider verifier in map
-	s.allVerifiers = append(s.allVerifiers, verifier)
+	s.allVerifiers[providerKey] = verifier
 
 	mux.HandleFunc(oidcCfg.LoginPath, func(w http.ResponseWriter, r *http.Request) {
 		// Parse query params from request
@@ -223,7 +223,7 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 			}
 
 			// Parse JWT token
-			claims, err := parseAndValidateJWTToken(jwtContent, s.allVerifiers)
+			claims, err := parseAndValidateJWTToken(jwtContent, s.allVerifiers[res.Provider])
 			if err != nil {
 				logEntry.Error(err)
 				// Check if bucket request context doesn't exist to use local default files
@@ -310,37 +310,25 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 	}
 }
 
-func parseAndValidateJWTToken(jwtContent string, allVerifiers []*oidc.IDTokenVerifier) (map[string]interface{}, error) {
+func parseAndValidateJWTToken(jwtContent string, verifier *oidc.IDTokenVerifier) (map[string]interface{}, error) {
 	ctx := context.Background()
 	// Create result map
 	var res map[string]interface{}
 
-	// Loop over all verifiers
-	for _, verifier := range allVerifiers {
-		// Verify token
-		idToken, err := verifier.Verify(ctx, jwtContent)
-		// Check if error is present because of invalid provider verifier
-		// The error is the one inside the oidc coreos library
-		if err != nil && strings.Contains(err.Error(), "token issued by a different provider") {
-			// Try with another verifier
-			continue
-		}
-		// Error in this case is a bad error...
-		if err != nil {
-			return nil, err
-		}
-
-		// Get claims
-		err = idToken.Claims(&res)
-		if err != nil {
-			return nil, err
-		}
-
-		return res, nil
+	// Verify token
+	idToken, err := verifier.Verify(ctx, jwtContent)
+	// Error in this case is a bad error...
+	if err != nil {
+		return nil, err
 	}
 
-	// Error, can't be opened, maybe a forged token ?
-	return nil, errors.New("jwt token cannot be open with oidc providers in configuration, maybe a forged token ?")
+	// Get claims
+	err = idToken.Claims(&res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func getJWTToken(logEntry log.Logger, r *http.Request, cookieName string) (string, error) {

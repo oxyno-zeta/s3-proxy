@@ -785,7 +785,7 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "secret": "**********",
-      "redirectUris": ["http://localhost:8080/auth/provider1/callback"],
+      "redirectUris": ["http://localhost:8080/auth/provider2/callback"],
       "webOrigins": ["http://localhost:8080"],
       "notBefore": 0,
       "bearerOnly": false,
