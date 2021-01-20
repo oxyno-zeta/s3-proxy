@@ -20,7 +20,6 @@ type contextKey struct {
 
 var bucketRequestContextKey = &contextKey{name: "bucket-request-context"}
 
-// nolint:whitespace
 func BucketRequestContext(
 	tgt *config.TargetConfig, tplConfig *config.TemplateConfig,
 	path string, metricsCli metrics.Client,
@@ -60,5 +59,6 @@ func BucketRequestContext(
 
 func GetBucketRequestContext(req *http.Request) bucket.Client {
 	res, _ := req.Context().Value(bucketRequestContextKey).(bucket.Client)
+
 	return res
 }

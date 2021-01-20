@@ -23,8 +23,8 @@ import (
 const redirectQueryKey = "rd"
 const stateRedirectSeparator = ":"
 
-// OIDCEndpoints will set OpenID Connect endpoints for authentication and callback
-func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) error {
+// OIDCEndpoints will set OpenID Connect endpoints for authentication and callback.
+func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConfig, mux chi.Router) error {
 	ctx := context.Background()
 
 	provider, err := oidc.NewProvider(ctx, oidcCfg.IssuerURL)
@@ -62,7 +62,7 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 	state := oidcCfg.State
 
 	// Store provider verifier in map
-	s.allVerifiers = append(s.allVerifiers, verifier)
+	s.allVerifiers[providerKey] = verifier
 
 	mux.HandleFunc(oidcCfg.LoginPath, func(w http.ResponseWriter, r *http.Request) {
 		// Parse query params from request
@@ -89,6 +89,7 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 			err := errors.New("state not found in request")
 			logEntry.Error(err)
 			utils.HandleBadRequest(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+
 			return
 		}
 
@@ -98,7 +99,7 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 		reqState := split[0]
 		rdVal := ""
 		// Check if length is ok to include a redirect url
-		if len(split) == 2 {
+		if len(split) == 2 { // nolint: gomnd // No constant for that
 			rdVal = split[1]
 		}
 
@@ -107,6 +108,7 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 			err := errors.New("state did not match")
 			logEntry.Error(err)
 			utils.HandleBadRequest(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+
 			return
 		}
 
@@ -115,6 +117,7 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 			err := errors.New("redirect url is invalid")
 			logEntry.Error(err)
 			utils.HandleBadRequest(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+
 			return
 		}
 
@@ -123,6 +126,7 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 			err = errors.New("failed to exchange token: " + err.Error())
 			logEntry.Error(err)
 			utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+
 			return
 		}
 
@@ -131,6 +135,7 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 			err = errors.New("no id_token field in token")
 			logEntry.Error(err)
 			utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+
 			return
 		}
 
@@ -139,6 +144,7 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 			err = errors.New("failed to verify ID Token: " + err.Error())
 			logEntry.Error(err)
 			utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+
 			return
 		}
 
@@ -149,6 +155,7 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 		if err != nil {
 			logEntry.Error(err)
 			utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+
 			return
 		}
 		// Now, we know that we can open jwt token to get claims
@@ -176,7 +183,6 @@ func (s *service) OIDCEndpoints(oidcCfg *config.OIDCAuthConfig, mux chi.Router) 
 	return nil
 }
 
-// nolint:whitespace
 func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -199,6 +205,7 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 				} else {
 					brctx.HandleInternalServerError(err, path)
 				}
+
 				return
 			}
 			// Check if JWT content is empty or not
@@ -219,11 +226,12 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 				}
 				// Redirect
 				http.Redirect(w, r, rdURI, http.StatusTemporaryRedirect)
+
 				return
 			}
 
 			// Parse JWT token
-			claims, err := parseAndValidateJWTToken(jwtContent, s.allVerifiers)
+			claims, err := parseAndValidateJWTToken(jwtContent, s.allVerifiers[res.Provider])
 			if err != nil {
 				logEntry.Error(err)
 				// Check if bucket request context doesn't exist to use local default files
@@ -232,6 +240,7 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 				} else {
 					brctx.HandleInternalServerError(err, path)
 				}
+
 				return
 			}
 
@@ -259,6 +268,7 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 						} else {
 							brctx.HandleForbidden(path)
 						}
+
 						return
 					}
 					// Update email verified in user
@@ -310,37 +320,25 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 	}
 }
 
-func parseAndValidateJWTToken(jwtContent string, allVerifiers []*oidc.IDTokenVerifier) (map[string]interface{}, error) {
+func parseAndValidateJWTToken(jwtContent string, verifier *oidc.IDTokenVerifier) (map[string]interface{}, error) {
 	ctx := context.Background()
 	// Create result map
 	var res map[string]interface{}
 
-	// Loop over all verifiers
-	for _, verifier := range allVerifiers {
-		// Verify token
-		idToken, err := verifier.Verify(ctx, jwtContent)
-		// Check if error is present because of invalid provider verifier
-		// The error is the one inside the oidc coreos library
-		if err != nil && strings.Contains(err.Error(), "token issued by a different provider") {
-			// Try with another verifier
-			continue
-		}
-		// Error in this case is a bad error...
-		if err != nil {
-			return nil, err
-		}
-
-		// Get claims
-		err = idToken.Claims(&res)
-		if err != nil {
-			return nil, err
-		}
-
-		return res, nil
+	// Verify token
+	idToken, err := verifier.Verify(ctx, jwtContent)
+	// Error in this case is a bad error...
+	if err != nil {
+		return nil, err
 	}
 
-	// Error, can't be opened, maybe a forged token ?
-	return nil, errors.New("jwt token cannot be open with oidc providers in configuration, maybe a forged token ?")
+	// Get claims
+	err = idToken.Claims(&res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func getJWTToken(logEntry log.Logger, r *http.Request, cookieName string) (string, error) {
@@ -382,7 +380,7 @@ func getJWTToken(logEntry log.Logger, r *http.Request, cookieName string) (strin
 	return "", nil
 }
 
-// IsValidRedirect checks whether the redirect URL is whitelisted
+// IsValidRedirect checks whether the redirect URL is whitelisted.
 func isValidRedirect(redirect string) bool {
 	return strings.HasPrefix(redirect, "http://") || strings.HasPrefix(redirect, "https://")
 }

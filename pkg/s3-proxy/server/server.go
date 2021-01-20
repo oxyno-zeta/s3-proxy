@@ -91,7 +91,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 
 	// A good base middleware stack
 	r.Use(middleware.Compress(
-		5,
+		5, // nolint: gomnd // No constant for that
 		"text/html",
 		"text/css",
 		"text/plain",
@@ -132,8 +132,8 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 
 	// Check if auth if enabled and oidc enabled
 	if cfg.AuthProviders != nil && cfg.AuthProviders.OIDC != nil {
-		for _, v := range cfg.AuthProviders.OIDC {
-			err := authenticationSvc.OIDCEndpoints(v, r)
+		for k, v := range cfg.AuthProviders.OIDC {
+			err := authenticationSvc.OIDCEndpoints(k, v, r)
 			if err != nil {
 				return nil, err
 			}
@@ -246,6 +246,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						if err := req.ParseForm(); err != nil {
 							logEntry.Error(err)
 							brctx.HandleInternalServerError(err, path)
+
 							return
 						}
 						// Parse multipart form
@@ -253,6 +254,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						if err != nil {
 							logEntry.Error(err)
 							brctx.HandleInternalServerError(err, path)
+
 							return
 						}
 						// Get file from form
@@ -260,6 +262,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						if err != nil {
 							logEntry.Error(err)
 							brctx.HandleInternalServerError(err, path)
+
 							return
 						}
 						// Create input for put request
@@ -298,7 +301,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	return r, nil
 }
 
-// Generate CORS
+// Generate CORS.
 func generateCors(cfg *config.ServerConfig, logger log.CorsLogger) *cors.Cors {
 	// Check if allow all is enabled
 	if cfg.CORS.AllowAll {

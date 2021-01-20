@@ -27,6 +27,7 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 				// In this case, authentication is skipped, need to skip authorization too
 				logger.Debug("no resource found in authorization, means that authentication was skipped => skip authorization too")
 				next.ServeHTTP(w, r)
+
 				return
 			}
 
@@ -35,6 +36,7 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 				// Resource is whitelisted
 				logger.Debug("authorization skipped because resource is whitelisted")
 				next.ServeHTTP(w, r)
+
 				return
 			}
 
@@ -50,6 +52,7 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 				logger.Infof("Basic auth user %s authorized", buser.GetIdentifier())
 				metricsCl.IncAuthorized("basic-auth")
 				next.ServeHTTP(w, r)
+
 				return
 			}
 
@@ -82,6 +85,7 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 						} else {
 							brctx.HandleInternalServerError(err, requestURI)
 						}
+
 						return
 					}
 				} else {
@@ -98,6 +102,7 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 					} else {
 						brctx.HandleForbidden(requestURI)
 					}
+
 					return
 				}
 
@@ -106,6 +111,7 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 				logger.Infof("OIDC user %s authorized", ouser.GetIdentifier())
 				metricsCl.IncAuthorized(authorizationProvider)
 				next.ServeHTTP(w, r)
+
 				return
 			}
 

@@ -55,7 +55,7 @@ func (svr *InternalServer) generateInternalRouter() http.Handler {
 
 	// A good base middleware stack
 	r.Use(middleware.Compress(
-		5,
+		5, // nolint: gomnd // No constant for that
 		"text/html",
 		"text/css",
 		"text/plain",

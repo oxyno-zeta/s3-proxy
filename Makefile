@@ -126,7 +126,7 @@ setup/tracing-services: down/tracing-services
 setup/services: down/services
 	tar czvf local-resources/opa/bundle.tar.gz --directory=local-resources/opa/bundle example/
 	docker run -d --rm --name opa -p 8181:8181 -v $(CURRENT_DIR)/local-resources/opa/bundle.tar.gz:/bundle.tar.gz openpolicyagent/opa run --server --log-level debug --log-format text --bundle /bundle.tar.gz
-	docker run -d --rm --name keycloak -p 8088:8080 -e KEYCLOAK_IMPORT=/tmp/realm-export.json -v $(CURRENT_DIR)/local-resources/keycloak/realm-export.json:/tmp/realm-export.json -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin jboss/keycloak:10.0.0
+	docker run -d --rm --name keycloak -p 8088:8080 -e KEYCLOAK_IMPORT=/tmp/realm-export.json -v $(CURRENT_DIR)/local-resources/keycloak/realm-export.json:/tmp/realm-export.json -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin quay.io/keycloak/keycloak:11.0.3
 
 .PHONY: setup/mocks
 setup/mocks:
@@ -139,7 +139,7 @@ ifndef HAS_GOLANGCI_LINT
 ifndef HAS_CURL
 	$(error You must install curl)
 endif
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.27.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.31.0
 endif
 ifndef HAS_GIT
 	$(error You must install Git)

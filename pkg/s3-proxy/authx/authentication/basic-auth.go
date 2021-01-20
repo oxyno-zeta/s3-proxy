@@ -12,7 +12,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// nolint:whitespace
 func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -36,6 +35,7 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 				} else {
 					brctx.HandleUnauthorized(path)
 				}
+
 				return
 			}
 
@@ -53,6 +53,7 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 				} else {
 					brctx.HandleUnauthorized(path)
 				}
+
 				return
 			}
 
@@ -66,6 +67,7 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 				} else {
 					brctx.HandleUnauthorized(path)
 				}
+
 				return
 			}
 

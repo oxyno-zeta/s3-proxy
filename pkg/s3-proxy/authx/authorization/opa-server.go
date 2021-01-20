@@ -82,7 +82,15 @@ func isOPAServerAuthorized(req *http.Request, oidcUser *models.OIDCUser, resourc
 	}
 
 	// Making request to OPA server
-	resp, err := http.Post(resource.OIDC.AuthorizationOPAServer.URL, "application/json", bytes.NewBuffer(bb))
+	// Change NewRequest to NewRequestWithContext and pass context it
+	request, err := http.NewRequestWithContext(req.Context(), http.MethodPost, resource.OIDC.AuthorizationOPAServer.URL, bytes.NewBuffer(bb))
+	if err != nil {
+		return false, err
+	}
+	// Add content type
+	request.Header.Add("Content-Type", "application/json")
+	// Making request to OPA server
+	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return false, err
 	}

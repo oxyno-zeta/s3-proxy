@@ -21,24 +21,24 @@ type s3Context struct {
 	parentTrace tracing.Trace
 }
 
-// ListObjectsOperation List objects operation
+// ListObjectsOperation List objects operation.
 const ListObjectsOperation = "list-objects"
 
-// GetObjectOperation Get object operation
+// GetObjectOperation Get object operation.
 const GetObjectOperation = "get-object"
 
-// HeadObjectOperation Head object operation
+// HeadObjectOperation Head object operation.
 const HeadObjectOperation = "head-object"
 
-// PutObjectOperation Put object operation
+// PutObjectOperation Put object operation.
 const PutObjectOperation = "put-object"
 
-// DeleteObjectOperation Delete object operation
+// DeleteObjectOperation Delete object operation.
 const DeleteObjectOperation = "delete-object"
 
 const s3MaxKeys int64 = 1000
 
-// ListFilesAndDirectories List files and directories
+// ListFilesAndDirectories List files and directories.
 func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*ListElementOutput, error) {
 	// List files on path
 	folders := make([]*ListElementOutput, 0)
@@ -139,7 +139,7 @@ func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*ListElementOutpu
 	return all, nil
 }
 
-// GetObject Get object from S3 bucket
+// GetObject Get object from S3 bucket.
 func (s3ctx *s3Context) GetObject(key string) (*GetOutput, error) {
 	// Create child trace
 	childTrace := s3ctx.parentTrace.GetChildTrace("s3-bucket.get-object-request")
