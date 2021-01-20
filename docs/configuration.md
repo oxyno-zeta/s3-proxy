@@ -310,8 +310,8 @@ log:
 #       state: my-secret-state-key # do not use this in production ! put something random here
 #       issuerUrl: https://issuer-url/
 #       redirectUrl: http://localhost:8080/ # /auth/oidc/callback will be added automatically
-#       scopes: # OIDC Scopes (defaults: oidc, email, profile)
-#         - oidc
+#       scopes: # OIDC Scopes (defaults: openid, email, profile)
+#         - openid
 #         - email
 #         - profile
 #       groupClaim: groups # path in token
