@@ -2220,6 +2220,35 @@ func TestOIDCAuthentication(t *testing.T) {
 			},
 		},
 		{
+			Name: "target-multiple-providers",
+			Bucket: &config.BucketConfig{
+				Name:       bucket,
+				Region:     region,
+				S3Endpoint: s3server.URL,
+				Credentials: &config.BucketCredentialConfig{
+					AccessKey: &config.CredentialConfig{Value: accessKey},
+					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+				},
+				DisableSSL: true,
+			},
+			Mount: &config.MountConfig{
+				Path: []string{"/mount-multiple-provider/"},
+			},
+			Resources: []*config.Resource{
+				{
+					Path:     "/mount-multiple-provider/folder1/*",
+					Methods:  []string{"GET"},
+					Provider: "provider2",
+					OIDC: &config.ResourceOIDC{
+						AuthorizationAccesses: []*config.OIDCAuthorizationAccess{},
+					},
+				},
+			},
+			Actions: &config.ActionsConfig{
+				GET: &config.GetActionConfig{Enabled: true},
+			},
+		},
+		{
 			Name: "target-opa-server",
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
@@ -2327,19 +2356,20 @@ func TestOIDCAuthentication(t *testing.T) {
 		cfg *config.Config
 	}
 	tests := []struct {
-		name                   string
-		args                   args
-		inputURL               string
-		inputForgeOIDCHeader   bool
-		inputForgeOIDCUsername string
-		inputForgeOIDCPassword string
-		expectedCode           int
-		expectedBody           string
-		expectedResponseHost   string
-		expectedResponsePath   string
-		expectedHeaders        map[string]string
-		notExpectedBody        string
-		wantErr                bool
+		name                              string
+		args                              args
+		inputURL                          string
+		inputForgeOIDCHeader              bool
+		inputForgeOIDCUsername            string
+		inputForgeOIDCPassword            string
+		inputForgeOIDCWithoutClientSecret bool
+		expectedCode                      int
+		expectedBody                      string
+		expectedResponseHost              string
+		expectedResponsePath              string
+		expectedHeaders                   map[string]string
+		notExpectedBody                   string
+		wantErr                           bool
 	}{
 		{
 			name: "Inject not working OIDC provider",
@@ -2708,6 +2738,54 @@ func TestOIDCAuthentication(t *testing.T) {
 			expectedResponsePath: "/mount-wrong-opa-server-url/folder1/test.txt",
 			expectedCode:         500,
 		},
+		{
+			name: "GET a file with oidc bearer token should be ok (with multiple providers)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   tplCfg,
+					AuthProviders: &config.AuthProviderConfig{
+						OIDC: map[string]*config.OIDCAuthConfig{
+							"provider1": {
+								ClientID:     "client-with-secret",
+								ClientSecret: &config.CredentialConfig{Value: "565f78f2-a706-41cd-a1a0-431d7df29443"},
+								CookieName:   "oidc",
+								RedirectURL:  "http://localhost:8080/",
+								CallbackPath: "/auth/provider1/callback",
+								IssuerURL:    "http://localhost:8088/auth/realms/integration",
+								LoginPath:    "/auth/provider1/",
+							},
+							"provider2": {
+								ClientID:     "client-without-secret",
+								ClientSecret: nil,
+								CookieName:   "oidc",
+								RedirectURL:  "http://localhost:8080/",
+								CallbackPath: "/auth/provider2/callback",
+								IssuerURL:    "http://localhost:8088/auth/realms/integration",
+								LoginPath:    "/auth/provider2/",
+							},
+						},
+					},
+					Targets: targetsTpl,
+				},
+			},
+			inputURL:                          "http://localhost:8080/mount-multiple-provider/folder1/test.txt",
+			inputForgeOIDCHeader:              true,
+			inputForgeOIDCUsername:            "user",
+			inputForgeOIDCPassword:            "password",
+			inputForgeOIDCWithoutClientSecret: true,
+			wantErr:                           false,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
+			expectedResponseHost: "localhost:8080",
+			expectedResponsePath: "/mount-multiple-provider/folder1/test.txt",
+			expectedCode:         200,
+			expectedBody:         "Hello folder1!",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -2772,8 +2850,12 @@ func TestOIDCAuthentication(t *testing.T) {
 				data := url.Values{}
 				data.Set("username", tt.inputForgeOIDCUsername)
 				data.Set("password", tt.inputForgeOIDCPassword)
-				data.Set("client_id", "client-with-secret")
-				data.Set("client_secret", "565f78f2-a706-41cd-a1a0-431d7df29443")
+				if tt.inputForgeOIDCWithoutClientSecret {
+					data.Set("client_id", "client-without-secret")
+				} else {
+					data.Set("client_id", "client-with-secret")
+					data.Set("client_secret", "565f78f2-a706-41cd-a1a0-431d7df29443")
+				}
 				data.Set("grant_type", "password")
 				data.Set("scope", "openid profile email")
 
@@ -2852,6 +2934,14 @@ func TestOIDCAuthentication(t *testing.T) {
 
 			if tt.expectedCode != resp.StatusCode {
 				t.Errorf("OIDC Integration test on GenerateRouter() status code = %v, expected status code %v", resp.StatusCode, tt.expectedCode)
+			}
+
+			if tt.expectedBody != "" {
+				bodyBytes, _ := ioutil.ReadAll(resp.Body)
+				body := string(bodyBytes)
+				if tt.expectedBody != body {
+					t.Errorf("OIDC Integration test on GenerateRouter() body = \"%v\", not expected body \"%v\"", body, tt.expectedBody)
+				}
 			}
 		})
 	}

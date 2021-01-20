@@ -20,7 +20,7 @@ var resourceContextKey = &contextKey{name: "RESOURCE_CONTEXT_KEY"}
 var errAuthenticationMiddlewareNotSupported = errors.New("authentication not supported")
 
 type service struct {
-	allVerifiers []*oidc.IDTokenVerifier
+	allVerifiers map[string]*oidc.IDTokenVerifier
 	cfg          *config.Config
 	metricsCl    metrics.Client
 }

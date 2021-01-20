@@ -132,8 +132,8 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 
 	// Check if auth if enabled and oidc enabled
 	if cfg.AuthProviders != nil && cfg.AuthProviders.OIDC != nil {
-		for _, v := range cfg.AuthProviders.OIDC {
-			err := authenticationSvc.OIDCEndpoints(v, r)
+		for k, v := range cfg.AuthProviders.OIDC {
+			err := authenticationSvc.OIDCEndpoints(k, v, r)
 			if err != nil {
 				return nil, err
 			}
