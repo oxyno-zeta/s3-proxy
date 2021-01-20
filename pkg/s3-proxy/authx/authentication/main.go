@@ -25,7 +25,7 @@ type service struct {
 	metricsCl    metrics.Client
 }
 
-// Middleware will redirect authentication to basic auth or OIDC depending on request path and resources declared
+// Middleware will redirect authentication to basic auth or OIDC depending on request path and resources declared.
 func (s *service) Middleware(resources []*config.Resource) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -36,6 +36,7 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 				// In this case, continue without authentication
 				logEntry.Info("no resource declared => skip authentication")
 				next.ServeHTTP(w, r)
+
 				return
 			}
 
@@ -55,6 +56,7 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 				} else {
 					brctx.HandleInternalServerError(err, requestURI)
 				}
+
 				return
 			}
 
@@ -69,6 +71,7 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 				} else {
 					brctx.HandleForbidden(requestURI)
 				}
+
 				return
 			}
 
@@ -83,6 +86,7 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 			if res.OIDC != nil {
 				logEntry.Debug("authentication with oidc detected")
 				s.oidcAuthorizationMiddleware(res)(next).ServeHTTP(w, r)
+
 				return
 			}
 
@@ -90,6 +94,7 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 			if res.Basic != nil {
 				logEntry.Debug("authentication with basic auth detected")
 				s.basicAuthMiddleware(res)(next).ServeHTTP(w, r)
+
 				return
 			}
 
@@ -97,6 +102,7 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 			if *res.WhiteList {
 				logEntry.Debug("authentication skipped because resource is whitelisted")
 				next.ServeHTTP(w, r)
+
 				return
 			}
 
@@ -113,15 +119,17 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 	}
 }
 
-// GetAuthenticatedUser will get authenticated user in context
+// GetAuthenticatedUser will get authenticated user in context.
 func GetAuthenticatedUser(req *http.Request) models.GenericUser {
 	res, _ := req.Context().Value(userContextKey).(models.GenericUser)
+
 	return res
 }
 
-// GetRequestResource will get request resource in context
+// GetRequestResource will get request resource in context.
 func GetRequestResource(req *http.Request) *config.Resource {
 	res, _ := req.Context().Value(resourceContextKey).(*config.Resource)
+
 	return res
 }
 

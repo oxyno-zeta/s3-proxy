@@ -11,7 +11,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 )
 
-// Client represents a client in order to GET, PUT or DELETE file on a bucket with a html output
+// Client represents a client in order to GET, PUT or DELETE file on a bucket with a html output.
 type Client interface {
 	// Get allow to GET what's inside a request path
 	Get(requestPath string)
@@ -31,7 +31,7 @@ type Client interface {
 	HandleUnauthorized(requestPath string)
 }
 
-// PutInput represents Put input
+// PutInput represents Put input.
 type PutInput struct {
 	RequestPath string
 	Filename    string
@@ -40,17 +40,16 @@ type PutInput struct {
 	ContentSize int64
 }
 
-// ErrorHandlers error handlers
+// ErrorHandlers error handlers.
 type ErrorHandlers struct {
-	HandleNotFoundWithTemplate            func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string)            //nolint: lll
-	HandleForbiddenWithTemplate           func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string)            //nolint: lll
-	HandleUnauthorizedWithTemplate        func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string)            //nolint: lll
-	HandleBadRequestWithTemplate          func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) //nolint: lll
-	HandleInternalServerErrorWithTemplate func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) //nolint: lll
+	HandleNotFoundWithTemplate            func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string)            //nolint: lll // It is long
+	HandleForbiddenWithTemplate           func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string)            //nolint: lll // It is long
+	HandleUnauthorizedWithTemplate        func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string)            //nolint: lll // It is long
+	HandleBadRequestWithTemplate          func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) //nolint: lll // It is long
+	HandleInternalServerErrorWithTemplate func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) //nolint: lll // It is long
 }
 
-// NewClient will generate a new client to do GET,PUT or DELETE actions
-// nolint:whitespace
+// NewClient will generate a new client to do GET,PUT or DELETE actions.
 func NewClient(
 	tgt *config.TargetConfig, tplConfig *config.TemplateConfig, logger log.Logger,
 	mountPath string, httpRW http.ResponseWriter, httpReq *http.Request,

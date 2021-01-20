@@ -42,6 +42,7 @@ func (hr HostRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Check if host is matching directly
 	if router, ok := hr.routes[strings.ToLower(host)]; ok {
 		router.ServeHTTP(w, r)
+
 		return
 	}
 
@@ -50,11 +51,13 @@ func (hr HostRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Check error
 	if err != nil {
 		hr.internalServerHandler(err)(w, r)
+
 		return
 	}
 	// Check if router exits
 	if rt != nil {
 		rt.ServeHTTP(w, r)
+
 		return
 	}
 

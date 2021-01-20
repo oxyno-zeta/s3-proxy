@@ -15,7 +15,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 )
 
-// Client S3 Context interface
+// Client S3 Context interface.
 type Client interface {
 	ListFilesAndDirectories(key string) ([]*ListElementOutput, error)
 	HeadObject(key string) (*HeadOutput, error)
@@ -24,13 +24,13 @@ type Client interface {
 	DeleteObject(key string) error
 }
 
-// FileType File type
+// FileType File type.
 const FileType = "FILE"
 
-// FolderType Folder type
+// FolderType Folder type.
 const FolderType = "FOLDER"
 
-// ListElementOutput Bucket ListElementOutput
+// ListElementOutput Bucket ListElementOutput.
 type ListElementOutput struct {
 	Type         string
 	ETag         string
@@ -40,16 +40,16 @@ type ListElementOutput struct {
 	Key          string
 }
 
-// HeadOutput represents output of Head
+// HeadOutput represents output of Head.
 type HeadOutput struct {
 	Type string
 	Key  string
 }
 
-// ErrNotFound Error not found
+// ErrNotFound Error not found.
 var ErrNotFound = errors.New("not found")
 
-// GetOutput Object output for S3 get object
+// GetOutput Object output for S3 get object.
 type GetOutput struct {
 	Body               *io.ReadCloser
 	CacheControl       string
@@ -64,7 +64,7 @@ type GetOutput struct {
 	LastModified       time.Time
 }
 
-// PutInput Put input object for PUT request
+// PutInput Put input object for PUT request.
 type PutInput struct {
 	Key          string
 	Body         io.ReadSeeker
@@ -74,7 +74,7 @@ type PutInput struct {
 	StorageClass string
 }
 
-// NewS3Context New S3 Context
+// NewS3Context New S3 Context.
 func NewS3Context(tgt *config.TargetConfig, logger log.Logger, metricsCtx metrics.Client, parentTrace tracing.Trace) (Client, error) {
 	sessionConfig := &aws.Config{
 		Region: aws.String(tgt.Bucket.Region),

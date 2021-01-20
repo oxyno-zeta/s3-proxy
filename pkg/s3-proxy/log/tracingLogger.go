@@ -12,7 +12,7 @@ func (tl *tracingLogger) Infof(msg string, args ...interface{}) {
 	tl.logger.Infof(msg, args...)
 }
 
-// Debugf logs a message at debug priority
+// Debugf logs a message at debug priority.
 func (tl *tracingLogger) Debugf(msg string, args ...interface{}) {
 	tl.logger.Debugf(msg, args...)
 }
