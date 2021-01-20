@@ -20,7 +20,7 @@ type prometheusClient struct {
 	authorizedTotal    *prometheus.CounterVec
 }
 
-// Instrument will instrument gin routes
+// Instrument will instrument gin routes.
 func (ctx *prometheusClient) Instrument(serverLabel string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -49,22 +49,22 @@ func (ctx *prometheusClient) Instrument(serverLabel string) func(next http.Handl
 	}
 }
 
-// GetExposeHandler Get handler to expose metrics for resquest
+// GetExposeHandler Get handler to expose metrics for resquest.
 func (ctx *prometheusClient) GetExposeHandler() http.Handler {
 	return promhttp.Handler()
 }
 
-// IncS3Operations Increment s3 operation counter
+// IncS3Operations Increment s3 operation counter.
 func (ctx *prometheusClient) IncS3Operations(targetName, bucketName, operation string) {
 	ctx.s3OperationsTotal.WithLabelValues(targetName, bucketName, operation).Inc()
 }
 
-// Will increase counter of authenticated user
+// Will increase counter of authenticated user.
 func (ctx *prometheusClient) IncAuthenticated(providerType, providerName string) {
 	ctx.authenticatedTotal.WithLabelValues(providerType, providerName).Inc()
 }
 
-// Will increase counter of authorized user
+// Will increase counter of authorized user.
 func (ctx *prometheusClient) IncAuthorized(providerType string) {
 	ctx.authorizedTotal.WithLabelValues(providerType).Inc()
 }

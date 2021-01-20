@@ -42,13 +42,12 @@ func HandleInternalServerErrorWithTemplate(logger log.Logger, rw http.ResponseWr
 	}
 }
 
-// HandleInternalServerError Handle internal server error following response template
-// nolint:whitespace
+// HandleInternalServerError Handle internal server error following response template.
 func HandleInternalServerError(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, requestPath string, err error) {
 	HandleInternalServerErrorWithTemplate(logger, rw, tplCfg, "", requestPath, err)
 }
 
-// HandleNotFoundWithTemplate Handle not found error following response template with given template in parameter
+// HandleNotFoundWithTemplate Handle not found error following response template with given template in parameter.
 func HandleNotFoundWithTemplate(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 	err := TemplateExecution(tplCfg.NotFound, tplString, logger, rw, struct{ Path string }{Path: requestPath}, http.StatusNotFound)
 	if err != nil {
@@ -57,12 +56,12 @@ func HandleNotFoundWithTemplate(logger log.Logger, rw http.ResponseWriter, tplCf
 	}
 }
 
-// HandleNotFound Handle not found error following response template
+// HandleNotFound Handle not found error following response template.
 func HandleNotFound(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, requestPath string) {
 	HandleNotFoundWithTemplate(logger, rw, tplCfg, "", requestPath)
 }
 
-// HandleUnauthorized Handle unauthorized error following response template with given template in parameter
+// HandleUnauthorized Handle unauthorized error following response template with given template in parameter.
 func HandleUnauthorizedWithTemplate(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 	err := TemplateExecution(tplCfg.Unauthorized, tplString, logger, rw, struct{ Path string }{Path: requestPath}, http.StatusUnauthorized)
 	if err != nil {
@@ -71,13 +70,12 @@ func HandleUnauthorizedWithTemplate(logger log.Logger, rw http.ResponseWriter, t
 	}
 }
 
-// HandleUnauthorized Handle unauthorized error following response template
+// HandleUnauthorized Handle unauthorized error following response template.
 func HandleUnauthorized(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, requestPath string) {
 	HandleUnauthorizedWithTemplate(logger, rw, tplCfg, "", requestPath)
 }
 
-// HandleBadRequest Handle bad request error following response template with given template in parameter
-// nolint:whitespace
+// HandleBadRequest Handle bad request error following response template with given template in parameter.
 func HandleBadRequestWithTemplate(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string, err error) {
 	err2 := TemplateExecution(tplCfg.BadRequest, "", logger, rw, struct {
 		Path  string
@@ -89,12 +87,12 @@ func HandleBadRequestWithTemplate(logger log.Logger, rw http.ResponseWriter, tpl
 	}
 }
 
-// HandleBadRequest Handle bad request error following response template
+// HandleBadRequest Handle bad request error following response template.
 func HandleBadRequest(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, requestPath string, err error) {
 	HandleBadRequestWithTemplate(logger, rw, tplCfg, "", requestPath, err)
 }
 
-// HandleForbiddenWithTemplate Handle forbidden error following response template given in parameters
+// HandleForbiddenWithTemplate Handle forbidden error following response template given in parameters.
 func HandleForbiddenWithTemplate(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 	err := TemplateExecution(tplCfg.Forbidden, tplString, logger, rw, struct {
 		Path string
@@ -105,12 +103,12 @@ func HandleForbiddenWithTemplate(logger log.Logger, rw http.ResponseWriter, tplC
 	}
 }
 
-// HandleForbidden Handle forbidden error following response template
+// HandleForbidden Handle forbidden error following response template.
 func HandleForbidden(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, requestPath string) {
 	HandleForbiddenWithTemplate(logger, rw, tplCfg, "", requestPath)
 }
 
-// ClientIP will return client ip from request
+// ClientIP will return client ip from request.
 func ClientIP(r *http.Request) string {
 	IPAddress := r.Header.Get("X-Real-Ip")
 	if IPAddress == "" {
@@ -124,7 +122,7 @@ func ClientIP(r *http.Request) string {
 	return IPAddress
 }
 
-// TemplateExecution will execute template with values and interpret response as html content
+// TemplateExecution will execute template with values and interpret response as html content.
 func TemplateExecution(tplPath, tplString string, logger log.Logger, rw http.ResponseWriter, data interface{}, status int) error {
 	// Set status code
 	rw.WriteHeader(status)
@@ -204,7 +202,7 @@ func parseForwarded(forwarded string) (addr, proto, host string) {
 	}
 
 	for _, forwardedPair := range strings.Split(forwarded, ";") {
-		if tv := strings.SplitN(forwardedPair, "=", 2); len(tv) == 2 {
+		if tv := strings.SplitN(forwardedPair, "=", 2); len(tv) == 2 { // nolint: gomnd // No constant for that
 			token, value := tv[0], tv[1]
 			token = strings.TrimSpace(token)
 			value = strings.TrimSpace(strings.Trim(value, `"`))

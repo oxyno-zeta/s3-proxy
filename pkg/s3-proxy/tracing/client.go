@@ -6,23 +6,23 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 )
 
-// Service interface
+// Service interface.
 type Service interface {
-	// Reload service (useful for configuration change)
+	// Reload service (useful for configuration change).
 	Reload() error
-	// Get global tracer object
+	// Get global tracer object.
 	GetTracer() opentracing.Tracer
 }
 
-// Trace object interface
+// Trace object interface.
 type Trace interface {
-	// Set tag on trace
+	// Set tag on trace.
 	SetTag(key string, value interface{})
-	// Get child trace with an operation name
+	// Get child trace with an operation name.
 	GetChildTrace(operationName string) Trace
-	// Will finish the trace
+	// Will finish the trace.
 	Finish()
-	// Get trace id as a string (useful for logs)
+	// Get trace id as a string (useful for logs).
 	GetTraceID() string
 }
 

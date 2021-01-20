@@ -18,7 +18,7 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-// Main configuration folder path
+// Main configuration folder path.
 var mainConfigFolderPath = "conf/"
 
 var validate = validator.New()
@@ -77,7 +77,7 @@ func (ctx *managercontext) Load() error {
 	return nil
 }
 
-// Imported and modified from viper v1.7.0
+// Imported and modified from viper v1.7.0.
 func (ctx *managercontext) watchInternalFile(filePath string, forceStop chan bool, onChange func()) {
 	initWG := sync.WaitGroup{}
 	initWG.Add(1)
@@ -101,10 +101,12 @@ func (ctx *managercontext) watchInternalFile(filePath string, forceStop chan boo
 				select {
 				case <-forceStop:
 					eventsWG.Done()
+
 					return
 				case event, ok := <-watcher.Events:
 					if !ok { // 'Events' channel is closed
 						eventsWG.Done()
+
 						return
 					}
 
@@ -115,13 +117,14 @@ func (ctx *managercontext) watchInternalFile(filePath string, forceStop chan boo
 					const writeOrCreateMask = fsnotify.Write | fsnotify.Create
 					if (filepath.Clean(event.Name) == configFile &&
 						event.Op&writeOrCreateMask != 0) ||
-						(currentConfigFile != "" && currentConfigFile != realConfigFile) { // nolint: whitespace
+						(currentConfigFile != "" && currentConfigFile != realConfigFile) {
 						realConfigFile = currentConfigFile
 
 						// Call on change
 						onChange()
 					} else if filepath.Clean(event.Name) == configFile && event.Op&fsnotify.Remove&fsnotify.Remove != 0 {
 						eventsWG.Done()
+
 						return
 					}
 
@@ -275,7 +278,7 @@ func (ctx *managercontext) loadConfiguration() error {
 	return nil
 }
 
-// GetConfig allow to get configuration object
+// GetConfig allow to get configuration object.
 func (ctx *managercontext) GetConfig() *Config {
 	return ctx.cfg
 }
@@ -491,7 +494,7 @@ func loadBusinessDefaultValues(out *Config) error {
 	return nil
 }
 
-// Load Regex in OIDC Authorization access objects
+// Load Regex in OIDC Authorization access objects.
 func loadRegexOIDCAuthorizationAccess(item *OIDCAuthorizationAccess) error {
 	if item.Regexp {
 		// Try to compile regex for group or email

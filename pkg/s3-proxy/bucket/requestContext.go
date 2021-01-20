@@ -18,10 +18,10 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 )
 
-// ErrRemovalFolder will be raised when end user is trying to delete a folder and not a file
+// ErrRemovalFolder will be raised when end user is trying to delete a folder and not a file.
 var ErrRemovalFolder = errors.New("can't remove folder")
 
-// requestContext Bucket request context
+// requestContext Bucket request context.
 type requestContext struct {
 	s3Context      s3client.Client
 	logger         log.Logger
@@ -33,7 +33,7 @@ type requestContext struct {
 	errorsHandlers *ErrorHandlers
 }
 
-// Entry Entry with path for internal use (template)
+// Entry Entry with path for internal use (template).
 type Entry struct {
 	Type         string
 	ETag         string
@@ -44,7 +44,7 @@ type Entry struct {
 	Path         string
 }
 
-// bucketListingData Bucket listing data for templating
+// bucketListingData Bucket listing data for templating.
 type bucketListingData struct {
 	Entries    []*Entry
 	BucketName string
@@ -52,7 +52,7 @@ type bucketListingData struct {
 	Path       string
 }
 
-// generateStartKey will generate start key used in all functions
+// generateStartKey will generate start key used in all functions.
 func (rctx *requestContext) generateStartKey(requestPath string) string {
 	bucketRootPrefixKey := rctx.targetCfg.Bucket.GetRootPrefix()
 	// Key must begin by bucket prefix
@@ -97,6 +97,7 @@ func (rctx *requestContext) HandleNotFound(requestPath string) {
 		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.NotFound)
 		if err != nil {
 			rctx.HandleInternalServerError(err, requestPath)
+
 			return
 		}
 	}
@@ -118,6 +119,7 @@ func (rctx *requestContext) HandleForbidden(requestPath string) {
 		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.Forbidden)
 		if err != nil {
 			rctx.HandleInternalServerError(err, requestPath)
+
 			return
 		}
 	}
@@ -139,6 +141,7 @@ func (rctx *requestContext) HandleBadRequest(err error, requestPath string) {
 		content, err2 = rctx.loadTemplateContent(rctx.targetCfg.Templates.BadRequest)
 		if err2 != nil {
 			rctx.HandleInternalServerError(err2, requestPath)
+
 			return
 		}
 	}
@@ -160,6 +163,7 @@ func (rctx *requestContext) HandleUnauthorized(requestPath string) {
 		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.Unauthorized)
 		if err != nil {
 			rctx.HandleInternalServerError(err, requestPath)
+
 			return
 		}
 	}
@@ -168,7 +172,7 @@ func (rctx *requestContext) HandleUnauthorized(requestPath string) {
 	rctx.errorsHandlers.HandleUnauthorizedWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath)
 }
 
-// Get proxy GET requests
+// Get proxy GET requests.
 func (rctx *requestContext) Get(requestPath string) {
 	key := rctx.generateStartKey(requestPath)
 	// Check that the path ends with a / for a directory listing or the main path special case (empty path)
@@ -242,6 +246,7 @@ func (rctx *requestContext) manageGetFolder(key, requestPath string) {
 				if err == s3client.ErrNotFound {
 					// Not found
 					rctx.HandleNotFound(requestPath)
+
 					return
 				}
 				// Log error
@@ -315,7 +320,7 @@ func (rctx *requestContext) manageGetFolder(key, requestPath string) {
 		return
 	}
 	// Set status code
-	rctx.httpRW.WriteHeader(200)
+	rctx.httpRW.WriteHeader(http.StatusOK)
 	// Set the header and write the buffer to the http.ResponseWriter
 	rctx.httpRW.Header().Set("Content-Type", "text/html; charset=utf-8")
 	// Write buffer content to output
@@ -328,7 +333,7 @@ func (rctx *requestContext) manageGetFolder(key, requestPath string) {
 	}
 }
 
-// Put proxy PUT requests
+// Put proxy PUT requests.
 func (rctx *requestContext) Put(inp *PutInput) {
 	key := rctx.generateStartKey(inp.RequestPath)
 	// Add / at the end if not present
@@ -390,7 +395,7 @@ func (rctx *requestContext) Put(inp *PutInput) {
 	rctx.httpRW.WriteHeader(http.StatusNoContent)
 }
 
-// Delete will delete object in S3
+// Delete will delete object in S3.
 func (rctx *requestContext) Delete(requestPath string) {
 	key := rctx.generateStartKey(requestPath)
 	// Check that the path ends with a / for a directory or the main path special case (empty path)

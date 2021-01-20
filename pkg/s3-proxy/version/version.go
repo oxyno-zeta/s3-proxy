@@ -1,6 +1,6 @@
 package version
 
-// AppVersion structure for version
+// AppVersion structure for version.
 type AppVersion struct {
 	Version   string
 	GitCommit string
@@ -8,13 +8,13 @@ type AppVersion struct {
 }
 
 var (
-	// Version is the current version
+	// Version is the current version.
 	Version = ""
-	// Metadata is an extra
+	// Metadata is an extra.
 	Metadata = "unreleased"
-	// GitCommit is a git sha1
+	// GitCommit is a git sha1.
 	GitCommit = ""
-	// BuildDate is the build date
+	// BuildDate is the build date.
 	BuildDate = ""
 )
 
@@ -27,7 +27,7 @@ func buildVersion() string {
 	return Version + "-" + Metadata
 }
 
-// GetVersion is here to get version of the cli
+// GetVersion is here to get version of the cli.
 func GetVersion() *AppVersion {
 	return &AppVersion{
 		Version:   buildVersion(),

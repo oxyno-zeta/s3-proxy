@@ -14,17 +14,17 @@ import (
 
 // Copied and modified from https://github.com/go-chi/chi/blob/master/_examples/logging/main.go
 
-// NewStructuredLogger Generate a new structured logger
+// NewStructuredLogger Generate a new structured logger.
 func NewStructuredLogger(logger log.Logger) func(next http.Handler) http.Handler {
 	return middleware.RequestLogger(&StructuredLogger{logger})
 }
 
-// StructuredLogger structured logger
+// StructuredLogger structured logger.
 type StructuredLogger struct {
 	Logger log.Logger
 }
 
-// NewLogEntry new log entry
+// NewLogEntry new log entry.
 func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	entry := &StructuredLoggerEntry{Logger: l.Logger}
 	logFields := map[string]interface{}{}
@@ -64,32 +64,32 @@ func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	return entry
 }
 
-// StructuredLoggerEntry Structured logger entry
+// StructuredLoggerEntry Structured logger entry.
 type StructuredLoggerEntry struct {
 	Logger log.Logger
 }
 
-// Write Write
+// Write Write.
 func (l *StructuredLoggerEntry) Write(status, bytes int, header http.Header, elapsed time.Duration, extra interface{}) {
 	l.Logger = l.Logger.WithFields(logrus.Fields{
 		"resp_status":       status,
 		"resp_bytes_length": bytes,
-		"resp_elapsed_ms":   float64(elapsed.Nanoseconds()) / 1000000.0,
+		"resp_elapsed_ms":   float64(elapsed.Nanoseconds()) / 1000000.0, // nolint: gomnd // No constant for that
 	})
 	logFunc := l.Logger.Infoln
 	// Check status code for warn logger
-	if status >= 300 && status < 400 {
+	if status >= http.StatusMultipleChoices && status < http.StatusBadRequest {
 		logFunc = l.Logger.Warnln
 	}
 	// Check status code for error logger
-	if status >= 400 {
+	if status >= http.StatusBadRequest {
 		logFunc = l.Logger.Errorln
 	}
 
 	logFunc("request complete")
 }
 
-// Panic panic log
+// Panic panic log.
 func (l *StructuredLoggerEntry) Panic(v interface{}, stack []byte) {
 	l.Logger = l.Logger.WithFields(logrus.Fields{
 		"stack": string(stack),
@@ -104,20 +104,21 @@ func (l *StructuredLoggerEntry) Panic(v interface{}, stack []byte) {
 // passes through the handler chain, which at any point can be logged
 // with a call to .Print(), .Info(), etc.
 
-// GetLogEntry get log entry
+// GetLogEntry get log entry.
 func GetLogEntry(r *http.Request) log.Logger {
 	entry := middleware.GetLogEntry(r).(*StructuredLoggerEntry)
+
 	return entry.Logger
 }
 
-// LogEntrySetField Log entry set field
+// LogEntrySetField Log entry set field.
 func LogEntrySetField(r *http.Request, key string, value interface{}) {
 	if entry, ok := r.Context().Value(middleware.LogEntryCtxKey).(*StructuredLoggerEntry); ok {
 		entry.Logger = entry.Logger.WithField(key, value)
 	}
 }
 
-// LogEntrySetFields Log entry set fields
+// LogEntrySetFields Log entry set fields.
 func LogEntrySetFields(r *http.Request, fields map[string]interface{}) {
 	if entry, ok := r.Context().Value(middleware.LogEntryCtxKey).(*StructuredLoggerEntry); ok {
 		entry.Logger = entry.Logger.WithFields(fields)
