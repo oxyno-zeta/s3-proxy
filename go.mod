@@ -15,7 +15,7 @@ require (
 	github.com/go-chi/httptracer v0.2.1
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/gobwas/glob v0.2.3
-	github.com/golang/mock v1.4.4
+	github.com/golang/mock v1.5.0
 	github.com/google/uuid v1.1.4 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/johannesboyne/gofakes3 v0.0.0-20210204122015-ecdfbfd192ee
