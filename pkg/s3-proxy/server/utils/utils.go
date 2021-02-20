@@ -169,6 +169,7 @@ func TemplateExecution(tplPath, tplString string, logger log.Logger, rw http.Res
 func GetRequestURI(r *http.Request) string {
 	scheme := "http"
 	fwdScheme := r.Header.Get("X-Forwarded-Proto")
+
 	if r.TLS != nil || fwdScheme == "https" {
 		scheme = "https"
 	}
