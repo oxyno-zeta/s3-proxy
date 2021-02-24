@@ -939,6 +939,21 @@ func TestGetRequestURI(t *testing.T) {
 	}
 }
 
+func TestProxiedGetRequestURI(t *testing.T) {
+	req, err := http.NewRequest("GET", "http://localhost:989/fake/path", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Add the same header a Load Balancer should set
+	req.Header.Set("X-Forwarded-Proto", "https")
+
+	want := "https://localhost:989/fake/path"
+	got := GetRequestURI(req)
+	if got != want {
+		t.Errorf("GetRequestURI() = %v, want %v", got, want)
+	}
+}
+
 func Test_RequestHost(t *testing.T) {
 	hXForwardedHost1 := http.Header{
 		"X-Forwarded-Host": []string{"fake.host"},
