@@ -63,6 +63,35 @@ func (rctx *requestContext) generateStartKey(requestPath string) string {
 	return key
 }
 
+func (rctx *requestContext) manageKeyRewrite(key string) string {
+	// Check if key rewrite list exists
+	if rctx.targetCfg.KeyRewriteList != nil {
+		// Loop over key rewrite list
+		for _, kr := range rctx.targetCfg.KeyRewriteList {
+			// Check if key is matching
+			if kr.SourceRegex.MatchString(key) {
+				// Find submatches
+				submatches := kr.SourceRegex.FindStringSubmatchIndex(key)
+
+				// Check if there is a submatch
+				if len(submatches) == 0 {
+					return kr.Target
+				}
+
+				// Create result
+				result := []byte{}
+				// Replace matches in target
+				result = kr.SourceRegex.ExpandString(result, kr.Target, key, submatches)
+				// Return result
+				return string(result)
+			}
+		}
+	}
+
+	// Default case is returning the input key
+	return key
+}
+
 func (rctx *requestContext) HandleInternalServerError(err error, requestPath string) {
 	// Initialize content
 	content := ""
@@ -174,7 +203,10 @@ func (rctx *requestContext) HandleUnauthorized(requestPath string) {
 
 // Get proxy GET requests.
 func (rctx *requestContext) Get(requestPath string) {
+	// Generate start key
 	key := rctx.generateStartKey(requestPath)
+	// Manage key rewrite
+	key = rctx.manageKeyRewrite(key)
 	// Check that the path ends with a / for a directory listing or the main path special case (empty path)
 	if strings.HasSuffix(requestPath, "/") || requestPath == "" {
 		rctx.manageGetFolder(key, requestPath)
@@ -342,6 +374,8 @@ func (rctx *requestContext) Put(inp *PutInput) {
 	}
 	// Add filename at the end of key
 	key += inp.Filename
+	// Manage key rewrite
+	key = rctx.manageKeyRewrite(key)
 	// Create input
 	input := &s3client.PutInput{
 		Key:         key,
@@ -398,6 +432,8 @@ func (rctx *requestContext) Put(inp *PutInput) {
 // Delete will delete object in S3.
 func (rctx *requestContext) Delete(requestPath string) {
 	key := rctx.generateStartKey(requestPath)
+	// Manage key rewrite
+	key = rctx.manageKeyRewrite(key)
 	// Check that the path ends with a / for a directory or the main path special case (empty path)
 	if strings.HasSuffix(requestPath, "/") || requestPath == "" {
 		rctx.logger.Error(ErrRemovalFolder)

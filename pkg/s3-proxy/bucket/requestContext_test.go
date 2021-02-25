@@ -1,4 +1,4 @@
-//+build unit
+// +build unit
 
 package bucket
 
@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -198,6 +199,31 @@ func Test_requestContext_Delete(t *testing.T) {
 			expectedHTTPWriter:           &respWriterTest{Status: http.StatusNoContent},
 			expectedS3ClientDeleteCalled: true,
 			expectedS3ClientDeleteInput:  "/file",
+		},
+		{
+			name: "Delete succeed with rewrite key",
+			fields: fields{
+				s3Context: &s3clientTest{},
+				targetCfg: &config.TargetConfig{
+					Bucket: &config.BucketConfig{Prefix: "/"},
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile("^/file$"),
+						Target:      "/fake/file2",
+					}},
+				},
+				tplConfig: &config.TemplateConfig{},
+				mountPath: "/mount",
+				httpRW:    &respWriterTest{},
+				errorHandlers: &ErrorHandlers{
+					HandleForbiddenWithTemplate:           handleForbiddenWithTemplate,
+					HandleNotFoundWithTemplate:            handleNotFoundWithTemplate,
+					HandleInternalServerErrorWithTemplate: handleInternalServerErrorWithTemplate,
+				},
+			},
+			args:                         args{requestPath: "/file"},
+			expectedHTTPWriter:           &respWriterTest{Status: http.StatusNoContent},
+			expectedS3ClientDeleteCalled: true,
+			expectedS3ClientDeleteInput:  "/fake/file2",
 		},
 	}
 	for _, tt := range tests {
@@ -524,6 +550,58 @@ func Test_requestContext_Put(t *testing.T) {
 			},
 			expectedHTTPWriter: &respWriterTest{
 				Status: http.StatusNoContent,
+			},
+		},
+		{
+			name: "should be ok with allow override and key rewrite",
+			fields: fields{
+				s3Context: &s3clientTest{},
+				targetCfg: &config.TargetConfig{
+					Bucket: &config.BucketConfig{Prefix: "/"},
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile("/test/file"),
+						Target:      "/test1/test2/file",
+					}},
+					Actions: &config.ActionsConfig{
+						PUT: &config.PutActionConfig{
+							Config: &config.PutActionConfigConfig{
+								Metadata: map[string]string{
+									"testkey": "testvalue",
+								},
+								StorageClass:  "storage-class",
+								AllowOverride: true,
+							},
+						},
+					},
+				},
+				tplConfig: &config.TemplateConfig{},
+				mountPath: "/mount",
+				httpRW:    &respWriterTest{},
+				errorHandlers: &ErrorHandlers{
+					HandleForbiddenWithTemplate:           handleForbiddenWithTemplate,
+					HandleNotFoundWithTemplate:            handleNotFoundWithTemplate,
+					HandleInternalServerErrorWithTemplate: handleInternalServerErrorWithTemplate,
+				},
+			},
+			args: args{
+				inp: &PutInput{
+					RequestPath: "/test",
+					Filename:    "file",
+					Body:        nil,
+					ContentType: "content-type",
+				},
+			},
+			expectedS3ClientPutCalled: true,
+			expectedHTTPWriter: &respWriterTest{
+				Status: http.StatusNoContent,
+			},
+			expectedS3ClientPutInput: &s3client.PutInput{
+				Key:         "/test1/test2/file",
+				ContentType: "content-type",
+				Metadata: map[string]string{
+					"testkey": "testvalue",
+				},
+				StorageClass: "storage-class",
 			},
 		},
 	}
@@ -1102,6 +1180,49 @@ func Test_requestContext_Get(t *testing.T) {
 			expectedS3ClientGetInput:                "/folder/index.html",
 			expectedHTTPWriter:                      &respWriterTest{},
 			expectedHandleInternalServerErrorCalled: true,
+		},
+		{
+			name: "should be ok to get file with key rewrite",
+			fields: fields{
+				s3Context: &s3clientTest{
+					GetResult: &s3client.GetOutput{
+						Body:        &fakeIndexIoReadCloser2,
+						ContentType: "text/html; charset=utf-8",
+					},
+				},
+				targetCfg: &config.TargetConfig{
+					Name: "target",
+					Bucket: &config.BucketConfig{
+						Name:   "bucket1",
+						Prefix: "/",
+					},
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile(`^/folder/index\.html$`),
+						Target:      "/fake/fake.html",
+					}},
+				},
+				tplConfig: &config.TemplateConfig{
+					FolderList: "../../../templates/folder-list.tpl",
+				},
+				mountPath: "/mount",
+				httpRW: &respWriterTest{
+					Headers: http.Header{},
+				},
+				errorHandlers: &ErrorHandlers{
+					HandleForbiddenWithTemplate:           handleForbiddenWithTemplate,
+					HandleNotFoundWithTemplate:            handleNotFoundWithTemplate,
+					HandleInternalServerErrorWithTemplate: handleInternalServerErrorWithTemplate,
+				},
+			},
+			args: args{
+				requestPath: "/folder/index.html",
+			},
+			expectedS3ClientGetCalled: true,
+			expectedS3ClientGetInput:  "/fake/fake.html",
+			expectedHTTPWriter: &respWriterTest{
+				Headers: h,
+				Status:  http.StatusOK,
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -2389,6 +2510,162 @@ func Test_requestContext_HandleUnauthorized(t *testing.T) {
 				} else if handleInternalServerErrorErr == nil || tt.expectedhandleInternalServerErrorErr == nil {
 					t.Errorf("requestContext.HandleInternalServerError() => handleInternalServerErrorErr = %+v, want %+v", handleInternalServerErrorErr, tt.expectedhandleInternalServerErrorErr)
 				}
+			}
+		})
+	}
+}
+
+func Test_requestContext_manageKeyRewrite(t *testing.T) {
+	type fields struct {
+		targetCfg *config.TargetConfig
+	}
+	type args struct {
+		key string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   string
+	}{
+		{
+			name: "no key rewrite list",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: nil,
+				},
+			},
+			args: args{key: "/input"},
+			want: "/input",
+		},
+		{
+			name: "empty key rewrite list",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{},
+				},
+			},
+			args: args{key: "/input"},
+			want: "/input",
+		},
+		{
+			name: "not matching regexp",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile("^/fake$"),
+						Target:      "/fake2",
+					}},
+				},
+			},
+			args: args{key: "/input"},
+			want: "/input",
+		},
+		{
+			name: "matching fixed regexp and fixed target",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile("^/input$"),
+						Target:      "/fake2",
+					}},
+				},
+			},
+			args: args{key: "/input"},
+			want: "/fake2",
+		},
+		{
+			name: "matching regexp with catch and fixed target",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)$`),
+						Target:      "/fake2",
+					}},
+				},
+			},
+			args: args{key: "/input"},
+			want: "/fake2",
+		},
+		{
+			name: "matching regexp with catch and template target",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)$`),
+						Target:      "/$one/",
+					}},
+				},
+			},
+			args: args{key: "/input"},
+			want: "/input/",
+		},
+		{
+			name: "matching regexp with catch and template target (multiple values)",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)/(?P<two>\w+)/(?P<three>\w+)$`),
+						Target:      "/$two/$one/$three/$one/",
+					}},
+				},
+			},
+			args: args{key: "/input1/input2/input3"},
+			want: "/input2/input1/input3/input1/",
+		},
+		{
+			name: "matching regexp with catch and template target (multiple values 2)",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)/(?P<two>\w+)/(?P<three>\w+)?$`),
+						Target:      "/$two/$one/$three/$one/",
+					}},
+				},
+			},
+			args: args{key: "/input1/input2/"},
+			want: "/input2/input1//input1/",
+		},
+		{
+			name: "matching regexp with catch and template target (multiple values 3)",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)/(?P<two>\w+)/(?P<three>\w+)?$`),
+						Target:      "/$two/$one/$three/$one/",
+					}},
+				},
+			},
+			args: args{key: "/input1/input2/input3"},
+			want: "/input2/input1/input3/input1/",
+		},
+		{
+			name: "matching regexp with catch and template target (multiple key rewrite items)",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{
+						{
+							SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)/$`),
+							Target:      "/$one",
+						},
+						{
+							SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)/(?P<two>\w+)/(?P<three>\w+)?$`),
+							Target:      "/$two/$one/$three/$one/",
+						},
+					},
+				},
+			},
+			args: args{key: "/input1/input2/input3"},
+			want: "/input2/input1/input3/input1/",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rctx := &requestContext{
+				targetCfg: tt.fields.targetCfg,
+			}
+			if got := rctx.manageKeyRewrite(tt.args.key); got != tt.want {
+				t.Errorf("requestContext.manageKeyRewrite() = %v, want %v", got, tt.want)
 			}
 		})
 	}
