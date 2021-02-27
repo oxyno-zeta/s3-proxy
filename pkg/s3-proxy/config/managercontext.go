@@ -427,6 +427,11 @@ func loadBusinessDefaultValues(out *Config) error {
 		if item.Actions == nil {
 			item.Actions = &ActionsConfig{GET: &GetActionConfig{Enabled: true}}
 		}
+		// DEPRECATED
+		// Manage default value of index document for deprecated value
+		if item.IndexDocument != "" && item.Actions.GET.IndexDocument == "" {
+			item.Actions.GET.IndexDocument = item.IndexDocument
+		}
 		// Manage default for target templates configurations
 		if item.Templates == nil {
 			item.Templates = &TargetTemplateConfig{}

@@ -1384,12 +1384,14 @@ func TestPublicRouter(t *testing.T) {
 								},
 								DisableSSL: true,
 							},
-							IndexDocument: "index.html",
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
 							},
 							Actions: &config.ActionsConfig{
-								GET: &config.GetActionConfig{Enabled: true},
+								GET: &config.GetActionConfig{
+									Enabled:       true,
+									IndexDocument: "index.html",
+								},
 							},
 						},
 					},
@@ -1432,12 +1434,14 @@ func TestPublicRouter(t *testing.T) {
 								},
 								DisableSSL: true,
 							},
-							IndexDocument: "index.html-fake",
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
 							},
 							Actions: &config.ActionsConfig{
-								GET: &config.GetActionConfig{Enabled: true},
+								GET: &config.GetActionConfig{
+									Enabled:       true,
+									IndexDocument: "index.html-fake",
+								},
 							},
 						},
 					},
@@ -3358,9 +3362,11 @@ func TestIndexLargeBucket(t *testing.T) {
 				Path: []string{"/"},
 			},
 			Actions: &config.ActionsConfig{
-				GET: &config.GetActionConfig{Enabled: true},
+				GET: &config.GetActionConfig{
+					Enabled:       true,
+					IndexDocument: "index.html",
+				},
 			},
-			IndexDocument: "index.html",
 		},
 	}
 

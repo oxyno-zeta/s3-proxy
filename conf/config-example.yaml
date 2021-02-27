@@ -160,7 +160,7 @@ targets:
     #       authorizationOPAServer:
     #         # OPA server url with data path
     #         url: http://localhost:8181/v1/data/example/authz/allowed
-    # ## Index document to display if exists in folder
+    # ## DEPRECATED Index document to display if exists in folder
     # indexDocument: index.html
     # ## Actions
     # actions:
@@ -170,6 +170,8 @@ targets:
     #     enabled: true
     #     # Redirect with trailing slash when a file isn't found
     #     redirectWithTrailingSlashForNotFoundFile: true
+    #     # Index document to display if exists in folder
+    #     indexDocument: index.html
     #   # Action for PUT requests on target
     #   PUT:
     #     # Will allow PUT requests

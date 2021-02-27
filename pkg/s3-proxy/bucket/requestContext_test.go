@@ -702,6 +702,7 @@ func Test_requestContext_Get(t *testing.T) {
 						Name:   "bucket1",
 						Prefix: "/",
 					},
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{}},
 				},
 				tplConfig: &config.TemplateConfig{
 					FolderList: "../../../templates/folder-list.tpl",
@@ -743,6 +744,7 @@ func Test_requestContext_Get(t *testing.T) {
 						Name:   "bucket1",
 						Prefix: "/",
 					},
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{}},
 				},
 				tplConfig: &config.TemplateConfig{
 					FolderList: "fake/path",
@@ -784,6 +786,7 @@ func Test_requestContext_Get(t *testing.T) {
 						Name:   "bucket1",
 						Prefix: "/",
 					},
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{}},
 				},
 				tplConfig: &config.TemplateConfig{
 					FolderList: "../../../templates/folder-list.tpl",
@@ -855,7 +858,9 @@ func Test_requestContext_Get(t *testing.T) {
 						Name:   "bucket1",
 						Prefix: "/",
 					},
-					IndexDocument: "index.html",
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
+						IndexDocument: "index.html",
+					}},
 				},
 				tplConfig: &config.TemplateConfig{
 					FolderList: "../../../templates/folder-list.tpl",
@@ -909,7 +914,9 @@ func Test_requestContext_Get(t *testing.T) {
 						Name:   "bucket1",
 						Prefix: "/",
 					},
-					IndexDocument: "index.html",
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
+						IndexDocument: "index.html",
+					}},
 				},
 				tplConfig: &config.TemplateConfig{
 					FolderList: "../../../templates/folder-list.tpl",
@@ -976,7 +983,9 @@ func Test_requestContext_Get(t *testing.T) {
 						Name:   "bucket1",
 						Prefix: "/",
 					},
-					IndexDocument: "index.html",
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
+						IndexDocument: "index.html",
+					}},
 				},
 				tplConfig: &config.TemplateConfig{
 					FolderList: "../../../templates/folder-list.tpl",
@@ -1013,7 +1022,9 @@ func Test_requestContext_Get(t *testing.T) {
 						Name:   "bucket1",
 						Prefix: "/",
 					},
-					IndexDocument: "index.html",
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
+						IndexDocument: "index.html",
+					}},
 				},
 				tplConfig: &config.TemplateConfig{
 					FolderList: "../../../templates/folder-list.tpl",
@@ -1052,7 +1063,9 @@ func Test_requestContext_Get(t *testing.T) {
 						Name:   "bucket1",
 						Prefix: "/",
 					},
-					IndexDocument: "index.html",
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
+						IndexDocument: "index.html",
+					}},
 				},
 				tplConfig: &config.TemplateConfig{
 					FolderList: "../../../templates/folder-list.tpl",
@@ -1090,6 +1103,7 @@ func Test_requestContext_Get(t *testing.T) {
 						Name:   "bucket1",
 						Prefix: "/",
 					},
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{}},
 				},
 				tplConfig: &config.TemplateConfig{
 					FolderList: "../../../templates/folder-list.tpl",
@@ -1127,6 +1141,7 @@ func Test_requestContext_Get(t *testing.T) {
 						Name:   "bucket1",
 						Prefix: "/",
 					},
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{}},
 				},
 				tplConfig: &config.TemplateConfig{
 					FolderList: "../../../templates/folder-list.tpl",
@@ -1198,6 +1213,7 @@ func Test_requestContext_Get(t *testing.T) {
 						SourceRegex: regexp.MustCompile(`^/folder/index\.html$`),
 						Target:      "/fake/fake.html",
 					}},
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{}},
 				},
 				tplConfig: &config.TemplateConfig{
 					FolderList: "../../../templates/folder-list.tpl",

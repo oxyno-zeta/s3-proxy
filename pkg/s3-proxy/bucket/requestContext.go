@@ -145,9 +145,9 @@ func (rctx *requestContext) Get(requestPath string) {
 
 func (rctx *requestContext) manageGetFolder(key, requestPath string) {
 	// Check if index document is activated
-	if rctx.targetCfg.IndexDocument != "" {
+	if rctx.targetCfg.Actions.GET.IndexDocument != "" {
 		// Create index key path
-		indexKey := path.Join(key, rctx.targetCfg.IndexDocument)
+		indexKey := path.Join(key, rctx.targetCfg.Actions.GET.IndexDocument)
 		// Head index file in bucket
 		headOutput, err := rctx.s3Context.HeadObject(indexKey)
 		// Check if error exists and not a not found error

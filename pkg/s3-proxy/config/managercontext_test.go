@@ -350,6 +350,89 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 				Tracing:     &TracingConfig{Enabled: false},
 			},
 		},
+		// DEPRECATED
+		{
+			name: "Load index document value from deprecated fields",
+			args: args{
+				out: &Config{
+					Targets: []*TargetConfig{
+						{IndexDocument: "index.html"},
+					},
+				},
+			},
+			wantErr: false,
+			result: &Config{
+				ListTargets: &ListTargetsConfig{Enabled: false},
+				Tracing:     &TracingConfig{Enabled: false},
+				Targets: []*TargetConfig{{
+					IndexDocument: "index.html",
+					Actions: &ActionsConfig{
+						GET: &GetActionConfig{IndexDocument: "index.html", Enabled: true},
+					},
+					Templates: &TargetTemplateConfig{},
+				}},
+			},
+		},
+		// DEPRECATED
+		{
+			name: "Ignore deprecated index document fields because official field is set",
+			args: args{
+				out: &Config{
+					Targets: []*TargetConfig{
+						{
+							Actions: &ActionsConfig{
+								GET: &GetActionConfig{
+									Enabled:       true,
+									IndexDocument: "fake.html",
+								},
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+			result: &Config{
+				ListTargets: &ListTargetsConfig{Enabled: false},
+				Tracing:     &TracingConfig{Enabled: false},
+				Targets: []*TargetConfig{{
+					Actions: &ActionsConfig{
+						GET: &GetActionConfig{IndexDocument: "fake.html", Enabled: true},
+					},
+					Templates: &TargetTemplateConfig{},
+				}},
+			},
+		},
+		// DEPRECATED
+		{
+			name: "Ignore deprecated index document fields because official field is set (2)",
+			args: args{
+				out: &Config{
+					Targets: []*TargetConfig{
+						{
+							IndexDocument: "index.html",
+							Actions: &ActionsConfig{
+								GET: &GetActionConfig{
+									Enabled:       true,
+									IndexDocument: "fake.html",
+								},
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+			result: &Config{
+				ListTargets: &ListTargetsConfig{Enabled: false},
+				Tracing:     &TracingConfig{Enabled: false},
+				Targets: []*TargetConfig{{
+					IndexDocument: "index.html",
+					Actions: &ActionsConfig{
+						GET: &GetActionConfig{IndexDocument: "fake.html", Enabled: true},
+					},
+					Templates: &TargetTemplateConfig{},
+				}},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -357,9 +440,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("loadDefaultValues() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			if !tt.wantErr && !reflect.DeepEqual(tt.args.out, tt.result) {
-				t.Errorf("loadDefaultValues() source = %+v, want %+v", tt.args.out, tt.result)
-			}
+			assert.Equal(t, tt.result, tt.args.out)
 		})
 	}
 }

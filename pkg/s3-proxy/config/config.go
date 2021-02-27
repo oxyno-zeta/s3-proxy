@@ -178,7 +178,7 @@ type TargetConfig struct {
 	Bucket         *BucketConfig             `mapstructure:"bucket" validate:"required"`
 	Resources      []*Resource               `mapstructure:"resources" validate:"dive"`
 	Mount          *MountConfig              `mapstructure:"mount" validate:"required"`
-	IndexDocument  string                    `mapstructure:"indexDocument"`
+	IndexDocument  string                    `mapstructure:"indexDocument"` // DEPRECATED
 	Actions        *ActionsConfig            `mapstructure:"actions"`
 	Templates      *TargetTemplateConfig     `mapstructure:"templates"`
 	KeyRewriteList []*TargetKeyRewriteConfig `mapstructure:"keyRewriteList"`
@@ -234,8 +234,9 @@ type PutActionConfigConfig struct {
 
 // GetActionConfig Get action configuration.
 type GetActionConfig struct {
-	Enabled                                  bool `mapstructure:"enabled"`
-	RedirectWithTrailingSlashForNotFoundFile bool `mapstructure:"redirectWithTrailingSlashForNotFoundFile"`
+	Enabled                                  bool   `mapstructure:"enabled"`
+	RedirectWithTrailingSlashForNotFoundFile bool   `mapstructure:"redirectWithTrailingSlashForNotFoundFile"`
+	IndexDocument                            string `mapstructure:"indexDocument"`
 }
 
 // Resource Resource.

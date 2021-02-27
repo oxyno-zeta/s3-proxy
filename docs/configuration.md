@@ -71,7 +71,7 @@ This feature is powered by [go-chi/cors](https://github.com/go-chi/cors). You ca
 | -------------- | --------------------------------------------- | -------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | name           | String                                        | Yes      | None               | Target name. (This will used in urls and list of targets.)                                                                                                                                                                               |
 | bucket         | [BucketConfiguration](#bucketconfiguration)   | Yes      | None               | Bucket configuration                                                                                                                                                                                                                     |
-| indexDocument  | String                                        | No       | `""`               | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                                                                                                                                 |
+| indexDocument  | String                                        | No       | `""`               | **DEPRECATED** The index document name. If this document is found, get it instead of list folder. Example: `index.html`                                                                                                                  |
 | resources      | [[Resource]](#resource)                       | No       | None               | Resources declaration for path whitelist or specific authentication on path list. WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /\* otherwise, it will be public. |
 | mount          | [MountConfiguration](#mountconfiguration)     | Yes      | None               | Mount point configuration                                                                                                                                                                                                                |
 | actions        | [ActionsConfiguration](#actionsconfiguration) | No       | GET action enabled | Actions allowed on target (GET, PUT or DELETE)                                                                                                                                                                                           |
@@ -119,6 +119,7 @@ See more information [here](./key-rewrite.md).
 | ---------------------------------------- | ------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | enabled                                  | Boolean | No       | `false` | Will allow GET requests                                                                                                           |
 | redirectWithTrailingSlashForNotFoundFile | Boolean | No       | `false` | This option allow to do a redirect with a trailing slash when a GET request on a file (not a folder) encountered a 404 not found. |
+| indexDocument                            | String  | No       | `""`    | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                          |
 
 ## PutActionConfiguration
 
@@ -423,7 +424,7 @@ targets:
     #       authorizationOPAServer:
     #         # OPA server url with data path
     #         url: http://localhost:8181/v1/data/example/authz/allowed
-    # ## Index document to display if exists in folder
+    # ## DEPRECATED Index document to display if exists in folder
     # indexDocument: index.html
     # ## Actions
     # actions:
@@ -433,6 +434,8 @@ targets:
     #     enabled: true
     #     # Redirect with trailing slash when a file isn't found
     #     redirectWithTrailingSlashForNotFoundFile: true
+    #     # Index document to display if exists in folder
+    #     indexDocument: index.html
     #   # Action for PUT requests on target
     #   PUT:
     #     # Will allow PUT requests
