@@ -287,6 +287,7 @@ github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGw
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
 github.com/johannesboyne/gofakes3 v0.0.0-20210204122015-ecdfbfd192ee h1:naTCpfKmWmnE+igJdFQomqspSz05+doPJq5jFBce9YA=
 github.com/johannesboyne/gofakes3 v0.0.0-20210204122015-ecdfbfd192ee/go.mod h1:J4FxOevfdoOz0ZKqoWO3l2QSQqrNpWLBRQCxU/t8R00=
+github.com/johannesboyne/gofakes3 v0.0.0-20210217223559-02ffa763be97/go.mod h1:J4FxOevfdoOz0ZKqoWO3l2QSQqrNpWLBRQCxU/t8R00=
 github.com/jonboulle/clockwork v0.1.0/go.mod h1:Ii8DK3G1RaLaWxj9trq07+26W01tbo22gdxWY5EU2bo=
 github.com/jpillora/backoff v1.0.0/go.mod h1:J/6gKK9jxlEcS3zixgDgUAsiuZ7yrSoa/FX5e0EB2j4=
 github.com/json-iterator/go v1.1.6/go.mod h1:+SdeFBvtyEkXs7REEP0seUULqWtbJapLOCVDaaPEHmU=
