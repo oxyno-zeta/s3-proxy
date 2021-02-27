@@ -186,7 +186,7 @@ type TargetConfig struct {
 
 // TargetKeyRewriteConfig Target key rewrite configuration.
 type TargetKeyRewriteConfig struct {
-	Source      string `mapstructure:"target" validate:"required,min=1"`
+	Source      string `mapstructure:"source" validate:"required,min=1"`
 	SourceRegex *regexp.Regexp
 	Target      string `mapstructure:"target" validate:"required,min=1"`
 }
