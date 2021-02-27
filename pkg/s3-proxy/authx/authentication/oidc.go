@@ -368,7 +368,7 @@ func getJWTToken(logEntry log.Logger, r *http.Request, cookieName string) (strin
 	if err != nil {
 		logEntry.Debug("Can't load auth cookie")
 
-		if err != http.ErrNoCookie {
+		if !errors.Is(err, http.ErrNoCookie) {
 			return "", err
 		}
 	}

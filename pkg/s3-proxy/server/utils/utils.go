@@ -13,8 +13,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 )
 
-// HandleInternalServerErrorWithTemplate Handle internal server error following response template given in parameter
-// nolint:whitespace
+// HandleInternalServerErrorWithTemplate Handle internal server error following response template given in parameter.
 func HandleInternalServerErrorWithTemplate(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig,
 	tplString string, requestPath string, err error) {
 	err2 := TemplateExecution(tplCfg.InternalServerError, tplString, logger, rw, struct {

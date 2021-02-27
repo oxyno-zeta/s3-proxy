@@ -109,7 +109,7 @@ func (rctx *requestContext) Get(requestPath string) {
 	err := rctx.streamFileForResponse(key)
 	if err != nil {
 		// Check if error is a not found error
-		if err == s3client.ErrNotFound {
+		if errors.Is(err, s3client.ErrNotFound) {
 			// Test that redirect with trailing slash isn't asked and possible on this request
 			if rctx.targetCfg.Actions != nil && rctx.targetCfg.Actions.GET != nil &&
 				rctx.targetCfg.Actions.GET.RedirectWithTrailingSlashForNotFoundFile &&
@@ -151,7 +151,7 @@ func (rctx *requestContext) manageGetFolder(key, requestPath string) {
 		// Head index file in bucket
 		headOutput, err := rctx.s3Context.HeadObject(indexKey)
 		// Check if error exists and not a not found error
-		if err != nil && err != s3client.ErrNotFound {
+		if err != nil && !errors.Is(err, s3client.ErrNotFound) {
 			// Log error
 			rctx.logger.Error(err)
 			// Manage error response
@@ -166,7 +166,7 @@ func (rctx *requestContext) manageGetFolder(key, requestPath string) {
 			// Check if error exists
 			if err != nil {
 				// Check if error is a not found error
-				if err == s3client.ErrNotFound {
+				if errors.Is(err, s3client.ErrNotFound) {
 					// Not found
 					rctx.HandleNotFound(requestPath)
 
@@ -293,7 +293,7 @@ func (rctx *requestContext) Put(inp *PutInput) {
 			// Need to check if file already exists
 			headOutput, err := rctx.s3Context.HeadObject(key)
 			// Check if error is not found if exists
-			if err != nil && err != s3client.ErrNotFound {
+			if err != nil && !errors.Is(err, s3client.ErrNotFound) {
 				rctx.logger.Error(err)
 				rctx.HandleInternalServerError(err, inp.RequestPath)
 				// Stop

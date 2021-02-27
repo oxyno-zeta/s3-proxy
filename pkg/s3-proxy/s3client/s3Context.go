@@ -160,6 +160,7 @@ func (s3ctx *s3Context) GetObject(key string) (*GetOutput, error) {
 	// Check if error exists
 	if err != nil {
 		// Try to cast error into an AWS Error if possible
+		// nolint: errorlint // Cast
 		aerr, ok := err.(awserr.Error)
 		if ok && aerr.Code() == s3.ErrCodeNoSuchKey {
 			return nil, ErrNotFound
@@ -275,6 +276,7 @@ func (s3ctx *s3Context) HeadObject(key string) (*HeadOutput, error) {
 	// Test error
 	if err != nil {
 		// Try to cast error into an AWS Error if possible
+		// nolint: errorlint // Cast
 		aerr, ok := err.(awserr.Error)
 		if ok {
 			// Issue not fixed: https://github.com/aws/aws-sdk-go/issues/1208
