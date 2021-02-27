@@ -65,6 +65,7 @@ I've created this project because I couldn't find any other that allow to proxy 
 - Open Policy Agent integration for authorizations
 - Configuration hot reload
 - CORS support
+- S3 Key Rewrite possibility ([Here](./docs/key-rewrite.md) for more information)
 
 ## Configuration
 

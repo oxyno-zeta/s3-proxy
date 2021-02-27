@@ -188,6 +188,14 @@ targets:
     #   DELETE:
     #     # Will allow DELETE requests
     #     enabled: true
+    # # Key rewrite list
+    # # This will allow to rewrite keys before doing any requests to S3
+    # # For more information about how this works, see in the documentation.
+    # keyRewriteList:
+    #   - # Source represents a Regexp (golang format with group naming support)
+    #     source: ^/(?P<one>\w+)/(?P<two>\w+)/(?P<three>\w+)?$
+    #     # Target represents the template of the new key that will be used
+    #     target: /$two/$one/$three/$one/
     ## Target custom templates
     # templates:
     #   # Folder list template

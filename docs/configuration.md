@@ -67,15 +67,25 @@ This feature is powered by [go-chi/cors](https://github.com/go-chi/cors). You ca
 
 ## TargetConfiguration
 
-| Key           | Type                                          | Required | Default            | Description                                                                                                                                                                                                                              |
-| ------------- | --------------------------------------------- | -------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| name          | String                                        | Yes      | None               | Target name. (This will used in urls and list of targets.)                                                                                                                                                                               |
-| bucket        | [BucketConfiguration](#bucketconfiguration)   | Yes      | None               | Bucket configuration                                                                                                                                                                                                                     |
-| indexDocument | String                                        | No       | `""`               | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                                                                                                                                 |
-| resources     | [[Resource]](#resource)                       | No       | None               | Resources declaration for path whitelist or specific authentication on path list. WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /\* otherwise, it will be public. |
-| mount         | [MountConfiguration](#mountconfiguration)     | Yes      | None               | Mount point configuration                                                                                                                                                                                                                |
-| actions       | [ActionsConfiguration](#actionsconfiguration) | No       | GET action enabled | Actions allowed on target (GET, PUT or DELETE)                                                                                                                                                                                           |
-| templates     | [TargetTemplateConfig](#targettemplateconfig) | No       | None               | Custom target templates from files on local filesystem or in bucket                                                                                                                                                                      |
+| Key            | Type                                          | Required | Default            | Description                                                                                                                                                                                                                              |
+| -------------- | --------------------------------------------- | -------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| name           | String                                        | Yes      | None               | Target name. (This will used in urls and list of targets.)                                                                                                                                                                               |
+| bucket         | [BucketConfiguration](#bucketconfiguration)   | Yes      | None               | Bucket configuration                                                                                                                                                                                                                     |
+| indexDocument  | String                                        | No       | `""`               | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                                                                                                                                 |
+| resources      | [[Resource]](#resource)                       | No       | None               | Resources declaration for path whitelist or specific authentication on path list. WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /\* otherwise, it will be public. |
+| mount          | [MountConfiguration](#mountconfiguration)     | Yes      | None               | Mount point configuration                                                                                                                                                                                                                |
+| actions        | [ActionsConfiguration](#actionsconfiguration) | No       | GET action enabled | Actions allowed on target (GET, PUT or DELETE)                                                                                                                                                                                           |
+| keyRewriteList | [[KeyRewrite]](#keyrewrite)                   | No       | None               | Key rewrite list is here to allow rewriting keys before sending request to S3 (See more information [here](./key-rewrite.md))                                                                                                            |
+| templates      | [TargetTemplateConfig](#targettemplateconfig) | No       | None               | Custom target templates from files on local filesystem or in bucket                                                                                                                                                                      |
+
+## KeyRewrite
+
+See more information [here](./key-rewrite.md).
+
+| Key    | Type   | Required | Default | Description                                             |
+| ------ | ------ | -------- | ------- | ------------------------------------------------------- |
+| source | String | Required | None    | Source regexp matcher with golang group naming support. |
+| target | String | Required | None    | Target template for new key send to S3.                 |
 
 ## TargetTemplateConfig
 
@@ -441,6 +451,14 @@ targets:
     #   DELETE:
     #     # Will allow DELETE requests
     #     enabled: true
+    # # Key rewrite list
+    # # This will allow to rewrite keys before doing any requests to S3
+    # # For more information about how this works, see in the documentation.
+    # keyRewriteList:
+    #   - # Source represents a Regexp (golang format with group naming support)
+    #     source: ^/(?P<one>\w+)/(?P<two>\w+)/(?P<three>\w+)?$
+    #     # Target represents the template of the new key that will be used
+    #     target: /$two/$one/$three/$one/
     ## Target custom templates
     # templates:
     #   # Folder list template

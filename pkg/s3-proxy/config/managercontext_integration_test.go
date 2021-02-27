@@ -7,7 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"reflect"
+	"regexp"
 	"testing"
 	"time"
 
@@ -471,6 +471,85 @@ targets:
 				},
 			},
 		},
+		{
+			name: "Test key rewrite list",
+			configs: map[string]string{
+				"cfg.yaml": `
+log:
+  level: error
+targets:
+- name: test
+  mount:
+    path: /test/
+  keyRewriteList:
+    - source: ^/(?P<one>\w+)/file.html$
+      target: /$one/fake/$one/file.html
+  bucket:
+    name: bucket1
+    region: us-east-1
+    credentials:
+      accessKey:
+        value: value1
+      secretKey:
+        value: value2`,
+			},
+			wantErr: false,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "error",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port: 8080,
+				},
+				InternalServer: &ServerConfig{
+					Port: 9090,
+				},
+				Templates: &TemplateConfig{
+					FolderList:          "templates/folder-list.tpl",
+					TargetList:          "templates/target-list.tpl",
+					NotFound:            "templates/not-found.tpl",
+					InternalServerError: "templates/internal-server-error.tpl",
+					Unauthorized:        "templates/unauthorized.tpl",
+					Forbidden:           "templates/forbidden.tpl",
+					BadRequest:          "templates/bad-request.tpl",
+				},
+				Tracing: &TracingConfig{Enabled: false},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: []*TargetConfig{
+					{
+						Name: "test",
+						Mount: &MountConfig{
+							Path: []string{"/test/"},
+						},
+						KeyRewriteList: []*TargetKeyRewriteConfig{{
+							Source:      `^/(?P<one>\w+)/file.html$`,
+							SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)/file.html$`),
+							Target:      "/$one/fake/$one/file.html",
+						}},
+						Bucket: &BucketConfig{
+							Name:          "bucket1",
+							Region:        "us-east-1",
+							S3ListMaxKeys: 1000,
+							Credentials: &BucketCredentialConfig{
+								AccessKey: &CredentialConfig{
+									Value: "value1",
+								},
+								SecretKey: &CredentialConfig{
+									Value: "value2",
+								},
+							},
+						},
+						Actions: &ActionsConfig{
+							GET: &GetActionConfig{Enabled: true},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -530,9 +609,7 @@ targets:
 			// Get configuration
 			res := ctx.GetConfig()
 
-			if !reflect.DeepEqual(res, tt.expectedResult) {
-				t.Errorf("Load() source = %+v, want %+v", res, tt.expectedResult)
-			}
+			assert.Equal(t, tt.expectedResult, res)
 		})
 	}
 }

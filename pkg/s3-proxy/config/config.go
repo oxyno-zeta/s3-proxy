@@ -174,13 +174,21 @@ type ServerCorsConfig struct {
 
 // TargetConfig Bucket instance configuration.
 type TargetConfig struct {
-	Name          string                `mapstructure:"name" validate:"required"`
-	Bucket        *BucketConfig         `mapstructure:"bucket" validate:"required"`
-	Resources     []*Resource           `mapstructure:"resources" validate:"dive"`
-	Mount         *MountConfig          `mapstructure:"mount" validate:"required"`
-	IndexDocument string                `mapstructure:"indexDocument"`
-	Actions       *ActionsConfig        `mapstructure:"actions"`
-	Templates     *TargetTemplateConfig `mapstructure:"templates"`
+	Name           string                    `mapstructure:"name" validate:"required"`
+	Bucket         *BucketConfig             `mapstructure:"bucket" validate:"required"`
+	Resources      []*Resource               `mapstructure:"resources" validate:"dive"`
+	Mount          *MountConfig              `mapstructure:"mount" validate:"required"`
+	IndexDocument  string                    `mapstructure:"indexDocument"`
+	Actions        *ActionsConfig            `mapstructure:"actions"`
+	Templates      *TargetTemplateConfig     `mapstructure:"templates"`
+	KeyRewriteList []*TargetKeyRewriteConfig `mapstructure:"keyRewriteList"`
+}
+
+// TargetKeyRewriteConfig Target key rewrite configuration.
+type TargetKeyRewriteConfig struct {
+	Source      string `mapstructure:"source" validate:"required,min=1"`
+	SourceRegex *regexp.Regexp
+	Target      string `mapstructure:"target" validate:"required,min=1"`
 }
 
 // TargetTemplateConfig Target templates configuration to override default ones.

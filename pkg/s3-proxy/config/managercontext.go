@@ -441,6 +441,18 @@ func loadBusinessDefaultValues(out *Config) error {
 				}
 			}
 		}
+		// Manage key write list
+		if item.KeyRewriteList != nil {
+			// Loop over keys
+			for _, it := range item.KeyRewriteList {
+				// Load key rewrite
+				err := loadKeyRewriteValues(it)
+				// Check error
+				if err != nil {
+					return err
+				}
+			}
+		}
 	}
 
 	// Manage default value for list targets resources
@@ -491,6 +503,20 @@ func loadBusinessDefaultValues(out *Config) error {
 		out.Tracing = &TracingConfig{Enabled: false}
 	}
 
+	return nil
+}
+
+func loadKeyRewriteValues(item *TargetKeyRewriteConfig) error {
+	// Parse source regex
+	rs, err := regexp.Compile(item.Source)
+	// Check error
+	if err != nil {
+		return err
+	}
+	// Save source
+	item.SourceRegex = rs
+
+	// Default value
 	return nil
 }
 
