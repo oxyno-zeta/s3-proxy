@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/dimiro1/health"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"

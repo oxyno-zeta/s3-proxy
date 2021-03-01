@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
