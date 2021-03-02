@@ -10,9 +10,9 @@ require (
 	github.com/dimiro1/health v0.0.0-20191019130555-c5cbb4d46ffc
 	github.com/dustin/go-humanize v1.0.0
 	github.com/fsnotify/fsnotify v1.4.9
-	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/go-chi/chi/v5 v5.0.0
 	github.com/go-chi/cors v1.1.1
-	github.com/go-chi/httptracer v0.2.1
+	github.com/go-chi/httptracer v0.3.0
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/gobwas/glob v0.2.3
 	github.com/golang/mock v1.5.0
