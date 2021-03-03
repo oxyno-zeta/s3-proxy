@@ -673,7 +673,7 @@ func Test_requestContext_Get(t *testing.T) {
 		errorHandlers *ErrorHandlers
 	}
 	type args struct {
-		requestPath string
+		input *GetInput
 	}
 	tests := []struct {
 		name                                    string
@@ -688,7 +688,7 @@ func Test_requestContext_Get(t *testing.T) {
 		expectedS3ClientHeadCalled              bool
 		expectedS3ClientHeadInput               string
 		expectedS3ClientGetCalled               bool
-		expectedS3ClientGetInput                string
+		expectedS3ClientGetInput                *s3client.GetInput
 	}{
 		{
 			name: "should fail if list files and directories failed",
@@ -716,7 +716,7 @@ func Test_requestContext_Get(t *testing.T) {
 				},
 			},
 			args: args{
-				requestPath: "/folder/",
+				input: &GetInput{RequestPath: "/folder/"},
 			},
 			expectedHandleInternalServerErrorCalled: true,
 			expectedS3ClientListCalled:              true,
@@ -758,7 +758,7 @@ func Test_requestContext_Get(t *testing.T) {
 				},
 			},
 			args: args{
-				requestPath: "/folder/",
+				input: &GetInput{RequestPath: "/folder/"},
 			},
 			expectedHandleInternalServerErrorCalled: true,
 			expectedS3ClientListCalled:              true,
@@ -802,7 +802,7 @@ func Test_requestContext_Get(t *testing.T) {
 				},
 			},
 			args: args{
-				requestPath: "/folder/",
+				input: &GetInput{RequestPath: "/folder/"},
 			},
 			expectedS3ClientListCalled: true,
 			expectedS3ClientListInput:  "/folder/",
@@ -876,10 +876,10 @@ func Test_requestContext_Get(t *testing.T) {
 				},
 			},
 			args: args{
-				requestPath: "/folder/",
+				input: &GetInput{RequestPath: "/folder/"},
 			},
 			expectedS3ClientGetCalled:  true,
-			expectedS3ClientGetInput:   "/folder/index.html",
+			expectedS3ClientGetInput:   &s3client.GetInput{Key: "/folder/index.html"},
 			expectedS3ClientHeadCalled: true,
 			expectedS3ClientHeadInput:  "/folder/index.html",
 			expectedHTTPWriter: &respWriterTest{
@@ -932,7 +932,7 @@ func Test_requestContext_Get(t *testing.T) {
 				},
 			},
 			args: args{
-				requestPath: "/folder/",
+				input: &GetInput{RequestPath: "/folder/"},
 			},
 			expectedS3ClientHeadCalled: true,
 			expectedS3ClientHeadInput:  "/folder/index.html",
@@ -999,7 +999,7 @@ func Test_requestContext_Get(t *testing.T) {
 				},
 			},
 			args: args{
-				requestPath: "/folder/",
+				input: &GetInput{RequestPath: "/folder/"},
 			},
 			expectedS3ClientHeadCalled:              true,
 			expectedS3ClientHeadInput:               "/folder/index.html",
@@ -1038,12 +1038,12 @@ func Test_requestContext_Get(t *testing.T) {
 				},
 			},
 			args: args{
-				requestPath: "/folder/",
+				input: &GetInput{RequestPath: "/folder/"},
 			},
 			expectedS3ClientHeadCalled:   true,
 			expectedS3ClientHeadInput:    "/folder/index.html",
 			expectedS3ClientGetCalled:    true,
-			expectedS3ClientGetInput:     "/folder/index.html",
+			expectedS3ClientGetInput:     &s3client.GetInput{Key: "/folder/index.html"},
 			expectedHTTPWriter:           &respWriterTest{},
 			expectedHandleNotFoundCalled: true,
 		},
@@ -1079,12 +1079,12 @@ func Test_requestContext_Get(t *testing.T) {
 				},
 			},
 			args: args{
-				requestPath: "/folder/",
+				input: &GetInput{RequestPath: "/folder/"},
 			},
 			expectedS3ClientHeadCalled:              true,
 			expectedS3ClientHeadInput:               "/folder/index.html",
 			expectedS3ClientGetCalled:               true,
-			expectedS3ClientGetInput:                "/folder/index.html",
+			expectedS3ClientGetInput:                &s3client.GetInput{Key: "/folder/index.html"},
 			expectedHTTPWriter:                      &respWriterTest{},
 			expectedHandleInternalServerErrorCalled: true,
 		},
@@ -1119,10 +1119,10 @@ func Test_requestContext_Get(t *testing.T) {
 				},
 			},
 			args: args{
-				requestPath: "/folder/index.html",
+				input: &GetInput{RequestPath: "/folder/index.html"},
 			},
 			expectedS3ClientGetCalled: true,
-			expectedS3ClientGetInput:  "/folder/index.html",
+			expectedS3ClientGetInput:  &s3client.GetInput{Key: "/folder/index.html"},
 			expectedHTTPWriter: &respWriterTest{
 				Headers: h,
 				Status:  http.StatusOK,
@@ -1155,10 +1155,10 @@ func Test_requestContext_Get(t *testing.T) {
 				},
 			},
 			args: args{
-				requestPath: "/folder/index.html",
+				input: &GetInput{RequestPath: "/folder/index.html"},
 			},
 			expectedS3ClientGetCalled:    true,
-			expectedS3ClientGetInput:     "/folder/index.html",
+			expectedS3ClientGetInput:     &s3client.GetInput{Key: "/folder/index.html"},
 			expectedHTTPWriter:           &respWriterTest{},
 			expectedHandleNotFoundCalled: true,
 		},
@@ -1187,10 +1187,10 @@ func Test_requestContext_Get(t *testing.T) {
 				},
 			},
 			args: args{
-				requestPath: "/folder/index.html",
+				input: &GetInput{RequestPath: "/folder/index.html"},
 			},
 			expectedS3ClientGetCalled:               true,
-			expectedS3ClientGetInput:                "/folder/index.html",
+			expectedS3ClientGetInput:                &s3client.GetInput{Key: "/folder/index.html"},
 			expectedHTTPWriter:                      &respWriterTest{},
 			expectedHandleInternalServerErrorCalled: true,
 		},
@@ -1229,10 +1229,10 @@ func Test_requestContext_Get(t *testing.T) {
 				},
 			},
 			args: args{
-				requestPath: "/folder/index.html",
+				input: &GetInput{RequestPath: "/folder/index.html"},
 			},
 			expectedS3ClientGetCalled: true,
-			expectedS3ClientGetInput:  "/fake/fake.html",
+			expectedS3ClientGetInput:  &s3client.GetInput{Key: "/fake/fake.html"},
 			expectedHTTPWriter: &respWriterTest{
 				Headers: h,
 				Status:  http.StatusOK,
@@ -1253,7 +1253,7 @@ func Test_requestContext_Get(t *testing.T) {
 				httpRW:         tt.fields.httpRW,
 				errorsHandlers: tt.fields.errorHandlers,
 			}
-			rctx.Get(tt.args.requestPath)
+			rctx.Get(tt.args.input)
 			if handleNotFoundCalled != tt.expectedHandleNotFoundCalled {
 				t.Errorf("requestContext.Get() => handleNotFoundCalled = %+v, want %+v", handleNotFoundCalled, tt.expectedHandleNotFoundCalled)
 			}

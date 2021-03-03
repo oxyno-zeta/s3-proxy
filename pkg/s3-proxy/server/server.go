@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -103,7 +104,15 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 		"application/rss+xml",
 		"image/svg+xml",
 	))
-	r.Use(middleware.NoCache)
+	// Check if no cache is enabled or not
+	if cfg.Server.Cache == nil || cfg.Server.Cache.NoCacheEnabled {
+		// Apply no cache
+		r.Use(middleware.NoCache)
+	} else {
+		// Apply S3 proxy cache management middleware
+		r.Use(middlewares.CacheManagement(cfg.Server.Cache))
+	}
+
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
@@ -226,10 +235,62 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 					rt2.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
 						// Get bucket request context
 						brctx := middlewares.GetBucketRequestContext(req)
+
 						// Get request path
 						requestPath := chi.URLParam(req, "*")
+
+						// Get ETag headers
+
+						// Get If-Modified-Since as string
+						ifModifiedSinceStr := req.Header.Get("If-Modified-Since")
+						// Create result
+						var ifModifiedSince *time.Time
+						// Check if content exists
+						if ifModifiedSinceStr != "" {
+							// Parse time
+							ifModifiedSinceTime, err := http.ParseTime(ifModifiedSinceStr)
+							// Check error
+							if err != nil {
+								brctx.HandleBadRequest(err, requestPath)
+
+								return
+							}
+							// Save result
+							ifModifiedSince = &ifModifiedSinceTime
+						}
+
+						// Get If-Match
+						ifMatch := req.Header.Get("If-Match")
+
+						// Get If-None-Match
+						ifNoneMatch := req.Header.Get("If-None-Match")
+
+						// Get If-Unmodified-Since as string
+						ifUnmodifiedSinceStr := req.Header.Get("If-Unmodified-Since")
+						// Create result
+						var ifUnmodifiedSince *time.Time
+						// Check if content exists
+						if ifUnmodifiedSinceStr != "" {
+							// Parse time
+							ifUnmodifiedSinceTime, err := http.ParseTime(ifUnmodifiedSinceStr)
+							// Check error
+							if err != nil {
+								brctx.HandleBadRequest(err, requestPath)
+
+								return
+							}
+							// Save result
+							ifUnmodifiedSince = &ifUnmodifiedSinceTime
+						}
+
 						// Proxy GET Request
-						brctx.Get(requestPath)
+						brctx.Get(&bucket.GetInput{
+							RequestPath:       requestPath,
+							IfModifiedSince:   ifModifiedSince,
+							IfMatch:           ifMatch,
+							IfNoneMatch:       ifNoneMatch,
+							IfUnmodifiedSince: ifUnmodifiedSince,
+						})
 					})
 				}
 

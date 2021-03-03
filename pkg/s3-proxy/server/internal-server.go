@@ -53,6 +53,9 @@ func (svr *InternalServer) GenerateServer() {
 func (svr *InternalServer) generateInternalRouter() http.Handler {
 	r := chi.NewRouter()
 
+	// Get configuration
+	cfg := svr.cfgManager.GetConfig()
+
 	// A good base middleware stack
 	r.Use(middleware.Compress(
 		5, // nolint: gomnd // No constant for that
@@ -67,7 +70,15 @@ func (svr *InternalServer) generateInternalRouter() http.Handler {
 		"application/rss+xml",
 		"image/svg+xml",
 	))
-	r.Use(middleware.NoCache)
+	// Check if no cache is disabled or not
+	if cfg.InternalServer.Cache == nil || cfg.InternalServer.Cache.NoCacheEnabled {
+		// Apply no cache
+		r.Use(middleware.NoCache)
+	} else {
+		// Apply S3 proxy cache management middleware
+		r.Use(middlewares.CacheManagement(cfg.InternalServer.Cache))
+	}
+
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middlewares.NewStructuredLogger(svr.logger))

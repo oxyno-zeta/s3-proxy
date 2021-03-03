@@ -1,8 +1,10 @@
 package bucket
 
 import (
+	"errors"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
@@ -11,10 +13,13 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 )
 
+// ErrRemovalFolder will be raised when end user is trying to delete a folder and not a file.
+var ErrRemovalFolder = errors.New("can't remove folder")
+
 // Client represents a client in order to GET, PUT or DELETE file on a bucket with a html output.
 type Client interface {
 	// Get allow to GET what's inside a request path
-	Get(requestPath string)
+	Get(input *GetInput)
 	// Put will put a file following input
 	Put(inp *PutInput)
 	// Delete will delete file on request path
@@ -29,6 +34,15 @@ type Client interface {
 	HandleInternalServerError(err error, requestPath string)
 	// Handle unauthorized errors with bucket configuration
 	HandleUnauthorized(requestPath string)
+}
+
+// GetInput represents Get input.
+type GetInput struct {
+	RequestPath       string
+	IfModifiedSince   *time.Time
+	IfMatch           string
+	IfNoneMatch       string
+	IfUnmodifiedSince *time.Time
 }
 
 // PutInput represents Put input.
