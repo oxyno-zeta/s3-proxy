@@ -265,6 +265,168 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
+			name: "GET a file with no cache enabled (no cache config)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder1/test.txt",
+			expectedCode: 200,
+			expectedBody: "Hello folder1!",
+			expectedHeaders: map[string]string{
+				"Cache-Control":   "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":    "text/plain; charset=utf-8",
+				"Expires":         time.Unix(0, 0).Format(time.RFC1123),
+				"Pragma":          "no-cache",
+				"X-Accel-Expires": "0",
+			},
+		},
+		{
+			name: "GET a file with no cache enabled (no cache enabled)",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Cache: &config.CacheConfig{NoCacheEnabled: true},
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder1/test.txt",
+			expectedCode: 200,
+			expectedBody: "Hello folder1!",
+			expectedHeaders: map[string]string{
+				"Cache-Control":   "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":    "text/plain; charset=utf-8",
+				"Expires":         time.Unix(0, 0).Format(time.RFC1123),
+				"Pragma":          "no-cache",
+				"X-Accel-Expires": "0",
+			},
+		},
+		{
+			name: "GET a file with cache management enabled",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Cache: &config.CacheConfig{
+							Expires:       "expires",
+							CacheControl:  "must-revalidate, max-age=0",
+							Pragma:        "pragma",
+							XAccelExpires: "xaccelexpires",
+						},
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder1/test.txt",
+			expectedCode: 200,
+			expectedBody: "Hello folder1!",
+			expectedHeaders: map[string]string{
+				"Cache-Control":   "must-revalidate, max-age=0",
+				"Content-Type":    "text/plain; charset=utf-8",
+				"Expires":         "expires",
+				"Pragma":          "pragma",
+				"X-Accel-Expires": "xaccelexpires",
+			},
+		},
+		{
 			name: "GET a file with a not found error",
 			args: args{
 				cfg: &config.Config{

@@ -660,6 +660,7 @@ func Test_requestContext_Get(t *testing.T) {
 	handleForbiddenWithTemplate := func(logger log.Logger, rw http.ResponseWriter, tplCfg *config.TemplateConfig, tplString string, requestPath string) {
 		handleForbiddenCalled = true
 	}
+	emptyHeader := http.Header{}
 	h := http.Header{}
 	h.Set("Content-Type", "text/html; charset=utf-8")
 	fakeIndexIoReadCloser := ioutil.NopCloser(strings.NewReader("fake-index.html-content"))
@@ -886,6 +887,98 @@ func Test_requestContext_Get(t *testing.T) {
 				Headers: h,
 				Status:  http.StatusOK,
 				Resp:    []byte("fake-index.html-content"),
+			},
+		},
+		{
+			name: "should return a 304 when S3 client return a 304 error",
+			fields: fields{
+				s3Context: &s3clientTest{
+					HeadResult: &s3client.HeadOutput{
+						Type: "FILE",
+						Key:  "/folder/index.html",
+					},
+					GetErr: s3client.ErrNotModified,
+				},
+				targetCfg: &config.TargetConfig{
+					Name: "target",
+					Bucket: &config.BucketConfig{
+						Name:   "bucket1",
+						Prefix: "/",
+					},
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
+						IndexDocument: "index.html",
+					}},
+				},
+				tplConfig: &config.TemplateConfig{
+					FolderList: "../../../templates/folder-list.tpl",
+				},
+				mountPath: "/mount",
+				httpRW: &respWriterTest{
+					Headers: http.Header{},
+				},
+				errorHandlers: &ErrorHandlers{
+					HandleForbiddenWithTemplate:           handleForbiddenWithTemplate,
+					HandleNotFoundWithTemplate:            handleNotFoundWithTemplate,
+					HandleInternalServerErrorWithTemplate: handleInternalServerErrorWithTemplate,
+				},
+			},
+			args: args{
+				input: &GetInput{RequestPath: "/folder/"},
+			},
+			expectedS3ClientGetCalled:  true,
+			expectedS3ClientGetInput:   &s3client.GetInput{Key: "/folder/index.html"},
+			expectedS3ClientHeadCalled: true,
+			expectedS3ClientHeadInput:  "/folder/index.html",
+			expectedHTTPWriter: &respWriterTest{
+				Headers: emptyHeader,
+				Status:  http.StatusNotModified,
+				Resp:    nil,
+			},
+		},
+		{
+			name: "should return a 412 when S3 client return a 412 error",
+			fields: fields{
+				s3Context: &s3clientTest{
+					HeadResult: &s3client.HeadOutput{
+						Type: "FILE",
+						Key:  "/folder/index.html",
+					},
+					GetErr: s3client.ErrPreconditionFailed,
+				},
+				targetCfg: &config.TargetConfig{
+					Name: "target",
+					Bucket: &config.BucketConfig{
+						Name:   "bucket1",
+						Prefix: "/",
+					},
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
+						IndexDocument: "index.html",
+					}},
+				},
+				tplConfig: &config.TemplateConfig{
+					FolderList: "../../../templates/folder-list.tpl",
+				},
+				mountPath: "/mount",
+				httpRW: &respWriterTest{
+					Headers: http.Header{},
+				},
+				errorHandlers: &ErrorHandlers{
+					HandleForbiddenWithTemplate:           handleForbiddenWithTemplate,
+					HandleNotFoundWithTemplate:            handleNotFoundWithTemplate,
+					HandleInternalServerErrorWithTemplate: handleInternalServerErrorWithTemplate,
+				},
+			},
+			args: args{
+				input: &GetInput{RequestPath: "/folder/"},
+			},
+			expectedS3ClientGetCalled:  true,
+			expectedS3ClientGetInput:   &s3client.GetInput{Key: "/folder/index.html"},
+			expectedS3ClientHeadCalled: true,
+			expectedS3ClientHeadInput:  "/folder/index.html",
+			expectedHTTPWriter: &respWriterTest{
+				Headers: emptyHeader,
+				Status:  http.StatusPreconditionFailed,
+				Resp:    nil,
 			},
 		},
 		{
@@ -1127,6 +1220,82 @@ func Test_requestContext_Get(t *testing.T) {
 				Headers: h,
 				Status:  http.StatusOK,
 				Resp:    []byte("fake-index.html-content"),
+			},
+		},
+		{
+			name: "should return a 304 error when S3 return a 304 error",
+			fields: fields{
+				s3Context: &s3clientTest{
+					GetErr: s3client.ErrNotModified,
+				},
+				targetCfg: &config.TargetConfig{
+					Name: "target",
+					Bucket: &config.BucketConfig{
+						Name:   "bucket1",
+						Prefix: "/",
+					},
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{}},
+				},
+				tplConfig: &config.TemplateConfig{
+					FolderList: "../../../templates/folder-list.tpl",
+				},
+				mountPath: "/mount",
+				httpRW: &respWriterTest{
+					Headers: http.Header{},
+				},
+				errorHandlers: &ErrorHandlers{
+					HandleForbiddenWithTemplate:           handleForbiddenWithTemplate,
+					HandleNotFoundWithTemplate:            handleNotFoundWithTemplate,
+					HandleInternalServerErrorWithTemplate: handleInternalServerErrorWithTemplate,
+				},
+			},
+			args: args{
+				input: &GetInput{RequestPath: "/folder/index.html"},
+			},
+			expectedS3ClientGetCalled: true,
+			expectedS3ClientGetInput:  &s3client.GetInput{Key: "/folder/index.html"},
+			expectedHTTPWriter: &respWriterTest{
+				Headers: emptyHeader,
+				Status:  http.StatusNotModified,
+				Resp:    nil,
+			},
+		},
+		{
+			name: "should return a 412 error when S3 return a 412 error",
+			fields: fields{
+				s3Context: &s3clientTest{
+					GetErr: s3client.ErrPreconditionFailed,
+				},
+				targetCfg: &config.TargetConfig{
+					Name: "target",
+					Bucket: &config.BucketConfig{
+						Name:   "bucket1",
+						Prefix: "/",
+					},
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{}},
+				},
+				tplConfig: &config.TemplateConfig{
+					FolderList: "../../../templates/folder-list.tpl",
+				},
+				mountPath: "/mount",
+				httpRW: &respWriterTest{
+					Headers: http.Header{},
+				},
+				errorHandlers: &ErrorHandlers{
+					HandleForbiddenWithTemplate:           handleForbiddenWithTemplate,
+					HandleNotFoundWithTemplate:            handleNotFoundWithTemplate,
+					HandleInternalServerErrorWithTemplate: handleInternalServerErrorWithTemplate,
+				},
+			},
+			args: args{
+				input: &GetInput{RequestPath: "/folder/index.html"},
+			},
+			expectedS3ClientGetCalled: true,
+			expectedS3ClientGetInput:  &s3client.GetInput{Key: "/folder/index.html"},
+			expectedHTTPWriter: &respWriterTest{
+				Headers: emptyHeader,
+				Status:  http.StatusPreconditionFailed,
+				Resp:    nil,
 			},
 		},
 		{
