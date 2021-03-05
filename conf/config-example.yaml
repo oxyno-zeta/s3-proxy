@@ -36,6 +36,18 @@ log:
 #     debug: false
 #     # OPTIONS method Passthrough
 #     optionsPassthrough: false
+#   # Cache configuration
+#   cache:
+#     # Force no cache headers on all responses
+#     noCacheEnabled: true
+#     # Expires header value
+#     expires:
+#     # Cache-control header value
+#     cacheControl:
+#     # Pragma header value
+#     pragma:
+#     # X-Accel-Expires header value
+#     xAccelExpires:
 
 # Template configurations
 # templates:

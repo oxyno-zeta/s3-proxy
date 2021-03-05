@@ -19,7 +19,7 @@ import (
 type Client interface {
 	ListFilesAndDirectories(key string) ([]*ListElementOutput, error)
 	HeadObject(key string) (*HeadOutput, error)
-	GetObject(key string) (*GetOutput, error)
+	GetObject(input *GetInput) (*GetOutput, error)
 	PutObject(input *PutInput) error
 	DeleteObject(key string) error
 }
@@ -48,6 +48,21 @@ type HeadOutput struct {
 
 // ErrNotFound Error not found.
 var ErrNotFound = errors.New("not found")
+
+// ErrNotModified Error not modified.
+var ErrNotModified = errors.New("not modified")
+
+// ErrPreconditionFailed Error precondition failed.
+var ErrPreconditionFailed = errors.New("precondition failed")
+
+// GetInput Input object for get requests.
+type GetInput struct {
+	Key               string
+	IfModifiedSince   *time.Time
+	IfMatch           string
+	IfNoneMatch       string
+	IfUnmodifiedSince *time.Time
+}
 
 // GetOutput Object output for S3 get object.
 type GetOutput struct {

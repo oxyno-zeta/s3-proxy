@@ -46,6 +46,7 @@ func TestPublicRouter(t *testing.T) {
 	}
 
 	tracingConfig := &config.TracingConfig{}
+	svrCfg := &config.ServerConfig{}
 
 	type args struct {
 		cfg *config.Config
@@ -70,6 +71,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET a not found path",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -117,6 +119,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET a folder without index document enabled",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -163,6 +166,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET a folder without index document enabled and custom folder list template",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -216,6 +220,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET a file with success",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -260,9 +265,172 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
+			name: "GET a file with no cache enabled (no cache config)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder1/test.txt",
+			expectedCode: 200,
+			expectedBody: "Hello folder1!",
+			expectedHeaders: map[string]string{
+				"Cache-Control":   "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":    "text/plain; charset=utf-8",
+				"Expires":         time.Unix(0, 0).Format(time.RFC1123),
+				"Pragma":          "no-cache",
+				"X-Accel-Expires": "0",
+			},
+		},
+		{
+			name: "GET a file with no cache enabled (no cache enabled)",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Cache: &config.CacheConfig{NoCacheEnabled: true},
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder1/test.txt",
+			expectedCode: 200,
+			expectedBody: "Hello folder1!",
+			expectedHeaders: map[string]string{
+				"Cache-Control":   "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":    "text/plain; charset=utf-8",
+				"Expires":         time.Unix(0, 0).Format(time.RFC1123),
+				"Pragma":          "no-cache",
+				"X-Accel-Expires": "0",
+			},
+		},
+		{
+			name: "GET a file with cache management enabled",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Cache: &config.CacheConfig{
+							Expires:       "expires",
+							CacheControl:  "must-revalidate, max-age=0",
+							Pragma:        "pragma",
+							XAccelExpires: "xaccelexpires",
+						},
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder1/test.txt",
+			expectedCode: 200,
+			expectedBody: "Hello folder1!",
+			expectedHeaders: map[string]string{
+				"Cache-Control":   "must-revalidate, max-age=0",
+				"Content-Type":    "text/plain; charset=utf-8",
+				"Expires":         "expires",
+				"Pragma":          "pragma",
+				"X-Accel-Expires": "xaccelexpires",
+			},
+		},
+		{
 			name: "GET a file with a not found error",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -316,6 +484,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET a file with a not found error because of not valid host",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -370,6 +539,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET a file with success on specific host",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -418,6 +588,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET a file with forbidden error in case of no resource found",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -495,6 +666,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET a file with forbidden error in case of no resource found because no valid http methods",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -572,6 +744,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET a file with unauthorized error in case of no basic auth",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -650,6 +823,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET a file with unauthorized error in case of not found basic auth user",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -730,6 +904,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET a file with unauthorized error in case of wrong basic auth password",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -810,6 +985,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET a file with success in case of valid basic auth",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -883,6 +1059,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET a file with success in case of whitelist",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -959,6 +1136,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET target list",
 			args: args{
 				cfg: &config.Config{
+					Server: svrCfg,
 					ListTargets: &config.ListTargetsConfig{
 						Enabled: true,
 						Mount: &config.MountConfig{
@@ -1024,6 +1202,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET target list protected with basic authentication and without any password",
 			args: args{
 				cfg: &config.Config{
+					Server: svrCfg,
 					ListTargets: &config.ListTargetsConfig{
 						Enabled: true,
 						Mount: &config.MountConfig{
@@ -1105,6 +1284,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET target list protected with basic authentication and with wrong user",
 			args: args{
 				cfg: &config.Config{
+					Server: svrCfg,
 					ListTargets: &config.ListTargetsConfig{
 						Enabled: true,
 						Mount: &config.MountConfig{
@@ -1188,6 +1368,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET target list protected with basic authentication and with wrong password",
 			args: args{
 				cfg: &config.Config{
+					Server: svrCfg,
 					ListTargets: &config.ListTargetsConfig{
 						Enabled: true,
 						Mount: &config.MountConfig{
@@ -1271,6 +1452,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET target list protected with basic authentication with success",
 			args: args{
 				cfg: &config.Config{
+					Server: svrCfg,
 					ListTargets: &config.ListTargetsConfig{
 						Enabled: true,
 						Mount: &config.MountConfig{
@@ -1360,6 +1542,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET index document with index document enabled with success",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -1410,6 +1593,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "GET a folder path with index document enabled and index document not found with success",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -1460,6 +1644,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "DELETE a path with a 405 error (method not allowed) because DELETE not enabled",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -1505,6 +1690,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "DELETE a path with success",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -1551,6 +1737,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "PUT in a path with success without allow override and don't need it",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -1608,6 +1795,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "PUT in a path without allow override should failed",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -1673,6 +1861,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "PUT in a path with allow override should be ok",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -1731,6 +1920,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "PUT in a path should fail because no input",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -1788,6 +1978,7 @@ func TestPublicRouter(t *testing.T) {
 			name: "PUT in a path should fail because wrong key in form",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
 					Templates: &config.TemplateConfig{
@@ -1967,6 +2158,7 @@ func TestTracing(t *testing.T) {
 		return
 	}
 
+	svrCfg := &config.ServerConfig{}
 	tplConfig := &config.TemplateConfig{
 		FolderList:          "../../../templates/folder-list.tpl",
 		TargetList:          "../../../templates/target-list.tpl",
@@ -2020,6 +2212,7 @@ func TestTracing(t *testing.T) {
 			name: "GET a not found path without any tracing configuration",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
 					Templates:   tplConfig,
@@ -2039,6 +2232,7 @@ func TestTracing(t *testing.T) {
 			name: "GET a not found path with a tracing configuration",
 			args: args{
 				cfg: &config.Config{
+					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing: &config.TracingConfig{
 						Enabled:       true,

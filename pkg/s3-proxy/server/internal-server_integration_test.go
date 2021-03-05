@@ -46,6 +46,14 @@ func TestInternalServer_generateInternalRouter(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			cfgManagerMock := cmocks.NewMockManager(ctrl)
 
+			// Load configuration in manager
+			cfgManagerMock.EXPECT().GetConfig().Return(&config.Config{
+				InternalServer: &config.ServerConfig{
+					ListenAddr: "",
+					Port:       8080,
+				},
+			})
+
 			svr := &InternalServer{
 				logger:     log.NewLogger(),
 				cfgManager: cfgManagerMock,
@@ -94,7 +102,7 @@ func TestInternal_Server_Listen(t *testing.T) {
 	cfgManagerMock := cmocks.NewMockManager(ctrl)
 
 	// Load configuration in manager
-	cfgManagerMock.EXPECT().GetConfig().Return(&config.Config{
+	cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(&config.Config{
 		InternalServer: &config.ServerConfig{
 			ListenAddr: "",
 			Port:       8080,

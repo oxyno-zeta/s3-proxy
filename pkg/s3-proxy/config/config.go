@@ -156,6 +156,16 @@ type ServerConfig struct {
 	ListenAddr string            `mapstructure:"listenAddr"`
 	Port       int               `mapstructure:"port" validate:"required"`
 	CORS       *ServerCorsConfig `mapstructure:"cors" validate:"omitempty"`
+	Cache      *CacheConfig      `mapstructure:"cache" validate:"omitempty"`
+}
+
+// CacheConfig Cache configuration.
+type CacheConfig struct {
+	NoCacheEnabled bool   `mapstructure:"noCacheEnabled"`
+	Expires        string `mapstructure:"expires"`
+	CacheControl   string `mapstructure:"cacheControl"`
+	Pragma         string `mapstructure:"pragma"`
+	XAccelExpires  string `mapstructure:"xAccelExpires"`
 }
 
 // ServerCorsConfig Server CORS configuration.

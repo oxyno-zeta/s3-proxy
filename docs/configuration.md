@@ -30,11 +30,30 @@ You can see a full example in the [Example section](#example)
 
 ## ServerConfiguration
 
-| Key        | Type                                  | Required | Default | Description        |
-| ---------- | ------------------------------------- | -------- | ------- | ------------------ |
-| listenAddr | String                                | No       | `""`    | Listen Address     |
-| port       | Integer                               | No       | `8080`  | Listening Port     |
-| cors       | [ServerCorsConfig](#servercorsconfig) | No       | `nil`   | CORS configuration |
+| Key        | Type                                    | Required | Default | Description         |
+| ---------- | --------------------------------------- | -------- | ------- | ------------------- |
+| listenAddr | String                                  | No       | `""`    | Listen Address      |
+| port       | Integer                                 | No       | `8080`  | Listening Port      |
+| cors       | [ServerCorsConfig](#servercorsconfig)   | No       | `nil`   | CORS configuration  |
+| cache      | [ServerCacheConfig](#servercacheconfig) | No       | `nil`   | Cache configuration |
+
+## ServerCacheConfig
+
+| Key            | Type    | Required | Default | Description                             |
+| -------------- | ------- | -------- | ------- | --------------------------------------- |
+| noCacheEnabled | Boolean | false    | `false` | Force no cache headers on all responses |
+| expires        | String  | false    | `""`    | `Expires` header value                  |
+| cacheControl   | String  | false    | `""`    | `Cache-Control` header value            |
+| pragma         | String  | false    | `""`    | `Pragma` header value                   |
+| xAccelExpires  | String  | false    | `""`    | `X-Accel-Expires` header value          |
+
+Here is an example of configuration to allow ETag support:
+
+```yaml
+server:
+  cache:
+    cacheControl: must-revalidate, max-age=0
+```
 
 ## ServerCorsConfig
 
@@ -300,6 +319,18 @@ log:
 #     debug: false
 #     # OPTIONS method Passthrough
 #     optionsPassthrough: false
+#   # Cache configuration
+#   cache:
+#     # Force no cache headers on all responses
+#     noCacheEnabled: true
+#     # Expires header value
+#     expires:
+#     # Cache-control header value
+#     cacheControl:
+#     # Pragma header value
+#     pragma:
+#     # X-Accel-Expires header value
+#     xAccelExpires:
 
 # Template configurations
 # templates:

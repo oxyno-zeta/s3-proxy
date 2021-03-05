@@ -140,7 +140,7 @@ func (s3ctx *s3Context) ListFilesAndDirectories(key string) ([]*ListElementOutpu
 }
 
 // GetObject Get object from S3 bucket.
-func (s3ctx *s3Context) GetObject(key string) (*GetOutput, error) {
+func (s3ctx *s3Context) GetObject(input *GetInput) (*GetOutput, error) {
 	// Create child trace
 	childTrace := s3ctx.parentTrace.GetChildTrace("s3-bucket.get-object-request")
 	childTrace.SetTag("s3-bucket.bucket-name", s3ctx.target.Bucket.Name)
@@ -151,10 +151,24 @@ func (s3ctx *s3Context) GetObject(key string) (*GetOutput, error) {
 
 	defer childTrace.Finish()
 
-	obj, err := s3ctx.svcClient.GetObject(&s3.GetObjectInput{
-		Bucket: aws.String(s3ctx.target.Bucket.Name),
-		Key:    aws.String(key),
-	})
+	s3Input := &s3.GetObjectInput{
+		Bucket:            aws.String(s3ctx.target.Bucket.Name),
+		Key:               aws.String(input.Key),
+		IfModifiedSince:   input.IfModifiedSince,
+		IfUnmodifiedSince: input.IfUnmodifiedSince,
+	}
+
+	// Add If Match if not empty
+	if input.IfMatch != "" {
+		s3Input.IfMatch = aws.String(input.IfMatch)
+	}
+
+	// Add If None Match if not empty
+	if input.IfNoneMatch != "" {
+		s3Input.IfNoneMatch = aws.String(input.IfNoneMatch)
+	}
+
+	obj, err := s3ctx.svcClient.GetObject(s3Input)
 	// Metrics
 	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, GetObjectOperation)
 	// Check if error exists
@@ -162,8 +176,16 @@ func (s3ctx *s3Context) GetObject(key string) (*GetOutput, error) {
 		// Try to cast error into an AWS Error if possible
 		// nolint: errorlint // Cast
 		aerr, ok := err.(awserr.Error)
-		if ok && aerr.Code() == s3.ErrCodeNoSuchKey {
-			return nil, ErrNotFound
+		if ok {
+			// Check if it is a not found case
+			// nolint: gocritic // Because don't want to write a switch for the moment
+			if aerr.Code() == s3.ErrCodeNoSuchKey {
+				return nil, ErrNotFound
+			} else if aerr.Code() == "NotModified" {
+				return nil, ErrNotModified
+			} else if aerr.Code() == "PreconditionFailed" {
+				return nil, ErrPreconditionFailed
+			}
 		}
 
 		return nil, err

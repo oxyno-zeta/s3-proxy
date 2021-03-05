@@ -34,7 +34,7 @@ type s3clientTest struct {
 	DeleteCalled bool
 	ListInput    string
 	HeadInput    string
-	GetInput     string
+	GetInput     *s3client.GetInput
 	PutInput     *s3client.PutInput
 	DeleteInput  string
 }
@@ -51,8 +51,8 @@ func (s *s3clientTest) HeadObject(key string) (*s3client.HeadOutput, error) {
 	return s.HeadResult, s.HeadErr
 }
 
-func (s *s3clientTest) GetObject(key string) (*s3client.GetOutput, error) {
-	s.GetInput = key
+func (s *s3clientTest) GetObject(input *s3client.GetInput) (*s3client.GetOutput, error) {
+	s.GetInput = input
 	s.GetCalled = true
 	return s.GetResult, s.GetErr
 }

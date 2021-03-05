@@ -18,9 +18,6 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 )
 
-// ErrRemovalFolder will be raised when end user is trying to delete a folder and not a file.
-var ErrRemovalFolder = errors.New("can't remove folder")
-
 // requestContext Bucket request context.
 type requestContext struct {
 	s3Context      s3client.Client
@@ -93,27 +90,28 @@ func (rctx *requestContext) manageKeyRewrite(key string) string {
 }
 
 // Get proxy GET requests.
-func (rctx *requestContext) Get(requestPath string) {
+func (rctx *requestContext) Get(input *GetInput) {
 	// Generate start key
-	key := rctx.generateStartKey(requestPath)
+	key := rctx.generateStartKey(input.RequestPath)
 	// Manage key rewrite
 	key = rctx.manageKeyRewrite(key)
 	// Check that the path ends with a / for a directory listing or the main path special case (empty path)
-	if strings.HasSuffix(requestPath, "/") || requestPath == "" {
-		rctx.manageGetFolder(key, requestPath)
+	if strings.HasSuffix(input.RequestPath, "/") || input.RequestPath == "" {
+		rctx.manageGetFolder(key, input)
 		// Stop
 		return
 	}
 
 	// Get object case
-	err := rctx.streamFileForResponse(key)
+	err := rctx.streamFileForResponse(key, input)
 	if err != nil {
 		// Check if error is a not found error
+		// nolint: gocritic // Don't want a switch
 		if errors.Is(err, s3client.ErrNotFound) {
 			// Test that redirect with trailing slash isn't asked and possible on this request
 			if rctx.targetCfg.Actions != nil && rctx.targetCfg.Actions.GET != nil &&
 				rctx.targetCfg.Actions.GET.RedirectWithTrailingSlashForNotFoundFile &&
-				!strings.HasSuffix(requestPath, "/") {
+				!strings.HasSuffix(input.RequestPath, "/") {
 				//  Get path
 				p := rctx.httpReq.URL.Path
 				// Check if path doesn't start with /
@@ -130,20 +128,30 @@ func (rctx *requestContext) Get(requestPath string) {
 				return
 			}
 			// Not found
-			rctx.HandleNotFound(requestPath)
+			rctx.HandleNotFound(input.RequestPath)
 			// Stop
+			return
+		} else if errors.Is(err, s3client.ErrNotModified) {
+			// Not modified
+			rctx.httpRW.WriteHeader(http.StatusNotModified)
+
+			return
+		} else if errors.Is(err, s3client.ErrPreconditionFailed) {
+			// Precondition failed
+			rctx.httpRW.WriteHeader(http.StatusPreconditionFailed)
+
 			return
 		}
 		// Log error
 		rctx.logger.Error(err)
 		// Manage error response
-		rctx.HandleInternalServerError(err, requestPath)
+		rctx.HandleInternalServerError(err, input.RequestPath)
 		// Stop
 		return
 	}
 }
 
-func (rctx *requestContext) manageGetFolder(key, requestPath string) {
+func (rctx *requestContext) manageGetFolder(key string, input *GetInput) {
 	// Check if index document is activated
 	if rctx.targetCfg.Actions.GET.IndexDocument != "" {
 		// Create index key path
@@ -155,27 +163,38 @@ func (rctx *requestContext) manageGetFolder(key, requestPath string) {
 			// Log error
 			rctx.logger.Error(err)
 			// Manage error response
-			rctx.HandleInternalServerError(err, requestPath)
+			rctx.HandleInternalServerError(err, input.RequestPath)
 			// Stop
 			return
 		}
 		// Check that we found the file
 		if headOutput != nil {
 			// Get data
-			err = rctx.streamFileForResponse(headOutput.Key)
+			err = rctx.streamFileForResponse(headOutput.Key, input)
 			// Check if error exists
 			if err != nil {
 				// Check if error is a not found error
+				// nolint: gocritic // Don't want a switch
 				if errors.Is(err, s3client.ErrNotFound) {
 					// Not found
-					rctx.HandleNotFound(requestPath)
+					rctx.HandleNotFound(input.RequestPath)
+
+					return
+				} else if errors.Is(err, s3client.ErrNotModified) {
+					// Not modified
+					rctx.httpRW.WriteHeader(http.StatusNotModified)
+
+					return
+				} else if errors.Is(err, s3client.ErrPreconditionFailed) {
+					// Precondition failed
+					rctx.httpRW.WriteHeader(http.StatusPreconditionFailed)
 
 					return
 				}
 				// Log error
 				rctx.logger.Error(err)
 				// Response with error
-				rctx.HandleInternalServerError(err, requestPath)
+				rctx.HandleInternalServerError(err, input.RequestPath)
 				// Stop
 				return
 			}
@@ -188,7 +207,7 @@ func (rctx *requestContext) manageGetFolder(key, requestPath string) {
 	s3Entries, err := rctx.s3Context.ListFilesAndDirectories(key)
 	if err != nil {
 		rctx.logger.Error(err)
-		rctx.HandleInternalServerError(err, requestPath)
+		rctx.HandleInternalServerError(err, input.RequestPath)
 		// Stop
 		return
 	}
@@ -221,7 +240,7 @@ func (rctx *requestContext) manageGetFolder(key, requestPath string) {
 	// Check error
 	if err != nil {
 		rctx.logger.Error(err)
-		rctx.HandleInternalServerError(err, requestPath)
+		rctx.HandleInternalServerError(err, input.RequestPath)
 		// Stop
 		return
 	}
@@ -230,7 +249,7 @@ func (rctx *requestContext) manageGetFolder(key, requestPath string) {
 		Entries:    entries,
 		BucketName: rctx.targetCfg.Bucket.Name,
 		Name:       rctx.targetCfg.Name,
-		Path:       rctx.mountPath + requestPath,
+		Path:       rctx.mountPath + input.RequestPath,
 	}
 	// Generate template in buffer
 	buf := &bytes.Buffer{}
@@ -238,7 +257,7 @@ func (rctx *requestContext) manageGetFolder(key, requestPath string) {
 	err = tmpl.Execute(buf, data)
 	if err != nil {
 		rctx.logger.Error(err)
-		rctx.HandleInternalServerError(err, requestPath)
+		rctx.HandleInternalServerError(err, input.RequestPath)
 		// Stop
 		return
 	}
@@ -250,7 +269,7 @@ func (rctx *requestContext) manageGetFolder(key, requestPath string) {
 	_, err = buf.WriteTo(rctx.httpRW)
 	if err != nil {
 		rctx.logger.Error(err)
-		rctx.HandleInternalServerError(err, requestPath)
+		rctx.HandleInternalServerError(err, input.RequestPath)
 		// Stop
 		return
 	}
@@ -368,7 +387,7 @@ func (rctx *requestContext) loadTemplateContent(item *config.TargetTemplateConfi
 	// Check if it is in bucket
 	if item.InBucket {
 		// Try to get file from bucket
-		return rctx.getFileContent(item.Path)
+		return rctx.getFileContent(item.Path, &GetInput{})
 	}
 
 	// Not in bucket, need to load from FS
@@ -381,9 +400,15 @@ func (rctx *requestContext) loadTemplateContent(item *config.TargetTemplateConfi
 	return string(by), nil
 }
 
-func (rctx *requestContext) getFileContent(path string) (string, error) {
+func (rctx *requestContext) getFileContent(key string, input *GetInput) (string, error) {
 	// Get object from s3
-	objOutput, err := rctx.s3Context.GetObject(path)
+	objOutput, err := rctx.s3Context.GetObject(&s3client.GetInput{
+		Key:               key,
+		IfModifiedSince:   input.IfModifiedSince,
+		IfMatch:           input.IfMatch,
+		IfNoneMatch:       input.IfNoneMatch,
+		IfUnmodifiedSince: input.IfUnmodifiedSince,
+	})
 	if err != nil {
 		return "", err
 	}
@@ -398,9 +423,15 @@ func (rctx *requestContext) getFileContent(path string) (string, error) {
 	return string(bb), nil
 }
 
-func (rctx *requestContext) streamFileForResponse(key string) error {
+func (rctx *requestContext) streamFileForResponse(key string, input *GetInput) error {
 	// Get object from s3
-	objOutput, err := rctx.s3Context.GetObject(key)
+	objOutput, err := rctx.s3Context.GetObject(&s3client.GetInput{
+		Key:               key,
+		IfModifiedSince:   input.IfModifiedSince,
+		IfMatch:           input.IfMatch,
+		IfNoneMatch:       input.IfNoneMatch,
+		IfUnmodifiedSince: input.IfUnmodifiedSince,
+	})
 	if err != nil {
 		return err
 	}
