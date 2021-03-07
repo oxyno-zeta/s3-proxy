@@ -9,6 +9,26 @@ import (
 // DefaultPort Default port.
 const DefaultPort = 8080
 
+// DefaultServerCompressEnabled Default server compress enabled.
+var DefaultServerCompressEnabled bool = true
+
+// DefaultServerCompressLevel Default server compress level.
+const DefaultServerCompressLevel = 5
+
+// DefaultServerCompressTypes Default server compress types.
+var DefaultServerCompressTypes = []string{
+	"text/html",
+	"text/css",
+	"text/plain",
+	"text/javascript",
+	"application/javascript",
+	"application/x-javascript",
+	"application/json",
+	"application/atom+xml",
+	"application/rss+xml",
+	"image/svg+xml",
+}
+
 // DefaultInternalPort Default internal port.
 const DefaultInternalPort = 9090
 
@@ -153,10 +173,18 @@ type TemplateConfig struct {
 
 // ServerConfig Server configuration.
 type ServerConfig struct {
-	ListenAddr string            `mapstructure:"listenAddr"`
-	Port       int               `mapstructure:"port" validate:"required"`
-	CORS       *ServerCorsConfig `mapstructure:"cors" validate:"omitempty"`
-	Cache      *CacheConfig      `mapstructure:"cache" validate:"omitempty"`
+	ListenAddr string                `mapstructure:"listenAddr"`
+	Port       int                   `mapstructure:"port" validate:"required"`
+	CORS       *ServerCorsConfig     `mapstructure:"cors" validate:"omitempty"`
+	Cache      *CacheConfig          `mapstructure:"cache" validate:"omitempty"`
+	Compress   *ServerCompressConfig `mapstructure:"compress" validate:"omitempty"`
+}
+
+// ServerCompressConfig Server compress configuration.
+type ServerCompressConfig struct {
+	Enabled *bool    `mapstructure:"enabled"`
+	Level   int      `mapstructure:"level" validate:"required,min=1"`
+	Types   []string `mapstructure:"types" validate:"required,min=1"`
 }
 
 // CacheConfig Cache configuration.

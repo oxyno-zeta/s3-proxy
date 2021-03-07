@@ -16,6 +16,13 @@ import (
 )
 
 func Test_managercontext_Load(t *testing.T) {
+	svrCompressCfg := &ServerCompressConfig{
+		Enabled: &DefaultServerCompressEnabled,
+		Level:   DefaultServerCompressLevel,
+		Types:   DefaultServerCompressTypes,
+	}
+	falseValue := false
+
 	tests := []struct {
 		name           string
 		configs        map[string]string
@@ -65,10 +72,12 @@ targets:
 					Format: "json",
 				},
 				Server: &ServerConfig{
-					Port: 8080,
+					Port:     8080,
+					Compress: svrCompressCfg,
 				},
 				InternalServer: &ServerConfig{
-					Port: 9090,
+					Port:     9090,
+					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
 					FolderList:          "templates/folder-list.tpl",
@@ -103,6 +112,110 @@ targets:
 			},
 		},
 		{
+			name: "Test disable server compress",
+			configs: map[string]string{
+				"config.yaml": `
+server:
+  compress:
+    enabled: false
+targets:
+- name: test
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+`,
+			},
+			wantErr: false,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "info",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port: 8080,
+					Compress: &ServerCompressConfig{
+						Enabled: &falseValue,
+						Level:   DefaultServerCompressLevel,
+						Types:   DefaultServerCompressTypes,
+					},
+				},
+				InternalServer: &ServerConfig{
+					Port:     9090,
+					Compress: svrCompressCfg,
+				},
+				Templates: &TemplateConfig{
+					FolderList:          "templates/folder-list.tpl",
+					TargetList:          "templates/target-list.tpl",
+					NotFound:            "templates/not-found.tpl",
+					InternalServerError: "templates/internal-server-error.tpl",
+					Unauthorized:        "templates/unauthorized.tpl",
+					Forbidden:           "templates/forbidden.tpl",
+					BadRequest:          "templates/bad-request.tpl",
+				},
+				Tracing: &TracingConfig{Enabled: false},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: []*TargetConfig{
+					{
+						Name: "test",
+						Mount: &MountConfig{
+							Path: []string{"/test/"},
+						},
+						Bucket: &BucketConfig{
+							Name:          "bucket1",
+							Region:        "us-east-1",
+							S3ListMaxKeys: 1000,
+						},
+						Actions: &ActionsConfig{
+							GET: &GetActionConfig{Enabled: true},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+			},
+		},
+		{
+			name: "Test server compress configurations error (level)",
+			configs: map[string]string{
+				"config.yaml": `
+server:
+  compress:
+    enabled: true
+	level: 0
+targets:
+- name: test
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+`,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Test server compress configurations error (types)",
+			configs: map[string]string{
+				"config.yaml": `
+server:
+  compress:
+    enabled: true
+	types: []
+targets:
+- name: test
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+`,
+			},
+			wantErr: true,
+		},
+		{
 			name: "Test secrets from environment variable",
 			configs: map[string]string{
 				"config.yaml": `
@@ -130,10 +243,12 @@ targets:
 					Format: "json",
 				},
 				Server: &ServerConfig{
-					Port: 8080,
+					Port:     8080,
+					Compress: svrCompressCfg,
 				},
 				InternalServer: &ServerConfig{
-					Port: 9090,
+					Port:     9090,
+					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
 					FolderList:          "templates/folder-list.tpl",
@@ -245,10 +360,12 @@ targets:
 					Format: "json",
 				},
 				Server: &ServerConfig{
-					Port: 8080,
+					Port:     8080,
+					Compress: svrCompressCfg,
 				},
 				InternalServer: &ServerConfig{
-					Port: 9090,
+					Port:     9090,
+					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
 					FolderList:          "templates/folder-list.tpl",
@@ -344,10 +461,12 @@ targets:
 					Format: "json",
 				},
 				Server: &ServerConfig{
-					Port: 8080,
+					Port:     8080,
+					Compress: svrCompressCfg,
 				},
 				InternalServer: &ServerConfig{
-					Port: 9090,
+					Port:     9090,
+					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
 					FolderList:          "templates/folder-list.tpl",
@@ -426,10 +545,12 @@ targets:
 					Format: "json",
 				},
 				Server: &ServerConfig{
-					Port: 8080,
+					Port:     8080,
+					Compress: svrCompressCfg,
 				},
 				InternalServer: &ServerConfig{
-					Port: 9090,
+					Port:     9090,
+					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
 					FolderList:          "templates/folder-list.tpl",
@@ -500,10 +621,12 @@ targets:
 					Format: "json",
 				},
 				Server: &ServerConfig{
-					Port: 8080,
+					Port:     8080,
+					Compress: svrCompressCfg,
 				},
 				InternalServer: &ServerConfig{
-					Port: 9090,
+					Port:     9090,
+					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
 					FolderList:          "templates/folder-list.tpl",
@@ -615,6 +738,12 @@ targets:
 }
 
 func Test_Load_reload_config(t *testing.T) {
+	svrCompressCfg := &ServerCompressConfig{
+		Enabled: &DefaultServerCompressEnabled,
+		Level:   DefaultServerCompressLevel,
+		Types:   DefaultServerCompressTypes,
+	}
+
 	// Channel for wait watch
 	waitCh := make(chan bool)
 
@@ -684,10 +813,12 @@ targets:
 			Format: "json",
 		},
 		Server: &ServerConfig{
-			Port: 8080,
+			Port:     8080,
+			Compress: svrCompressCfg,
 		},
 		InternalServer: &ServerConfig{
-			Port: 9090,
+			Port:     9090,
+			Compress: svrCompressCfg,
 		},
 		Templates: &TemplateConfig{
 			FolderList:          "templates/folder-list.tpl",
@@ -756,10 +887,12 @@ log:
 				Format: "text",
 			},
 			Server: &ServerConfig{
-				Port: 8080,
+				Port:     8080,
+				Compress: svrCompressCfg,
 			},
 			InternalServer: &ServerConfig{
-				Port: 9090,
+				Port:     9090,
+				Compress: svrCompressCfg,
 			},
 			Templates: &TemplateConfig{
 				FolderList:          "templates/folder-list.tpl",
@@ -808,6 +941,12 @@ log:
 }
 
 func Test_Load_reload_secret(t *testing.T) {
+	svrCompressCfg := &ServerCompressConfig{
+		Enabled: &DefaultServerCompressEnabled,
+		Level:   DefaultServerCompressLevel,
+		Types:   DefaultServerCompressTypes,
+	}
+
 	// Channel for wait watch
 	waitCh := make(chan bool)
 
@@ -878,10 +1017,12 @@ targets:
 			Format: "text",
 		},
 		Server: &ServerConfig{
-			Port: 8080,
+			Port:     8080,
+			Compress: svrCompressCfg,
 		},
 		InternalServer: &ServerConfig{
-			Port: 9090,
+			Port:     9090,
+			Compress: svrCompressCfg,
 		},
 		Templates: &TemplateConfig{
 			FolderList:          "templates/folder-list.tpl",
@@ -948,10 +1089,12 @@ targets:
 				Format: "text",
 			},
 			Server: &ServerConfig{
-				Port: 8080,
+				Port:     8080,
+				Compress: svrCompressCfg,
 			},
 			InternalServer: &ServerConfig{
-				Port: 9090,
+				Port:     9090,
+				Compress: svrCompressCfg,
 			},
 			Templates: &TemplateConfig{
 				FolderList:          "templates/folder-list.tpl",
@@ -1000,6 +1143,12 @@ targets:
 }
 
 func Test_Load_reload_config_with_wrong_config(t *testing.T) {
+	svrCompressCfg := &ServerCompressConfig{
+		Enabled: &DefaultServerCompressEnabled,
+		Level:   DefaultServerCompressLevel,
+		Types:   DefaultServerCompressTypes,
+	}
+
 	// Channel for wait watch
 	waitCh := make(chan bool)
 
@@ -1070,10 +1219,12 @@ targets:
 			Format: "text",
 		},
 		Server: &ServerConfig{
-			Port: 8080,
+			Port:     8080,
+			Compress: svrCompressCfg,
 		},
 		InternalServer: &ServerConfig{
-			Port: 9090,
+			Port:     9090,
+			Compress: svrCompressCfg,
 		},
 		Templates: &TemplateConfig{
 			FolderList:          "templates/folder-list.tpl",
@@ -1143,10 +1294,12 @@ configuration with error
 				Format: "text",
 			},
 			Server: &ServerConfig{
-				Port: 8080,
+				Port:     8080,
+				Compress: svrCompressCfg,
 			},
 			InternalServer: &ServerConfig{
-				Port: 9090,
+				Port:     9090,
+				Compress: svrCompressCfg,
 			},
 			Templates: &TemplateConfig{
 				FolderList:          "templates/folder-list.tpl",
@@ -1192,6 +1345,12 @@ configuration with error
 }
 
 func Test_Load_reload_config_map_structure(t *testing.T) {
+	svrCompressCfg := &ServerCompressConfig{
+		Enabled: &DefaultServerCompressEnabled,
+		Level:   DefaultServerCompressLevel,
+		Types:   DefaultServerCompressTypes,
+	}
+
 	// Channel for wait watch
 	waitCh := make(chan bool)
 
@@ -1269,10 +1428,12 @@ targets:
 			Format: "json",
 		},
 		Server: &ServerConfig{
-			Port: 8080,
+			Port:     8080,
+			Compress: svrCompressCfg,
 		},
 		InternalServer: &ServerConfig{
-			Port: 9090,
+			Port:     9090,
+			Compress: svrCompressCfg,
 		},
 		Templates: &TemplateConfig{
 			FolderList:          "templates/folder-list.tpl",
@@ -1348,10 +1509,12 @@ authProviders:
 				Format: "json",
 			},
 			Server: &ServerConfig{
-				Port: 8080,
+				Port:     8080,
+				Compress: svrCompressCfg,
 			},
 			InternalServer: &ServerConfig{
-				Port: 9090,
+				Port:     9090,
+				Compress: svrCompressCfg,
 			},
 			Templates: &TemplateConfig{
 				FolderList:          "templates/folder-list.tpl",
@@ -1405,6 +1568,12 @@ authProviders:
 }
 
 func Test_Load_reload_config_ignore_hidden_file_and_directory(t *testing.T) {
+	svrCompressCfg := &ServerCompressConfig{
+		Enabled: &DefaultServerCompressEnabled,
+		Level:   DefaultServerCompressLevel,
+		Types:   DefaultServerCompressTypes,
+	}
+
 	// Channel for wait watch
 	waitCh := make(chan bool)
 
@@ -1492,10 +1661,12 @@ targets:
 			Format: "json",
 		},
 		Server: &ServerConfig{
-			Port: 8080,
+			Port:     8080,
+			Compress: svrCompressCfg,
 		},
 		InternalServer: &ServerConfig{
-			Port: 9090,
+			Port:     9090,
+			Compress: svrCompressCfg,
 		},
 		Tracing: &TracingConfig{Enabled: false},
 		Templates: &TemplateConfig{

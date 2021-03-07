@@ -46,7 +46,13 @@ func TestPublicRouter(t *testing.T) {
 	}
 
 	tracingConfig := &config.TracingConfig{}
-	svrCfg := &config.ServerConfig{}
+	svrCfg := &config.ServerConfig{
+		Compress: &config.ServerCompressConfig{
+			Enabled: &config.DefaultServerCompressEnabled,
+			Level:   config.DefaultServerCompressLevel,
+			Types:   config.DefaultServerCompressTypes,
+		},
+	}
 
 	type args struct {
 		cfg *config.Config
@@ -320,7 +326,8 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					Server: &config.ServerConfig{
-						Cache: &config.CacheConfig{NoCacheEnabled: true},
+						Cache:    &config.CacheConfig{NoCacheEnabled: true},
+						Compress: svrCfg.Compress,
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
@@ -379,6 +386,7 @@ func TestPublicRouter(t *testing.T) {
 							Pragma:        "pragma",
 							XAccelExpires: "xaccelexpires",
 						},
+						Compress: svrCfg.Compress,
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
@@ -2158,7 +2166,13 @@ func TestTracing(t *testing.T) {
 		return
 	}
 
-	svrCfg := &config.ServerConfig{}
+	svrCfg := &config.ServerConfig{
+		Compress: &config.ServerCompressConfig{
+			Enabled: &config.DefaultServerCompressEnabled,
+			Level:   config.DefaultServerCompressLevel,
+			Types:   config.DefaultServerCompressTypes,
+		},
+	}
 	tplConfig := &config.TemplateConfig{
 		FolderList:          "../../../templates/folder-list.tpl",
 		TargetList:          "../../../templates/target-list.tpl",
@@ -2545,6 +2559,11 @@ func TestOIDCAuthentication(t *testing.T) {
 	svrCfg := &config.ServerConfig{
 		ListenAddr: "",
 		Port:       8080,
+		Compress: &config.ServerCompressConfig{
+			Enabled: &config.DefaultServerCompressEnabled,
+			Level:   config.DefaultServerCompressLevel,
+			Types:   config.DefaultServerCompressTypes,
+		},
 	}
 
 	type jwtToken struct {
@@ -3216,6 +3235,11 @@ func TestCORS(t *testing.T) {
 						CORS: &config.ServerCorsConfig{
 							Enabled: false,
 						},
+						Compress: &config.ServerCompressConfig{
+							Enabled: &config.DefaultServerCompressEnabled,
+							Level:   config.DefaultServerCompressLevel,
+							Types:   config.DefaultServerCompressTypes,
+						},
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
@@ -3245,6 +3269,11 @@ func TestCORS(t *testing.T) {
 						CORS: &config.ServerCorsConfig{
 							Enabled:  true,
 							AllowAll: true,
+						},
+						Compress: &config.ServerCompressConfig{
+							Enabled: &config.DefaultServerCompressEnabled,
+							Level:   config.DefaultServerCompressLevel,
+							Types:   config.DefaultServerCompressTypes,
 						},
 					},
 					ListTargets: &config.ListTargetsConfig{},
@@ -3279,6 +3308,11 @@ func TestCORS(t *testing.T) {
 							AllowMethods: []string{"GET"},
 							AllowOrigins: []string{"https://test.fake"},
 						},
+						Compress: &config.ServerCompressConfig{
+							Enabled: &config.DefaultServerCompressEnabled,
+							Level:   config.DefaultServerCompressLevel,
+							Types:   config.DefaultServerCompressTypes,
+						},
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
@@ -3311,6 +3345,11 @@ func TestCORS(t *testing.T) {
 							AllowAll:     false,
 							AllowMethods: []string{"GET"},
 							AllowOrigins: []string{"https://test.fake"},
+						},
+						Compress: &config.ServerCompressConfig{
+							Enabled: &config.DefaultServerCompressEnabled,
+							Level:   config.DefaultServerCompressLevel,
+							Types:   config.DefaultServerCompressTypes,
 						},
 					},
 					ListTargets: &config.ListTargetsConfig{},
@@ -3345,6 +3384,11 @@ func TestCORS(t *testing.T) {
 							AllowMethods: []string{"GET"},
 							AllowOrigins: []string{"https://test.*"},
 						},
+						Compress: &config.ServerCompressConfig{
+							Enabled: &config.DefaultServerCompressEnabled,
+							Level:   config.DefaultServerCompressLevel,
+							Types:   config.DefaultServerCompressTypes,
+						},
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
@@ -3378,6 +3422,11 @@ func TestCORS(t *testing.T) {
 							AllowMethods: []string{"GET"},
 							AllowOrigins: []string{"https://test.*"},
 						},
+						Compress: &config.ServerCompressConfig{
+							Enabled: &config.DefaultServerCompressEnabled,
+							Level:   config.DefaultServerCompressLevel,
+							Types:   config.DefaultServerCompressTypes,
+						},
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
@@ -3410,6 +3459,11 @@ func TestCORS(t *testing.T) {
 							AllowAll:     false,
 							AllowMethods: []string{"DELETE"},
 							AllowOrigins: []string{"https://test.*"},
+						},
+						Compress: &config.ServerCompressConfig{
+							Enabled: &config.DefaultServerCompressEnabled,
+							Level:   config.DefaultServerCompressLevel,
+							Types:   config.DefaultServerCompressTypes,
 						},
 					},
 					ListTargets: &config.ListTargetsConfig{},
@@ -3572,6 +3626,11 @@ func TestIndexLargeBucket(t *testing.T) {
 	cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(&config.Config{
 		Server: &config.ServerConfig{
 			Port: 8080,
+			Compress: &config.ServerCompressConfig{
+				Enabled: &config.DefaultServerCompressEnabled,
+				Level:   config.DefaultServerCompressLevel,
+				Types:   config.DefaultServerCompressTypes,
+			},
 		},
 		ListTargets: &config.ListTargetsConfig{},
 		Tracing:     &config.TracingConfig{},
@@ -3678,6 +3737,11 @@ func TestListLargeBucketAndSmallMaxKeys(t *testing.T) {
 	cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(&config.Config{
 		Server: &config.ServerConfig{
 			Port: 8080,
+			Compress: &config.ServerCompressConfig{
+				Enabled: &config.DefaultServerCompressEnabled,
+				Level:   config.DefaultServerCompressLevel,
+				Types:   config.DefaultServerCompressTypes,
+			},
 		},
 		ListTargets: &config.ListTargetsConfig{},
 		Tracing:     &config.TracingConfig{},
@@ -3783,6 +3847,11 @@ func TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys(t *testing.T) {
 	cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(&config.Config{
 		Server: &config.ServerConfig{
 			Port: 8080,
+			Compress: &config.ServerCompressConfig{
+				Enabled: &config.DefaultServerCompressEnabled,
+				Level:   config.DefaultServerCompressLevel,
+				Types:   config.DefaultServerCompressTypes,
+			},
 		},
 		ListTargets: &config.ListTargetsConfig{},
 		Tracing:     &config.TracingConfig{},
@@ -3886,6 +3955,11 @@ func TestFolderWithSubFolders(t *testing.T) {
 	cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(&config.Config{
 		Server: &config.ServerConfig{
 			Port: 8080,
+			Compress: &config.ServerCompressConfig{
+				Enabled: &config.DefaultServerCompressEnabled,
+				Level:   config.DefaultServerCompressLevel,
+				Types:   config.DefaultServerCompressTypes,
+			},
 		},
 		ListTargets: &config.ListTargetsConfig{},
 		Tracing:     &config.TracingConfig{},
@@ -3970,6 +4044,11 @@ func TestTrailingSlashRedirect(t *testing.T) {
 	}
 	srvCfg := &config.ServerConfig{
 		Port: 8080,
+		Compress: &config.ServerCompressConfig{
+			Enabled: &config.DefaultServerCompressEnabled,
+			Level:   config.DefaultServerCompressLevel,
+			Types:   config.DefaultServerCompressTypes,
+		},
 	}
 	bucketCfg := &config.BucketConfig{
 		Name:       bucket,

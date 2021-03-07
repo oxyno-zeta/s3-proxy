@@ -51,6 +51,11 @@ func TestInternalServer_generateInternalRouter(t *testing.T) {
 				InternalServer: &config.ServerConfig{
 					ListenAddr: "",
 					Port:       8080,
+					Compress: &config.ServerCompressConfig{
+						Enabled: &config.DefaultServerCompressEnabled,
+						Level:   config.DefaultServerCompressLevel,
+						Types:   config.DefaultServerCompressTypes,
+					},
 				},
 			})
 
@@ -106,6 +111,11 @@ func TestInternal_Server_Listen(t *testing.T) {
 		InternalServer: &config.ServerConfig{
 			ListenAddr: "",
 			Port:       8080,
+			Compress: &config.ServerCompressConfig{
+				Enabled: &config.DefaultServerCompressEnabled,
+				Level:   config.DefaultServerCompressLevel,
+				Types:   config.DefaultServerCompressTypes,
+			},
 		},
 	})
 
