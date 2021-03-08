@@ -29,6 +29,7 @@ import (
 
 func TestPublicRouter(t *testing.T) {
 	trueValue := true
+	falseValue := false
 	accessKey := "YOUR-ACCESSKEYID"
 	secretAccessKey := "YOUR-SECRETACCESSKEY"
 	region := "eu-central-1"
@@ -67,6 +68,7 @@ func TestPublicRouter(t *testing.T) {
 		inputBody          string
 		inputFileName      string
 		inputFileKey       string
+		inputHeaders       map[string]string
 		expectedCode       int
 		expectedBody       string
 		expectedHeaders    map[string]string
@@ -265,6 +267,115 @@ func TestPublicRouter(t *testing.T) {
 			inputURL:     "http://localhost/mount/folder1/test.txt",
 			expectedCode: 200,
 			expectedBody: "Hello folder1!",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name: "GET a file with success with compress enabled",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/mount/content-type/file.txt",
+			inputHeaders: map[string]string{
+				"Accept-Encoding": "gzip",
+			},
+			notExpectedBody: "test",
+			expectedCode:    200,
+			expectedHeaders: map[string]string{
+				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":     "text/plain; charset=utf-8",
+				"Content-Encoding": "gzip",
+			},
+		},
+		{
+			name: "GET a file with success without compress enabled",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Compress: &config.ServerCompressConfig{
+							Enabled: &falseValue,
+							Level:   config.DefaultServerCompressLevel,
+							Types:   config.DefaultServerCompressTypes,
+						},
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates: &config.TemplateConfig{
+						FolderList:          "../../../templates/folder-list.tpl",
+						TargetList:          "../../../templates/target-list.tpl",
+						NotFound:            "../../../templates/not-found.tpl",
+						Forbidden:           "../../../templates/forbidden.tpl",
+						BadRequest:          "../../../templates/bad-request.tpl",
+						InternalServerError: "../../../templates/internal-server-error.tpl",
+						Unauthorized:        "../../../templates/unauthorized.tpl",
+					},
+					Targets: []*config.TargetConfig{
+						{
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/mount/content-type/file.txt",
+			inputHeaders: map[string]string{
+				"Accept-Encoding": "gzip",
+			},
+			expectedBody: "test",
+			expectedCode: 200,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/plain; charset=utf-8",
@@ -2117,6 +2228,14 @@ func TestPublicRouter(t *testing.T) {
 			if tt.inputBasicUser != "" {
 				req.SetBasicAuth(tt.inputBasicUser, tt.inputBasicPassword)
 			}
+
+			// Add headers
+			if tt.inputHeaders != nil {
+				for key, value := range tt.inputHeaders {
+					req.Header.Set(key, value)
+				}
+			}
+
 			got.ServeHTTP(w, req)
 
 			if tt.expectedBody != "" {
