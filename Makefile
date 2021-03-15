@@ -146,7 +146,7 @@ ifndef HAS_GIT
 endif
 ifndef HAS_MOCKGEN
 	@echo "=> Installing mockgen tool"
-	go get -u github.com/golang/mock/mockgen@v1.4.3
+	go get -u github.com/golang/mock/mockgen@v1.5.0
 endif
 	go mod download
 	go mod tidy
