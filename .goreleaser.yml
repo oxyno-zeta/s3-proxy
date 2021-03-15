@@ -60,7 +60,7 @@ changelog:
 dockers:
   - goos: linux
     goarch: amd64
-    binaries:
+    ids:
       - s3-proxy
     image_templates:
       - "oxynozeta/s3-proxy:latest"
