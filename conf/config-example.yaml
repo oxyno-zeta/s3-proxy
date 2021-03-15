@@ -11,6 +11,23 @@ log:
 # server:
 #   listenAddr: ""
 #   port: 8080
+#   # Compress options
+#   compress:
+#     enabled: true
+#     # Compression level
+#     # level: 5
+#     # Types
+#     # types:
+#     #   - text/html
+#     #   - text/css
+#     #   - text/plain
+#     #   - text/javascript
+#     #   - application/javascript
+#     #   - application/x-javascript
+#     #   - application/json
+#     #   - application/atom+xml
+#     #   - application/rss+xml
+#     #   - image/svg+xml
 #   # CORS configuration
 #   cors:
 #     # Enabled
