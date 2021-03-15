@@ -56,20 +56,14 @@ func (svr *InternalServer) generateInternalRouter() http.Handler {
 	// Get configuration
 	cfg := svr.cfgManager.GetConfig()
 
-	// A good base middleware stack
-	r.Use(middleware.Compress(
-		5, // nolint: gomnd // No constant for that
-		"text/html",
-		"text/css",
-		"text/plain",
-		"text/javascript",
-		"application/javascript",
-		"application/x-javascript",
-		"application/json",
-		"application/atom+xml",
-		"application/rss+xml",
-		"image/svg+xml",
-	))
+	// Check if we need to enabled the compress middleware
+	if *cfg.InternalServer.Compress.Enabled {
+		r.Use(middleware.Compress(
+			cfg.InternalServer.Compress.Level,
+			cfg.InternalServer.Compress.Types...,
+		))
+	}
+
 	// Check if no cache is disabled or not
 	if cfg.InternalServer.Cache == nil || cfg.InternalServer.Cache.NoCacheEnabled {
 		// Apply no cache

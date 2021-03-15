@@ -76,5 +76,18 @@ func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*httptest.S
 		}
 	}
 
+	// Add file with content-type
+	_, err = s3Client.PutObject(&s3.PutObjectInput{
+		Body:   strings.NewReader("test"),
+		Bucket: aws.String(bucket),
+		Key:    aws.String("content-type/file.txt"),
+		Metadata: map[string]*string{
+			"Content-Type": aws.String("text/plain"),
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	return ts, nil
 }

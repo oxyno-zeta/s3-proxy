@@ -37,6 +37,14 @@ You can see a full example in the [Example section](#example)
 | cors       | [ServerCorsConfig](#servercorsconfig)   | No       | `nil`   | CORS configuration  |
 | cache      | [ServerCacheConfig](#servercacheconfig) | No       | `nil`   | Cache configuration |
 
+## ServerCompressConfig
+
+| Key     | Type     | Required | Default                                                                                                                                                                                       | Description                                |
+| ------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| enabled | Boolean  | No       | `true`                                                                                                                                                                                        |  Is the compression enabled ?              |
+| level   | Integer  | No       | `5`                                                                                                                                                                                           | The level of GZip compression              |
+| types   | [String] | No       | `["text/html","text/css","text/plain","text/javascript","application/javascript","application/x-javascript","application/json","application/atom+xml","application/rss+xml","image/svg+xml"]` | The content type list compressed in output |
+
 ## ServerCacheConfig
 
 | Key            | Type    | Required | Default | Description                             |
@@ -294,6 +302,23 @@ log:
 # server:
 #   listenAddr: ""
 #   port: 8080
+#   # Compress options
+#   compress:
+#     enabled: true
+#     # Compression level
+#     # level: 5
+#     # Types
+#     # types:
+#     #   - text/html
+#     #   - text/css
+#     #   - text/plain
+#     #   - text/javascript
+#     #   - application/javascript
+#     #   - application/x-javascript
+#     #   - application/json
+#     #   - application/atom+xml
+#     #   - application/rss+xml
+#     #   - image/svg+xml
 #   # CORS configuration
 #   cors:
 #     # Enabled

@@ -90,20 +90,14 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	// Create router
 	r := chi.NewRouter()
 
-	// A good base middleware stack
-	r.Use(middleware.Compress(
-		5, // nolint: gomnd // No constant for that
-		"text/html",
-		"text/css",
-		"text/plain",
-		"text/javascript",
-		"application/javascript",
-		"application/x-javascript",
-		"application/json",
-		"application/atom+xml",
-		"application/rss+xml",
-		"image/svg+xml",
-	))
+	// Check if we need to enabled the compress middleware
+	if *cfg.Server.Compress.Enabled {
+		r.Use(middleware.Compress(
+			cfg.Server.Compress.Level,
+			cfg.Server.Compress.Types...,
+		))
+	}
+
 	// Check if no cache is enabled or not
 	if cfg.Server.Cache == nil || cfg.Server.Cache.NoCacheEnabled {
 		// Apply no cache
