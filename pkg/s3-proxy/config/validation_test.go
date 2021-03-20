@@ -1,5 +1,3 @@
-// +build unit
-
 package config
 
 import (
@@ -318,8 +316,8 @@ func Test_validateBusinessConfig(t *testing.T) {
 			name: "Path is invalid in target",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test1": {
 							Name: "test1",
 							Bucket: &BucketConfig{
 								Name:   "bucket1",
@@ -337,14 +335,14 @@ func Test_validateBusinessConfig(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "path 0 in target 0 must ends with /",
+			errorString: "path 0 in target test1 must ends with /",
 		},
 		{
 			name: "Resource is invalid in target",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test1": {
 							Name: "test1",
 							Bucket: &BucketConfig{
 								Name:   "bucket1",
@@ -367,14 +365,14 @@ func Test_validateBusinessConfig(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "resource 0 from target 0 must have whitelist, basic configuration or oidc configuration",
+			errorString: "resource 0 from target test1 must have whitelist, basic configuration or oidc configuration",
 		},
 		{
 			name: "No actions are present in target",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test1": {
 							Name: "test1",
 							Bucket: &BucketConfig{
 								Name:   "bucket1",
@@ -394,14 +392,14 @@ func Test_validateBusinessConfig(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "at least one action must be declared in target 0",
+			errorString: "at least one action must be declared in target test1",
 		},
 		{
 			name: "No actions are enabled in target",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test1": {
 							Name: "test1",
 							Bucket: &BucketConfig{
 								Name:   "bucket1",
@@ -421,14 +419,14 @@ func Test_validateBusinessConfig(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "at least one action must be enabled in target 0",
+			errorString: "at least one action must be enabled in target test1",
 		},
 		{
 			name: "Configuration is valid without list targets",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test1": {
 							Name: "test1",
 							Bucket: &BucketConfig{
 								Name:   "bucket1",
@@ -454,8 +452,8 @@ func Test_validateBusinessConfig(t *testing.T) {
 			name: "Configuration is valid with list targets disabled",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test1": {
 							Name: "test1",
 							Bucket: &BucketConfig{
 								Name:   "bucket1",
@@ -482,8 +480,8 @@ func Test_validateBusinessConfig(t *testing.T) {
 			name: "List targets resource is invalid",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test1": {
 							Name: "test1",
 							Bucket: &BucketConfig{
 								Name:   "bucket1",
@@ -519,8 +517,8 @@ func Test_validateBusinessConfig(t *testing.T) {
 			name: "List targets path is invalid",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test1": {
 							Name: "test1",
 							Bucket: &BucketConfig{
 								Name:   "bucket1",
@@ -560,8 +558,8 @@ func Test_validateBusinessConfig(t *testing.T) {
 							},
 						},
 					},
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test1": {
 							Name: "test1",
 							Bucket: &BucketConfig{
 								Name:   "bucket1",
@@ -601,8 +599,8 @@ func Test_validateBusinessConfig(t *testing.T) {
 							},
 						},
 					},
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test1": {
 							Name: "test1",
 							Bucket: &BucketConfig{
 								Name:   "bucket1",
@@ -642,8 +640,8 @@ func Test_validateBusinessConfig(t *testing.T) {
 							},
 						},
 					},
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test1": {
 							Name: "test1",
 							Bucket: &BucketConfig{
 								Name:   "bucket1",
@@ -684,8 +682,8 @@ func Test_validateBusinessConfig(t *testing.T) {
 							},
 						},
 					},
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test1": {
 							Name: "test1",
 							Bucket: &BucketConfig{
 								Name:   "bucket1",
@@ -718,8 +716,8 @@ func Test_validateBusinessConfig(t *testing.T) {
 			name: "Configuration with list target and target is valid",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test1": {
 							Name: "test1",
 							Bucket: &BucketConfig{
 								Name:   "bucket1",

@@ -91,8 +91,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -139,8 +139,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -186,8 +186,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -240,8 +240,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -288,8 +288,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -346,8 +346,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -397,8 +397,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -451,8 +451,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -510,8 +510,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -561,8 +561,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -615,8 +615,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -670,8 +670,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -726,8 +726,8 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -804,8 +804,8 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -882,8 +882,8 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -961,8 +961,8 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1042,8 +1042,8 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1123,8 +1123,8 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1197,8 +1197,8 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1272,8 +1272,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1360,8 +1360,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1442,8 +1442,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1526,8 +1526,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1610,8 +1610,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1673,8 +1673,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1724,8 +1724,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1775,8 +1775,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1821,8 +1821,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1868,8 +1868,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1926,8 +1926,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -1992,8 +1992,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -2051,8 +2051,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -2109,8 +2109,8 @@ func TestPublicRouter(t *testing.T) {
 						InternalServerError: "../../../templates/internal-server-error.tpl",
 						Unauthorized:        "../../../templates/unauthorized.tpl",
 					},
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name: "target1",
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
@@ -2301,8 +2301,8 @@ func TestTracing(t *testing.T) {
 		InternalServerError: "../../../templates/internal-server-error.tpl",
 		Unauthorized:        "../../../templates/unauthorized.tpl",
 	}
-	targetsCfg := []*config.TargetConfig{
-		{
+	targetsCfg := map[string]*config.TargetConfig{
+		"target1": {
 			Name: "target1",
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
@@ -2520,8 +2520,8 @@ func TestOIDCAuthentication(t *testing.T) {
 		Unauthorized:        "../../../templates/unauthorized.tpl",
 	}
 	tracingConfig := &config.TracingConfig{}
-	targetsTpl := []*config.TargetConfig{
-		{
+	targetsTpl := map[string]*config.TargetConfig{
+		"target1": {
 			Name: "target1",
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
@@ -2550,7 +2550,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				GET: &config.GetActionConfig{Enabled: true},
 			},
 		},
-		{
+		"target-multiple-providers": {
 			Name: "target-multiple-providers",
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
@@ -2579,7 +2579,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				GET: &config.GetActionConfig{Enabled: true},
 			},
 		},
-		{
+		"target-opa-server": {
 			Name: "target-opa-server",
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
@@ -2610,7 +2610,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				GET: &config.GetActionConfig{Enabled: true},
 			},
 		},
-		{
+		"target-wrong-opa-server-url": {
 			Name: "target-wrong-opa-server-url",
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
@@ -2641,7 +2641,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				GET: &config.GetActionConfig{Enabled: true},
 			},
 		},
-		{
+		"target-with-group": {
 			Name: "target-with-group",
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
@@ -3309,8 +3309,8 @@ func TestCORS(t *testing.T) {
 		InternalServerError: "../../../templates/internal-server-error.tpl",
 		Unauthorized:        "../../../templates/unauthorized.tpl",
 	}
-	targetsCfg := []*config.TargetConfig{
-		{
+	targetsCfg := map[string]*config.TargetConfig{
+		"target1": {
 			Name: "target1",
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
@@ -3711,8 +3711,8 @@ func TestIndexLargeBucket(t *testing.T) {
 		InternalServerError: "../../../templates/internal-server-error.tpl",
 		Unauthorized:        "../../../templates/unauthorized.tpl",
 	}
-	targetsCfg := []*config.TargetConfig{
-		{
+	targetsCfg := map[string]*config.TargetConfig{
+		"target1": {
 			Name: "target1",
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
@@ -3825,8 +3825,8 @@ func TestListLargeBucketAndSmallMaxKeys(t *testing.T) {
 		InternalServerError: "../../../templates/internal-server-error.tpl",
 		Unauthorized:        "../../../templates/unauthorized.tpl",
 	}
-	targetsCfg := []*config.TargetConfig{
-		{
+	targetsCfg := map[string]*config.TargetConfig{
+		"target1": {
 			Name: "target1",
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
@@ -3935,8 +3935,8 @@ func TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys(t *testing.T) {
 		InternalServerError: "../../../templates/internal-server-error.tpl",
 		Unauthorized:        "../../../templates/unauthorized.tpl",
 	}
-	targetsCfg := []*config.TargetConfig{
-		{
+	targetsCfg := map[string]*config.TargetConfig{
+		"target1": {
 			Name: "target1",
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
@@ -4044,8 +4044,8 @@ func TestFolderWithSubFolders(t *testing.T) {
 		InternalServerError: "../../../templates/internal-server-error.tpl",
 		Unauthorized:        "../../../templates/unauthorized.tpl",
 	}
-	targetsCfg := []*config.TargetConfig{
-		{
+	targetsCfg := map[string]*config.TargetConfig{
+		"target1": {
 			Name: "target1",
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
@@ -4202,8 +4202,8 @@ func TestTrailingSlashRedirect(t *testing.T) {
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
 					Templates:   tplConfig,
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name:   "target1",
 							Bucket: bucketCfg,
 							Mount: &config.MountConfig{
@@ -4239,8 +4239,8 @@ func TestTrailingSlashRedirect(t *testing.T) {
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
 					Templates:   tplConfig,
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name:   "target1",
 							Bucket: bucketCfg,
 							Mount: &config.MountConfig{
@@ -4275,8 +4275,8 @@ func TestTrailingSlashRedirect(t *testing.T) {
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
 					Templates:   tplConfig,
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name:   "target1",
 							Bucket: bucketCfg,
 							Mount: &config.MountConfig{
@@ -4312,8 +4312,8 @@ func TestTrailingSlashRedirect(t *testing.T) {
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
 					Templates:   tplConfig,
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name:   "target1",
 							Bucket: bucketCfg,
 							Mount: &config.MountConfig{
@@ -4349,8 +4349,8 @@ func TestTrailingSlashRedirect(t *testing.T) {
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
 					Templates:   tplConfig,
-					Targets: []*config.TargetConfig{
-						{
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
 							Name:   "target1",
 							Bucket: bucketCfg,
 							Mount: &config.MountConfig{
