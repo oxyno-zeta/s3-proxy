@@ -255,15 +255,16 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 			name: "Load default values for targets (Actions)",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{},
+					Targets: map[string]*TargetConfig{
+						"test": {},
 					},
 				},
 			},
 			wantErr: false,
 			result: &Config{
-				Targets: []*TargetConfig{
-					{
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name:      "test",
 						Actions:   &ActionsConfig{GET: &GetActionConfig{Enabled: true}},
 						Templates: &TargetTemplateConfig{},
 					},
@@ -276,8 +277,8 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 			name: "Load default values for targets (Bucket region)",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test": {
 							Actions:   &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
 							Bucket:    &BucketConfig{},
 							Templates: &TargetTemplateConfig{},
@@ -287,8 +288,9 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 			},
 			wantErr: false,
 			result: &Config{
-				Targets: []*TargetConfig{
-					{
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name:      "test",
 						Actions:   &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
 						Bucket:    &BucketConfig{Region: DefaultBucketRegion, S3ListMaxKeys: DefaultBucketS3ListMaxKeys},
 						Templates: &TargetTemplateConfig{},
@@ -302,8 +304,8 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 			name: "Load default values for targets (resource)",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test": {
 							Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
 							Bucket:  &BucketConfig{Region: "test", S3ListMaxKeys: 100},
 							Resources: []*Resource{
@@ -325,8 +327,9 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 			},
 			wantErr: false,
 			result: &Config{
-				Targets: []*TargetConfig{
-					{
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name:    "test",
 						Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
 						Bucket:  &BucketConfig{Region: "test", S3ListMaxKeys: 100},
 						Resources: []*Resource{
@@ -348,89 +351,6 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 				},
 				ListTargets: &ListTargetsConfig{Enabled: false},
 				Tracing:     &TracingConfig{Enabled: false},
-			},
-		},
-		// DEPRECATED
-		{
-			name: "Load index document value from deprecated fields",
-			args: args{
-				out: &Config{
-					Targets: []*TargetConfig{
-						{IndexDocument: "index.html"},
-					},
-				},
-			},
-			wantErr: false,
-			result: &Config{
-				ListTargets: &ListTargetsConfig{Enabled: false},
-				Tracing:     &TracingConfig{Enabled: false},
-				Targets: []*TargetConfig{{
-					IndexDocument: "index.html",
-					Actions: &ActionsConfig{
-						GET: &GetActionConfig{IndexDocument: "index.html", Enabled: true},
-					},
-					Templates: &TargetTemplateConfig{},
-				}},
-			},
-		},
-		// DEPRECATED
-		{
-			name: "Ignore deprecated index document fields because official field is set",
-			args: args{
-				out: &Config{
-					Targets: []*TargetConfig{
-						{
-							Actions: &ActionsConfig{
-								GET: &GetActionConfig{
-									Enabled:       true,
-									IndexDocument: "fake.html",
-								},
-							},
-						},
-					},
-				},
-			},
-			wantErr: false,
-			result: &Config{
-				ListTargets: &ListTargetsConfig{Enabled: false},
-				Tracing:     &TracingConfig{Enabled: false},
-				Targets: []*TargetConfig{{
-					Actions: &ActionsConfig{
-						GET: &GetActionConfig{IndexDocument: "fake.html", Enabled: true},
-					},
-					Templates: &TargetTemplateConfig{},
-				}},
-			},
-		},
-		// DEPRECATED
-		{
-			name: "Ignore deprecated index document fields because official field is set (2)",
-			args: args{
-				out: &Config{
-					Targets: []*TargetConfig{
-						{
-							IndexDocument: "index.html",
-							Actions: &ActionsConfig{
-								GET: &GetActionConfig{
-									Enabled:       true,
-									IndexDocument: "fake.html",
-								},
-							},
-						},
-					},
-				},
-			},
-			wantErr: false,
-			result: &Config{
-				ListTargets: &ListTargetsConfig{Enabled: false},
-				Tracing:     &TracingConfig{Enabled: false},
-				Targets: []*TargetConfig{{
-					IndexDocument: "index.html",
-					Actions: &ActionsConfig{
-						GET: &GetActionConfig{IndexDocument: "fake.html", Enabled: true},
-					},
-					Templates: &TargetTemplateConfig{},
-				}},
 			},
 		},
 	}
@@ -469,8 +389,8 @@ func Test_loadAllCredentials(t *testing.T) {
 			name: "Skip target load credential",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test": {
 							Bucket: &BucketConfig{},
 						},
 					},
@@ -478,8 +398,8 @@ func Test_loadAllCredentials(t *testing.T) {
 			},
 			wantErr: false,
 			cfg: &Config{
-				Targets: []*TargetConfig{
-					{
+				Targets: map[string]*TargetConfig{
+					"test": {
 						Bucket: &BucketConfig{},
 					},
 				},
@@ -490,8 +410,8 @@ func Test_loadAllCredentials(t *testing.T) {
 			name: "Skip target resource basic auth load credential",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test": {
 							Resources: []*Resource{
 								{},
 							},
@@ -502,8 +422,8 @@ func Test_loadAllCredentials(t *testing.T) {
 			},
 			wantErr: false,
 			cfg: &Config{
-				Targets: []*TargetConfig{
-					{
+				Targets: map[string]*TargetConfig{
+					"test": {
 						Resources: []*Resource{
 							{},
 						},
@@ -517,8 +437,8 @@ func Test_loadAllCredentials(t *testing.T) {
 			name: "Load target resource basic auth credentials",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test": {
 							Resources: []*Resource{
 								{
 									Basic: &ResourceBasic{
@@ -539,8 +459,8 @@ func Test_loadAllCredentials(t *testing.T) {
 			},
 			wantErr: false,
 			cfg: &Config{
-				Targets: []*TargetConfig{
-					{
+				Targets: map[string]*TargetConfig{
+					"test": {
 						Resources: []*Resource{
 							{
 								Basic: &ResourceBasic{
@@ -568,8 +488,8 @@ func Test_loadAllCredentials(t *testing.T) {
 			name: "Load target bucket credentials",
 			args: args{
 				out: &Config{
-					Targets: []*TargetConfig{
-						{
+					Targets: map[string]*TargetConfig{
+						"test": {
 							Bucket: &BucketConfig{
 								Credentials: &BucketCredentialConfig{
 									AccessKey: &CredentialConfig{
@@ -586,8 +506,8 @@ func Test_loadAllCredentials(t *testing.T) {
 			},
 			wantErr: false,
 			cfg: &Config{
-				Targets: []*TargetConfig{
-					{
+				Targets: map[string]*TargetConfig{
+					"test": {
 						Bucket: &BucketConfig{
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{

@@ -199,7 +199,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	}
 
 	// Load all targets routes
-	funk.ForEach(cfg.Targets, func(tgt *config.TargetConfig) {
+	for _, tgt := range cfg.Targets {
 		// Manage domain
 		domain := tgt.Mount.Host
 		if domain == "" {
@@ -352,7 +352,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 		})
 		// Mount domain from target
 		hr.Map(domain, rt)
-	})
+	}
 
 	// Mount host router
 	r.Mount("/", hr)
@@ -415,7 +415,9 @@ func generateCors(cfg *config.ServerConfig, logger log.CorsLogger) *cors.Cors {
 }
 
 func generateTargetList(rw http.ResponseWriter, path string, logger log.Logger, cfg *config.Config) {
-	err := utils.TemplateExecution(cfg.Templates.TargetList, "", logger, rw, struct{ Targets []*config.TargetConfig }{Targets: cfg.Targets}, 200)
+	err := utils.TemplateExecution(cfg.Templates.TargetList, "", logger, rw, struct {
+		Targets map[string]*config.TargetConfig
+	}{Targets: cfg.Targets}, 200)
 	if err != nil {
 		logger.Error(err)
 		// ! In this case, use default default local files for error

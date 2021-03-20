@@ -13,14 +13,13 @@ import (
 
 func validateBusinessConfig(out *Config) error {
 	// Validate resources if they exists in all targets, validate target mount path and validate actions
-	for i := 0; i < len(out.Targets); i++ {
-		target := out.Targets[i]
+	for key, target := range out.Targets {
 		// Check if resources are declared
 		if target.Resources != nil {
 			for j := 0; j < len(target.Resources); j++ {
 				res := target.Resources[j]
 				// Validate resource
-				err := validateResource(fmt.Sprintf("resource %d from target %d", j, i), res, out.AuthProviders, target.Mount.Path)
+				err := validateResource(fmt.Sprintf("resource %d from target %s", j, key), res, out.AuthProviders, target.Mount.Path)
 				// Return error if exists
 				if err != nil {
 					return err
@@ -32,14 +31,14 @@ func validateBusinessConfig(out *Config) error {
 		for j := 0; j < len(pathList); j++ {
 			path := pathList[j]
 			// Check path value
-			err := validatePath(fmt.Sprintf("path %d in target %d", j, i), path)
+			err := validatePath(fmt.Sprintf("path %d in target %s", j, key), path)
 			if err != nil {
 				return err
 			}
 		}
 		// Check actions
 		if target.Actions.GET == nil && target.Actions.PUT == nil && target.Actions.DELETE == nil {
-			return fmt.Errorf("at least one action must be declared in target %d", i)
+			return fmt.Errorf("at least one action must be declared in target %s", key)
 		}
 		// This part will check that at least one action is enabled
 		oneMustBeEnabled := false
@@ -57,7 +56,7 @@ func validateBusinessConfig(out *Config) error {
 		}
 
 		if !oneMustBeEnabled {
-			return fmt.Errorf("at least one action must be enabled in target %d", i)
+			return fmt.Errorf("at least one action must be enabled in target %s", key)
 		}
 	}
 

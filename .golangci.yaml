@@ -349,7 +349,6 @@ linters:
     - unparam
     - dogsled
     - nakedret
-    - scopelint
     - gocritic
     - gochecknoinits
     - godox
@@ -375,6 +374,7 @@ linters:
     - gci
     - goerr113 # Forbid dynamic errors
     - nestif
+    - scopelint
   disable-all: false
   presets:
     - bugs

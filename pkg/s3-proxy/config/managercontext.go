@@ -420,7 +420,10 @@ func loadResourceValues(res *Resource) error {
 
 func loadBusinessDefaultValues(out *Config) error {
 	// Manage default values for targets
-	for _, item := range out.Targets {
+	for key, item := range out.Targets {
+		// Put target name in structure with key as value
+		item.Name = key
+
 		// Manage default configuration for target region
 		if item.Bucket != nil && item.Bucket.Region == "" {
 			item.Bucket.Region = DefaultBucketRegion
@@ -432,11 +435,6 @@ func loadBusinessDefaultValues(out *Config) error {
 		// Manage default configuration for target actions
 		if item.Actions == nil {
 			item.Actions = &ActionsConfig{GET: &GetActionConfig{Enabled: true}}
-		}
-		// DEPRECATED
-		// Manage default value of index document for deprecated value
-		if item.IndexDocument != "" && item.Actions.GET.IndexDocument == "" {
-			item.Actions.GET.IndexDocument = item.IndexDocument
 		}
 		// Manage default for target templates configurations
 		if item.Templates == nil {
