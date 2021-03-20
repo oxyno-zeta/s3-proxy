@@ -138,7 +138,7 @@ log:
 
 # Targets
 targets:
-  - name: first-bucket
+  first-bucket:
     ## Mount point
     mount:
       path:

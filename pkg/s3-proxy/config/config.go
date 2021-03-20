@@ -85,14 +85,14 @@ const oidcCallbackPathTemplate = "/auth/%s/callback"
 
 // Config Application Configuration.
 type Config struct {
-	Log            *LogConfig          `mapstructure:"log"`
-	Tracing        *TracingConfig      `mapstructure:"tracing"`
-	Server         *ServerConfig       `mapstructure:"server"`
-	InternalServer *ServerConfig       `mapstructure:"internalServer"`
-	Targets        []*TargetConfig     `mapstructure:"targets" validate:"gte=0,required,dive,required"`
-	Templates      *TemplateConfig     `mapstructure:"templates"`
-	AuthProviders  *AuthProviderConfig `mapstructure:"authProviders"`
-	ListTargets    *ListTargetsConfig  `mapstructure:"listTargets"`
+	Log            *LogConfig               `mapstructure:"log"`
+	Tracing        *TracingConfig           `mapstructure:"tracing"`
+	Server         *ServerConfig            `mapstructure:"server"`
+	InternalServer *ServerConfig            `mapstructure:"internalServer"`
+	Targets        map[string]*TargetConfig `mapstructure:"targets" validate:"required,dive"`
+	Templates      *TemplateConfig          `mapstructure:"templates"`
+	AuthProviders  *AuthProviderConfig      `mapstructure:"authProviders"`
+	ListTargets    *ListTargetsConfig       `mapstructure:"listTargets"`
 }
 
 // TracingConfig represents the Tracing configuration structure.
@@ -212,11 +212,10 @@ type ServerCorsConfig struct {
 
 // TargetConfig Bucket instance configuration.
 type TargetConfig struct {
-	Name           string                    `mapstructure:"name" validate:"required"`
+	Name           string                    `validate:"required"`
 	Bucket         *BucketConfig             `mapstructure:"bucket" validate:"required"`
 	Resources      []*Resource               `mapstructure:"resources" validate:"dive"`
 	Mount          *MountConfig              `mapstructure:"mount" validate:"required"`
-	IndexDocument  string                    `mapstructure:"indexDocument"` // DEPRECATED
 	Actions        *ActionsConfig            `mapstructure:"actions"`
 	Templates      *TargetTemplateConfig     `mapstructure:"templates"`
 	KeyRewriteList []*TargetKeyRewriteConfig `mapstructure:"keyRewriteList"`

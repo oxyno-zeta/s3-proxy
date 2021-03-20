@@ -57,7 +57,7 @@ func Test_managercontext_Load(t *testing.T) {
 			configs: map[string]string{
 				"config.yaml": `
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   bucket:
@@ -92,14 +92,172 @@ targets:
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
-				Targets: []*TargetConfig{
-					{
+				Targets: map[string]*TargetConfig{
+					"test": {
 						Name: "test",
 						Mount: &MountConfig{
 							Path: []string{"/test/"},
 						},
 						Bucket: &BucketConfig{
 							Name:          "bucket1",
+							Region:        "us-east-1",
+							S3ListMaxKeys: 1000,
+						},
+						Actions: &ActionsConfig{
+							GET: &GetActionConfig{Enabled: true},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+			},
+		},
+		{
+			name: "Should merge target across multiple files",
+			configs: map[string]string{
+				"config.yaml": `
+targets:
+ test:
+  mount:
+    path: /test/
+`,
+				"config2.yaml": `
+targets:
+ test:
+  bucket:
+    name: bucket1
+`,
+				"config3.yaml": `
+targets:
+ test:
+  bucket:
+    region: us-east-1
+`,
+			},
+			wantErr: false,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "info",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port:     8080,
+					Compress: svrCompressCfg,
+				},
+				InternalServer: &ServerConfig{
+					Port:     9090,
+					Compress: svrCompressCfg,
+				},
+				Templates: &TemplateConfig{
+					FolderList:          "templates/folder-list.tpl",
+					TargetList:          "templates/target-list.tpl",
+					NotFound:            "templates/not-found.tpl",
+					InternalServerError: "templates/internal-server-error.tpl",
+					Unauthorized:        "templates/unauthorized.tpl",
+					Forbidden:           "templates/forbidden.tpl",
+					BadRequest:          "templates/bad-request.tpl",
+				},
+				Tracing: &TracingConfig{Enabled: false},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name: "test",
+						Mount: &MountConfig{
+							Path: []string{"/test/"},
+						},
+						Bucket: &BucketConfig{
+							Name:          "bucket1",
+							Region:        "us-east-1",
+							S3ListMaxKeys: 1000,
+						},
+						Actions: &ActionsConfig{
+							GET: &GetActionConfig{Enabled: true},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+			},
+		},
+		{
+			name: "Should merge multiple targets across multiple files",
+			configs: map[string]string{
+				"config.yaml": `
+targets:
+ test:
+  mount:
+    path: /test/
+ test2:
+  mount:
+    path: /test2/
+`,
+				"config2.yaml": `
+targets:
+ test:
+  bucket:
+    name: bucket1
+ test2:
+  bucket:
+    name: bucket2
+    region: us-east-1
+`,
+				"config3.yaml": `
+targets:
+ test:
+  bucket:
+    region: us-east-1
+`,
+			},
+			wantErr: false,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "info",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port:     8080,
+					Compress: svrCompressCfg,
+				},
+				InternalServer: &ServerConfig{
+					Port:     9090,
+					Compress: svrCompressCfg,
+				},
+				Templates: &TemplateConfig{
+					FolderList:          "templates/folder-list.tpl",
+					TargetList:          "templates/target-list.tpl",
+					NotFound:            "templates/not-found.tpl",
+					InternalServerError: "templates/internal-server-error.tpl",
+					Unauthorized:        "templates/unauthorized.tpl",
+					Forbidden:           "templates/forbidden.tpl",
+					BadRequest:          "templates/bad-request.tpl",
+				},
+				Tracing: &TracingConfig{Enabled: false},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name: "test",
+						Mount: &MountConfig{
+							Path: []string{"/test/"},
+						},
+						Bucket: &BucketConfig{
+							Name:          "bucket1",
+							Region:        "us-east-1",
+							S3ListMaxKeys: 1000,
+						},
+						Actions: &ActionsConfig{
+							GET: &GetActionConfig{Enabled: true},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+					"test2": {
+						Name: "test2",
+						Mount: &MountConfig{
+							Path: []string{"/test2/"},
+						},
+						Bucket: &BucketConfig{
+							Name:          "bucket2",
 							Region:        "us-east-1",
 							S3ListMaxKeys: 1000,
 						},
@@ -119,7 +277,7 @@ server:
   compress:
     enabled: false
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   bucket:
@@ -158,8 +316,8 @@ targets:
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
-				Targets: []*TargetConfig{
-					{
+				Targets: map[string]*TargetConfig{
+					"test": {
 						Name: "test",
 						Mount: &MountConfig{
 							Path: []string{"/test/"},
@@ -186,7 +344,7 @@ server:
     enabled: true
 	level: 0
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   bucket:
@@ -205,7 +363,7 @@ server:
     enabled: true
 	types: []
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   bucket:
@@ -220,7 +378,7 @@ targets:
 			configs: map[string]string{
 				"config.yaml": `
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   bucket:
@@ -263,8 +421,8 @@ targets:
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
-				Targets: []*TargetConfig{
-					{
+				Targets: map[string]*TargetConfig{
+					"test": {
 						Name: "test",
 						Mount: &MountConfig{
 							Path: []string{"/test/"},
@@ -297,7 +455,7 @@ targets:
 			configs: map[string]string{
 				"config.yaml": `
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   bucket:
@@ -319,7 +477,7 @@ targets:
 			configs: map[string]string{
 				"config.yaml": `
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   bucket:
@@ -338,7 +496,7 @@ targets:
 			configs: map[string]string{
 				"config.yaml": `
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   bucket:
@@ -380,8 +538,8 @@ targets:
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
-				Targets: []*TargetConfig{
-					{
+				Targets: map[string]*TargetConfig{
+					"test": {
 						Name: "test",
 						Mount: &MountConfig{
 							Path: []string{"/test/"},
@@ -413,7 +571,7 @@ targets:
 			configs: map[string]string{
 				"config.yaml": `
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   templates:
@@ -435,7 +593,7 @@ targets:
 			configs: map[string]string{
 				"config.yaml": `
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   templates:
@@ -481,8 +639,8 @@ targets:
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
-				Targets: []*TargetConfig{
-					{
+				Targets: map[string]*TargetConfig{
+					"test": {
 						Name: "test",
 						Mount: &MountConfig{
 							Path: []string{"/test/"},
@@ -526,7 +684,7 @@ log:
 `,
 				"targets.yaml": `
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   bucket:
@@ -565,8 +723,8 @@ targets:
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
-				Targets: []*TargetConfig{
-					{
+				Targets: map[string]*TargetConfig{
+					"test": {
 						Name: "test",
 						Mount: &MountConfig{
 							Path: []string{"/test/"},
@@ -599,7 +757,7 @@ targets:
 log:
   level: error
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   keyRewriteList:
@@ -641,8 +799,8 @@ targets:
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
-				Targets: []*TargetConfig{
-					{
+				Targets: map[string]*TargetConfig{
+					"test": {
 						Name: "test",
 						Mount: &MountConfig{
 							Path: []string{"/test/"},
@@ -757,7 +915,7 @@ log:
 `,
 		"targets.yaml": `
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   bucket:
@@ -833,8 +991,8 @@ targets:
 		ListTargets: &ListTargetsConfig{
 			Enabled: false,
 		},
-		Targets: []*TargetConfig{
-			{
+		Targets: map[string]*TargetConfig{
+			"test": {
 				Name: "test",
 				Mount: &MountConfig{
 					Path: []string{"/test/"},
@@ -907,8 +1065,8 @@ log:
 			ListTargets: &ListTargetsConfig{
 				Enabled: false,
 			},
-			Targets: []*TargetConfig{
-				{
+			Targets: map[string]*TargetConfig{
+				"test": {
 					Name: "test",
 					Mount: &MountConfig{
 						Path: []string{"/test/"},
@@ -961,7 +1119,7 @@ log:
 `,
 		"targets.yaml": `
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   bucket:
@@ -1037,8 +1195,8 @@ targets:
 		ListTargets: &ListTargetsConfig{
 			Enabled: false,
 		},
-		Targets: []*TargetConfig{
-			{
+		Targets: map[string]*TargetConfig{
+			"test": {
 				Name: "test",
 				Mount: &MountConfig{
 					Path: []string{"/test/"},
@@ -1109,8 +1267,8 @@ targets:
 			ListTargets: &ListTargetsConfig{
 				Enabled: false,
 			},
-			Targets: []*TargetConfig{
-				{
+			Targets: map[string]*TargetConfig{
+				"test": {
 					Name: "test",
 					Mount: &MountConfig{
 						Path: []string{"/test/"},
@@ -1163,7 +1321,7 @@ log:
 `,
 		"targets.yaml": `
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   bucket:
@@ -1239,8 +1397,8 @@ targets:
 		ListTargets: &ListTargetsConfig{
 			Enabled: false,
 		},
-		Targets: []*TargetConfig{
-			{
+		Targets: map[string]*TargetConfig{
+			"test": {
 				Name: "test",
 				Mount: &MountConfig{
 					Path: []string{"/test/"},
@@ -1314,8 +1472,8 @@ configuration with error
 			ListTargets: &ListTargetsConfig{
 				Enabled: false,
 			},
-			Targets: []*TargetConfig{
-				{
+			Targets: map[string]*TargetConfig{
+				"test": {
 					Name: "test",
 					Mount: &MountConfig{
 						Path: []string{"/test/"},
@@ -1372,7 +1530,7 @@ authProviders:
 `,
 		"targets.yaml": `
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   bucket:
@@ -1454,8 +1612,8 @@ targets:
 		ListTargets: &ListTargetsConfig{
 			Enabled: false,
 		},
-		Targets: []*TargetConfig{
-			{
+		Targets: map[string]*TargetConfig{
+			"test": {
 				Name: "test",
 				Mount: &MountConfig{
 					Path: []string{"/test/"},
@@ -1534,8 +1692,8 @@ authProviders:
 					"provider1": {Realm: "prov1"},
 				},
 			},
-			Targets: []*TargetConfig{
-				{
+			Targets: map[string]*TargetConfig{
+				"test": {
 					Name: "test",
 					Mount: &MountConfig{
 						Path: []string{"/test/"},
@@ -1605,7 +1763,7 @@ authProviders:
 `,
 		"targets.yaml": `
 targets:
-- name: test
+ test:
   mount:
     path: /test/
   bucket:
@@ -1687,8 +1845,8 @@ targets:
 		ListTargets: &ListTargetsConfig{
 			Enabled: false,
 		},
-		Targets: []*TargetConfig{
-			{
+		Targets: map[string]*TargetConfig{
+			"test": {
 				Name: "test",
 				Mount: &MountConfig{
 					Path: []string{"/test/"},

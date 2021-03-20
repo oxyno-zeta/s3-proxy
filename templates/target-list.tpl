@@ -3,10 +3,9 @@
   <body>
     <h1>Target buckets list</h1>
     <ul>
-        {{- range .Targets }}
-        <li>{{ .Name }}:
-          {{- $target := . -}}
-          {{- range .Mount.Path }}
+        {{- range $key, $target := .Targets }}
+        <li>{{ $target.Name }}:
+          {{- range $target.Mount.Path }}
           <ul>
             <li>
               {{- if eq $target.Mount.Host "" -}}
