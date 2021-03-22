@@ -21,7 +21,7 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 			logger := log.GetLoggerFromContext(r.Context())
 
 			// Get request resource from request
-			resource := authentication.GetRequestResource(r)
+			resource := authentication.GetRequestResourceFromContext(r.Context())
 			// Check if resource exists
 			if resource == nil {
 				// Resource doesn't exists
@@ -42,7 +42,7 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 			}
 
 			// Get user from context
-			user := authentication.GetAuthenticatedUser(r)
+			user := authentication.GetAuthenticatedUserFromContext(r.Context())
 
 			// Check if resource is basic authentication
 			if resource.Basic != nil {
