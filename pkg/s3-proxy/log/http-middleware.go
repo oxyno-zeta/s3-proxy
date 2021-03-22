@@ -15,7 +15,7 @@ func HTTPAddLoggerToContextMiddleware() func(next http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			// Get logger from request
-			logger := GetLogEntry(r)
+			logger := getLogEntry(r)
 			// Add logger to request context in order to keep it
 			ctx := context.WithValue(r.Context(), loggerContextKey, logger)
 			// Create new request with new context
@@ -130,7 +130,7 @@ func (l *StructuredLoggerEntry) Panic(v interface{}, stack []byte) {
 // with a call to .Print(), .Info(), etc.
 
 // GetLogEntry get log entry.
-func GetLogEntry(r *http.Request) Logger {
+func getLogEntry(r *http.Request) Logger {
 	entry := middleware.GetLogEntry(r).(*StructuredLoggerEntry)
 
 	return entry.Logger
