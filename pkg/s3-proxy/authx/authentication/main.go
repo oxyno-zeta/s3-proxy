@@ -120,16 +120,16 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 	}
 }
 
-// GetAuthenticatedUser will get authenticated user in context.
-func GetAuthenticatedUser(req *http.Request) models.GenericUser {
-	res, _ := req.Context().Value(userContextKey).(models.GenericUser)
+// GetAuthenticatedUserFromContext will get authenticated user in context.
+func GetAuthenticatedUserFromContext(ctx context.Context) models.GenericUser {
+	res, _ := ctx.Value(userContextKey).(models.GenericUser)
 
 	return res
 }
 
-// GetRequestResource will get request resource in context.
-func GetRequestResource(req *http.Request) *config.Resource {
-	res, _ := req.Context().Value(resourceContextKey).(*config.Resource)
+// GetRequestResourceFromContext will get request resource in context.
+func GetRequestResourceFromContext(ctx context.Context) *config.Resource {
+	res, _ := ctx.Value(resourceContextKey).(*config.Resource)
 
 	return res
 }
