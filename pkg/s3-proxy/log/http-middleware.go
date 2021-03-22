@@ -1,27 +1,55 @@
-package middlewares
+package log
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/sirupsen/logrus"
 )
+
+// HTTPAddLoggerToContextMiddleware HTTP Middleware that will add request logger to request context.
+func HTTPAddLoggerToContextMiddleware() func(next http.Handler) http.Handler {
+	return func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			// Get logger from request
+			logger := GetLogEntry(r)
+			// Add logger to request context in order to keep it
+			ctx := context.WithValue(r.Context(), loggerContextKey, logger)
+			// Create new request with new context
+			r = r.WithContext(ctx)
+
+			// Next
+			h.ServeHTTP(rw, r)
+		})
+	}
+}
 
 // Copied and modified from https://github.com/go-chi/chi/blob/master/_examples/logging/main.go
 
 // NewStructuredLogger Generate a new structured logger.
-func NewStructuredLogger(logger log.Logger) func(next http.Handler) http.Handler {
-	return middleware.RequestLogger(&StructuredLogger{logger})
+func NewStructuredLogger(
+	logger Logger,
+	getTraceID func(r *http.Request) string,
+	getClientIP func(r *http.Request) string,
+	getRequestURI func(r *http.Request) string,
+) func(next http.Handler) http.Handler {
+	return middleware.RequestLogger(&StructuredLogger{
+		Logger:        logger,
+		GetTraceID:    getTraceID,
+		GetClientIP:   getClientIP,
+		GetRequestURI: getRequestURI,
+	})
 }
 
 // StructuredLogger structured logger.
 type StructuredLogger struct {
-	Logger log.Logger
+	Logger        Logger
+	GetTraceID    func(r *http.Request) string
+	GetClientIP   func(r *http.Request) string
+	GetRequestURI func(r *http.Request) string
 }
 
 // NewLogEntry new log entry.
@@ -29,13 +57,10 @@ func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	entry := &StructuredLoggerEntry{Logger: l.Logger}
 	logFields := map[string]interface{}{}
 
-	// Get request trace
-	trace := tracing.GetTraceFromRequest(r)
-	if trace != nil {
-		traceIDStr := trace.GetTraceID()
-		if traceIDStr != "" {
-			logFields["span_id"] = traceIDStr
-		}
+	// Get trace id
+	traceIDStr := l.GetTraceID(r)
+	if traceIDStr != "" {
+		logFields["span_id"] = traceIDStr
 	}
 
 	if reqID := middleware.GetReqID(r.Context()); reqID != "" {
@@ -53,9 +78,9 @@ func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 
 	logFields["remote_addr"] = r.RemoteAddr
 	logFields["user_agent"] = r.UserAgent()
-	logFields["client_ip"] = utils.ClientIP(r)
+	logFields["client_ip"] = l.GetClientIP(r)
 
-	logFields["uri"] = utils.GetRequestURI(r)
+	logFields["uri"] = l.GetRequestURI(r)
 
 	entry.Logger = entry.Logger.WithFields(logFields)
 
@@ -66,7 +91,7 @@ func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 
 // StructuredLoggerEntry Structured logger entry.
 type StructuredLoggerEntry struct {
-	Logger log.Logger
+	Logger Logger
 }
 
 // Write Write.
@@ -105,22 +130,8 @@ func (l *StructuredLoggerEntry) Panic(v interface{}, stack []byte) {
 // with a call to .Print(), .Info(), etc.
 
 // GetLogEntry get log entry.
-func GetLogEntry(r *http.Request) log.Logger {
+func GetLogEntry(r *http.Request) Logger {
 	entry := middleware.GetLogEntry(r).(*StructuredLoggerEntry)
 
 	return entry.Logger
-}
-
-// LogEntrySetField Log entry set field.
-func LogEntrySetField(r *http.Request, key string, value interface{}) {
-	if entry, ok := r.Context().Value(middleware.LogEntryCtxKey).(*StructuredLoggerEntry); ok {
-		entry.Logger = entry.Logger.WithField(key, value)
-	}
-}
-
-// LogEntrySetFields Log entry set fields.
-func LogEntrySetFields(r *http.Request, fields map[string]interface{}) {
-	if entry, ok := r.Context().Value(middleware.LogEntryCtxKey).(*StructuredLoggerEntry); ok {
-		entry.Logger = entry.Logger.WithFields(fields)
-	}
 }

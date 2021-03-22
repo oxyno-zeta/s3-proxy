@@ -5,6 +5,7 @@ import (
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
@@ -27,7 +28,7 @@ func BucketRequestContext(
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			// Get logger
-			logEntry := GetLogEntry(req)
+			logEntry := log.GetLoggerFromContext(req.Context())
 			// Get request URI
 			requestURI := req.URL.RequestURI()
 			errorhandlers := &bucket.ErrorHandlers{

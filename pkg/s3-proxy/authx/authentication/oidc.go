@@ -78,7 +78,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 
 	mux.HandleFunc(mainRedirectURLObject.Path, func(w http.ResponseWriter, r *http.Request) {
 		// Get logger from request
-		logEntry := middlewares.GetLogEntry(r)
+		logEntry := log.GetLoggerFromContext(r.Context())
 
 		// ! In this particular case, no bucket request context because mounted in general and not per target
 
@@ -188,7 +188,7 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			oidcAuthCfg := s.cfg.AuthProviders.OIDC[res.Provider]
 			// Get logger from request
-			logEntry := middlewares.GetLogEntry(r)
+			logEntry := log.GetLoggerFromContext(r.Context())
 			path := r.URL.RequestURI()
 			// Get bucket request context from request
 			brctx := middlewares.GetBucketRequestContext(r)

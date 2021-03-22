@@ -122,7 +122,21 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	// Put tracing middlewares
 	r.Use(httptracer.Tracer(svr.tracingSvc.GetTracer(), httptraCfg))
 	r.Use(middlewares.ImproveTracing())
-	r.Use(middlewares.NewStructuredLogger(svr.logger))
+	r.Use(log.NewStructuredLogger(
+		svr.logger,
+		func(r *http.Request) string {
+			// Get request trace
+			trace := tracing.GetTraceFromRequest(r)
+			if trace != nil {
+				return trace.GetTraceID()
+			}
+
+			return ""
+		},
+		utils.ClientIP,
+		utils.GetRequestURI,
+	))
+	r.Use(log.HTTPAddLoggerToContextMiddleware())
 	r.Use(svr.metricsCl.Instrument("business"))
 
 	// Check if cors is enabled
@@ -145,7 +159,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 
 	notFoundHandler := func(w http.ResponseWriter, r *http.Request) {
 		// Get logger
-		logger := middlewares.GetLogEntry(r)
+		logger := log.GetLoggerFromContext(r.Context())
 		// Get request URI
 		requestURI := r.URL.RequestURI()
 		utils.HandleNotFound(logger, w, cfg.Templates, requestURI)
@@ -154,7 +168,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	internalServerHandlerGen := func(err error) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			// Get logger
-			logger := middlewares.GetLogEntry(r)
+			logger := log.GetLoggerFromContext(r.Context())
 			// Get request URI
 			requestURI := r.URL.RequestURI()
 			utils.HandleInternalServerError(logger, w, cfg.Templates, requestURI, err)
@@ -184,7 +198,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				rt2 = rt2.With(authorization.Middleware(cfg, svr.metricsCl))
 
 				rt2.Get("/", func(rw http.ResponseWriter, req *http.Request) {
-					logEntry := middlewares.GetLogEntry(req)
+					logEntry := log.GetLoggerFromContext(req.Context())
 					generateTargetList(rw, req.RequestURI, logEntry, cfg)
 				})
 			})
@@ -301,7 +315,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						// Get request path
 						requestPath := chi.URLParam(req, "*")
 						// Get logger
-						logEntry := middlewares.GetLogEntry(req)
+						logEntry := log.GetLoggerFromContext(req.Context())
 						if err := req.ParseForm(); err != nil {
 							logEntry.Error(err)
 							brctx.HandleInternalServerError(err, path)
