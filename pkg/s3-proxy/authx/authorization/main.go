@@ -7,6 +7,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/authentication"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
@@ -17,7 +18,7 @@ var errAuthorizationMiddlewareNotSupported = errors.New("authorization not suppo
 func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			logger := middlewares.GetLogEntry(r)
+			logger := log.GetLoggerFromContext(r.Context())
 
 			// Get request resource from request
 			resource := authentication.GetRequestResource(r)
@@ -58,7 +59,6 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 
 			// Get request data
 			requestURI := r.URL.RequestURI()
-			// httpMethod := r.Method
 
 			// Get bucket request context
 			brctx := middlewares.GetBucketRequestContext(r)
