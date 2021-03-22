@@ -109,7 +109,6 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(middleware.Recoverer)
 	// Manage tracing
 	// Create http tracer configuration
 	httptraCfg := httptracer.Config{
@@ -138,6 +137,8 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	))
 	r.Use(log.HTTPAddLoggerToContextMiddleware())
 	r.Use(svr.metricsCl.Instrument("business"))
+	// Recover panic
+	r.Use(middleware.Recoverer)
 
 	// Check if cors is enabled
 	if cfg.Server != nil && cfg.Server.CORS != nil && cfg.Server.CORS.Enabled {
