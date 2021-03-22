@@ -14,7 +14,7 @@ func ImproveTracing() func(next http.Handler) http.Handler {
 			// Get request id
 			reqID := middleware.GetReqID(req.Context())
 			// Get trace trace from request
-			trace := tracing.GetTraceFromRequest(req)
+			trace := tracing.GetTraceFromContext(req.Context())
 			// Add request id to trace
 			trace.SetTag("http.request_id", reqID)
 

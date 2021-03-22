@@ -1,6 +1,7 @@
 package tracing
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/opentracing/opentracing-go"
@@ -38,8 +39,8 @@ func (t *trace) GetTraceID() string {
 	return ""
 }
 
-func GetTraceFromRequest(r *http.Request) Trace {
-	sp := opentracing.SpanFromContext(r.Context())
+func GetTraceFromContext(ctx context.Context) Trace {
+	sp := opentracing.SpanFromContext(ctx)
 	if sp == nil {
 		return nil
 	}
@@ -47,4 +48,14 @@ func GetTraceFromRequest(r *http.Request) Trace {
 	return &trace{
 		span: sp,
 	}
+}
+
+func GetTraceIDFromRequest(r *http.Request) string {
+	// Get request trace
+	trace := GetTraceFromContext(r.Context())
+	if trace != nil {
+		return trace.GetTraceID()
+	}
+
+	return ""
 }
