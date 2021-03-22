@@ -8,6 +8,7 @@ import (
 	"github.com/gobwas/glob"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
@@ -29,7 +30,7 @@ type service struct {
 func (s *service) Middleware(resources []*config.Resource) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			logEntry := middlewares.GetLogEntry(r)
+			logEntry := log.GetLoggerFromContext(r.Context())
 
 			// Check if resources are empty
 			if len(resources) == 0 {
