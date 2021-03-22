@@ -39,7 +39,7 @@ func BucketRequestContext(
 				HandleUnauthorizedWithTemplate:        utils.HandleUnauthorizedWithTemplate,
 			}
 			// Get request trace
-			trace := tracing.GetTraceFromRequest(req)
+			trace := tracing.GetTraceFromContext(req.Context())
 			// Generate new bucket client
 			brctx, err := bucket.NewClient(tgt, tplConfig, logEntry, path, rw, req, metricsCli, errorhandlers, trace)
 			if err != nil {

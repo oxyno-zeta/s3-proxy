@@ -79,15 +79,7 @@ func (svr *InternalServer) generateInternalRouter() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(log.NewStructuredLogger(
 		svr.logger,
-		func(r *http.Request) string {
-			// Get request trace
-			trace := tracing.GetTraceFromRequest(r)
-			if trace != nil {
-				return trace.GetTraceID()
-			}
-
-			return ""
-		},
+		tracing.GetTraceIDFromRequest,
 		utils.ClientIP,
 		utils.GetRequestURI,
 	))

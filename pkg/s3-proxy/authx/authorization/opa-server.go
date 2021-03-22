@@ -39,7 +39,7 @@ type opaAnswer struct {
 
 func isOPAServerAuthorized(req *http.Request, oidcUser *models.OIDCUser, resource *config.Resource) (bool, error) {
 	// Get trace from request
-	trace := tracing.GetTraceFromRequest(req)
+	trace := tracing.GetTraceFromContext(req.Context())
 	// Generate child trace
 	childTrace := trace.GetChildTrace("opa-server.request")
 	defer childTrace.Finish()
