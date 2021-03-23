@@ -83,7 +83,11 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 						if brctx == nil {
 							utils.HandleInternalServerError(logger, w, cfg.Templates, requestURI, err)
 						} else {
-							brctx.HandleInternalServerError(err, requestURI)
+							brctx.HandleInternalServerError(
+								r.Context(),
+								err,
+								requestURI,
+							)
 						}
 
 						return
@@ -100,7 +104,7 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 					if brctx == nil {
 						utils.HandleForbidden(logger, w, cfg.Templates, requestURI)
 					} else {
-						brctx.HandleForbidden(requestURI)
+						brctx.HandleForbidden(r.Context(), requestURI)
 					}
 
 					return
@@ -122,7 +126,7 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 			if brctx == nil {
 				utils.HandleInternalServerError(logger, w, cfg.Templates, requestURI, err)
 			} else {
-				brctx.HandleInternalServerError(err, requestURI)
+				brctx.HandleInternalServerError(r.Context(), err, requestURI)
 			}
 		})
 	}
