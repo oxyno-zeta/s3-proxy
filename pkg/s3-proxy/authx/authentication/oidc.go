@@ -203,7 +203,7 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 				if brctx == nil {
 					utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, path, err)
 				} else {
-					brctx.HandleInternalServerError(err, path)
+					brctx.HandleInternalServerError(r.Context(), err, path)
 				}
 
 				return
@@ -238,7 +238,7 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 				if brctx == nil {
 					utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, path, err)
 				} else {
-					brctx.HandleInternalServerError(err, path)
+					brctx.HandleInternalServerError(r.Context(), err, path)
 				}
 
 				return
@@ -266,7 +266,7 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 						if brctx == nil {
 							utils.HandleForbidden(logEntry, w, s.cfg.Templates, path)
 						} else {
-							brctx.HandleForbidden(path)
+							brctx.HandleForbidden(r.Context(), path)
 						}
 
 						return

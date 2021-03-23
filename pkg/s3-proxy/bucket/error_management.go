@@ -1,8 +1,13 @@
 package bucket
 
-import "path"
+import (
+	"context"
+	"path"
 
-func (rctx *requestContext) HandleInternalServerError(err error, requestPath string) {
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+)
+
+func (rctx *requestContext) HandleInternalServerError(ctx context.Context, err error, requestPath string) {
 	// Initialize content
 	content := ""
 	// Check if file is in bucket
@@ -20,10 +25,17 @@ func (rctx *requestContext) HandleInternalServerError(err error, requestPath str
 	}
 
 	rpath := path.Join(rctx.mountPath, requestPath)
-	rctx.errorsHandlers.HandleInternalServerErrorWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath, err)
+	rctx.errorsHandlers.HandleInternalServerErrorWithTemplate(
+		log.GetLoggerFromContext(ctx),
+		rctx.httpRW,
+		rctx.tplConfig,
+		content,
+		rpath,
+		err,
+	)
 }
 
-func (rctx *requestContext) HandleNotFound(requestPath string) {
+func (rctx *requestContext) HandleNotFound(ctx context.Context, requestPath string) {
 	// Initialize content
 	content := ""
 	// Check if file is in bucket
@@ -35,17 +47,23 @@ func (rctx *requestContext) HandleNotFound(requestPath string) {
 		// Try to get file from bucket
 		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.NotFound)
 		if err != nil {
-			rctx.HandleInternalServerError(err, requestPath)
+			rctx.HandleInternalServerError(ctx, err, requestPath)
 
 			return
 		}
 	}
 
 	rpath := path.Join(rctx.mountPath, requestPath)
-	rctx.errorsHandlers.HandleNotFoundWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath)
+	rctx.errorsHandlers.HandleNotFoundWithTemplate(
+		log.GetLoggerFromContext(ctx),
+		rctx.httpRW,
+		rctx.tplConfig,
+		content,
+		rpath,
+	)
 }
 
-func (rctx *requestContext) HandleForbidden(requestPath string) {
+func (rctx *requestContext) HandleForbidden(ctx context.Context, requestPath string) {
 	// Initialize content
 	content := ""
 	// Check if file is in bucket
@@ -57,17 +75,23 @@ func (rctx *requestContext) HandleForbidden(requestPath string) {
 		// Try to get file from bucket
 		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.Forbidden)
 		if err != nil {
-			rctx.HandleInternalServerError(err, requestPath)
+			rctx.HandleInternalServerError(ctx, err, requestPath)
 
 			return
 		}
 	}
 
 	rpath := path.Join(rctx.mountPath, requestPath)
-	rctx.errorsHandlers.HandleForbiddenWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath)
+	rctx.errorsHandlers.HandleForbiddenWithTemplate(
+		log.GetLoggerFromContext(ctx),
+		rctx.httpRW,
+		rctx.tplConfig,
+		content,
+		rpath,
+	)
 }
 
-func (rctx *requestContext) HandleBadRequest(err error, requestPath string) {
+func (rctx *requestContext) HandleBadRequest(ctx context.Context, err error, requestPath string) {
 	// Initialize content
 	content := ""
 	// Check if file is in bucket
@@ -79,17 +103,24 @@ func (rctx *requestContext) HandleBadRequest(err error, requestPath string) {
 		// Try to get file from bucket
 		content, err2 = rctx.loadTemplateContent(rctx.targetCfg.Templates.BadRequest)
 		if err2 != nil {
-			rctx.HandleInternalServerError(err2, requestPath)
+			rctx.HandleInternalServerError(ctx, err2, requestPath)
 
 			return
 		}
 	}
 
 	rpath := path.Join(rctx.mountPath, requestPath)
-	rctx.errorsHandlers.HandleBadRequestWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath, err)
+	rctx.errorsHandlers.HandleBadRequestWithTemplate(
+		log.GetLoggerFromContext(ctx),
+		rctx.httpRW,
+		rctx.tplConfig,
+		content,
+		rpath,
+		err,
+	)
 }
 
-func (rctx *requestContext) HandleUnauthorized(requestPath string) {
+func (rctx *requestContext) HandleUnauthorized(ctx context.Context, requestPath string) {
 	// Initialize content
 	content := ""
 	// Check if file is in bucket
@@ -101,12 +132,18 @@ func (rctx *requestContext) HandleUnauthorized(requestPath string) {
 		// Try to get file from bucket
 		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.Unauthorized)
 		if err != nil {
-			rctx.HandleInternalServerError(err, requestPath)
+			rctx.HandleInternalServerError(ctx, err, requestPath)
 
 			return
 		}
 	}
 
 	rpath := path.Join(rctx.mountPath, requestPath)
-	rctx.errorsHandlers.HandleUnauthorizedWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath)
+	rctx.errorsHandlers.HandleUnauthorizedWithTemplate(
+		log.GetLoggerFromContext(ctx),
+		rctx.httpRW,
+		rctx.tplConfig,
+		content,
+		rpath,
+	)
 }
