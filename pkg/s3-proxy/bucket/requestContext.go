@@ -427,7 +427,7 @@ func (rctx *requestContext) getFileContent(ctx context.Context, key string, inpu
 	}
 
 	// Read all body
-	bb, err := ioutil.ReadAll(*objOutput.Body)
+	bb, err := ioutil.ReadAll(objOutput.Body)
 	if err != nil {
 		return "", err
 	}
@@ -452,7 +452,7 @@ func (rctx *requestContext) streamFileForResponse(ctx context.Context, key strin
 	// Set headers from object
 	setHeadersFromObjectOutput(rctx.httpRW, objOutput)
 	// Copy data stream to output stream
-	_, err = io.Copy(rctx.httpRW, *objOutput.Body)
+	_, err = io.Copy(rctx.httpRW, objOutput.Body)
 	// Return potential error
 	return err
 }

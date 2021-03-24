@@ -76,7 +76,7 @@ type GetInput struct {
 
 // GetOutput Object output for S3 get object.
 type GetOutput struct {
-	Body               *io.ReadCloser
+	Body               io.ReadCloser
 	CacheControl       string
 	Expires            string
 	ContentDisposition string
