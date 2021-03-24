@@ -1,6 +1,7 @@
 package s3client
 
 import (
+	"context"
 	"errors"
 	"io"
 	"time"
@@ -10,18 +11,26 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 )
 
+// Manager S3 client manager.
+//go:generate mockgen -destination=./mocks/mock_Manager.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client Manager
+type Manager interface {
+	// GetClientForTarget will return a S3 client for a target.
+	GetClientForTarget(name string) Client
+	// Load will load all S3 clients.
+	Load() error
+}
+
 // Client S3 Context interface.
+//go:generate mockgen -destination=./mocks/mock_Client.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client Client
 type Client interface {
-	ListFilesAndDirectories(key string) ([]*ListElementOutput, error)
-	HeadObject(key string) (*HeadOutput, error)
-	GetObject(input *GetInput) (*GetOutput, error)
-	PutObject(input *PutInput) error
-	DeleteObject(key string) error
+	ListFilesAndDirectories(ctx context.Context, key string) ([]*ListElementOutput, error)
+	HeadObject(ctx context.Context, key string) (*HeadOutput, error)
+	GetObject(ctx context.Context, input *GetInput) (*GetOutput, error)
+	PutObject(ctx context.Context, input *PutInput) error
+	DeleteObject(ctx context.Context, key string) error
 }
 
 // FileType File type.
@@ -90,8 +99,16 @@ type PutInput struct {
 	StorageClass string
 }
 
-// NewS3Context New S3 Context.
-func NewS3Context(tgt *config.TargetConfig, logger log.Logger, metricsCtx metrics.Client, parentTrace tracing.Trace) (Client, error) {
+// NewManager will return a new S3 client manager.
+func NewManager(cfgManager config.Manager, metricsCl metrics.Client) Manager {
+	return &manager{
+		targetClient: map[string]Client{},
+		cfgManager:   cfgManager,
+		metricCl:     metricsCl,
+	}
+}
+
+func newClient(tgt *config.TargetConfig, metricsCtx metrics.Client) (Client, error) {
 	sessionConfig := &aws.Config{
 		Region: aws.String(tgt.Bucket.Region),
 	}
@@ -117,10 +134,8 @@ func NewS3Context(tgt *config.TargetConfig, logger log.Logger, metricsCtx metric
 	svcClient := s3.New(sess)
 
 	return &s3Context{
-		svcClient:   svcClient,
-		logger:      logger,
-		target:      tgt,
-		metricsCtx:  metricsCtx,
-		parentTrace: parentTrace,
+		svcClient:  svcClient,
+		target:     tgt,
+		metricsCtx: metricsCtx,
 	}, nil
 }
