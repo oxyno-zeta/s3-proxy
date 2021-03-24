@@ -16,7 +16,7 @@ func (rctx *requestContext) HandleInternalServerError(ctx context.Context, err e
 		rctx.targetCfg.Templates.InternalServerError != nil {
 		// Put error err2 to avoid erase of err
 		var err2 error
-		content, err2 = rctx.loadTemplateContent(rctx.targetCfg.Templates.InternalServerError)
+		content, err2 = rctx.loadTemplateContent(ctx, rctx.targetCfg.Templates.InternalServerError)
 		// Check if error exists
 		if err2 != nil {
 			// This is a particular case. In this case, remove old error and manage new one
@@ -45,7 +45,7 @@ func (rctx *requestContext) HandleNotFound(ctx context.Context, requestPath stri
 		// Declare error
 		var err error
 		// Try to get file from bucket
-		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.NotFound)
+		content, err = rctx.loadTemplateContent(ctx, rctx.targetCfg.Templates.NotFound)
 		if err != nil {
 			rctx.HandleInternalServerError(ctx, err, requestPath)
 
@@ -73,7 +73,7 @@ func (rctx *requestContext) HandleForbidden(ctx context.Context, requestPath str
 		// Declare error
 		var err error
 		// Try to get file from bucket
-		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.Forbidden)
+		content, err = rctx.loadTemplateContent(ctx, rctx.targetCfg.Templates.Forbidden)
 		if err != nil {
 			rctx.HandleInternalServerError(ctx, err, requestPath)
 
@@ -101,7 +101,7 @@ func (rctx *requestContext) HandleBadRequest(ctx context.Context, err error, req
 		// Declare error
 		var err2 error
 		// Try to get file from bucket
-		content, err2 = rctx.loadTemplateContent(rctx.targetCfg.Templates.BadRequest)
+		content, err2 = rctx.loadTemplateContent(ctx, rctx.targetCfg.Templates.BadRequest)
 		if err2 != nil {
 			rctx.HandleInternalServerError(ctx, err2, requestPath)
 
@@ -130,7 +130,7 @@ func (rctx *requestContext) HandleUnauthorized(ctx context.Context, requestPath 
 		// Declare error
 		var err error
 		// Try to get file from bucket
-		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.Unauthorized)
+		content, err = rctx.loadTemplateContent(ctx, rctx.targetCfg.Templates.Unauthorized)
 		if err != nil {
 			rctx.HandleInternalServerError(ctx, err, requestPath)
 

@@ -15,6 +15,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
@@ -23,19 +24,27 @@ import (
 )
 
 type Server struct {
-	logger     log.Logger
-	cfgManager config.Manager
-	metricsCl  metrics.Client
-	server     *http.Server
-	tracingSvc tracing.Service
+	logger          log.Logger
+	cfgManager      config.Manager
+	metricsCl       metrics.Client
+	server          *http.Server
+	tracingSvc      tracing.Service
+	s3clientManager s3client.Manager
 }
 
-func NewServer(logger log.Logger, cfgManager config.Manager, metricsCl metrics.Client, tracingSvc tracing.Service) *Server {
+func NewServer(
+	logger log.Logger,
+	cfgManager config.Manager,
+	metricsCl metrics.Client,
+	tracingSvc tracing.Service,
+	s3clientManager s3client.Manager,
+) *Server {
 	return &Server{
-		logger:     logger,
-		cfgManager: cfgManager,
-		metricsCl:  metricsCl,
-		tracingSvc: tracingSvc,
+		logger:          logger,
+		cfgManager:      cfgManager,
+		metricsCl:       metricsCl,
+		tracingSvc:      tracingSvc,
+		s3clientManager: s3clientManager,
 	}
 }
 
@@ -222,7 +231,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 		funk.ForEach(tgt.Mount.Path, func(path string) {
 			rt.Route(path, func(rt2 chi.Router) {
 				// Add Bucket request context middleware to initialize it
-				rt2.Use(middlewares.BucketRequestContext(tgt, cfg.Templates, path, svr.metricsCl))
+				rt2.Use(middlewares.BucketRequestContext(tgt, cfg.Templates, path, svr.metricsCl, svr.s3clientManager))
 
 				// Add authentication middleware to router
 				rt2.Use(authenticationSvc.Middleware(tgt.Resources))

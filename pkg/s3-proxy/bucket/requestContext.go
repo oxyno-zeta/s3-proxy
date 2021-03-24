@@ -21,13 +21,13 @@ import (
 
 // requestContext Bucket request context.
 type requestContext struct {
-	s3Context      s3client.Client
-	targetCfg      *config.TargetConfig
-	tplConfig      *config.TemplateConfig
-	mountPath      string
-	httpRW         http.ResponseWriter
-	httpReq        *http.Request
-	errorsHandlers *ErrorHandlers
+	s3ClientManager s3client.Manager
+	targetCfg       *config.TargetConfig
+	tplConfig       *config.TemplateConfig
+	mountPath       string
+	httpRW          http.ResponseWriter
+	httpReq         *http.Request
+	errorsHandlers  *ErrorHandlers
 }
 
 // Entry Entry with path for internal use (template).
@@ -103,7 +103,7 @@ func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
 	}
 
 	// Get object case
-	err := rctx.streamFileForResponse(key, input)
+	err := rctx.streamFileForResponse(ctx, key, input)
 	if err != nil {
 		// Check if error is a not found error
 		// nolint: gocritic // Don't want a switch
@@ -161,7 +161,7 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 		// Create index key path
 		indexKey := path.Join(key, rctx.targetCfg.Actions.GET.IndexDocument)
 		// Head index file in bucket
-		headOutput, err := rctx.s3Context.HeadObject(indexKey)
+		headOutput, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).HeadObject(ctx, indexKey)
 		// Check if error exists and not a not found error
 		if err != nil && !errors.Is(err, s3client.ErrNotFound) {
 			// Log error
@@ -174,7 +174,7 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 		// Check that we found the file
 		if headOutput != nil {
 			// Get data
-			err = rctx.streamFileForResponse(headOutput.Key, input)
+			err = rctx.streamFileForResponse(ctx, headOutput.Key, input)
 			// Check if error exists
 			if err != nil {
 				// Check if error is a not found error
@@ -208,7 +208,7 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 	}
 
 	// Directory listing case
-	s3Entries, err := rctx.s3Context.ListFilesAndDirectories(key)
+	s3Entries, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).ListFilesAndDirectories(ctx, key)
 	if err != nil {
 		logger.Error(err)
 		rctx.HandleInternalServerError(ctx, err, input.RequestPath)
@@ -228,7 +228,7 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 		tplFileName := filepath.Base(rctx.targetCfg.Templates.FolderList.Path)
 		// Get template content
 		var content string
-		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.FolderList)
+		content, err = rctx.loadTemplateContent(ctx, rctx.targetCfg.Templates.FolderList)
 		// Check if errors exists in load file content
 		if err == nil {
 			// Create template executor
@@ -318,7 +318,7 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 		// Check if allow override is enabled
 		if !rctx.targetCfg.Actions.PUT.Config.AllowOverride {
 			// Need to check if file already exists
-			headOutput, err := rctx.s3Context.HeadObject(key)
+			headOutput, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).HeadObject(ctx, key)
 			// Check if error is not found if exists
 			if err != nil && !errors.Is(err, s3client.ErrNotFound) {
 				logger.Error(err)
@@ -336,7 +336,7 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 		}
 	}
 	// Put file
-	err := rctx.s3Context.PutObject(input)
+	err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).PutObject(ctx, input)
 	if err != nil {
 		logger.Error(err)
 		rctx.HandleInternalServerError(ctx, err, inp.RequestPath)
@@ -364,7 +364,7 @@ func (rctx *requestContext) Delete(ctx context.Context, requestPath string) {
 		return
 	}
 	// Delete object in S3
-	err := rctx.s3Context.DeleteObject(key)
+	err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).DeleteObject(ctx, key)
 	// Check if error exists
 	if err != nil {
 		logger.Error(err)
@@ -395,11 +395,11 @@ func transformS3Entries(s3Entries []*s3client.ListElementOutput, rctx *requestCo
 	return entries
 }
 
-func (rctx *requestContext) loadTemplateContent(item *config.TargetTemplateConfigItem) (string, error) {
+func (rctx *requestContext) loadTemplateContent(ctx context.Context, item *config.TargetTemplateConfigItem) (string, error) {
 	// Check if it is in bucket
 	if item.InBucket {
 		// Try to get file from bucket
-		return rctx.getFileContent(item.Path, &GetInput{})
+		return rctx.getFileContent(ctx, item.Path, &GetInput{})
 	}
 
 	// Not in bucket, need to load from FS
@@ -412,9 +412,9 @@ func (rctx *requestContext) loadTemplateContent(item *config.TargetTemplateConfi
 	return string(by), nil
 }
 
-func (rctx *requestContext) getFileContent(key string, input *GetInput) (string, error) {
+func (rctx *requestContext) getFileContent(ctx context.Context, key string, input *GetInput) (string, error) {
 	// Get object from s3
-	objOutput, err := rctx.s3Context.GetObject(&s3client.GetInput{
+	objOutput, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).GetObject(ctx, &s3client.GetInput{
 		Key:               key,
 		IfModifiedSince:   input.IfModifiedSince,
 		IfMatch:           input.IfMatch,
@@ -436,9 +436,9 @@ func (rctx *requestContext) getFileContent(key string, input *GetInput) (string,
 	return string(bb), nil
 }
 
-func (rctx *requestContext) streamFileForResponse(key string, input *GetInput) error {
+func (rctx *requestContext) streamFileForResponse(ctx context.Context, key string, input *GetInput) error {
 	// Get object from s3
-	objOutput, err := rctx.s3Context.GetObject(&s3client.GetInput{
+	objOutput, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).GetObject(ctx, &s3client.GetInput{
 		Key:               key,
 		IfModifiedSince:   input.IfModifiedSince,
 		IfMatch:           input.IfMatch,

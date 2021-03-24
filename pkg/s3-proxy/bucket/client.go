@@ -18,6 +18,7 @@ import (
 var ErrRemovalFolder = errors.New("can't remove folder")
 
 // Client represents a client in order to GET, PUT or DELETE file on a bucket with a html output.
+//go:generate mockgen -destination=./mocks/mock_Client.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket Client
 type Client interface {
 	// Get allow to GET what's inside a request path
 	Get(ctx context.Context, input *GetInput)
@@ -72,19 +73,15 @@ func NewClient(
 	metricsCtx metrics.Client,
 	errorHandlers *ErrorHandlers,
 	parentTrace tracing.Trace,
-) (Client, error) {
-	s3ctx, err := s3client.NewS3Context(tgt, logger, metricsCtx, parentTrace)
-	if err != nil {
-		return nil, err
-	}
-
+	s3clientManager s3client.Manager,
+) Client {
 	return &requestContext{
-		s3Context:      s3ctx,
-		targetCfg:      tgt,
-		mountPath:      mountPath,
-		httpRW:         httpRW,
-		httpReq:        httpReq,
-		tplConfig:      tplConfig,
-		errorsHandlers: errorHandlers,
-	}, nil
+		s3ClientManager: s3clientManager,
+		targetCfg:       tgt,
+		mountPath:       mountPath,
+		httpRW:          httpRW,
+		httpReq:         httpReq,
+		tplConfig:       tplConfig,
+		errorsHandlers:  errorHandlers,
+	}
 }
