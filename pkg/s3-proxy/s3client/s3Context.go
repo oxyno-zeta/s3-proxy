@@ -200,7 +200,7 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 	}
 	// Build output
 	output := &GetOutput{
-		Body: &obj.Body,
+		Body: obj.Body,
 	}
 
 	if obj.CacheControl != nil {
