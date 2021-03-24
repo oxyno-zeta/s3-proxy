@@ -4,6 +4,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version"
@@ -67,12 +68,32 @@ func main() {
 		}
 	})
 
+	// Create S3 client manager
+	s3clientManager := s3client.NewManager(cfgManager, metricsCtx)
+	// Log
+	logger.Info("Load S3 clients for all targets")
+	// Load configuration
+	err = s3clientManager.Load()
+	// Check error
+	if err != nil {
+		logger.Fatal(err)
+	}
+	// Prepare on reload hook
+	cfgManager.AddOnChangeHook(func() {
+		logger.Info("Reload S3 clients for all targets")
+		err2 := s3clientManager.Load()
+		// Check error
+		if err2 != nil {
+			logger.Fatal(err2)
+		}
+	})
+
 	// Create internal server
 	intSvr := server.NewInternalServer(logger, cfgManager, metricsCtx)
 	// Generate server
 	intSvr.GenerateServer()
 	// Create server
-	svr := server.NewServer(logger, cfgManager, metricsCtx, tracingSvc)
+	svr := server.NewServer(logger, cfgManager, metricsCtx, tracingSvc, s3clientManager)
 	// Generate server
 	err = svr.GenerateServer()
 	if err != nil {
