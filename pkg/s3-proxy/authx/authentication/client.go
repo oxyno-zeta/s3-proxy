@@ -16,10 +16,11 @@ type Client interface {
 	OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConfig, mux chi.Router) error
 }
 
-func NewAuthenticationService(cfg *config.Config, metricsCl metrics.Client) Client {
+func NewAuthenticationService(cfg *config.Config, cfgManager config.Manager, metricsCl metrics.Client) Client {
 	return &service{
 		allVerifiers: map[string]*oidc.IDTokenVerifier{},
 		cfg:          cfg,
+		cfgManager:   cfgManager,
 		metricsCl:    metricsCl,
 	}
 }

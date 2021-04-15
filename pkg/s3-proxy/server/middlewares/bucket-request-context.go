@@ -8,7 +8,6 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"golang.org/x/net/context"
 )
@@ -33,18 +32,10 @@ func BucketRequestContext(
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			// Get logger
 			logEntry := log.GetLoggerFromContext(req.Context())
-			// Get request URI
-			errorhandlers := &bucket.ErrorHandlers{
-				HandleForbiddenWithTemplate:           utils.HandleForbiddenWithTemplate,
-				HandleNotFoundWithTemplate:            utils.HandleNotFoundWithTemplate,
-				HandleInternalServerErrorWithTemplate: utils.HandleInternalServerErrorWithTemplate,
-				HandleBadRequestWithTemplate:          utils.HandleBadRequestWithTemplate,
-				HandleUnauthorizedWithTemplate:        utils.HandleUnauthorizedWithTemplate,
-			}
 			// Get request trace
 			trace := tracing.GetTraceFromContext(req.Context())
 			// Generate new bucket client
-			brctx := bucket.NewClient(tgt, tplConfig, logEntry, path, rw, req, metricsCli, errorhandlers, trace, s3clientManager)
+			brctx := bucket.NewClient(tgt, tplConfig, logEntry, path, metricsCli, trace, s3clientManager)
 			// Add bucket structure to request context by creating a new context
 			ctx := context.WithValue(req.Context(), bucketRequestContextKey, brctx)
 			// Create new request with new context

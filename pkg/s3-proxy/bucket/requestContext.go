@@ -1,21 +1,15 @@
 package bucket
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"html/template"
-	"io"
+	"fmt"
 	"io/ioutil"
-	"net/http"
 	"path"
-	"path/filepath"
 	"strings"
-	"time"
 
-	"github.com/Masterminds/sprig/v3"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 )
 
@@ -25,28 +19,6 @@ type requestContext struct {
 	targetCfg       *config.TargetConfig
 	tplConfig       *config.TemplateConfig
 	mountPath       string
-	httpRW          http.ResponseWriter
-	httpReq         *http.Request
-	errorsHandlers  *ErrorHandlers
-}
-
-// Entry Entry with path for internal use (template).
-type Entry struct {
-	Type         string
-	ETag         string
-	Name         string
-	LastModified time.Time
-	Size         int64
-	Key          string
-	Path         string
-}
-
-// bucketListingData Bucket listing data for templating.
-type bucketListingData struct {
-	Entries    []*Entry
-	BucketName string
-	Name       string
-	Path       string
 }
 
 // generateStartKey will generate start key used in all functions.
@@ -91,6 +63,9 @@ func (rctx *requestContext) manageKeyRewrite(key string) string {
 
 // Get proxy GET requests.
 func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
+	// Get response handler
+	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
+
 	// Generate start key
 	key := rctx.generateStartKey(input.RequestPath)
 	// Manage key rewrite
@@ -112,50 +87,37 @@ func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
 			if rctx.targetCfg.Actions != nil && rctx.targetCfg.Actions.GET != nil &&
 				rctx.targetCfg.Actions.GET.RedirectWithTrailingSlashForNotFoundFile &&
 				!strings.HasSuffix(input.RequestPath, "/") {
-				//  Get path
-				p := rctx.httpReq.URL.Path
-				// Check if path doesn't start with /
-				if !strings.HasPrefix(p, "/") {
-					p = "/" + p
-				}
-				// Check if path doesn't end with /
-				if !strings.HasSuffix(p, "/") {
-					p += "/"
-				}
-				// Redirect
-				http.Redirect(rctx.httpRW, rctx.httpReq, p, http.StatusFound)
+				// Redirect with trailing slash
+				resHan.RedirectWithTrailingSlash()
 
 				return
 			}
 			// Not found
-			rctx.HandleNotFound(ctx, input.RequestPath)
+			resHan.NotFoundError(rctx.LoadFileContent)
 			// Stop
 			return
 		} else if errors.Is(err, s3client.ErrNotModified) {
 			// Not modified
-			rctx.httpRW.WriteHeader(http.StatusNotModified)
+			resHan.NotModified()
 
 			return
 		} else if errors.Is(err, s3client.ErrPreconditionFailed) {
 			// Precondition failed
-			rctx.httpRW.WriteHeader(http.StatusPreconditionFailed)
+			resHan.PreconditionFailed()
 
 			return
 		}
-		// Get logger
-		logger := log.GetLoggerFromContext(ctx)
-		// Log error
-		logger.Error(err)
 		// Manage error response
-		rctx.HandleInternalServerError(ctx, err, input.RequestPath)
+		resHan.InternalServerError(rctx.LoadFileContent, err)
 		// Stop
 		return
 	}
 }
 
 func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, input *GetInput) {
-	// Get logger
-	logger := log.GetLoggerFromContext(ctx)
+	// Get response handler
+	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
+
 	// Check if index document is activated
 	if rctx.targetCfg.Actions.GET.IndexDocument != "" {
 		// Create index key path
@@ -164,10 +126,8 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 		headOutput, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).HeadObject(ctx, indexKey)
 		// Check if error exists and not a not found error
 		if err != nil && !errors.Is(err, s3client.ErrNotFound) {
-			// Log error
-			logger.Error(err)
 			// Manage error response
-			rctx.HandleInternalServerError(ctx, err, input.RequestPath)
+			resHan.InternalServerError(rctx.LoadFileContent, err)
 			// Stop
 			return
 		}
@@ -181,24 +141,22 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 				// nolint: gocritic // Don't want a switch
 				if errors.Is(err, s3client.ErrNotFound) {
 					// Not found
-					rctx.HandleNotFound(ctx, input.RequestPath)
+					resHan.NotFoundError(rctx.LoadFileContent)
 
 					return
 				} else if errors.Is(err, s3client.ErrNotModified) {
 					// Not modified
-					rctx.httpRW.WriteHeader(http.StatusNotModified)
+					resHan.NotModified()
 
 					return
 				} else if errors.Is(err, s3client.ErrPreconditionFailed) {
 					// Precondition failed
-					rctx.httpRW.WriteHeader(http.StatusPreconditionFailed)
+					resHan.PreconditionFailed()
 
 					return
 				}
-				// Log error
-				logger.Error(err)
 				// Response with error
-				rctx.HandleInternalServerError(ctx, err, input.RequestPath)
+				resHan.InternalServerError(rctx.LoadFileContent, err)
 				// Stop
 				return
 			}
@@ -210,8 +168,7 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 	// Directory listing case
 	s3Entries, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).ListFilesAndDirectories(ctx, key)
 	if err != nil {
-		logger.Error(err)
-		rctx.HandleInternalServerError(ctx, err, input.RequestPath)
+		resHan.InternalServerError(rctx.LoadFileContent, err)
 		// Stop
 		return
 	}
@@ -220,69 +177,17 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 	bucketRootPrefixKey := rctx.targetCfg.Bucket.GetRootPrefix()
 	entries := transformS3Entries(s3Entries, rctx, bucketRootPrefixKey)
 
-	var tmpl *template.Template
-	// Check if per target template is declared
-	if rctx.targetCfg != nil && rctx.targetCfg.Templates != nil &&
-		rctx.targetCfg.Templates.FolderList != nil {
-		// Load template file name
-		tplFileName := filepath.Base(rctx.targetCfg.Templates.FolderList.Path)
-		// Get template content
-		var content string
-		content, err = rctx.loadTemplateContent(ctx, rctx.targetCfg.Templates.FolderList)
-		// Check if errors exists in load file content
-		if err == nil {
-			// Create template executor
-			tmpl, err = template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).Parse(content)
-		}
-	} else {
-		// Load template file name
-		tplFileName := filepath.Base(rctx.tplConfig.FolderList)
-		// Create template executor
-		tmpl, err = template.New(tplFileName).Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).ParseFiles(rctx.tplConfig.FolderList)
-	}
-
-	// Check error
-	if err != nil {
-		logger.Error(err)
-		rctx.HandleInternalServerError(ctx, err, input.RequestPath)
-		// Stop
-		return
-	}
-	// Create bucket list data for templating
-	data := &bucketListingData{
-		Entries:    entries,
-		BucketName: rctx.targetCfg.Bucket.Name,
-		Name:       rctx.targetCfg.Name,
-		Path:       rctx.mountPath + input.RequestPath,
-	}
-	// Generate template in buffer
-	buf := &bytes.Buffer{}
-	// Execute template
-	err = tmpl.Execute(buf, data)
-	if err != nil {
-		logger.Error(err)
-		rctx.HandleInternalServerError(ctx, err, input.RequestPath)
-		// Stop
-		return
-	}
-	// Set status code
-	rctx.httpRW.WriteHeader(http.StatusOK)
-	// Set the header and write the buffer to the http.ResponseWriter
-	rctx.httpRW.Header().Set("Content-Type", "text/html; charset=utf-8")
-	// Write buffer content to output
-	_, err = buf.WriteTo(rctx.httpRW)
-	if err != nil {
-		logger.Error(err)
-		rctx.HandleInternalServerError(ctx, err, input.RequestPath)
-		// Stop
-		return
-	}
+	// Answer
+	resHan.FoldersFilesList(
+		rctx.LoadFileContent,
+		entries,
+	)
 }
 
 // Put proxy PUT requests.
 func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
-	// Get logger
-	logger := log.GetLoggerFromContext(ctx)
+	// Get response handler
+	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
 	// Generate start key
 	key := rctx.generateStartKey(inp.RequestPath)
@@ -321,15 +226,16 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 			headOutput, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).HeadObject(ctx, key)
 			// Check if error is not found if exists
 			if err != nil && !errors.Is(err, s3client.ErrNotFound) {
-				logger.Error(err)
-				rctx.HandleInternalServerError(ctx, err, inp.RequestPath)
+				resHan.InternalServerError(rctx.LoadFileContent, err)
 				// Stop
 				return
 			}
 			// Check if file exists
 			if headOutput != nil {
-				logger.Errorf("File detected on path %s for PUT request and override isn't allowed", key)
-				rctx.HandleForbidden(ctx, inp.RequestPath)
+				// Create error
+				err := fmt.Errorf("file detected on path %s for PUT request and override isn't allowed", key)
+				// Response
+				resHan.ForbiddenError(rctx.LoadFileContent, err)
 				// Stop
 				return
 			}
@@ -338,19 +244,19 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 	// Put file
 	err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).PutObject(ctx, input)
 	if err != nil {
-		logger.Error(err)
-		rctx.HandleInternalServerError(ctx, err, inp.RequestPath)
+		resHan.InternalServerError(rctx.LoadFileContent, err)
 		// Stop
 		return
 	}
-	// Set status code
-	rctx.httpRW.WriteHeader(http.StatusNoContent)
+
+	// Answer with no content
+	resHan.NoContent()
 }
 
 // Delete will delete object in S3.
 func (rctx *requestContext) Delete(ctx context.Context, requestPath string) {
-	// Get logger
-	logger := log.GetLoggerFromContext(ctx)
+	// Get response handler
+	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
 	// Generate start key
 	key := rctx.generateStartKey(requestPath)
@@ -358,8 +264,7 @@ func (rctx *requestContext) Delete(ctx context.Context, requestPath string) {
 	key = rctx.manageKeyRewrite(key)
 	// Check that the path ends with a / for a directory or the main path special case (empty path)
 	if strings.HasSuffix(requestPath, "/") || requestPath == "" {
-		logger.Error(ErrRemovalFolder)
-		rctx.HandleInternalServerError(ctx, ErrRemovalFolder, requestPath)
+		resHan.InternalServerError(rctx.LoadFileContent, ErrRemovalFolder)
 		// Stop
 		return
 	}
@@ -367,21 +272,21 @@ func (rctx *requestContext) Delete(ctx context.Context, requestPath string) {
 	err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).DeleteObject(ctx, key)
 	// Check if error exists
 	if err != nil {
-		logger.Error(err)
-		rctx.HandleInternalServerError(ctx, err, requestPath)
+		resHan.InternalServerError(rctx.LoadFileContent, err)
 		// Stop
 		return
 	}
-	// Set status code
-	rctx.httpRW.WriteHeader(http.StatusNoContent)
+
+	// Answer with no content
+	resHan.NoContent()
 }
 
-func transformS3Entries(s3Entries []*s3client.ListElementOutput, rctx *requestContext, bucketRootPrefixKey string) []*Entry {
+func transformS3Entries(s3Entries []*s3client.ListElementOutput, rctx *requestContext, bucketRootPrefixKey string) []*responsehandler.Entry {
 	// Prepare result
-	entries := make([]*Entry, 0)
+	entries := make([]*responsehandler.Entry, 0)
 	// Loop over s3 entries
 	for _, item := range s3Entries {
-		entries = append(entries, &Entry{
+		entries = append(entries, &responsehandler.Entry{
 			Type:         item.Type,
 			ETag:         item.ETag,
 			Name:         item.Name,
@@ -395,39 +300,19 @@ func transformS3Entries(s3Entries []*s3client.ListElementOutput, rctx *requestCo
 	return entries
 }
 
-func (rctx *requestContext) loadTemplateContent(ctx context.Context, item *config.TargetTemplateConfigItem) (string, error) {
-	// Check if it is in bucket
-	if item.InBucket {
-		// Try to get file from bucket
-		return rctx.getFileContent(ctx, item.Path, &GetInput{})
-	}
-
-	// Not in bucket, need to load from FS
-	by, err := ioutil.ReadFile(item.Path)
-	// Check if error exists
-	if err != nil {
-		return "", err
-	}
-
-	return string(by), nil
-}
-
-func (rctx *requestContext) getFileContent(ctx context.Context, key string, input *GetInput) (string, error) {
+func (rctx *requestContext) LoadFileContent(ctx context.Context, path string) (string, error) {
 	// Get object from s3
 	objOutput, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).GetObject(ctx, &s3client.GetInput{
-		Key:               key,
-		IfModifiedSince:   input.IfModifiedSince,
-		IfMatch:           input.IfMatch,
-		IfNoneMatch:       input.IfNoneMatch,
-		IfUnmodifiedSince: input.IfUnmodifiedSince,
-		Range:             input.Range,
+		Key: path,
 	})
+	// Check error
 	if err != nil {
 		return "", err
 	}
 
 	// Read all body
 	bb, err := ioutil.ReadAll(objOutput.Body)
+	// Check error
 	if err != nil {
 		return "", err
 	}
@@ -437,6 +322,9 @@ func (rctx *requestContext) getFileContent(ctx context.Context, key string, inpu
 }
 
 func (rctx *requestContext) streamFileForResponse(ctx context.Context, key string, input *GetInput) error {
+	// Get response handler from context
+	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
+
 	// Get object from s3
 	objOutput, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).GetObject(ctx, &s3client.GetInput{
 		Key:               key,
@@ -446,13 +334,29 @@ func (rctx *requestContext) streamFileForResponse(ctx context.Context, key strin
 		IfUnmodifiedSince: input.IfUnmodifiedSince,
 		Range:             input.Range,
 	})
+	// Check error
 	if err != nil {
 		return err
 	}
-	// Set headers from object
-	setHeadersFromObjectOutput(rctx.httpRW, objOutput)
-	// Copy data stream to output stream
-	_, err = io.Copy(rctx.httpRW, objOutput.Body)
+
+	// Transform input
+	inp := &responsehandler.StreamInput{
+		Body:               objOutput.Body,
+		CacheControl:       objOutput.CacheControl,
+		Expires:            objOutput.Expires,
+		ContentDisposition: objOutput.ContentDisposition,
+		ContentEncoding:    objOutput.ContentEncoding,
+		ContentLanguage:    objOutput.ContentLanguage,
+		ContentLength:      objOutput.ContentLength,
+		ContentRange:       objOutput.ContentRange,
+		ContentType:        objOutput.ContentType,
+		ETag:               objOutput.ETag,
+		LastModified:       objOutput.LastModified,
+	}
+
+	// Stream
+	err = resHan.StreamFile(inp)
+
 	// Return potential error
 	return err
 }

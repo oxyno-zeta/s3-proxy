@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	oidc "github.com/coreos/go-oidc/v3/oidc"
@@ -10,8 +11,8 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
+	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 	"github.com/thoas/go-funk"
 	"golang.org/x/net/context"
 )
@@ -24,13 +25,19 @@ type service struct {
 	allVerifiers map[string]*oidc.IDTokenVerifier
 	cfg          *config.Config
 	metricsCl    metrics.Client
+	// This has been saved only for response handler.
+	// Not used inside the service functions because it is better to use fixed configuration to avoid conflict in case of reload and incoming request.
+	cfgManager config.Manager
 }
 
 // Middleware will redirect authentication to basic auth or OIDC depending on request path and resources declared.
 func (s *service) Middleware(resources []*config.Resource) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Get logger
 			logEntry := log.GetLoggerFromContext(r.Context())
+			// Get response handler
+			resHan := responsehandler.GetResponseHandlerFromContext(r.Context())
 
 			// Check if resources are empty
 			if len(resources) == 0 {
@@ -50,12 +57,11 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 			// Find resource
 			res, err := findResource(resources, requestURI, httpMethod)
 			if err != nil {
-				logEntry.Error(err)
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, requestURI, err)
+					responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
 				} else {
-					brctx.HandleInternalServerError(r.Context(), err, requestURI)
+					resHan.InternalServerError(brctx.LoadFileContent, err)
 				}
 
 				return
@@ -65,12 +71,12 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 			if res == nil {
 				// In this case, resource isn't found because not path not declared
 				// So access is forbidden
-				logEntry.Errorf("no resource found for path %s and method %s => Forbidden access", requestURI, httpMethod)
+				err2 := fmt.Errorf("no resource found for path %s and method %s => Forbidden access", requestURI, httpMethod)
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleForbidden(logEntry, w, s.cfg.Templates, requestURI)
+					responsehandler.GeneralForbiddenError(r, w, s.cfgManager, err2)
 				} else {
-					brctx.HandleForbidden(r.Context(), requestURI)
+					resHan.ForbiddenError(brctx.LoadFileContent, err2)
 				}
 
 				return
@@ -109,12 +115,11 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 
 			// Error, this case shouldn't arrive
 			err = errAuthenticationMiddlewareNotSupported
-			logEntry.Error(err)
 			// Check if bucket request context doesn't exist to use local default files
 			if brctx == nil {
-				utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, requestURI, err)
+				responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
 			} else {
-				brctx.HandleInternalServerError(r.Context(), err, requestURI)
+				resHan.InternalServerError(brctx.LoadFileContent, err)
 			}
 		})
 	}
