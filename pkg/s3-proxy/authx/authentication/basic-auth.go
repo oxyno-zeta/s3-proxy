@@ -7,8 +7,8 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 	"github.com/thoas/go-funk"
 	"golang.org/x/net/context"
 )
@@ -21,20 +21,23 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 			basicAuthUserConfigList := res.Basic.Credentials
 			// Get logger from request
 			logEntry := log.GetLoggerFromContext(r.Context())
-			path := r.URL.RequestURI()
 			// Get bucket request context from request
 			brctx := middlewares.GetBucketRequestContext(r)
+			// Get response handler
+			resHan := responsehandler.GetResponseHandlerFromContext(r.Context())
 
 			// Get basic auth information
 			username, password, ok := r.BasicAuth()
 			if !ok {
-				logEntry.Error("No basic auth detected in request")
+				// Create error
+				err := fmt.Errorf("no basic auth detected in request")
+				// Add header for basic auth realm
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleUnauthorized(logEntry, w, s.cfg.Templates, path)
+					responsehandler.GeneralUnauthorizedError(r, w, s.cfgManager, err)
 				} else {
-					brctx.HandleUnauthorized(r.Context(), path)
+					resHan.UnauthorizedError(brctx.LoadFileContent, err)
 				}
 
 				return
@@ -45,14 +48,17 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 				return cred.User == username
 			})
 
+			// Check if credential exists
 			if cred == nil {
-				logEntry.Errorf("Username %s not found in authorized users", username)
+				// Create error
+				err := fmt.Errorf("username %s not found in authorized users", username)
+				// Add header for basic auth realm
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleUnauthorized(logEntry, w, s.cfg.Templates, path)
+					responsehandler.GeneralUnauthorizedError(r, w, s.cfgManager, err)
 				} else {
-					brctx.HandleUnauthorized(r.Context(), path)
+					resHan.UnauthorizedError(brctx.LoadFileContent, err)
 				}
 
 				return
@@ -60,13 +66,15 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 
 			// Check password
 			if cred.(*config.BasicAuthUserConfig).Password.Value == "" || cred.(*config.BasicAuthUserConfig).Password.Value != password {
-				logEntry.Errorf("Username %s not authorized", username)
+				// Create error
+				err := fmt.Errorf("username %s not authorized", username)
+				// Add header for basic auth realm
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleUnauthorized(logEntry, w, s.cfg.Templates, path)
+					responsehandler.GeneralUnauthorizedError(r, w, s.cfgManager, err)
 				} else {
-					brctx.HandleUnauthorized(r.Context(), path)
+					resHan.UnauthorizedError(brctx.LoadFileContent, err)
 				}
 
 				return

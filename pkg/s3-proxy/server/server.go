@@ -15,6 +15,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
+	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
@@ -94,7 +95,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	cfg := svr.cfgManager.GetConfig()
 
 	// Create authentication service
-	authenticationSvc := authentication.NewAuthenticationService(cfg, svr.metricsCl)
+	authenticationSvc := authentication.NewAuthenticationService(cfg, svr.cfgManager, svr.metricsCl)
 
 	// Create router
 	r := chi.NewRouter()
@@ -160,20 +161,19 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	}
 
 	notFoundHandler := func(w http.ResponseWriter, r *http.Request) {
-		// Get logger
-		logger := log.GetLoggerFromContext(r.Context())
-		// Get request URI
-		requestURI := r.URL.RequestURI()
-		utils.HandleNotFound(logger, w, cfg.Templates, requestURI)
+		// Answer with general not found handler
+		responsehandler.GeneralNotFoundError(r, w, svr.cfgManager)
 	}
 
 	internalServerHandlerGen := func(err error) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			// Get logger
-			logger := log.GetLoggerFromContext(r.Context())
-			// Get request URI
-			requestURI := r.URL.RequestURI()
-			utils.HandleInternalServerError(logger, w, cfg.Templates, requestURI, err)
+			// Answer with general internal server error handler
+			responsehandler.GeneralInternalServerError(
+				r,
+				w,
+				svr.cfgManager,
+				err,
+			)
 		}
 	}
 
@@ -184,6 +184,8 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	if cfg.ListTargets.Enabled {
 		// Create new router
 		rt := chi.NewRouter()
+		// Add middleware in order to add response handler
+		rt.Use(responsehandler.HTTPMiddleware(svr.cfgManager, ""))
 		// Make list of resources from resource
 		resources := make([]*config.Resource, 0)
 		if cfg.ListTargets.Resource != nil {
@@ -197,11 +199,14 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				rt2 = rt2.With(authenticationSvc.Middleware(resources))
 
 				// Add authorization middleware to router
-				rt2 = rt2.With(authorization.Middleware(cfg, svr.metricsCl))
+				rt2 = rt2.With(authorization.Middleware(cfg, svr.cfgManager, svr.metricsCl))
 
 				rt2.Get("/", func(rw http.ResponseWriter, req *http.Request) {
-					logEntry := log.GetLoggerFromContext(req.Context())
-					generateTargetList(rw, req.RequestURI, logEntry, cfg)
+					// Get response handler
+					resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
+
+					// Handle target list
+					resHan.TargetList()
 				})
 			})
 		})
@@ -215,7 +220,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	}
 
 	// Load all targets routes
-	for _, tgt := range cfg.Targets {
+	for targetKey, tgt := range cfg.Targets {
 		// Manage domain
 		domain := tgt.Mount.Host
 		if domain == "" {
@@ -230,6 +235,9 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 		// Loop over path list
 		funk.ForEach(tgt.Mount.Path, func(path string) {
 			rt.Route(path, func(rt2 chi.Router) {
+				// Add middleware in order to add response handler
+				rt2.Use(responsehandler.HTTPMiddleware(svr.cfgManager, targetKey))
+
 				// Add Bucket request context middleware to initialize it
 				rt2.Use(middlewares.BucketRequestContext(tgt, cfg.Templates, path, svr.metricsCl, svr.s3clientManager))
 
@@ -237,7 +245,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				rt2.Use(authenticationSvc.Middleware(tgt.Resources))
 
 				// Add authorization middleware to router
-				rt2.Use(authorization.Middleware(cfg, svr.metricsCl))
+				rt2.Use(authorization.Middleware(cfg, svr.cfgManager, svr.metricsCl))
 
 				// Check if GET action is enabled
 				if tgt.Actions.GET != nil && tgt.Actions.GET.Enabled {
@@ -245,6 +253,8 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 					rt2.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
 						// Get bucket request context
 						brctx := middlewares.GetBucketRequestContext(req)
+						// Get response handler
+						resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
 
 						// Get request path
 						requestPath := chi.URLParam(req, "*")
@@ -261,7 +271,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 							ifModifiedSinceTime, err := http.ParseTime(ifModifiedSinceStr)
 							// Check error
 							if err != nil {
-								brctx.HandleBadRequest(req.Context(), err, requestPath)
+								resHan.BadRequestError(brctx.LoadFileContent, err)
 
 								return
 							}
@@ -288,7 +298,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 							ifUnmodifiedSinceTime, err := http.ParseTime(ifUnmodifiedSinceStr)
 							// Check error
 							if err != nil {
-								brctx.HandleBadRequest(req.Context(), err, requestPath)
+								resHan.BadRequestError(brctx.LoadFileContent, err)
 
 								return
 							}
@@ -314,13 +324,15 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 					rt2.Put("/*", func(rw http.ResponseWriter, req *http.Request) {
 						// Get bucket request context
 						brctx := middlewares.GetBucketRequestContext(req)
+						// Get response handler
+						resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
+
 						// Get request path
 						requestPath := chi.URLParam(req, "*")
 						// Get logger
 						logEntry := log.GetLoggerFromContext(req.Context())
 						if err := req.ParseForm(); err != nil {
-							logEntry.Error(err)
-							brctx.HandleInternalServerError(req.Context(), err, path)
+							resHan.InternalServerError(brctx.LoadFileContent, err)
 
 							return
 						}
@@ -328,15 +340,14 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						err := req.ParseMultipartForm(0)
 						if err != nil {
 							logEntry.Error(err)
-							brctx.HandleInternalServerError(req.Context(), err, path)
+							resHan.InternalServerError(brctx.LoadFileContent, err)
 
 							return
 						}
 						// Get file from form
 						file, fileHeader, err := req.FormFile("file")
 						if err != nil {
-							logEntry.Error(err)
-							brctx.HandleInternalServerError(req.Context(), err, path)
+							resHan.InternalServerError(brctx.LoadFileContent, err)
 
 							return
 						}
@@ -428,17 +439,4 @@ func generateCors(cfg *config.ServerConfig, logger log.CorsLogger) *cors.Cors {
 	cc.Log = logger
 	// Return
 	return cc
-}
-
-func generateTargetList(rw http.ResponseWriter, path string, logger log.Logger, cfg *config.Config) {
-	err := utils.TemplateExecution(cfg.Templates.TargetList, "", logger, rw, struct {
-		Targets map[string]*config.TargetConfig
-	}{Targets: cfg.Targets}, 200)
-	if err != nil {
-		logger.Error(err)
-		// ! In this case, use default default local files for error
-		utils.HandleInternalServerError(logger, rw, cfg.Templates, path, err)
-		// Stop here
-		return
-	}
 }

@@ -2,6 +2,7 @@ package authorization
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/authentication"
@@ -9,15 +10,22 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
+	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 )
 
 var errAuthorizationMiddlewareNotSupported = errors.New("authorization not supported")
 
-func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler) http.Handler {
+func Middleware(
+	cfg *config.Config,
+	// This has been saved only for response handler.
+	// Not used inside the service functions because it is better to use fixed configuration to avoid conflict in case of reload and incoming request.
+	cfgManager config.Manager,
+	metricsCl metrics.Client,
+) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Get logger from request
 			logger := log.GetLoggerFromContext(r.Context())
 
 			// Get request resource from request
@@ -57,11 +65,10 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 				return
 			}
 
-			// Get request data
-			requestURI := r.URL.RequestURI()
-
 			// Get bucket request context
 			brctx := middlewares.GetBucketRequestContext(r)
+			// Get response handler
+			resHan := responsehandler.GetResponseHandlerFromContext(r.Context())
 
 			// Check if resource is OIDC
 			if resource.OIDC != nil {
@@ -81,12 +88,11 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 						logger.Error(err)
 						// Check if bucket request context doesn't exist to use local default files
 						if brctx == nil {
-							utils.HandleInternalServerError(logger, w, cfg.Templates, requestURI, err)
+							responsehandler.GeneralInternalServerError(r, w, cfgManager, err)
 						} else {
-							brctx.HandleInternalServerError(
-								r.Context(),
+							resHan.InternalServerError(
+								brctx.LoadFileContent,
 								err,
-								requestURI,
 							)
 						}
 
@@ -99,12 +105,13 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 
 				// Check if not authorized
 				if !authorized {
-					logger.Errorf("Forbidden user %s", ouser.GetIdentifier())
+					// Create error
+					err := fmt.Errorf("forbidden user %s", ouser.GetIdentifier())
 					// Check if bucket request context doesn't exist to use local default files
 					if brctx == nil {
-						utils.HandleForbidden(logger, w, cfg.Templates, requestURI)
+						responsehandler.GeneralForbiddenError(r, w, cfgManager, err)
 					} else {
-						brctx.HandleForbidden(r.Context(), requestURI)
+						resHan.ForbiddenError(brctx.LoadFileContent, err)
 					}
 
 					return
@@ -124,9 +131,9 @@ func Middleware(cfg *config.Config, metricsCl metrics.Client) func(http.Handler)
 			logger.Error(err)
 			// Check if bucket request context doesn't exist to use local default files
 			if brctx == nil {
-				utils.HandleInternalServerError(logger, w, cfg.Templates, requestURI, err)
+				responsehandler.GeneralInternalServerError(r, w, cfgManager, err)
 			} else {
-				brctx.HandleInternalServerError(r.Context(), err, requestURI)
+				resHan.InternalServerError(brctx.LoadFileContent, err)
 			}
 		})
 	}
