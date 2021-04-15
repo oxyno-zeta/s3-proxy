@@ -13,6 +13,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 
@@ -86,9 +87,10 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 		reqQueryState := r.URL.Query().Get("state")
 		// Check if state exists
 		if reqQueryState == "" {
+			// Create error
 			err := errors.New("state not found in request")
-			logEntry.Error(err)
-			utils.HandleBadRequest(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+			// Answer
+			responsehandler.GeneralBadRequestError(r, w, s.cfgManager, err)
 
 			return
 		}
@@ -105,45 +107,50 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 
 		// Check state
 		if reqState != state {
+			// Create error
 			err := errors.New("state did not match")
-			logEntry.Error(err)
-			utils.HandleBadRequest(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+			// Answer
+			responsehandler.GeneralBadRequestError(r, w, s.cfgManager, err)
 
 			return
 		}
 
 		// Check if rdVal exists and that redirect url value is valid
 		if rdVal != "" && !isValidRedirect(rdVal) {
+			// Create error
 			err := errors.New("redirect url is invalid")
-			logEntry.Error(err)
-			utils.HandleBadRequest(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+			// Answer
+			responsehandler.GeneralBadRequestError(r, w, s.cfgManager, err)
 
 			return
 		}
 
 		oauth2Token, err := config.Exchange(ctx, r.URL.Query().Get("code"))
 		if err != nil {
+			// Create error
 			err = errors.New("failed to exchange token: " + err.Error())
-			logEntry.Error(err)
-			utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+			// Answer
+			responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
 
 			return
 		}
 
 		rawIDToken, ok := oauth2Token.Extra("id_token").(string)
 		if !ok {
+			// Create error
 			err = errors.New("no id_token field in token")
-			logEntry.Error(err)
-			utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+			// Answer
+			responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
 
 			return
 		}
 
 		idToken, err := verifier.Verify(ctx, rawIDToken)
 		if err != nil {
+			// Create error
 			err = errors.New("failed to verify ID Token: " + err.Error())
-			logEntry.Error(err)
-			utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+			// Answer
+			responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
 
 			return
 		}
@@ -153,8 +160,8 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 		// Try to open JWT token in order to verify that we can open it
 		err = idToken.Claims(&resp)
 		if err != nil {
-			logEntry.Error(err)
-			utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, oidcCfg.CallbackPath, err)
+			// Answer
+			responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
 
 			return
 		}
@@ -186,24 +193,25 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Get oidc configuration
 			oidcAuthCfg := s.cfg.AuthProviders.OIDC[res.Provider]
 			// Get logger from request
 			logEntry := log.GetLoggerFromContext(r.Context())
-			path := r.URL.RequestURI()
 			// Get bucket request context from request
+			// TODO change this to another package
 			brctx := middlewares.GetBucketRequestContext(r)
+			// Get response handler
+			resHan := responsehandler.GetResponseHandlerFromContext(r.Context())
 
 			// Get JWT Token from header or cookie
 			jwtContent, err := getJWTToken(logEntry, r, oidcAuthCfg.CookieName)
 			// Check if error exists
 			if err != nil {
-				logEntry.Error(err)
-
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, path, err)
+					responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
 				} else {
-					brctx.HandleInternalServerError(r.Context(), err, path)
+					resHan.InternalServerError(brctx.LoadFileContent, err)
 				}
 
 				return
@@ -236,9 +244,9 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 				logEntry.Error(err)
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
-					utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, path, err)
+					responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
 				} else {
-					brctx.HandleInternalServerError(r.Context(), err, path)
+					resHan.InternalServerError(brctx.LoadFileContent, err)
 				}
 
 				return
@@ -261,12 +269,13 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 				if oidcAuthCfg.EmailVerified {
 					emailVerified := claims["email_verified"].(bool)
 					if !emailVerified {
-						logEntry.Errorf("Email not verified for %s", email)
+						// Create error
+						err := fmt.Errorf("email not verified for %s", email)
 						// Check if bucket request context doesn't exist to use local default files
 						if brctx == nil {
-							utils.HandleForbidden(logEntry, w, s.cfg.Templates, path)
+							responsehandler.GeneralForbiddenError(r, w, s.cfgManager, err)
 						} else {
-							brctx.HandleForbidden(r.Context(), path)
+							resHan.ForbiddenError(brctx.LoadFileContent, err)
 						}
 
 						return
