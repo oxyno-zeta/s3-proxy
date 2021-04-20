@@ -44,7 +44,7 @@ func (h *handler) TargetList() {
 	// Create data structure
 	// TODO Add user
 	data := targetListData{
-		Request: h.generateRequestData(),
+		Request: h.req,
 		Targets: cfg.Targets,
 	}
 
@@ -124,7 +124,7 @@ func (h *handler) FoldersFilesList(
 
 	// Create bucket list data for templating
 	data := &bucketListingData{
-		Request:    h.generateRequestData(),
+		Request:    h.req,
 		Entries:    entries,
 		BucketName: targetCfg.Bucket.Name,
 		Name:       targetCfg.Name,

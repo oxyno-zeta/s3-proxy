@@ -267,9 +267,8 @@ func (h *handler) handleGenericErrorTemplate(
 
 	// Create data
 	// TODO Add user
-	// TODO Add full request
 	data := errorData{
-		Request: h.generateRequestData(),
+		Request: h.req,
 		Path:    h.req.URL.RequestURI(),
 		Error:   err,
 	}
@@ -347,7 +346,7 @@ func (h *handler) InternalServerError(
 
 	// Create data
 	data := errorData{
-		Request: h.generateRequestData(),
+		Request: h.req,
 		Path:    h.req.URL.RequestURI(),
 		Error:   err,
 	}
