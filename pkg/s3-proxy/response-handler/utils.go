@@ -66,68 +66,6 @@ func (h *handler) templateExecution(tplString string, data interface{}, status i
 	return nil
 }
 
-func (h *handler) generateRequestData() *requestData {
-	// Create url data
-	urlDt := &urlData{
-		Scheme:          h.req.URL.Scheme,
-		Opaque:          h.req.URL.Opaque,
-		Host:            h.req.URL.Host,
-		Path:            h.req.URL.Path,
-		RawPath:         h.req.URL.RawPath,
-		ForceQuery:      h.req.URL.ForceQuery,
-		RawQuery:        h.req.URL.RawQuery,
-		Fragment:        h.req.URL.Fragment,
-		RawFragment:     h.req.URL.RawFragment,
-		IsAbs:           h.req.URL.IsAbs(),
-		EscapedFragment: h.req.URL.EscapedFragment(),
-		EscapedPath:     h.req.URL.EscapedPath(),
-		Port:            h.req.URL.Port(),
-		RequestURI:      h.req.URL.RequestURI(),
-		String:          h.req.URL.String(),
-	}
-
-	// Create query values structure
-	qs := map[string]interface{}{}
-
-	// Loop over query values
-	for k, v := range h.req.URL.Query() {
-		// Store
-		qs[k] = v
-	}
-
-	// Store query values
-	urlDt.QueryParams = qs
-
-	// Create result data
-	res := &requestData{
-		Method:        h.req.Method,
-		Proto:         h.req.Proto,
-		ProtoMajor:    h.req.ProtoMajor,
-		ProtoMinor:    h.req.ProtoMinor,
-		ContentLength: h.req.ContentLength,
-		Close:         h.req.Close,
-		Host:          h.req.Host,
-		RemoteAddr:    h.req.RemoteAddr,
-		RequestURI:    h.req.RequestURI,
-		URL:           urlDt,
-	}
-
-	// Create header structure
-	hds := map[string]interface{}{}
-
-	// Loop over headers
-	for k, v := range h.req.Header {
-		// Store
-		hds[k] = v
-	}
-
-	// Store headers
-	res.Headers = hds
-
-	// Return
-	return res
-}
-
 func loadLocalFileContent(path string) (string, error) {
 	// Read file from file path
 	by, err := ioutil.ReadFile(path)
