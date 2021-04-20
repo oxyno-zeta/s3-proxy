@@ -17,7 +17,6 @@ import (
 type requestContext struct {
 	s3ClientManager s3client.Manager
 	targetCfg       *config.TargetConfig
-	tplConfig       *config.TemplateConfig
 	mountPath       string
 }
 

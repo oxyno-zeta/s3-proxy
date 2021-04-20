@@ -7,10 +7,7 @@ import (
 	"time"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 )
 
 // ErrRemovalFolder will be raised when end user is trying to delete a folder and not a file.
@@ -50,16 +47,13 @@ type PutInput struct {
 
 // NewClient will generate a new client to do GET,PUT or DELETE actions.
 func NewClient(
-	tgt *config.TargetConfig, tplConfig *config.TemplateConfig, logger log.Logger,
+	tgt *config.TargetConfig,
 	mountPath string,
-	metricsCtx metrics.Client,
-	parentTrace tracing.Trace,
 	s3clientManager s3client.Manager,
 ) Client {
 	return &requestContext{
 		s3ClientManager: s3clientManager,
 		targetCfg:       tgt,
 		mountPath:       mountPath,
-		tplConfig:       tplConfig,
 	}
 }
