@@ -309,6 +309,9 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 			// Create new request with new context
 			r = r.WithContext(ctx)
 
+			// Update response handler to have the latest context values
+			resHan.UpdateRequestAndResponse(r, w)
+
 			// Check if email is verified or not
 			if !ouser.EmailVerified {
 				// Create error

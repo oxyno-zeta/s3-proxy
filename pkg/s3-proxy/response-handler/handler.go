@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 )
 
@@ -14,6 +15,13 @@ type handler struct {
 	res        http.ResponseWriter
 	cfgManager config.Manager
 	targetKey  string
+}
+
+func (h *handler) UpdateRequestAndResponse(req *http.Request, res http.ResponseWriter) {
+	// Update request
+	h.req = req
+	// Update response
+	h.res = res
 }
 
 func (h *handler) PreconditionFailed() {
@@ -42,9 +50,9 @@ func (h *handler) TargetList() {
 	}
 
 	// Create data structure
-	// TODO Add user
 	data := targetListData{
 		Request: h.req,
+		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
 		Targets: cfg.Targets,
 	}
 
@@ -125,6 +133,7 @@ func (h *handler) FoldersFilesList(
 	// Create bucket list data for templating
 	data := &bucketListingData{
 		Request:    h.req,
+		User:       models.GetAuthenticatedUserFromContext(h.req.Context()),
 		Entries:    entries,
 		BucketName: targetCfg.Bucket.Name,
 		Name:       targetCfg.Name,
