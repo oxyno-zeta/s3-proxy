@@ -84,7 +84,6 @@ func Middleware(
 					var err error
 					authorized, err = isOPAServerAuthorized(r, ouser, resource)
 					if err != nil {
-						logger.Error(err)
 						// Check if bucket request context doesn't exist to use local default files
 						if brctx == nil {
 							responsehandler.GeneralInternalServerError(r, w, cfgManager, err)
@@ -127,7 +126,6 @@ func Middleware(
 
 			// Error, this case shouldn't arrive
 			err := errAuthorizationMiddlewareNotSupported
-			logger.Error(err)
 			// Check if bucket request context doesn't exist to use local default files
 			if brctx == nil {
 				responsehandler.GeneralInternalServerError(r, w, cfgManager, err)
