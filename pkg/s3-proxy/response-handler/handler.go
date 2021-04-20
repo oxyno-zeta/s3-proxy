@@ -46,7 +46,10 @@ func (h *handler) TargetList() {
 
 	// Create data structure
 	// TODO Add user
-	data := targetListData{Targets: cfg.Targets}
+	data := targetListData{
+		Request: h.generateRequestData(),
+		Targets: cfg.Targets,
+	}
 
 	// Execute template
 	err = h.templateExecution(tplContent, data, http.StatusOK)
@@ -133,6 +136,7 @@ func (h *handler) FoldersFilesList(
 
 	// Create bucket list data for templating
 	data := &bucketListingData{
+		Request:    h.generateRequestData(),
 		Entries:    entries,
 		BucketName: targetCfg.Bucket.Name,
 		Name:       targetCfg.Name,
