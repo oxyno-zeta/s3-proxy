@@ -268,10 +268,7 @@ func (h *handler) handleGenericErrorTemplate(
 	// Create data
 	// TODO Add user
 	// TODO Add full request
-	data := struct {
-		Path  string
-		Error error
-	}{
+	data := errorData{
 		Path:  h.req.URL.RequestURI(),
 		Error: err,
 	}
@@ -348,10 +345,7 @@ func (h *handler) InternalServerError(
 	}
 
 	// Create data
-	data := struct {
-		Path  string
-		Error error
-	}{Path: h.req.URL.RequestURI(), Error: err}
+	data := errorData{Path: h.req.URL.RequestURI(), Error: err}
 
 	// Execute template
 	err2 := h.templateExecution(tplContent, data, http.StatusInternalServerError)

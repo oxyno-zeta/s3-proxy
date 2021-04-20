@@ -7,3 +7,9 @@ type bucketListingData struct {
 	Name       string
 	Path       string
 }
+
+// errorData represents the structure for error templating.
+type errorData struct {
+	Path  string
+	Error error
+}
