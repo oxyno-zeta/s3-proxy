@@ -42,6 +42,14 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 				return
 			}
 
+			// Create Basic auth user
+			buser := &models.BasicAuthUser{Username: username}
+
+			// Add user to request context by creating a new context
+			ctx := models.SetAuthenticatedUserInContext(r.Context(), buser)
+			// Create new request with new context
+			r = r.WithContext(ctx)
+
 			// Find user credentials
 			cred := funk.Find(basicAuthUserConfigList, func(cred *config.BasicAuthUserConfig) bool {
 				return cred.User == username
@@ -78,14 +86,6 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 
 				return
 			}
-
-			// Create Basic auth user
-			buser := &models.BasicAuthUser{Username: username}
-
-			// Add user to request context by creating a new context
-			ctx := models.SetAuthenticatedUserInContext(r.Context(), buser)
-			// Create new request with new context
-			r = r.WithContext(ctx)
 
 			logEntry.Info("Basic auth user %s authenticated", buser.GetIdentifier())
 			s.metricsCl.IncAuthenticated("basic-auth", res.Provider)
