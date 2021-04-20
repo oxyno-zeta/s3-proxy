@@ -269,8 +269,9 @@ func (h *handler) handleGenericErrorTemplate(
 	// TODO Add user
 	// TODO Add full request
 	data := errorData{
-		Path:  h.req.URL.RequestURI(),
-		Error: err,
+		Request: h.generateRequestData(),
+		Path:    h.req.URL.RequestURI(),
+		Error:   err,
 	}
 
 	// Execute template
@@ -345,7 +346,11 @@ func (h *handler) InternalServerError(
 	}
 
 	// Create data
-	data := errorData{Path: h.req.URL.RequestURI(), Error: err}
+	data := errorData{
+		Request: h.generateRequestData(),
+		Path:    h.req.URL.RequestURI(),
+		Error:   err,
+	}
 
 	// Execute template
 	err2 := h.templateExecution(tplContent, data, http.StatusInternalServerError)
