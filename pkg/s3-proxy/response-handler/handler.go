@@ -46,9 +46,7 @@ func (h *handler) TargetList() {
 
 	// Create data structure
 	// TODO Add user
-	data := struct {
-		Targets map[string]*config.TargetConfig
-	}{Targets: cfg.Targets}
+	data := targetListData{Targets: cfg.Targets}
 
 	// Execute template
 	err = h.templateExecution(tplContent, data, http.StatusOK)
