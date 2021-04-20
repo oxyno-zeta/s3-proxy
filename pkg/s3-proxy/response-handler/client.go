@@ -81,6 +81,9 @@ type ResponseHandler interface {
 		loadFileContent func(ctx context.Context, path string) (string, error),
 		err error,
 	)
+	// UpdateRequestAndResponse will update request and response in object.
+	// This will used to update request and response in order to have the latest context values.
+	UpdateRequestAndResponse(req *http.Request, res http.ResponseWriter)
 }
 
 // NewHandler will return a new response handler object.

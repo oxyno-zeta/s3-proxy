@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/pkg/errors"
@@ -266,9 +267,9 @@ func (h *handler) handleGenericErrorTemplate(
 	}
 
 	// Create data
-	// TODO Add user
 	data := errorData{
 		Request: h.req,
+		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
 		Path:    h.req.URL.RequestURI(),
 		Error:   err,
 	}
@@ -347,6 +348,7 @@ func (h *handler) InternalServerError(
 	// Create data
 	data := errorData{
 		Request: h.req,
+		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
 		Path:    h.req.URL.RequestURI(),
 		Error:   err,
 	}

@@ -50,6 +50,9 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 			// Create new request with new context
 			r = r.WithContext(ctx)
 
+			// Update response handler to have the latest context values
+			resHan.UpdateRequestAndResponse(r, w)
+
 			// Find user credentials
 			cred := funk.Find(basicAuthUserConfigList, func(cred *config.BasicAuthUserConfig) bool {
 				return cred.User == username
