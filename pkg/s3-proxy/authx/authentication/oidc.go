@@ -316,7 +316,7 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 			}
 
 			// Add user to request context by creating a new context
-			ctx := context.WithValue(r.Context(), userContextKey, ouser)
+			ctx := models.SetAuthenticatedUserInContext(r.Context(), ouser)
 			// Create new request with new context
 			r = r.WithContext(ctx)
 
