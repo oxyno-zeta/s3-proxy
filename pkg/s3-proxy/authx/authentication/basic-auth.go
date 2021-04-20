@@ -10,7 +10,6 @@ import (
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/thoas/go-funk"
-	"golang.org/x/net/context"
 )
 
 func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) http.Handler {
@@ -84,7 +83,7 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 			buser := &models.BasicAuthUser{Username: username}
 
 			// Add user to request context by creating a new context
-			ctx := context.WithValue(r.Context(), userContextKey, buser)
+			ctx := models.SetAuthenticatedUserInContext(r.Context(), buser)
 			// Create new request with new context
 			r = r.WithContext(ctx)
 

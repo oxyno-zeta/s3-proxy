@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/authentication"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
@@ -29,7 +28,7 @@ func Middleware(
 			logger := log.GetLoggerFromContext(r.Context())
 
 			// Get request resource from request
-			resource := authentication.GetRequestResourceFromContext(r.Context())
+			resource := models.GetRequestResourceFromContext(r.Context())
 			// Check if resource exists
 			if resource == nil {
 				// Resource doesn't exists
@@ -50,7 +49,7 @@ func Middleware(
 			}
 
 			// Get user from context
-			user := authentication.GetAuthenticatedUserFromContext(r.Context())
+			user := models.GetAuthenticatedUserFromContext(r.Context())
 
 			// Check if resource is basic authentication
 			if resource.Basic != nil {

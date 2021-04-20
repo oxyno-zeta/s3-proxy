@@ -14,11 +14,8 @@ import (
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/thoas/go-funk"
-	"golang.org/x/net/context"
 )
 
-var userContextKey = &contextKey{name: "USER_CONTEXT_KEY"}
-var resourceContextKey = &contextKey{name: "RESOURCE_CONTEXT_KEY"}
 var errAuthenticationMiddlewareNotSupported = errors.New("authentication not supported")
 
 type service struct {
@@ -85,7 +82,7 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 			// Resource found case
 
 			// Add resource to request context in order to keep it ready for authorization
-			ctx := context.WithValue(r.Context(), resourceContextKey, res)
+			ctx := models.SetRequestResourceInContext(r.Context(), res)
 			// Create new request with new context
 			r = r.WithContext(ctx)
 
@@ -123,20 +120,6 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 			}
 		})
 	}
-}
-
-// GetAuthenticatedUserFromContext will get authenticated user in context.
-func GetAuthenticatedUserFromContext(ctx context.Context) models.GenericUser {
-	res, _ := ctx.Value(userContextKey).(models.GenericUser)
-
-	return res
-}
-
-// GetRequestResourceFromContext will get request resource in context.
-func GetRequestResourceFromContext(ctx context.Context) *config.Resource {
-	res, _ := ctx.Value(resourceContextKey).(*config.Resource)
-
-	return res
 }
 
 func findResource(resL []*config.Resource, requestURI string, httpMethod string) (*config.Resource, error) {
