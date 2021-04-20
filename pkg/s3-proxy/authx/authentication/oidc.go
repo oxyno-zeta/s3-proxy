@@ -266,20 +266,9 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 				email = emailClaim.(string)
 
 				// Check email verified
-				if oidcAuthCfg.EmailVerified {
+				if oidcAuthCfg.EmailVerified && claims["email_verified"] != nil {
+					// Get email verified field
 					emailVerified := claims["email_verified"].(bool)
-					if !emailVerified {
-						// Create error
-						err := fmt.Errorf("email not verified for %s", email)
-						// Check if bucket request context doesn't exist to use local default files
-						if brctx == nil {
-							responsehandler.GeneralForbiddenError(r, w, s.cfgManager, err)
-						} else {
-							resHan.ForbiddenError(brctx.LoadFileContent, err)
-						}
-
-						return
-					}
 					// Update email verified in user
 					ouser.EmailVerified = emailVerified
 				}
@@ -319,6 +308,20 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 			ctx := models.SetAuthenticatedUserInContext(r.Context(), ouser)
 			// Create new request with new context
 			r = r.WithContext(ctx)
+
+			// Check if email is verified or not
+			if !ouser.EmailVerified {
+				// Create error
+				err := fmt.Errorf("email not verified for user %s", ouser.GetIdentifier())
+				// Check if bucket request context doesn't exist to use local default files
+				if brctx == nil {
+					responsehandler.GeneralForbiddenError(r, w, s.cfgManager, err)
+				} else {
+					resHan.ForbiddenError(brctx.LoadFileContent, err)
+				}
+
+				return
+			}
 
 			logEntry.Infof("OIDC User authenticated: %s", ouser.GetIdentifier())
 			s.metricsCl.IncAuthenticated("oidc", res.Provider)
