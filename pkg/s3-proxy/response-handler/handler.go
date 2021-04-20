@@ -1,14 +1,11 @@
 package responsehandler
 
 import (
-	"bytes"
 	"context"
-	"html/template"
 	"io"
 	"net/http"
 	"strings"
 
-	"github.com/Masterminds/sprig/v3"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 )
 
@@ -125,15 +122,6 @@ func (h *handler) FoldersFilesList(
 		return
 	}
 
-	// Create template executor
-	tmpl, err := template.New("template-string-loaded").Funcs(sprig.HtmlFuncMap()).Funcs(s3ProxyFuncMap()).Parse(content)
-	// Check error
-	if err != nil {
-		h.InternalServerError(loadFileContent, err)
-		// Stop
-		return
-	}
-
 	// Create bucket list data for templating
 	data := &bucketListingData{
 		Request:    h.generateRequestData(),
@@ -143,24 +131,12 @@ func (h *handler) FoldersFilesList(
 		Path:       h.req.URL.RequestURI(),
 	}
 
-	// Generate template in buffer
-	buf := &bytes.Buffer{}
 	// Execute template
-	err = tmpl.Execute(buf, data)
+	err = h.templateExecution(content, data, http.StatusOK)
+	// Check error
 	if err != nil {
 		h.InternalServerError(loadFileContent, err)
-		// Stop
-		return
-	}
-	// Set status code
-	h.res.WriteHeader(http.StatusOK)
-	// Set the header and write the buffer to the http.ResponseWriter
-	h.res.Header().Set("Content-Type", "text/html; charset=utf-8")
-	// Write buffer content to output
-	_, err = buf.WriteTo(h.res)
-	if err != nil {
-		h.InternalServerError(loadFileContent, err)
-		// Stop
+
 		return
 	}
 }
