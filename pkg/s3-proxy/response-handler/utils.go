@@ -39,8 +39,11 @@ func (h *handler) templateExecution(tplString string, data interface{}, status i
 	h.res.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	// Load template from string
-	// TODO Add S3 proxy functions
-	tmpl, err := template.New("template-string-loaded").Funcs(sprig.HtmlFuncMap()).Parse(tplString)
+	tmpl, err := template.
+		New("template-string-loaded").
+		Funcs(sprig.HtmlFuncMap()).
+		Funcs(s3ProxyFuncMap()).
+		Parse(tplString)
 	// Check if error exists
 	if err != nil {
 		return err
