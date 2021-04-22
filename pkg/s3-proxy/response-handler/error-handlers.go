@@ -96,7 +96,7 @@ func (h *handler) BadRequestError(
 		if targetCfg != nil &&
 			targetCfg.Templates != nil {
 			// Save override
-			tplCfgItem = targetCfg.Templates.BadRequest
+			tplCfgItem = targetCfg.Templates.BadRequestError
 			helpersCfgItems = targetCfg.Templates.Helpers
 		}
 	}
@@ -107,7 +107,7 @@ func (h *handler) BadRequestError(
 		err,
 		tplCfgItem,
 		helpersCfgItems,
-		cfg.Templates.BadRequest,
+		cfg.Templates.BadRequestError,
 		cfg.Templates.Helpers,
 		http.StatusBadRequest,
 	)
@@ -134,7 +134,7 @@ func (h *handler) ForbiddenError(
 		if targetCfg != nil &&
 			targetCfg.Templates != nil {
 			// Save override
-			tplCfgItem = targetCfg.Templates.Forbidden
+			tplCfgItem = targetCfg.Templates.ForbiddenError
 			helpersCfgItems = targetCfg.Templates.Helpers
 		}
 	}
@@ -145,7 +145,7 @@ func (h *handler) ForbiddenError(
 		err,
 		tplCfgItem,
 		helpersCfgItems,
-		cfg.Templates.Forbidden,
+		cfg.Templates.ForbiddenError,
 		cfg.Templates.Helpers,
 		http.StatusForbidden,
 	)
@@ -174,7 +174,7 @@ func (h *handler) NotFoundError(
 		if targetCfg != nil &&
 			targetCfg.Templates != nil {
 			// Save override
-			tplCfgItem = targetCfg.Templates.NotFound
+			tplCfgItem = targetCfg.Templates.NotFoundError
 			helpersCfgItems = targetCfg.Templates.Helpers
 		}
 	}
@@ -185,7 +185,7 @@ func (h *handler) NotFoundError(
 		err,
 		tplCfgItem,
 		helpersCfgItems,
-		cfg.Templates.NotFound,
+		cfg.Templates.NotFoundError,
 		cfg.Templates.Helpers,
 		http.StatusNotFound,
 	)
@@ -211,9 +211,9 @@ func (h *handler) UnauthorizedError(
 		// Check if have a template override
 		if targetCfg != nil &&
 			targetCfg.Templates != nil &&
-			targetCfg.Templates.Unauthorized != nil {
+			targetCfg.Templates.UnauthorizedError != nil {
 			// Save override
-			tplCfgItem = targetCfg.Templates.Unauthorized
+			tplCfgItem = targetCfg.Templates.UnauthorizedError
 			helpersCfgItems = targetCfg.Templates.Helpers
 		}
 	}
@@ -224,7 +224,7 @@ func (h *handler) UnauthorizedError(
 		err,
 		tplCfgItem,
 		helpersCfgItems,
-		cfg.Templates.Unauthorized,
+		cfg.Templates.UnauthorizedError,
 		cfg.Templates.Helpers,
 		http.StatusUnauthorized,
 	)

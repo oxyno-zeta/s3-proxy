@@ -163,11 +163,11 @@ func (ctx *managercontext) loadDefaultConfigurationValues(vip *viper.Viper) {
 	vip.SetDefault("templates.helpers", []string{DefaultTemplateHelpersPath})
 	vip.SetDefault("templates.folderList", DefaultTemplateFolderListPath)
 	vip.SetDefault("templates.targetList", DefaultTemplateTargetListPath)
-	vip.SetDefault("templates.notFound", DefaultTemplateNotFoundPath)
+	vip.SetDefault("templates.notFoundError", DefaultTemplateNotFoundErrorPath)
 	vip.SetDefault("templates.internalServerError", DefaultTemplateInternalServerErrorPath)
-	vip.SetDefault("templates.unauthorized", DefaultTemplateUnauthorizedErrorPath)
-	vip.SetDefault("templates.forbidden", DefaultTemplateForbiddenErrorPath)
-	vip.SetDefault("templates.badRequest", DefaultTemplateBadRequestErrorPath)
+	vip.SetDefault("templates.unauthorizedError", DefaultTemplateUnauthorizedErrorPath)
+	vip.SetDefault("templates.forbiddenError", DefaultTemplateForbiddenErrorPath)
+	vip.SetDefault("templates.badRequestError", DefaultTemplateBadRequestErrorPath)
 }
 
 func generateViperInstances(files []os.FileInfo) []*viper.Viper {
