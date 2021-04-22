@@ -40,8 +40,15 @@ func (h *handler) TargetList() {
 	// Get configuration
 	cfg := h.cfgManager.GetConfig()
 
-	// Load template
-	tplContent, err := loadLocalFileContent(cfg.Templates.TargetList)
+	// Get template content
+	tplContent, err := h.loadAndConcatTemplateContents(
+		context.TODO(), // Empty context
+		nil,
+		nil,
+		// Here we can use the shortcut to append the template at the end
+		// Because target list won't use any template from a bucket.
+		append(cfg.Templates.Helpers, cfg.Templates.TargetList),
+	)
 	// Check error
 	if err != nil {
 		h.InternalServerError(nil, err)
@@ -103,24 +110,55 @@ func (h *handler) FoldersFilesList(
 	// Get target configuration
 	targetCfg := cfg.Targets[h.targetKey]
 
-	// Get template content
-	var content string
+	// Helpers list
+	var helpersCfgList []*config.TargetTemplateConfigItem
 
-	// Store error
-	var err error
+	// Target template config item
+	var tplConfigItem *config.TargetTemplateConfigItem
+
+	// Get helpers template configs
+	if targetCfg != nil && targetCfg.Templates != nil {
+		// Save
+		helpersCfgList = targetCfg.Templates.Helpers
+		tplConfigItem = targetCfg.Templates.FolderList
+	}
+
+	// Get content from helpers
+	// Note: separated because helpers and template are 2 different things and can be mixed
+	content, err := h.loadAndConcatTemplateContents(
+		ctx,
+		loadFileContent,
+		helpersCfgList,
+		cfg.Templates.Helpers,
+	)
+	// Check error
+	if err != nil {
+		h.InternalServerError(loadFileContent, err)
+		// Stop
+		return
+	}
 
 	// Check if per target template is declared
-	if targetCfg != nil && targetCfg.Templates != nil &&
-		targetCfg.Templates.FolderList != nil {
+	// Note: Done like this and not with list to avoid creating list of 1 element
+	// and to avoid loops etc to save potential memory and cpu
+	if tplConfigItem != nil {
 		// Load template content
-		content, err = h.loadTemplateContent(
+		tpl, err2 := h.loadTemplateContent(
 			ctx,
 			loadFileContent,
-			targetCfg.Templates.FolderList,
+			tplConfigItem,
 		)
+		// Concat
+		content = content + "\n" + tpl
+		// Save error
+		err = err2
 	} else {
 		// Load template
-		content, err = loadLocalFileContent(cfg.Templates.FolderList)
+		tpl, err2 := loadLocalFileContent(cfg.Templates.FolderList)
+		// Concat
+		content = content + "\n" + tpl
+		// Save error
+		err = err2
 	}
 
 	// Check error

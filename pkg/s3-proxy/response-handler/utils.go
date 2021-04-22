@@ -16,6 +16,51 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 )
 
+func (h *handler) loadAndConcatTemplateContents(
+	ctx context.Context,
+	loadS3FileContent func(ctx context.Context, path string) (string, error),
+	items []*config.TargetTemplateConfigItem,
+	pathList []string,
+) (string, error) {
+	// Initialize template content
+	tplContent := ""
+
+	// Check if there is a list of config items
+	if len(items) != 0 {
+		// Loop over items
+		for _, item := range items {
+			// Load template content
+			tpl, err := h.loadTemplateContent(
+				ctx,
+				loadS3FileContent,
+				item,
+			)
+			// Check error
+			if err != nil {
+				return "", err
+			}
+			// Concat
+			tplContent = tplContent + "\n" + tpl
+		}
+	} else {
+		// Load from local files
+		// Loop over local path
+		for _, item := range pathList {
+			// Load template content
+			tpl, err := loadLocalFileContent(item)
+			// Check error
+			if err != nil {
+				return "", err
+			}
+			// Concat
+			tplContent = tplContent + "\n" + tpl
+		}
+	}
+
+	// Return
+	return tplContent, nil
+}
+
 func (h *handler) loadTemplateContent(
 	ctx context.Context,
 	loadS3FileContent func(ctx context.Context, path string) (string, error),

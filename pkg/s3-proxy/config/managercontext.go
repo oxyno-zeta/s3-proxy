@@ -160,6 +160,7 @@ func (ctx *managercontext) loadDefaultConfigurationValues(vip *viper.Viper) {
 	vip.SetDefault("internalServer.compress.enabled", &DefaultServerCompressEnabled)
 	vip.SetDefault("internalServer.compress.level", DefaultServerCompressLevel)
 	vip.SetDefault("internalServer.compress.types", DefaultServerCompressTypes)
+	vip.SetDefault("templates.helpers", []string{DefaultTemplateHelpersPath})
 	vip.SetDefault("templates.folderList", DefaultTemplateFolderListPath)
 	vip.SetDefault("templates.targetList", DefaultTemplateTargetListPath)
 	vip.SetDefault("templates.notFound", DefaultTemplateNotFoundPath)
