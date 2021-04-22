@@ -21,7 +21,6 @@ type bucketListingData struct {
 type errorData struct {
 	Request *http.Request
 	User    models.GenericUser
-	Path    string
 	Error   error
 }
 

@@ -85,16 +85,19 @@ func (h *handler) BadRequestError(
 	// Variable to save target template configuration item override
 	var tplCfgItem *config.TargetTemplateConfigItem
 
+	// Store helpers template configs
+	var helpersCfgItems []*config.TargetTemplateConfigItem
+
 	// Check if a target has been involve in this request
 	if h.targetKey != "" {
 		// Get target from key
 		targetCfg := cfg.Targets[h.targetKey]
 		// Check if have a template override
 		if targetCfg != nil &&
-			targetCfg.Templates != nil &&
-			targetCfg.Templates.BadRequest != nil {
+			targetCfg.Templates != nil {
 			// Save override
 			tplCfgItem = targetCfg.Templates.BadRequest
+			helpersCfgItems = targetCfg.Templates.Helpers
 		}
 	}
 
@@ -103,7 +106,9 @@ func (h *handler) BadRequestError(
 		loadFileContent,
 		err,
 		tplCfgItem,
+		helpersCfgItems,
 		cfg.Templates.BadRequest,
+		cfg.Templates.Helpers,
 		http.StatusBadRequest,
 	)
 }
@@ -118,16 +123,19 @@ func (h *handler) ForbiddenError(
 	// Variable to save target template configuration item override
 	var tplCfgItem *config.TargetTemplateConfigItem
 
+	// Store helpers template configs
+	var helpersCfgItems []*config.TargetTemplateConfigItem
+
 	// Check if a target has been involve in this request
 	if h.targetKey != "" {
 		// Get target from key
 		targetCfg := cfg.Targets[h.targetKey]
 		// Check if have a template override
 		if targetCfg != nil &&
-			targetCfg.Templates != nil &&
-			targetCfg.Templates.Forbidden != nil {
+			targetCfg.Templates != nil {
 			// Save override
 			tplCfgItem = targetCfg.Templates.Forbidden
+			helpersCfgItems = targetCfg.Templates.Helpers
 		}
 	}
 
@@ -136,7 +144,9 @@ func (h *handler) ForbiddenError(
 		loadFileContent,
 		err,
 		tplCfgItem,
+		helpersCfgItems,
 		cfg.Templates.Forbidden,
+		cfg.Templates.Helpers,
 		http.StatusForbidden,
 	)
 }
@@ -153,16 +163,19 @@ func (h *handler) NotFoundError(
 	// Variable to save target template configuration item override
 	var tplCfgItem *config.TargetTemplateConfigItem
 
+	// Store helpers template configs
+	var helpersCfgItems []*config.TargetTemplateConfigItem
+
 	// Check if a target has been involve in this request
 	if h.targetKey != "" {
 		// Get target from key
 		targetCfg := cfg.Targets[h.targetKey]
 		// Check if have a template override
 		if targetCfg != nil &&
-			targetCfg.Templates != nil &&
-			targetCfg.Templates.NotFound != nil {
+			targetCfg.Templates != nil {
 			// Save override
 			tplCfgItem = targetCfg.Templates.NotFound
+			helpersCfgItems = targetCfg.Templates.Helpers
 		}
 	}
 
@@ -171,7 +184,9 @@ func (h *handler) NotFoundError(
 		loadFileContent,
 		err,
 		tplCfgItem,
+		helpersCfgItems,
 		cfg.Templates.NotFound,
+		cfg.Templates.Helpers,
 		http.StatusNotFound,
 	)
 }
@@ -186,6 +201,9 @@ func (h *handler) UnauthorizedError(
 	// Variable to save target template configuration item override
 	var tplCfgItem *config.TargetTemplateConfigItem
 
+	// Store helpers template configs
+	var helpersCfgItems []*config.TargetTemplateConfigItem
+
 	// Check if a target has been involve in this request
 	if h.targetKey != "" {
 		// Get target from key
@@ -196,6 +214,7 @@ func (h *handler) UnauthorizedError(
 			targetCfg.Templates.Unauthorized != nil {
 			// Save override
 			tplCfgItem = targetCfg.Templates.Unauthorized
+			helpersCfgItems = targetCfg.Templates.Helpers
 		}
 	}
 
@@ -204,7 +223,9 @@ func (h *handler) UnauthorizedError(
 		loadFileContent,
 		err,
 		tplCfgItem,
+		helpersCfgItems,
 		cfg.Templates.Unauthorized,
+		cfg.Templates.Helpers,
 		http.StatusUnauthorized,
 	)
 }
@@ -213,7 +234,9 @@ func (h *handler) handleGenericErrorTemplate(
 	loadFileContent func(ctx context.Context, path string) (string, error),
 	err error,
 	tplCfgItem *config.TargetTemplateConfigItem,
-	baseTemplateFilePath string,
+	helpersTplCfgItems []*config.TargetTemplateConfigItem,
+	baseTplFilePath string,
+	helpersTplFilePathList []string,
 	statusCode int,
 ) {
 	// Initialize content
@@ -226,56 +249,70 @@ func (h *handler) handleGenericErrorTemplate(
 	// Log error
 	logger.Error(err)
 
+	// Put error err2 to avoid erase of err
+	var err2 error
+
+	// Get helpers template content
+	tplContent, err2 = h.loadAndConcatTemplateContents(
+		ctx,
+		loadFileContent,
+		helpersTplCfgItems,
+		helpersTplFilePathList,
+	)
+	// Check if error exists
+	if err2 != nil {
+		// Return an internal server error
+		h.InternalServerError(
+			loadFileContent,
+			err2,
+		)
+
+		return
+	}
+
 	// Check if a target template configuration exists
+	// Note: Done like this and not with list to avoid creating list of 1 element
+	// and to avoid loops etc to save potential memory and cpu
 	if tplCfgItem != nil {
-		// Put error err2 to avoid erase of err
-		var err2 error
 		// Load template content
-		tplContent, err2 = h.loadTemplateContent(
+		tpl, err3 := h.loadTemplateContent(
 			ctx,
 			loadFileContent,
 			tplCfgItem,
 		)
-		// Check if error exists
-		if err2 != nil {
-			// Return an internal server error
-			h.InternalServerError(
-				loadFileContent,
-				err2,
-			)
-
-			return
-		}
+		// Concat
+		tplContent = tplContent + "\n" + tpl
+		// Save error
+		err2 = err3
+	} else {
+		// Get template from general configuration
+		tpl, err3 := loadLocalFileContent(baseTplFilePath)
+		// Concat
+		tplContent = tplContent + "\n" + tpl
+		// Save error
+		err2 = err3
 	}
 
-	// Check if content isn't already filled
-	if tplContent == "" {
-		// Put error err2 to avoid erase of err
-		var err2 error
-		// Get template from general configuration
-		tplContent, err2 = loadLocalFileContent(baseTemplateFilePath)
-		// Check if error exists
-		if err2 != nil {
-			// Return an internal server error
-			h.InternalServerError(
-				loadFileContent,
-				err2,
-			)
+	// Check if error exists
+	if err2 != nil {
+		// Return an internal server error
+		h.InternalServerError(
+			loadFileContent,
+			err2,
+		)
 
-			return
-		}
+		return
 	}
 
 	// Create data
 	data := errorData{
 		Request: h.req,
 		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
-		Path:    h.req.URL.RequestURI(),
 		Error:   err,
 	}
 
 	// Execute template
-	err2 := h.templateExecution(tplContent, data, statusCode)
+	err2 = h.templateExecution(tplContent, data, statusCode)
 	// Check error
 	if err2 != nil {
 		// Return an internal server error
@@ -302,59 +339,68 @@ func (h *handler) InternalServerError(
 	// Log error
 	logger.Error(err)
 
+	// Put error err2 to avoid erase of err
+	var err2 error
+
+	// Store target config
+	var targetCfg *config.TargetConfig
+
+	// Store internal server error template config
+	var tplCfgItem *config.TargetTemplateConfigItem
+
+	// Store helpers template configs
+	var helpersCfgItems []*config.TargetTemplateConfigItem
+
 	// Check if a target has been involve in this request
 	if h.targetKey != "" {
 		// Get target from key
-		targetCfg := cfg.Targets[h.targetKey]
-		// Check if file is in bucket
-		if targetCfg != nil &&
-			targetCfg.Templates != nil &&
-			targetCfg.Templates.InternalServerError != nil {
-			// Put error err2 to avoid erase of err
-			var err2 error
+		targetCfg = cfg.Targets[h.targetKey]
+		// Check if target config and templates exist
+		if targetCfg != nil && targetCfg.Templates != nil {
+			// Save data
+			tplCfgItem = targetCfg.Templates.InternalServerError
+			helpersCfgItems = targetCfg.Templates.Helpers
+		}
+	}
+
+	// Get helpers template content
+	tplContent, err2 = h.loadAndConcatTemplateContents(
+		ctx,
+		loadFileContent,
+		helpersCfgItems,
+		cfg.Templates.Helpers,
+	)
+
+	// Check if error 2 doesn't exist
+	if err2 == nil {
+		// Check if target config and template exists
+		if tplCfgItem != nil {
 			// Load template content
 			tplContent, err2 = h.loadTemplateContent(
 				ctx,
 				loadFileContent,
 				targetCfg.Templates.InternalServerError,
 			)
-			// Check if error exists
-			if err2 != nil {
-				// This is a particular case. In this case, remove old error and manage new one
-				err = err2
-
-				// Log error
-				logger.Error(err)
-			}
+		} else {
+			// Get template from general configuration
+			tplContent, err2 = loadLocalFileContent(cfg.Templates.InternalServerError)
 		}
 	}
 
-	// Check if content isn't already filled
-	if tplContent == "" {
-		// Put error err2 to avoid erase of err
-		var err2 error
-		// Get template from general configuration
-		tplContent, err2 = loadLocalFileContent(cfg.Templates.InternalServerError)
-		// Check if error exists
-		if err2 != nil {
-			// This is a particular case. In this case, remove old error and manage new one
-			err = err2
-
-			// Log error
-			logger.Error(err)
+	// Check if error 2 doesn't exist
+	// Note: this second if will manage second loading phase
+	if err2 == nil {
+		// Create data
+		data := errorData{
+			Request: h.req,
+			User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
+			Error:   err,
 		}
+
+		// Execute template
+		err2 = h.templateExecution(tplContent, data, http.StatusInternalServerError)
 	}
 
-	// Create data
-	data := errorData{
-		Request: h.req,
-		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
-		Path:    h.req.URL.RequestURI(),
-		Error:   err,
-	}
-
-	// Execute template
-	err2 := h.templateExecution(tplContent, data, http.StatusInternalServerError)
 	// Check error
 	if err2 != nil {
 		// New error
