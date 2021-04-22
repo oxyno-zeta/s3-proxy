@@ -65,6 +65,9 @@ const DefaultTemplateInternalServerErrorPath = "templates/internal-server-error.
 // DefaultTemplateUnauthorizedErrorPath Default template unauthorized error path.
 const DefaultTemplateUnauthorizedErrorPath = "templates/unauthorized.tpl"
 
+// DefaultTemplateHelpersPath Default template helpers path.
+const DefaultTemplateHelpersPath = "templates/_helpers.tpl"
+
 // DefaultOIDCScopes Default OIDC Scopes.
 var DefaultOIDCScopes = []string{"openid", "profile", "email"}
 
@@ -162,13 +165,14 @@ type BasicAuthUserConfig struct {
 
 // TemplateConfig Templates configuration.
 type TemplateConfig struct {
-	FolderList          string `mapstructure:"folderList" validate:"required"`
-	TargetList          string `mapstructure:"targetList" validate:"required"`
-	NotFound            string `mapstructure:"notFound" validate:"required"`
-	InternalServerError string `mapstructure:"internalServerError" validate:"required"`
-	Unauthorized        string `mapstructure:"unauthorized" validate:"required"`
-	Forbidden           string `mapstructure:"forbidden" validate:"required"`
-	BadRequest          string `mapstructure:"badRequest" validate:"required"`
+	Helpers             []string `mapstructure:"helpers" validate:"required,min=1"`
+	FolderList          string   `mapstructure:"folderList" validate:"required"`
+	TargetList          string   `mapstructure:"targetList" validate:"required"`
+	NotFound            string   `mapstructure:"notFound" validate:"required"`
+	InternalServerError string   `mapstructure:"internalServerError" validate:"required"`
+	Unauthorized        string   `mapstructure:"unauthorized" validate:"required"`
+	Forbidden           string   `mapstructure:"forbidden" validate:"required"`
+	BadRequest          string   `mapstructure:"badRequest" validate:"required"`
 }
 
 // ServerConfig Server configuration.
@@ -230,12 +234,13 @@ type TargetKeyRewriteConfig struct {
 
 // TargetTemplateConfig Target templates configuration to override default ones.
 type TargetTemplateConfig struct {
-	FolderList          *TargetTemplateConfigItem `mapstructure:"folderList"`
-	NotFound            *TargetTemplateConfigItem `mapstructure:"notFound"`
-	InternalServerError *TargetTemplateConfigItem `mapstructure:"internalServerError"`
-	Forbidden           *TargetTemplateConfigItem `mapstructure:"forbidden"`
-	Unauthorized        *TargetTemplateConfigItem `mapstructure:"unauthorized"`
-	BadRequest          *TargetTemplateConfigItem `mapstructure:"badRequest"`
+	Helpers             []*TargetTemplateConfigItem `mapstructure:"helpers"`
+	FolderList          *TargetTemplateConfigItem   `mapstructure:"folderList"`
+	NotFound            *TargetTemplateConfigItem   `mapstructure:"notFound"`
+	InternalServerError *TargetTemplateConfigItem   `mapstructure:"internalServerError"`
+	Forbidden           *TargetTemplateConfigItem   `mapstructure:"forbidden"`
+	Unauthorized        *TargetTemplateConfigItem   `mapstructure:"unauthorized"`
+	BadRequest          *TargetTemplateConfigItem   `mapstructure:"badRequest"`
 }
 
 // TargetTemplateConfigItem Target template configuration item.
