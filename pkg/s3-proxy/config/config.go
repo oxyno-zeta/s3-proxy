@@ -50,20 +50,20 @@ const DefaultTemplateFolderListPath = "templates/folder-list.tpl"
 // DefaultTemplateTargetListPath Default template target list path.
 const DefaultTemplateTargetListPath = "templates/target-list.tpl"
 
-// DefaultTemplateNotFoundPath Default template not found path.
-const DefaultTemplateNotFoundPath = "templates/not-found.tpl"
+// DefaultTemplateNotFoundErrorPath Default template not found path.
+const DefaultTemplateNotFoundErrorPath = "templates/not-found-error.tpl"
 
 // DefaultTemplateForbiddenErrorPath Default template forbidden path.
-const DefaultTemplateForbiddenErrorPath = "templates/forbidden.tpl"
+const DefaultTemplateForbiddenErrorPath = "templates/forbidden-error.tpl"
 
 // DefaultTemplateBadRequestErrorPath Default template bad request path.
-const DefaultTemplateBadRequestErrorPath = "templates/bad-request.tpl"
+const DefaultTemplateBadRequestErrorPath = "templates/bad-request-error.tpl"
 
 // DefaultTemplateInternalServerErrorPath Default template Internal server error path.
 const DefaultTemplateInternalServerErrorPath = "templates/internal-server-error.tpl"
 
 // DefaultTemplateUnauthorizedErrorPath Default template unauthorized error path.
-const DefaultTemplateUnauthorizedErrorPath = "templates/unauthorized.tpl"
+const DefaultTemplateUnauthorizedErrorPath = "templates/unauthorized-error.tpl"
 
 // DefaultTemplateHelpersPath Default template helpers path.
 const DefaultTemplateHelpersPath = "templates/_helpers.tpl"
@@ -168,11 +168,11 @@ type TemplateConfig struct {
 	Helpers             []string `mapstructure:"helpers" validate:"required,min=1"`
 	FolderList          string   `mapstructure:"folderList" validate:"required"`
 	TargetList          string   `mapstructure:"targetList" validate:"required"`
-	NotFound            string   `mapstructure:"notFound" validate:"required"`
+	NotFoundError       string   `mapstructure:"notFoundError" validate:"required"`
 	InternalServerError string   `mapstructure:"internalServerError" validate:"required"`
-	Unauthorized        string   `mapstructure:"unauthorized" validate:"required"`
-	Forbidden           string   `mapstructure:"forbidden" validate:"required"`
-	BadRequest          string   `mapstructure:"badRequest" validate:"required"`
+	UnauthorizedError   string   `mapstructure:"unauthorizedError" validate:"required"`
+	ForbiddenError      string   `mapstructure:"forbiddenError" validate:"required"`
+	BadRequestError     string   `mapstructure:"badRequestError" validate:"required"`
 }
 
 // ServerConfig Server configuration.
@@ -236,11 +236,11 @@ type TargetKeyRewriteConfig struct {
 type TargetTemplateConfig struct {
 	Helpers             []*TargetTemplateConfigItem `mapstructure:"helpers"`
 	FolderList          *TargetTemplateConfigItem   `mapstructure:"folderList"`
-	NotFound            *TargetTemplateConfigItem   `mapstructure:"notFound"`
+	NotFoundError       *TargetTemplateConfigItem   `mapstructure:"notFoundError"`
 	InternalServerError *TargetTemplateConfigItem   `mapstructure:"internalServerError"`
-	Forbidden           *TargetTemplateConfigItem   `mapstructure:"forbidden"`
-	Unauthorized        *TargetTemplateConfigItem   `mapstructure:"unauthorized"`
-	BadRequest          *TargetTemplateConfigItem   `mapstructure:"badRequest"`
+	ForbiddenError      *TargetTemplateConfigItem   `mapstructure:"forbiddenError"`
+	UnauthorizedError   *TargetTemplateConfigItem   `mapstructure:"unauthorizedError"`
+	BadRequestError     *TargetTemplateConfigItem   `mapstructure:"badRequestError"`
 }
 
 // TargetTemplateConfigItem Target template configuration item.
