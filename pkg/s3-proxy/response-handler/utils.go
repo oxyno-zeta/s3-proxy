@@ -4,22 +4,58 @@ import (
 	"bytes"
 	"context"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Masterminds/sprig/v3"
 	"github.com/dustin/go-humanize"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 )
 
-func (h *handler) loadAndConcatTemplateContents(
-	ctx context.Context,
+func (h *handler) manageHeaders(helpersContent string, headersTpl map[string]string) (map[string]string, error) {
+	// Create regex to remove all new lines
+	reg := regexp.MustCompile(`\r?\n`)
+	// Create header data
+	hData := &headerData{
+		Request: h.req,
+		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
+	}
+
+	// Store result
+	res := map[string]string{}
+
+	// Loop over all headers asked
+	for k, htpl := range headersTpl {
+		// Concat helpers to header template
+		tpl := helpersContent + "\n" + htpl
+		// Execute template
+		buf, err := h.executeTemplate(tpl, hData)
+		// Check error
+		if err != nil {
+			return nil, err
+		}
+		// Get string from buffer
+		str := buf.String()
+		// Remove all new lines
+		str = reg.ReplaceAllString(str, "")
+		// Save data
+		res[k] = str
+	}
+
+	// Return
+	return res, nil
+}
+
+func (h *handler) loadAllHelpersContent(
 	loadS3FileContent func(ctx context.Context, path string) (string, error),
-	items []*config.TargetTemplateConfigItem,
+	items []*config.TargetHelperConfigItem,
 	pathList []string,
 ) (string, error) {
 	// Initialize template content
@@ -30,8 +66,7 @@ func (h *handler) loadAndConcatTemplateContents(
 		// Loop over items
 		for _, item := range items {
 			// Load template content
-			tpl, err := h.loadTemplateContent(
-				ctx,
+			tpl, err := h.loadHelperContent(
 				loadS3FileContent,
 				item,
 			)
@@ -61,28 +96,35 @@ func (h *handler) loadAndConcatTemplateContents(
 	return tplContent, nil
 }
 
-func (h *handler) loadTemplateContent(
-	ctx context.Context,
+func (h *handler) loadHelperContent(
 	loadS3FileContent func(ctx context.Context, path string) (string, error),
-	item *config.TargetTemplateConfigItem,
+	item *config.TargetHelperConfigItem,
 ) (string, error) {
 	// Check if it is in bucket and if load from S3 function exists
 	if item.InBucket && loadS3FileContent != nil {
 		// Try to get file from bucket
-		return loadS3FileContent(ctx, item.Path)
+		return loadS3FileContent(h.req.Context(), item.Path)
 	}
 
 	// Not in bucket, need to load from FS
 	return loadLocalFileContent(item.Path)
 }
 
-// templateExecution will execute template with values and interpret response as html content.
-func (h *handler) templateExecution(tplString string, data interface{}, status int) error {
-	// Set status code
-	h.res.WriteHeader(status)
-	// Set the header and write the buffer to the http.ResponseWriter
-	h.res.Header().Set("Content-Type", "text/html; charset=utf-8")
+func (h *handler) loadTemplateContent(
+	loadS3FileContent func(ctx context.Context, path string) (string, error),
+	item *config.TargetTemplateConfigItem,
+) (string, error) {
+	// Check if it is in bucket and if load from S3 function exists
+	if item.InBucket && loadS3FileContent != nil {
+		// Try to get file from bucket
+		return loadS3FileContent(h.req.Context(), item.Path)
+	}
 
+	// Not in bucket, need to load from FS
+	return loadLocalFileContent(item.Path)
+}
+
+func (h *handler) executeTemplate(tplString string, data interface{}) (*bytes.Buffer, error) {
 	// Load template from string
 	tmpl, err := template.
 		New("template-string-loaded").
@@ -91,7 +133,7 @@ func (h *handler) templateExecution(tplString string, data interface{}, status i
 		Parse(tplString)
 	// Check if error exists
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Generate template in buffer
@@ -99,10 +141,25 @@ func (h *handler) templateExecution(tplString string, data interface{}, status i
 	err = tmpl.Execute(buf, data)
 	// Check if error exists
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = buf.WriteTo(h.res)
+	return buf, nil
+}
+
+// send will send the response.
+func (h *handler) send(bodyBuf io.WriterTo, headers map[string]string, status int) error {
+	// Loop over headers
+	for k, v := range headers {
+		// Set header
+		h.res.Header().Set(k, v)
+	}
+
+	// Set status code
+	h.res.WriteHeader(status)
+
+	// Write to response
+	_, err := bodyBuf.WriteTo(h.res)
 	// Check if error exists
 	if err != nil {
 		return err
