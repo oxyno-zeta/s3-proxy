@@ -163,16 +163,21 @@ type BasicAuthUserConfig struct {
 	Password *CredentialConfig `mapstructure:"password" validate:"required,dive"`
 }
 
+type TemplateConfigItem struct {
+	Path    string            `mapstructure:"path" validate:"required"`
+	Headers map[string]string `mapstructure:"headers"`
+}
+
 // TemplateConfig Templates configuration.
 type TemplateConfig struct {
-	Helpers             []string `mapstructure:"helpers" validate:"required,min=1"`
-	FolderList          string   `mapstructure:"folderList" validate:"required"`
-	TargetList          string   `mapstructure:"targetList" validate:"required"`
-	NotFoundError       string   `mapstructure:"notFoundError" validate:"required"`
-	InternalServerError string   `mapstructure:"internalServerError" validate:"required"`
-	UnauthorizedError   string   `mapstructure:"unauthorizedError" validate:"required"`
-	ForbiddenError      string   `mapstructure:"forbiddenError" validate:"required"`
-	BadRequestError     string   `mapstructure:"badRequestError" validate:"required"`
+	Helpers             []string            `mapstructure:"helpers" validate:"required,min=1,dive,required"`
+	FolderList          *TemplateConfigItem `mapstructure:"folderList" validate:"required"`
+	TargetList          *TemplateConfigItem `mapstructure:"targetList" validate:"required"`
+	NotFoundError       *TemplateConfigItem `mapstructure:"notFoundError" validate:"required"`
+	InternalServerError *TemplateConfigItem `mapstructure:"internalServerError" validate:"required"`
+	UnauthorizedError   *TemplateConfigItem `mapstructure:"unauthorizedError" validate:"required"`
+	ForbiddenError      *TemplateConfigItem `mapstructure:"forbiddenError" validate:"required"`
+	BadRequestError     *TemplateConfigItem `mapstructure:"badRequestError" validate:"required"`
 }
 
 // ServerConfig Server configuration.
@@ -234,19 +239,26 @@ type TargetKeyRewriteConfig struct {
 
 // TargetTemplateConfig Target templates configuration to override default ones.
 type TargetTemplateConfig struct {
-	Helpers             []*TargetTemplateConfigItem `mapstructure:"helpers"`
-	FolderList          *TargetTemplateConfigItem   `mapstructure:"folderList"`
-	NotFoundError       *TargetTemplateConfigItem   `mapstructure:"notFoundError"`
-	InternalServerError *TargetTemplateConfigItem   `mapstructure:"internalServerError"`
-	ForbiddenError      *TargetTemplateConfigItem   `mapstructure:"forbiddenError"`
-	UnauthorizedError   *TargetTemplateConfigItem   `mapstructure:"unauthorizedError"`
-	BadRequestError     *TargetTemplateConfigItem   `mapstructure:"badRequestError"`
+	Helpers             []*TargetHelperConfigItem `mapstructure:"helpers"`
+	FolderList          *TargetTemplateConfigItem `mapstructure:"folderList"`
+	NotFoundError       *TargetTemplateConfigItem `mapstructure:"notFoundError"`
+	InternalServerError *TargetTemplateConfigItem `mapstructure:"internalServerError"`
+	ForbiddenError      *TargetTemplateConfigItem `mapstructure:"forbiddenError"`
+	UnauthorizedError   *TargetTemplateConfigItem `mapstructure:"unauthorizedError"`
+	BadRequestError     *TargetTemplateConfigItem `mapstructure:"badRequestError"`
+}
+
+// TargetHelperConfigItem Target helper configuration item.
+type TargetHelperConfigItem struct {
+	Path     string `mapstructure:"path" validate:"required,min=1"`
+	InBucket bool   `mapstructure:"inBucket"`
 }
 
 // TargetTemplateConfigItem Target template configuration item.
 type TargetTemplateConfigItem struct {
-	Path     string `mapstructure:"path" validate:"required,min=1"`
-	InBucket bool   `mapstructure:"inBucket"`
+	Path     string            `mapstructure:"path" validate:"required,min=1"`
+	Headers  map[string]string `mapstructure:"headers"`
+	InBucket bool              `mapstructure:"inBucket"`
 }
 
 // ActionsConfig is dedicated to actions configuration in a target.

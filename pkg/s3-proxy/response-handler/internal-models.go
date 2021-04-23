@@ -30,3 +30,9 @@ type targetListData struct {
 	User    models.GenericUser
 	Targets map[string]*config.TargetConfig
 }
+
+// headerData represents the structure used by header templating.
+type headerData struct {
+	Request *http.Request
+	User    models.GenericUser
+}
