@@ -1,6 +1,7 @@
 package responsehandler
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -86,7 +87,7 @@ func (h *handler) BadRequestError(
 	var tplCfgItem *config.TargetTemplateConfigItem
 
 	// Store helpers template configs
-	var helpersCfgItems []*config.TargetTemplateConfigItem
+	var helpersCfgItems []*config.TargetHelperConfigItem
 
 	// Check if a target has been involve in this request
 	if h.targetKey != "" {
@@ -124,7 +125,7 @@ func (h *handler) ForbiddenError(
 	var tplCfgItem *config.TargetTemplateConfigItem
 
 	// Store helpers template configs
-	var helpersCfgItems []*config.TargetTemplateConfigItem
+	var helpersCfgItems []*config.TargetHelperConfigItem
 
 	// Check if a target has been involve in this request
 	if h.targetKey != "" {
@@ -164,7 +165,7 @@ func (h *handler) NotFoundError(
 	var tplCfgItem *config.TargetTemplateConfigItem
 
 	// Store helpers template configs
-	var helpersCfgItems []*config.TargetTemplateConfigItem
+	var helpersCfgItems []*config.TargetHelperConfigItem
 
 	// Check if a target has been involve in this request
 	if h.targetKey != "" {
@@ -202,7 +203,7 @@ func (h *handler) UnauthorizedError(
 	var tplCfgItem *config.TargetTemplateConfigItem
 
 	// Store helpers template configs
-	var helpersCfgItems []*config.TargetTemplateConfigItem
+	var helpersCfgItems []*config.TargetHelperConfigItem
 
 	// Check if a target has been involve in this request
 	if h.targetKey != "" {
@@ -234,15 +235,11 @@ func (h *handler) handleGenericErrorTemplate(
 	loadFileContent func(ctx context.Context, path string) (string, error),
 	err error,
 	tplCfgItem *config.TargetTemplateConfigItem,
-	helpersTplCfgItems []*config.TargetTemplateConfigItem,
-	baseTplFilePath string,
+	helpersTplCfgItems []*config.TargetHelperConfigItem,
+	baseTpl *config.TemplateConfigItem,
 	helpersTplFilePathList []string,
 	statusCode int,
 ) {
-	// Initialize content
-	tplContent := ""
-	// Get request context
-	ctx := h.req.Context()
 	// Get logger from request
 	logger := log.GetLoggerFromContext(h.req.Context())
 
@@ -253,8 +250,7 @@ func (h *handler) handleGenericErrorTemplate(
 	var err2 error
 
 	// Get helpers template content
-	tplContent, err2 = h.loadAndConcatTemplateContents(
-		ctx,
+	helpersContent, err2 := h.loadAllHelpersContent(
 		loadFileContent,
 		helpersTplCfgItems,
 		helpersTplFilePathList,
@@ -269,6 +265,8 @@ func (h *handler) handleGenericErrorTemplate(
 
 		return
 	}
+	// Save in template
+	tplContent := helpersContent
 
 	// Check if a target template configuration exists
 	// Note: Done like this and not with list to avoid creating list of 1 element
@@ -276,7 +274,6 @@ func (h *handler) handleGenericErrorTemplate(
 	if tplCfgItem != nil {
 		// Load template content
 		tpl, err3 := h.loadTemplateContent(
-			ctx,
 			loadFileContent,
 			tplCfgItem,
 		)
@@ -286,11 +283,40 @@ func (h *handler) handleGenericErrorTemplate(
 		err2 = err3
 	} else {
 		// Get template from general configuration
-		tpl, err3 := loadLocalFileContent(baseTplFilePath)
+		tpl, err3 := loadLocalFileContent(baseTpl.Path)
 		// Concat
 		tplContent = tplContent + "\n" + tpl
 		// Save error
 		err2 = err3
+	}
+
+	// Check if error exists
+	if err2 != nil {
+		// Return an internal server error
+		h.InternalServerError(
+			loadFileContent,
+			err2,
+		)
+
+		return
+	}
+
+	// Store headers
+	var headers map[string]string
+
+	// Check if target config item exists
+	if tplCfgItem != nil {
+		// Manage headers
+		headers, err2 = h.manageHeaders(
+			helpersContent,
+			tplCfgItem.Headers,
+		)
+	} else {
+		// Manage headers
+		headers, err2 = h.manageHeaders(
+			helpersContent,
+			baseTpl.Headers,
+		)
 	}
 
 	// Check if error exists
@@ -311,8 +337,17 @@ func (h *handler) handleGenericErrorTemplate(
 		Error:   err,
 	}
 
-	// Execute template
-	err2 = h.templateExecution(tplContent, data, statusCode)
+	// Execute main template
+	bodyBuf, err2 := h.executeTemplate(tplContent, data)
+	// Check error
+	if err2 != nil {
+		h.InternalServerError(loadFileContent, err2)
+
+		return
+	}
+
+	// Send
+	err2 = h.send(bodyBuf, headers, statusCode)
 	// Check error
 	if err2 != nil {
 		// Return an internal server error
@@ -327,10 +362,6 @@ func (h *handler) InternalServerError(
 	loadFileContent func(ctx context.Context, path string) (string, error),
 	err error,
 ) {
-	// Initialize content
-	tplContent := ""
-	// Get request context
-	ctx := h.req.Context()
 	// Get config
 	cfg := h.cfgManager.GetConfig()
 	// Get logger from request
@@ -349,7 +380,7 @@ func (h *handler) InternalServerError(
 	var tplCfgItem *config.TargetTemplateConfigItem
 
 	// Store helpers template configs
-	var helpersCfgItems []*config.TargetTemplateConfigItem
+	var helpersCfgItems []*config.TargetHelperConfigItem
 
 	// Check if a target has been involve in this request
 	if h.targetKey != "" {
@@ -364,31 +395,53 @@ func (h *handler) InternalServerError(
 	}
 
 	// Get helpers template content
-	tplContent, err2 = h.loadAndConcatTemplateContents(
-		ctx,
+	helpersContent, err2 := h.loadAllHelpersContent(
 		loadFileContent,
 		helpersCfgItems,
 		cfg.Templates.Helpers,
 	)
 
+	// Store headers
+	var headers map[string]string
+	// Check if error 2 doesn't exist
+	if err2 == nil {
+		// Check if target config item exists
+		if tplCfgItem != nil {
+			// Manage headers
+			headers, err2 = h.manageHeaders(
+				helpersContent,
+				tplCfgItem.Headers,
+			)
+		} else {
+			// Manage headers
+			headers, err2 = h.manageHeaders(
+				helpersContent,
+				cfg.Templates.InternalServerError.Headers,
+			)
+		}
+	}
+
+	// Initialize content
+	tplContent := helpersContent
 	// Check if error 2 doesn't exist
 	if err2 == nil {
 		// Check if target config and template exists
 		if tplCfgItem != nil {
 			// Load template content
 			tplContent, err2 = h.loadTemplateContent(
-				ctx,
 				loadFileContent,
-				targetCfg.Templates.InternalServerError,
+				tplCfgItem,
 			)
 		} else {
 			// Get template from general configuration
-			tplContent, err2 = loadLocalFileContent(cfg.Templates.InternalServerError)
+			tplContent, err2 = loadLocalFileContent(cfg.Templates.InternalServerError.Path)
 		}
 	}
 
+	// Store main buffer
+	var bodyBuf *bytes.Buffer
+
 	// Check if error 2 doesn't exist
-	// Note: this second if will manage second loading phase
 	if err2 == nil {
 		// Create data
 		data := errorData{
@@ -398,7 +451,13 @@ func (h *handler) InternalServerError(
 		}
 
 		// Execute template
-		err2 = h.templateExecution(tplContent, data, http.StatusInternalServerError)
+		bodyBuf, err2 = h.executeTemplate(tplContent, data)
+	}
+
+	// Check if error 2 doesn't exist
+	if err2 == nil {
+		// Send
+		err2 = h.send(bodyBuf, headers, http.StatusInternalServerError)
 	}
 
 	// Check error

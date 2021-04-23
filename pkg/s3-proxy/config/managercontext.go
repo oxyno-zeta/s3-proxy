@@ -161,13 +161,14 @@ func (ctx *managercontext) loadDefaultConfigurationValues(vip *viper.Viper) {
 	vip.SetDefault("internalServer.compress.level", DefaultServerCompressLevel)
 	vip.SetDefault("internalServer.compress.types", DefaultServerCompressTypes)
 	vip.SetDefault("templates.helpers", []string{DefaultTemplateHelpersPath})
-	vip.SetDefault("templates.folderList", DefaultTemplateFolderListPath)
-	vip.SetDefault("templates.targetList", DefaultTemplateTargetListPath)
-	vip.SetDefault("templates.notFoundError", DefaultTemplateNotFoundErrorPath)
-	vip.SetDefault("templates.internalServerError", DefaultTemplateInternalServerErrorPath)
-	vip.SetDefault("templates.unauthorizedError", DefaultTemplateUnauthorizedErrorPath)
-	vip.SetDefault("templates.forbiddenError", DefaultTemplateForbiddenErrorPath)
-	vip.SetDefault("templates.badRequestError", DefaultTemplateBadRequestErrorPath)
+	vip.SetDefault("templates.folderList.path", DefaultTemplateFolderListPath)
+	vip.SetDefault("templates.targetList.path", DefaultTemplateTargetListPath)
+	vip.SetDefault("templates.notFoundError.path", DefaultTemplateNotFoundErrorPath)
+	vip.SetDefault("templates.notFoundError.headers", map[string]string{"Content-Type": "{{ template \"main.headers.contentType\" . }}"})
+	vip.SetDefault("templates.internalServerError.path", DefaultTemplateInternalServerErrorPath)
+	vip.SetDefault("templates.unauthorizedError.path", DefaultTemplateUnauthorizedErrorPath)
+	vip.SetDefault("templates.forbiddenError.path", DefaultTemplateForbiddenErrorPath)
+	vip.SetDefault("templates.badRequestError.path", DefaultTemplateBadRequestErrorPath)
 }
 
 func generateViperInstances(files []os.FileInfo) []*viper.Viper {

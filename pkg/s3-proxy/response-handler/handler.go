@@ -41,13 +41,10 @@ func (h *handler) TargetList() {
 	cfg := h.cfgManager.GetConfig()
 
 	// Get template content
-	tplContent, err := h.loadAndConcatTemplateContents(
-		context.TODO(), // Empty context
+	helpersTpl, err := h.loadAllHelpersContent(
 		nil,
 		nil,
-		// Here we can use the shortcut to append the template at the end
-		// Because target list won't use any template from a bucket.
-		append(cfg.Templates.Helpers, cfg.Templates.TargetList),
+		cfg.Templates.Helpers,
 	)
 	// Check error
 	if err != nil {
@@ -56,6 +53,30 @@ func (h *handler) TargetList() {
 		return
 	}
 
+	// Manage headers
+	headers, err := h.manageHeaders(
+		helpersTpl,
+		cfg.Templates.TargetList.Headers,
+	)
+	// Check if error exists
+	if err != nil {
+		// Return an internal server error
+		h.InternalServerError(nil, err)
+
+		return
+	}
+
+	// Load main template content
+	tpl, err := loadLocalFileContent(cfg.Templates.TargetList.Path)
+	// Check error
+	if err != nil {
+		h.InternalServerError(nil, err)
+
+		return
+	}
+	// Concat
+	tplContent := helpersTpl + "\n" + tpl
+
 	// Create data structure
 	data := targetListData{
 		Request: h.req,
@@ -63,8 +84,17 @@ func (h *handler) TargetList() {
 		Targets: cfg.Targets,
 	}
 
-	// Execute template
-	err = h.templateExecution(tplContent, data, http.StatusOK)
+	// Execute main template
+	bodyBuf, err := h.executeTemplate(tplContent, data)
+	// Check error
+	if err != nil {
+		h.InternalServerError(nil, err)
+
+		return
+	}
+
+	// Send
+	err = h.send(bodyBuf, headers, http.StatusOK)
 	// Check error
 	if err != nil {
 		h.InternalServerError(nil, err)
@@ -101,9 +131,6 @@ func (h *handler) FoldersFilesList(
 	loadFileContent func(ctx context.Context, path string) (string, error),
 	entries []*Entry,
 ) {
-	// Get context
-	ctx := h.req.Context()
-
 	// Get config
 	cfg := h.cfgManager.GetConfig()
 
@@ -111,7 +138,7 @@ func (h *handler) FoldersFilesList(
 	targetCfg := cfg.Targets[h.targetKey]
 
 	// Helpers list
-	var helpersCfgList []*config.TargetTemplateConfigItem
+	var helpersCfgList []*config.TargetHelperConfigItem
 
 	// Target template config item
 	var tplConfigItem *config.TargetTemplateConfigItem
@@ -125,8 +152,7 @@ func (h *handler) FoldersFilesList(
 
 	// Get content from helpers
 	// Note: separated because helpers and template are 2 different things and can be mixed
-	content, err := h.loadAndConcatTemplateContents(
-		ctx,
+	helpersContent, err := h.loadAllHelpersContent(
 		loadFileContent,
 		helpersCfgList,
 		cfg.Templates.Helpers,
@@ -138,13 +164,44 @@ func (h *handler) FoldersFilesList(
 		return
 	}
 
+	// Store headers
+	var headers map[string]string
+
+	// Check if target config item exists
+	if tplConfigItem != nil {
+		// Manage headers
+		headers, err = h.manageHeaders(
+			helpersContent,
+			tplConfigItem.Headers,
+		)
+	} else {
+		// Manage headers
+		headers, err = h.manageHeaders(
+			helpersContent,
+			cfg.Templates.FolderList.Headers,
+		)
+	}
+
+	// Check if error exists
+	if err != nil {
+		// Return an internal server error
+		h.InternalServerError(
+			loadFileContent,
+			err,
+		)
+
+		return
+	}
+
+	// Create main content
+	content := helpersContent
+
 	// Check if per target template is declared
 	// Note: Done like this and not with list to avoid creating list of 1 element
 	// and to avoid loops etc to save potential memory and cpu
 	if tplConfigItem != nil {
 		// Load template content
 		tpl, err2 := h.loadTemplateContent(
-			ctx,
 			loadFileContent,
 			tplConfigItem,
 		)
@@ -154,7 +211,7 @@ func (h *handler) FoldersFilesList(
 		err = err2
 	} else {
 		// Load template
-		tpl, err2 := loadLocalFileContent(cfg.Templates.FolderList)
+		tpl, err2 := loadLocalFileContent(cfg.Templates.FolderList.Path)
 		// Concat
 		content = content + "\n" + tpl
 		// Save error
@@ -178,8 +235,17 @@ func (h *handler) FoldersFilesList(
 		Path:       h.req.URL.RequestURI(),
 	}
 
-	// Execute template
-	err = h.templateExecution(content, data, http.StatusOK)
+	// Execute main template
+	bodyBuf, err := h.executeTemplate(content, data)
+	// Check error
+	if err != nil {
+		h.InternalServerError(loadFileContent, err)
+
+		return
+	}
+
+	// Send
+	err = h.send(bodyBuf, headers, http.StatusOK)
 	// Check error
 	if err != nil {
 		h.InternalServerError(loadFileContent, err)
