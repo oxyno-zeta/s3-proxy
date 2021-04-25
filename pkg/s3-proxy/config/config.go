@@ -68,6 +68,11 @@ const DefaultTemplateUnauthorizedErrorPath = "templates/unauthorized-error.tpl"
 // DefaultTemplateHelpersPath Default template helpers path.
 const DefaultTemplateHelpersPath = "templates/_helpers.tpl"
 
+// DefaultTemplateHeaders Default template headers.
+var DefaultTemplateHeaders = map[string]string{
+	"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+}
+
 // DefaultOIDCScopes Default OIDC Scopes.
 var DefaultOIDCScopes = []string{"openid", "profile", "email"}
 

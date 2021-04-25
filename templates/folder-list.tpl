@@ -1,3 +1,19 @@
+{{- $root := . -}}
+{{- if contains "application/json" (.Request.Header.Get "Accept") -}}
+[
+  {{- $maxLen := len $root.Entries -}}
+  {{- range $index, $entry := $root.Entries -}}
+  {
+    "name": "{{ js $entry.Name }}",
+    "etag": "{{ js $entry.ETag }}",
+    "type": "{{ js $entry.Type }}",
+    "size": {{ $entry.Size }},
+    "path": "{{ js $entry.Path }}",
+    "lastModified": "{{ $entry.LastModified | date "2006-01-02T15:04:05Z07:00" }}"
+  }{{- if ne $index (sub $maxLen 1) -}},{{- end -}}
+  {{- end -}}
+]
+{{- else -}}
 <!DOCTYPE html>
 <html>
   <body>
@@ -27,3 +43,4 @@
     </table>
   </body>
 </html>
+{{- end -}}
