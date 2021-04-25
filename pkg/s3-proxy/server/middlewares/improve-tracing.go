@@ -19,7 +19,7 @@ func ImproveTracing() func(next http.Handler) http.Handler {
 			trace.SetTag("http.request_id", reqID)
 
 			// Add request host
-			trace.SetTag("http.request_host", utils.RequestHost(req))
+			trace.SetTag("http.request_host", utils.GetRequestHost(req))
 
 			// Add request path
 			trace.SetTag("http.request_path", req.URL.Path)

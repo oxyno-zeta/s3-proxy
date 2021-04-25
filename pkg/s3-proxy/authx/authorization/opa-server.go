@@ -69,7 +69,7 @@ func isOPAServerAuthorized(req *http.Request, oidcUser *models.OIDCUser, resourc
 				Headers:    headers,
 				RemoteAddr: req.RemoteAddr,
 				Scheme:     scheme,
-				Host:       utils.RequestHost(req),
+				Host:       utils.GetRequestHost(req),
 				ParsedPath: parsedPath,
 				Path:       req.RequestURI,
 			},
