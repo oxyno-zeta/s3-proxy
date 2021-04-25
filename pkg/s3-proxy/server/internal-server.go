@@ -11,8 +11,8 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/utils"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
 )
 
 type InternalServer struct {
