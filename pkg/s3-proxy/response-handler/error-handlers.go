@@ -428,13 +428,21 @@ func (h *handler) InternalServerError(
 		// Check if target config and template exists
 		if tplCfgItem != nil {
 			// Load template content
-			tplContent, err2 = h.loadTemplateContent(
+			tpl, err3 := h.loadTemplateContent(
 				loadFileContent,
 				tplCfgItem,
 			)
+			// Concat
+			tplContent = tplContent + "\n" + tpl
+			// Save error
+			err2 = err3
 		} else {
 			// Get template from general configuration
-			tplContent, err2 = loadLocalFileContent(cfg.Templates.InternalServerError.Path)
+			tpl, err3 := loadLocalFileContent(cfg.Templates.InternalServerError.Path)
+			// Concat
+			tplContent = tplContent + "\n" + tpl
+			// Save error
+			err2 = err3
 		}
 	}
 
