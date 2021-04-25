@@ -20,18 +20,28 @@ func ClientIP(r *http.Request) string {
 	return IPAddress
 }
 
-func GetRequestURI(r *http.Request) string {
+func GetRequestScheme(r *http.Request) string {
+	// Default
 	scheme := "http"
+
+	// Get forwarded scheme
 	fwdScheme := r.Header.Get("X-Forwarded-Proto")
 
+	// Check if it is https
 	if r.TLS != nil || fwdScheme == "https" {
 		scheme = "https"
 	}
 
-	return fmt.Sprintf("%s://%s%s", scheme, RequestHost(r), r.URL.RequestURI())
+	return scheme
 }
 
-func RequestHost(r *http.Request) string {
+func GetRequestURI(r *http.Request) string {
+	scheme := GetRequestScheme(r)
+
+	return fmt.Sprintf("%s://%s%s", scheme, GetRequestHost(r), r.URL.RequestURI())
+}
+
+func GetRequestHost(r *http.Request) string {
 	// not standard, but most popular
 	host := r.Header.Get("X-Forwarded-Host")
 	if host != "" {

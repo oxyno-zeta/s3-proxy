@@ -9,9 +9,9 @@
     {{- $pathLen := len $target.Mount.Path -}}
     {{- range $index2, $value2 := $target.Mount.Path -}}
       {{- if eq $target.Mount.Host "" -}}
-      "http://{{ $root.Request.Host }}{{ $value2 }}"
+      "{{ requestScheme $root.Request }}://{{ requestHost $root.Request }}{{ $value2 }}"
       {{- else -}}
-      "http://{{ $target.Mount.Host }}{{ $value2 }}"
+      "{{ requestScheme $root.Request }}://{{ $target.Mount.Host }}{{ $value2 }}"
       {{- end -}}{{- if ne $index2 (sub $pathLen 1) -}},{{- end -}}
     {{- end -}}
   ]}{{- if ne $lastMapKey $key -}},{{- end -}}
@@ -29,9 +29,9 @@
           <ul>
             <li>
               {{- if eq $target.Mount.Host "" -}}
-              <a href="http://{{ $root.Request.Host }}{{ . }}">http://{{ $root.Request.Host }}{{ . }}</a>
+              <a href="{{ requestScheme $root.Request }}://{{ requestHost $root.Request }}{{ . }}">{{ requestScheme $root.Request }}://{{ $root.Request.Host }}{{ . }}</a>
               {{- else -}}
-              <a href="http://{{ $target.Mount.Host }}{{ . }}">http://{{ $target.Mount.Host }}{{ . }}</a>
+              <a href="{{ requestScheme $root.Request }}://{{ $target.Mount.Host }}{{ . }}">{{ requestScheme $root.Request }}://{{ $target.Mount.Host }}{{ . }}</a>
               {{- end -}}
             </li>
           </ul>
