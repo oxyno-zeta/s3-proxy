@@ -37,7 +37,7 @@ func (hr HostRouter) Map(host string, h chi.Router) {
 
 func (hr HostRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Get host
-	host := utils.RequestHost(r)
+	host := utils.GetRequestHost(r)
 
 	// Check if host is matching directly
 	if router, ok := hr.routes[strings.ToLower(host)]; ok {

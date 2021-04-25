@@ -17,6 +17,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
 )
 
 func (h *handler) manageHeaders(helpersContent string, headersTpl map[string]string) (map[string]string, error) {
@@ -180,10 +181,19 @@ func loadLocalFileContent(path string) (string, error) {
 }
 
 func s3ProxyFuncMap() template.FuncMap {
-	funcMap := make(map[string]interface{}, 1)
+	// Result
+	funcMap := map[string]interface{}{}
+	// Add human size function
 	funcMap["humanSize"] = func(fmt int64) string {
 		return humanize.Bytes(uint64(fmt))
 	}
+	// Add request URI function
+	funcMap["requestURI"] = utils.GetRequestURI
+	// Add request scheme function
+	funcMap["requestScheme"] = utils.GetRequestScheme
+	// Add request host function
+	funcMap["requestHost"] = utils.GetRequestHost
+
 	// Return result
 	return template.FuncMap(funcMap)
 }
