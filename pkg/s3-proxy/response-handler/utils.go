@@ -3,7 +3,6 @@ package responsehandler
 import (
 	"bytes"
 	"context"
-	"html/template"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/Masterminds/sprig/v3"
@@ -128,7 +128,7 @@ func (h *handler) executeTemplate(tplString string, data interface{}) (*bytes.Bu
 	// Load template from string
 	tmpl, err := template.
 		New("template-string-loaded").
-		Funcs(sprig.HtmlFuncMap()).
+		Funcs(sprig.TxtFuncMap()).
 		Funcs(s3ProxyFuncMap()).
 		Parse(tplString)
 	// Check if error exists
