@@ -1,12 +1,8 @@
 package log
 
 import (
-	"context"
-
 	"github.com/sirupsen/logrus"
 )
-
-var loggerContextKey = &contextKey{name: "LOGGER_CONTEXT_KEY"}
 
 type Logger interface {
 	Configure(level string, format string, filePath string) error
@@ -60,10 +56,4 @@ func NewLogger() Logger {
 	return &loggerIns{
 		FieldLogger: logrus.New(),
 	}
-}
-
-func GetLoggerFromContext(ctx context.Context) Logger {
-	res, _ := ctx.Value(loggerContextKey).(Logger)
-
-	return res
 }
