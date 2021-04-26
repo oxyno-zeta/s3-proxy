@@ -1,7 +1,6 @@
 package responsehandler
 
 import (
-	"bytes"
 	"context"
 	"io"
 	"io/ioutil"
@@ -10,11 +9,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"text/template"
 	"time"
 
-	"github.com/Masterminds/sprig/v3"
-	"github.com/dustin/go-humanize"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
@@ -37,7 +33,7 @@ func (h *handler) manageHeaders(helpersContent string, headersTpl map[string]str
 		// Concat helpers to header template
 		tpl := helpersContent + "\n" + htpl
 		// Execute template
-		buf, err := h.executeTemplate(tpl, hData)
+		buf, err := utils.ExecuteTemplate(tpl, hData)
 		// Check error
 		if err != nil {
 			return nil, err
@@ -125,29 +121,6 @@ func (h *handler) loadTemplateContent(
 	return loadLocalFileContent(item.Path)
 }
 
-func (h *handler) executeTemplate(tplString string, data interface{}) (*bytes.Buffer, error) {
-	// Load template from string
-	tmpl, err := template.
-		New("template-string-loaded").
-		Funcs(sprig.TxtFuncMap()).
-		Funcs(s3ProxyFuncMap()).
-		Parse(tplString)
-	// Check if error exists
-	if err != nil {
-		return nil, err
-	}
-
-	// Generate template in buffer
-	buf := &bytes.Buffer{}
-	err = tmpl.Execute(buf, data)
-	// Check if error exists
-	if err != nil {
-		return nil, err
-	}
-
-	return buf, nil
-}
-
 // send will send the response.
 func (h *handler) send(bodyBuf io.WriterTo, headers map[string]string, status int) error {
 	// Loop over headers
@@ -178,24 +151,6 @@ func loadLocalFileContent(path string) (string, error) {
 	}
 
 	return string(by), nil
-}
-
-func s3ProxyFuncMap() template.FuncMap {
-	// Result
-	funcMap := map[string]interface{}{}
-	// Add human size function
-	funcMap["humanSize"] = func(fmt int64) string {
-		return humanize.Bytes(uint64(fmt))
-	}
-	// Add request URI function
-	funcMap["requestURI"] = utils.GetRequestURI
-	// Add request scheme function
-	funcMap["requestScheme"] = utils.GetRequestScheme
-	// Add request host function
-	funcMap["requestHost"] = utils.GetRequestHost
-
-	// Return result
-	return template.FuncMap(funcMap)
 }
 
 func setHeadersFromObjectOutput(w http.ResponseWriter, obj *StreamInput) {

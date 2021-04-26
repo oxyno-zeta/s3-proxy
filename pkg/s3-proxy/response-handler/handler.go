@@ -8,6 +8,7 @@ import (
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
 )
 
 type handler struct {
@@ -93,7 +94,7 @@ func (h *handler) TargetList() {
 	}
 
 	// Execute main template
-	bodyBuf, err := h.executeTemplate(tplContent, data)
+	bodyBuf, err := utils.ExecuteTemplate(tplContent, data)
 	// Check error
 	if err != nil {
 		h.InternalServerError(nil, err)
@@ -244,7 +245,7 @@ func (h *handler) FoldersFilesList(
 	}
 
 	// Execute main template
-	bodyBuf, err := h.executeTemplate(content, data)
+	bodyBuf, err := utils.ExecuteTemplate(content, data)
 	// Check error
 	if err != nil {
 		h.InternalServerError(loadFileContent, err)
