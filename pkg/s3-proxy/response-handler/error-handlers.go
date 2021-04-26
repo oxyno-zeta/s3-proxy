@@ -9,6 +9,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
 	"github.com/pkg/errors"
 )
 
@@ -338,7 +339,7 @@ func (h *handler) handleGenericErrorTemplate(
 	}
 
 	// Execute main template
-	bodyBuf, err2 := h.executeTemplate(tplContent, data)
+	bodyBuf, err2 := utils.ExecuteTemplate(tplContent, data)
 	// Check error
 	if err2 != nil {
 		h.InternalServerError(loadFileContent, err2)
@@ -459,7 +460,7 @@ func (h *handler) InternalServerError(
 		}
 
 		// Execute template
-		bodyBuf, err2 = h.executeTemplate(tplContent, data)
+		bodyBuf, err2 = utils.ExecuteTemplate(tplContent, data)
 	}
 
 	// Check if error 2 doesn't exist

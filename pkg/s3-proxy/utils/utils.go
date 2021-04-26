@@ -1,10 +1,56 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"strings"
+	"text/template"
+
+	"github.com/Masterminds/sprig/v3"
+	"github.com/dustin/go-humanize"
 )
+
+func ExecuteTemplate(tplString string, data interface{}) (*bytes.Buffer, error) {
+	// Load template from string
+	tmpl, err := template.
+		New("template-string-loaded").
+		Funcs(sprig.TxtFuncMap()).
+		Funcs(s3ProxyFuncMap()).
+		Parse(tplString)
+	// Check if error exists
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate template in buffer
+	buf := &bytes.Buffer{}
+	err = tmpl.Execute(buf, data)
+	// Check if error exists
+	if err != nil {
+		return nil, err
+	}
+
+	return buf, nil
+}
+
+func s3ProxyFuncMap() template.FuncMap {
+	// Result
+	funcMap := map[string]interface{}{}
+	// Add human size function
+	funcMap["humanSize"] = func(fmt int64) string {
+		return humanize.Bytes(uint64(fmt))
+	}
+	// Add request URI function
+	funcMap["requestURI"] = GetRequestURI
+	// Add request scheme function
+	funcMap["requestScheme"] = GetRequestScheme
+	// Add request host function
+	funcMap["requestHost"] = GetRequestHost
+
+	// Return result
+	return template.FuncMap(funcMap)
+}
 
 // ClientIP will return client ip from request.
 func ClientIP(r *http.Request) string {
