@@ -332,7 +332,7 @@ func (h *handler) handleGenericErrorTemplate(
 	}
 
 	// Create data
-	data := errorData{
+	data := &errorData{
 		Request: h.req,
 		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
 		Error:   err,
@@ -474,15 +474,13 @@ func (h *handler) InternalServerError(
 		// New error
 		logger.Error(err2)
 		// Template error
-		res := fmt.Sprintf(`
-<!DOCTYPE html>
+		res := fmt.Sprintf(`<!DOCTYPE html>
 <html>
   <body>
-	<h1>Internal Server Error</h1>
-	<p>%s</p>
+    <h1>Internal Server Error</h1>
+    <p>%s</p>
   </body>
-</html>
-`, err2)
+</html>`, err2)
 
 		// Set the header
 		h.res.Header().Set("Content-Type", "text/html; charset=utf-8")
