@@ -1,9 +1,15 @@
+// +build unit
+
 package responsehandler
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_handler_manageHeaders(t *testing.T) {
@@ -121,6 +127,101 @@ func Test_handler_manageHeaders(t *testing.T) {
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("handler.manageHeaders() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func Test_setHeadersFromObjectOutput(t *testing.T) {
+	// Tests data
+	now := time.Now()
+	headerFullInput := http.Header{}
+	headerFullInput.Add("Cache-Control", "cachecontrol")
+	headerFullInput.Add("Expires", "expires")
+	headerFullInput.Add("Content-Disposition", "contentdisposition")
+	headerFullInput.Add("Content-Encoding", "contentencoding")
+	headerFullInput.Add("Content-Language", "contentlanguage")
+	headerFullInput.Add("Content-Length", "200")
+	headerFullInput.Add("Content-Range", "bytes 200/200")
+	headerFullInput.Add("Content-Type", "contenttype")
+	headerFullInput.Add("ETag", "etag")
+	headerFullInput.Add("Last-Modified", now.UTC().Format(http.TimeFormat))
+	headerPartialInput := http.Header{}
+	headerPartialInput.Add("Cache-Control", "cachecontrol")
+	headerPartialInput.Add("Expires", "expires")
+	headerPartialInput.Add("Content-Disposition", "contentdisposition")
+	headerPartialInput.Add("Content-Encoding", "contentencoding")
+	headerPartialInput.Add("Content-Language", "contentlanguage")
+	headerPartialInput.Add("Content-Length", "200")
+	headerPartialInput.Add("Content-Range", "bytes 200-1000/10000")
+	headerPartialInput.Add("Content-Type", "contenttype")
+	headerPartialInput.Add("ETag", "etag")
+	headerPartialInput.Add("Last-Modified", now.UTC().Format(http.TimeFormat))
+	// Structures
+	type args struct {
+		obj *StreamInput
+	}
+	tests := []struct {
+		name            string
+		args            args
+		expectedCode    int
+		expectedHeaders http.Header
+	}{
+		{
+			name: "Empty input",
+			args: args{
+				obj: &StreamInput{},
+			},
+			expectedHeaders: http.Header{},
+			expectedCode:    http.StatusOK,
+		},
+		{
+			name: "Full input",
+			args: args{
+				obj: &StreamInput{
+					CacheControl:       "cachecontrol",
+					Expires:            "expires",
+					ContentDisposition: "contentdisposition",
+					ContentEncoding:    "contentencoding",
+					ContentLanguage:    "contentlanguage",
+					ContentLength:      200,
+					ContentRange:       "bytes 200/200",
+					ContentType:        "contenttype",
+					ETag:               "etag",
+					LastModified:       now,
+				},
+			},
+			expectedHeaders: headerFullInput,
+			expectedCode:    http.StatusOK,
+		},
+		{
+			name: "Partial input",
+			args: args{
+				obj: &StreamInput{
+					CacheControl:       "cachecontrol",
+					Expires:            "expires",
+					ContentDisposition: "contentdisposition",
+					ContentEncoding:    "contentencoding",
+					ContentLanguage:    "contentlanguage",
+					ContentLength:      200,
+					ContentRange:       "bytes 200-1000/10000",
+					ContentType:        "contenttype",
+					ETag:               "etag",
+					LastModified:       now,
+				},
+			},
+			expectedHeaders: headerPartialInput,
+			expectedCode:    http.StatusPartialContent,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create response
+			res := httptest.NewRecorder()
+
+			setHeadersFromObjectOutput(res, tt.args.obj)
+
+			assert.Equal(t, tt.expectedHeaders, res.HeaderMap)
+			assert.Equal(t, tt.expectedCode, res.Code)
 		})
 	}
 }
