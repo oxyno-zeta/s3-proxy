@@ -80,13 +80,49 @@ targets:
 					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
-					FolderList:          "templates/folder-list.tpl",
-					TargetList:          "templates/target-list.tpl",
-					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "templates/internal-server-error.tpl",
-					Unauthorized:        "templates/unauthorized.tpl",
-					Forbidden:           "templates/forbidden.tpl",
-					BadRequest:          "templates/bad-request.tpl",
+					Helpers: []string{"templates/_helpers.tpl"},
+					FolderList: &TemplateConfigItem{
+						Path: "templates/folder-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					TargetList: &TemplateConfigItem{
+						Path: "templates/target-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					NotFoundError: &TemplateConfigItem{
+						Path: "templates/not-found-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					InternalServerError: &TemplateConfigItem{
+						Path: "templates/internal-server-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					UnauthorizedError: &TemplateConfigItem{
+						Path: "templates/unauthorized-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					ForbiddenError: &TemplateConfigItem{
+						Path: "templates/forbidden-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					BadRequestError: &TemplateConfigItem{
+						Path: "templates/bad-request-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
 				ListTargets: &ListTargetsConfig{
@@ -148,13 +184,49 @@ targets:
 					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
-					FolderList:          "templates/folder-list.tpl",
-					TargetList:          "templates/target-list.tpl",
-					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "templates/internal-server-error.tpl",
-					Unauthorized:        "templates/unauthorized.tpl",
-					Forbidden:           "templates/forbidden.tpl",
-					BadRequest:          "templates/bad-request.tpl",
+					Helpers: []string{"templates/_helpers.tpl"},
+					FolderList: &TemplateConfigItem{
+						Path: "templates/folder-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					TargetList: &TemplateConfigItem{
+						Path: "templates/target-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					NotFoundError: &TemplateConfigItem{
+						Path: "templates/not-found-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					InternalServerError: &TemplateConfigItem{
+						Path: "templates/internal-server-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					UnauthorizedError: &TemplateConfigItem{
+						Path: "templates/unauthorized-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					ForbiddenError: &TemplateConfigItem{
+						Path: "templates/forbidden-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					BadRequestError: &TemplateConfigItem{
+						Path: "templates/bad-request-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
 				ListTargets: &ListTargetsConfig{
@@ -223,13 +295,49 @@ targets:
 					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
-					FolderList:          "templates/folder-list.tpl",
-					TargetList:          "templates/target-list.tpl",
-					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "templates/internal-server-error.tpl",
-					Unauthorized:        "templates/unauthorized.tpl",
-					Forbidden:           "templates/forbidden.tpl",
-					BadRequest:          "templates/bad-request.tpl",
+					Helpers: []string{"templates/_helpers.tpl"},
+					FolderList: &TemplateConfigItem{
+						Path: "templates/folder-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					TargetList: &TemplateConfigItem{
+						Path: "templates/target-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					NotFoundError: &TemplateConfigItem{
+						Path: "templates/not-found-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					InternalServerError: &TemplateConfigItem{
+						Path: "templates/internal-server-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					UnauthorizedError: &TemplateConfigItem{
+						Path: "templates/unauthorized-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					ForbiddenError: &TemplateConfigItem{
+						Path: "templates/forbidden-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					BadRequestError: &TemplateConfigItem{
+						Path: "templates/bad-request-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
 				ListTargets: &ListTargetsConfig{
@@ -304,13 +412,49 @@ targets:
 					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
-					FolderList:          "templates/folder-list.tpl",
-					TargetList:          "templates/target-list.tpl",
-					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "templates/internal-server-error.tpl",
-					Unauthorized:        "templates/unauthorized.tpl",
-					Forbidden:           "templates/forbidden.tpl",
-					BadRequest:          "templates/bad-request.tpl",
+					Helpers: []string{"templates/_helpers.tpl"},
+					FolderList: &TemplateConfigItem{
+						Path: "templates/folder-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					TargetList: &TemplateConfigItem{
+						Path: "templates/target-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					NotFoundError: &TemplateConfigItem{
+						Path: "templates/not-found-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					InternalServerError: &TemplateConfigItem{
+						Path: "templates/internal-server-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					UnauthorizedError: &TemplateConfigItem{
+						Path: "templates/unauthorized-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					ForbiddenError: &TemplateConfigItem{
+						Path: "templates/forbidden-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					BadRequestError: &TemplateConfigItem{
+						Path: "templates/bad-request-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
 				ListTargets: &ListTargetsConfig{
@@ -409,13 +553,49 @@ targets:
 					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
-					FolderList:          "templates/folder-list.tpl",
-					TargetList:          "templates/target-list.tpl",
-					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "templates/internal-server-error.tpl",
-					Unauthorized:        "templates/unauthorized.tpl",
-					Forbidden:           "templates/forbidden.tpl",
-					BadRequest:          "templates/bad-request.tpl",
+					Helpers: []string{"templates/_helpers.tpl"},
+					FolderList: &TemplateConfigItem{
+						Path: "templates/folder-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					TargetList: &TemplateConfigItem{
+						Path: "templates/target-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					NotFoundError: &TemplateConfigItem{
+						Path: "templates/not-found-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					InternalServerError: &TemplateConfigItem{
+						Path: "templates/internal-server-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					UnauthorizedError: &TemplateConfigItem{
+						Path: "templates/unauthorized-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					ForbiddenError: &TemplateConfigItem{
+						Path: "templates/forbidden-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					BadRequestError: &TemplateConfigItem{
+						Path: "templates/bad-request-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
 				ListTargets: &ListTargetsConfig{
@@ -526,13 +706,49 @@ targets:
 					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
-					FolderList:          "templates/folder-list.tpl",
-					TargetList:          "templates/target-list.tpl",
-					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "templates/internal-server-error.tpl",
-					Unauthorized:        "templates/unauthorized.tpl",
-					Forbidden:           "templates/forbidden.tpl",
-					BadRequest:          "templates/bad-request.tpl",
+					Helpers: []string{"templates/_helpers.tpl"},
+					FolderList: &TemplateConfigItem{
+						Path: "templates/folder-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					TargetList: &TemplateConfigItem{
+						Path: "templates/target-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					NotFoundError: &TemplateConfigItem{
+						Path: "templates/not-found-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					InternalServerError: &TemplateConfigItem{
+						Path: "templates/internal-server-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					UnauthorizedError: &TemplateConfigItem{
+						Path: "templates/unauthorized-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					ForbiddenError: &TemplateConfigItem{
+						Path: "templates/forbidden-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					BadRequestError: &TemplateConfigItem{
+						Path: "templates/bad-request-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
 				ListTargets: &ListTargetsConfig{
@@ -575,7 +791,7 @@ targets:
   mount:
     path: /test/
   templates:
-    notFound:
+    notFoundError:
       inBucket: false
   bucket:
     name: bucket1
@@ -597,12 +813,16 @@ targets:
   mount:
     path: /test/
   templates:
-    notFound:
+    notFoundError:
       inBucket: false
       path: "/fake"
+      headers:
+        h1: "{{ .Fake }}"
     internalServerError:
       inBucket: true
       path: "/fake2"
+      headers:
+        h2: "{{ .Fake }}"
   bucket:
     name: bucket1
     region: us-east-1
@@ -627,13 +847,49 @@ targets:
 					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
-					FolderList:          "templates/folder-list.tpl",
-					TargetList:          "templates/target-list.tpl",
-					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "templates/internal-server-error.tpl",
-					Unauthorized:        "templates/unauthorized.tpl",
-					Forbidden:           "templates/forbidden.tpl",
-					BadRequest:          "templates/bad-request.tpl",
+					Helpers: []string{"templates/_helpers.tpl"},
+					FolderList: &TemplateConfigItem{
+						Path: "templates/folder-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					TargetList: &TemplateConfigItem{
+						Path: "templates/target-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					NotFoundError: &TemplateConfigItem{
+						Path: "templates/not-found-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					InternalServerError: &TemplateConfigItem{
+						Path: "templates/internal-server-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					UnauthorizedError: &TemplateConfigItem{
+						Path: "templates/unauthorized-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					ForbiddenError: &TemplateConfigItem{
+						Path: "templates/forbidden-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					BadRequestError: &TemplateConfigItem{
+						Path: "templates/bad-request-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
 				ListTargets: &ListTargetsConfig{
@@ -662,13 +918,15 @@ targets:
 							GET: &GetActionConfig{Enabled: true},
 						},
 						Templates: &TargetTemplateConfig{
-							NotFound: &TargetTemplateConfigItem{
+							NotFoundError: &TargetTemplateConfigItem{
 								InBucket: false,
 								Path:     "/fake",
+								Headers:  map[string]string{"h1": "{{ .Fake }}"},
 							},
 							InternalServerError: &TargetTemplateConfigItem{
 								InBucket: true,
 								Path:     "/fake2",
+								Headers:  map[string]string{"h2": "{{ .Fake }}"},
 							},
 						},
 					},
@@ -711,13 +969,49 @@ targets:
 					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
-					FolderList:          "templates/folder-list.tpl",
-					TargetList:          "templates/target-list.tpl",
-					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "templates/internal-server-error.tpl",
-					Unauthorized:        "templates/unauthorized.tpl",
-					Forbidden:           "templates/forbidden.tpl",
-					BadRequest:          "templates/bad-request.tpl",
+					Helpers: []string{"templates/_helpers.tpl"},
+					FolderList: &TemplateConfigItem{
+						Path: "templates/folder-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					TargetList: &TemplateConfigItem{
+						Path: "templates/target-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					NotFoundError: &TemplateConfigItem{
+						Path: "templates/not-found-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					InternalServerError: &TemplateConfigItem{
+						Path: "templates/internal-server-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					UnauthorizedError: &TemplateConfigItem{
+						Path: "templates/unauthorized-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					ForbiddenError: &TemplateConfigItem{
+						Path: "templates/forbidden-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					BadRequestError: &TemplateConfigItem{
+						Path: "templates/bad-request-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
 				ListTargets: &ListTargetsConfig{
@@ -787,13 +1081,49 @@ targets:
 					Compress: svrCompressCfg,
 				},
 				Templates: &TemplateConfig{
-					FolderList:          "templates/folder-list.tpl",
-					TargetList:          "templates/target-list.tpl",
-					NotFound:            "templates/not-found.tpl",
-					InternalServerError: "templates/internal-server-error.tpl",
-					Unauthorized:        "templates/unauthorized.tpl",
-					Forbidden:           "templates/forbidden.tpl",
-					BadRequest:          "templates/bad-request.tpl",
+					Helpers: []string{"templates/_helpers.tpl"},
+					FolderList: &TemplateConfigItem{
+						Path: "templates/folder-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					TargetList: &TemplateConfigItem{
+						Path: "templates/target-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					NotFoundError: &TemplateConfigItem{
+						Path: "templates/not-found-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					InternalServerError: &TemplateConfigItem{
+						Path: "templates/internal-server-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					UnauthorizedError: &TemplateConfigItem{
+						Path: "templates/unauthorized-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					ForbiddenError: &TemplateConfigItem{
+						Path: "templates/forbidden-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					BadRequestError: &TemplateConfigItem{
+						Path: "templates/bad-request-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
 				ListTargets: &ListTargetsConfig{
@@ -979,13 +1309,49 @@ targets:
 			Compress: svrCompressCfg,
 		},
 		Templates: &TemplateConfig{
-			FolderList:          "templates/folder-list.tpl",
-			TargetList:          "templates/target-list.tpl",
-			NotFound:            "templates/not-found.tpl",
-			InternalServerError: "templates/internal-server-error.tpl",
-			Unauthorized:        "templates/unauthorized.tpl",
-			Forbidden:           "templates/forbidden.tpl",
-			BadRequest:          "templates/bad-request.tpl",
+			Helpers: []string{"templates/_helpers.tpl"},
+			FolderList: &TemplateConfigItem{
+				Path: "templates/folder-list.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			TargetList: &TemplateConfigItem{
+				Path: "templates/target-list.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			NotFoundError: &TemplateConfigItem{
+				Path: "templates/not-found-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			InternalServerError: &TemplateConfigItem{
+				Path: "templates/internal-server-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			UnauthorizedError: &TemplateConfigItem{
+				Path: "templates/unauthorized-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			ForbiddenError: &TemplateConfigItem{
+				Path: "templates/forbidden-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			BadRequestError: &TemplateConfigItem{
+				Path: "templates/bad-request-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
 		},
 		Tracing: &TracingConfig{Enabled: false},
 		ListTargets: &ListTargetsConfig{
@@ -1053,13 +1419,49 @@ log:
 				Compress: svrCompressCfg,
 			},
 			Templates: &TemplateConfig{
-				FolderList:          "templates/folder-list.tpl",
-				TargetList:          "templates/target-list.tpl",
-				NotFound:            "templates/not-found.tpl",
-				InternalServerError: "templates/internal-server-error.tpl",
-				Unauthorized:        "templates/unauthorized.tpl",
-				Forbidden:           "templates/forbidden.tpl",
-				BadRequest:          "templates/bad-request.tpl",
+				Helpers: []string{"templates/_helpers.tpl"},
+				FolderList: &TemplateConfigItem{
+					Path: "templates/folder-list.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				TargetList: &TemplateConfigItem{
+					Path: "templates/target-list.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				NotFoundError: &TemplateConfigItem{
+					Path: "templates/not-found-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				InternalServerError: &TemplateConfigItem{
+					Path: "templates/internal-server-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				UnauthorizedError: &TemplateConfigItem{
+					Path: "templates/unauthorized-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				ForbiddenError: &TemplateConfigItem{
+					Path: "templates/forbidden-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				BadRequestError: &TemplateConfigItem{
+					Path: "templates/bad-request-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
 			},
 			Tracing: &TracingConfig{Enabled: false},
 			ListTargets: &ListTargetsConfig{
@@ -1183,13 +1585,49 @@ targets:
 			Compress: svrCompressCfg,
 		},
 		Templates: &TemplateConfig{
-			FolderList:          "templates/folder-list.tpl",
-			TargetList:          "templates/target-list.tpl",
-			NotFound:            "templates/not-found.tpl",
-			InternalServerError: "templates/internal-server-error.tpl",
-			Unauthorized:        "templates/unauthorized.tpl",
-			Forbidden:           "templates/forbidden.tpl",
-			BadRequest:          "templates/bad-request.tpl",
+			Helpers: []string{"templates/_helpers.tpl"},
+			FolderList: &TemplateConfigItem{
+				Path: "templates/folder-list.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			TargetList: &TemplateConfigItem{
+				Path: "templates/target-list.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			NotFoundError: &TemplateConfigItem{
+				Path: "templates/not-found-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			InternalServerError: &TemplateConfigItem{
+				Path: "templates/internal-server-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			UnauthorizedError: &TemplateConfigItem{
+				Path: "templates/unauthorized-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			ForbiddenError: &TemplateConfigItem{
+				Path: "templates/forbidden-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			BadRequestError: &TemplateConfigItem{
+				Path: "templates/bad-request-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
 		},
 		Tracing: &TracingConfig{Enabled: false},
 		ListTargets: &ListTargetsConfig{
@@ -1255,13 +1693,49 @@ targets:
 				Compress: svrCompressCfg,
 			},
 			Templates: &TemplateConfig{
-				FolderList:          "templates/folder-list.tpl",
-				TargetList:          "templates/target-list.tpl",
-				NotFound:            "templates/not-found.tpl",
-				InternalServerError: "templates/internal-server-error.tpl",
-				Unauthorized:        "templates/unauthorized.tpl",
-				Forbidden:           "templates/forbidden.tpl",
-				BadRequest:          "templates/bad-request.tpl",
+				Helpers: []string{"templates/_helpers.tpl"},
+				FolderList: &TemplateConfigItem{
+					Path: "templates/folder-list.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				TargetList: &TemplateConfigItem{
+					Path: "templates/target-list.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				NotFoundError: &TemplateConfigItem{
+					Path: "templates/not-found-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				InternalServerError: &TemplateConfigItem{
+					Path: "templates/internal-server-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				UnauthorizedError: &TemplateConfigItem{
+					Path: "templates/unauthorized-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				ForbiddenError: &TemplateConfigItem{
+					Path: "templates/forbidden-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				BadRequestError: &TemplateConfigItem{
+					Path: "templates/bad-request-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
 			},
 			Tracing: &TracingConfig{Enabled: false},
 			ListTargets: &ListTargetsConfig{
@@ -1385,13 +1859,49 @@ targets:
 			Compress: svrCompressCfg,
 		},
 		Templates: &TemplateConfig{
-			FolderList:          "templates/folder-list.tpl",
-			TargetList:          "templates/target-list.tpl",
-			NotFound:            "templates/not-found.tpl",
-			InternalServerError: "templates/internal-server-error.tpl",
-			Unauthorized:        "templates/unauthorized.tpl",
-			Forbidden:           "templates/forbidden.tpl",
-			BadRequest:          "templates/bad-request.tpl",
+			Helpers: []string{"templates/_helpers.tpl"},
+			FolderList: &TemplateConfigItem{
+				Path: "templates/folder-list.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			TargetList: &TemplateConfigItem{
+				Path: "templates/target-list.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			NotFoundError: &TemplateConfigItem{
+				Path: "templates/not-found-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			InternalServerError: &TemplateConfigItem{
+				Path: "templates/internal-server-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			UnauthorizedError: &TemplateConfigItem{
+				Path: "templates/unauthorized-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			ForbiddenError: &TemplateConfigItem{
+				Path: "templates/forbidden-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			BadRequestError: &TemplateConfigItem{
+				Path: "templates/bad-request-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
 		},
 		Tracing: &TracingConfig{Enabled: false},
 		ListTargets: &ListTargetsConfig{
@@ -1460,13 +1970,49 @@ configuration with error
 				Compress: svrCompressCfg,
 			},
 			Templates: &TemplateConfig{
-				FolderList:          "templates/folder-list.tpl",
-				TargetList:          "templates/target-list.tpl",
-				NotFound:            "templates/not-found.tpl",
-				InternalServerError: "templates/internal-server-error.tpl",
-				Unauthorized:        "templates/unauthorized.tpl",
-				Forbidden:           "templates/forbidden.tpl",
-				BadRequest:          "templates/bad-request.tpl",
+				Helpers: []string{"templates/_helpers.tpl"},
+				FolderList: &TemplateConfigItem{
+					Path: "templates/folder-list.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				TargetList: &TemplateConfigItem{
+					Path: "templates/target-list.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				NotFoundError: &TemplateConfigItem{
+					Path: "templates/not-found-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				InternalServerError: &TemplateConfigItem{
+					Path: "templates/internal-server-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				UnauthorizedError: &TemplateConfigItem{
+					Path: "templates/unauthorized-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				ForbiddenError: &TemplateConfigItem{
+					Path: "templates/forbidden-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				BadRequestError: &TemplateConfigItem{
+					Path: "templates/bad-request-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
 			},
 			Tracing: &TracingConfig{Enabled: false},
 			ListTargets: &ListTargetsConfig{
@@ -1594,13 +2140,49 @@ targets:
 			Compress: svrCompressCfg,
 		},
 		Templates: &TemplateConfig{
-			FolderList:          "templates/folder-list.tpl",
-			TargetList:          "templates/target-list.tpl",
-			NotFound:            "templates/not-found.tpl",
-			InternalServerError: "templates/internal-server-error.tpl",
-			Unauthorized:        "templates/unauthorized.tpl",
-			Forbidden:           "templates/forbidden.tpl",
-			BadRequest:          "templates/bad-request.tpl",
+			Helpers: []string{"templates/_helpers.tpl"},
+			FolderList: &TemplateConfigItem{
+				Path: "templates/folder-list.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			TargetList: &TemplateConfigItem{
+				Path: "templates/target-list.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			NotFoundError: &TemplateConfigItem{
+				Path: "templates/not-found-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			InternalServerError: &TemplateConfigItem{
+				Path: "templates/internal-server-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			UnauthorizedError: &TemplateConfigItem{
+				Path: "templates/unauthorized-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			ForbiddenError: &TemplateConfigItem{
+				Path: "templates/forbidden-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			BadRequestError: &TemplateConfigItem{
+				Path: "templates/bad-request-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
 		},
 		AuthProviders: &AuthProviderConfig{
 			Basic: map[string]*BasicAuthConfig{
@@ -1675,13 +2257,49 @@ authProviders:
 				Compress: svrCompressCfg,
 			},
 			Templates: &TemplateConfig{
-				FolderList:          "templates/folder-list.tpl",
-				TargetList:          "templates/target-list.tpl",
-				NotFound:            "templates/not-found.tpl",
-				InternalServerError: "templates/internal-server-error.tpl",
-				Unauthorized:        "templates/unauthorized.tpl",
-				Forbidden:           "templates/forbidden.tpl",
-				BadRequest:          "templates/bad-request.tpl",
+				Helpers: []string{"templates/_helpers.tpl"},
+				FolderList: &TemplateConfigItem{
+					Path: "templates/folder-list.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				TargetList: &TemplateConfigItem{
+					Path: "templates/target-list.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				NotFoundError: &TemplateConfigItem{
+					Path: "templates/not-found-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				InternalServerError: &TemplateConfigItem{
+					Path: "templates/internal-server-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				UnauthorizedError: &TemplateConfigItem{
+					Path: "templates/unauthorized-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				ForbiddenError: &TemplateConfigItem{
+					Path: "templates/forbidden-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
+				BadRequestError: &TemplateConfigItem{
+					Path: "templates/bad-request-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+				},
 			},
 			Tracing: &TracingConfig{Enabled: false},
 			ListTargets: &ListTargetsConfig{
@@ -1828,13 +2446,49 @@ targets:
 		},
 		Tracing: &TracingConfig{Enabled: false},
 		Templates: &TemplateConfig{
-			FolderList:          "templates/folder-list.tpl",
-			TargetList:          "templates/target-list.tpl",
-			NotFound:            "templates/not-found.tpl",
-			InternalServerError: "templates/internal-server-error.tpl",
-			Unauthorized:        "templates/unauthorized.tpl",
-			Forbidden:           "templates/forbidden.tpl",
-			BadRequest:          "templates/bad-request.tpl",
+			Helpers: []string{"templates/_helpers.tpl"},
+			FolderList: &TemplateConfigItem{
+				Path: "templates/folder-list.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			TargetList: &TemplateConfigItem{
+				Path: "templates/target-list.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			NotFoundError: &TemplateConfigItem{
+				Path: "templates/not-found-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			InternalServerError: &TemplateConfigItem{
+				Path: "templates/internal-server-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			UnauthorizedError: &TemplateConfigItem{
+				Path: "templates/unauthorized-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			ForbiddenError: &TemplateConfigItem{
+				Path: "templates/forbidden-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
+			BadRequestError: &TemplateConfigItem{
+				Path: "templates/bad-request-error.tpl",
+				Headers: map[string]string{
+					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+				},
+			},
 		},
 		AuthProviders: &AuthProviderConfig{
 			Basic: map[string]*BasicAuthConfig{
