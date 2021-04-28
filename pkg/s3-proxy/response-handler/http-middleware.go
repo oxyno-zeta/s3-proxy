@@ -1,7 +1,6 @@
 package responsehandler
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
@@ -18,7 +17,7 @@ func HTTPMiddleware(cfgManager config.Manager, targetKey string) func(next http.
 			rh := NewHandler(r, rw, cfgManager, targetKey)
 
 			// Inject in context
-			ctx = context.WithValue(ctx, responseHandlerCtxKey, rh)
+			ctx = SetResponseHandlerInContext(ctx, rh)
 			// Inject in request
 			r = r.WithContext(ctx)
 
