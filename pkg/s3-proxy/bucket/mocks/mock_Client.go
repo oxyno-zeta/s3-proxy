@@ -59,64 +59,19 @@ func (mr *MockClientMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), arg0, arg1)
 }
 
-// HandleBadRequest mocks base method.
-func (m *MockClient) HandleBadRequest(arg0 context.Context, arg1 error, arg2 string) {
+// LoadFileContent mocks base method.
+func (m *MockClient) LoadFileContent(arg0 context.Context, arg1 string) (string, error) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "HandleBadRequest", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "LoadFileContent", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// HandleBadRequest indicates an expected call of HandleBadRequest.
-func (mr *MockClientMockRecorder) HandleBadRequest(arg0, arg1, arg2 interface{}) *gomock.Call {
+// LoadFileContent indicates an expected call of LoadFileContent.
+func (mr *MockClientMockRecorder) LoadFileContent(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleBadRequest", reflect.TypeOf((*MockClient)(nil).HandleBadRequest), arg0, arg1, arg2)
-}
-
-// HandleForbidden mocks base method.
-func (m *MockClient) HandleForbidden(arg0 context.Context, arg1 string) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "HandleForbidden", arg0, arg1)
-}
-
-// HandleForbidden indicates an expected call of HandleForbidden.
-func (mr *MockClientMockRecorder) HandleForbidden(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleForbidden", reflect.TypeOf((*MockClient)(nil).HandleForbidden), arg0, arg1)
-}
-
-// HandleInternalServerError mocks base method.
-func (m *MockClient) HandleInternalServerError(arg0 context.Context, arg1 error, arg2 string) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "HandleInternalServerError", arg0, arg1, arg2)
-}
-
-// HandleInternalServerError indicates an expected call of HandleInternalServerError.
-func (mr *MockClientMockRecorder) HandleInternalServerError(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleInternalServerError", reflect.TypeOf((*MockClient)(nil).HandleInternalServerError), arg0, arg1, arg2)
-}
-
-// HandleNotFound mocks base method.
-func (m *MockClient) HandleNotFound(arg0 context.Context, arg1 string) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "HandleNotFound", arg0, arg1)
-}
-
-// HandleNotFound indicates an expected call of HandleNotFound.
-func (mr *MockClientMockRecorder) HandleNotFound(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleNotFound", reflect.TypeOf((*MockClient)(nil).HandleNotFound), arg0, arg1)
-}
-
-// HandleUnauthorized mocks base method.
-func (m *MockClient) HandleUnauthorized(arg0 context.Context, arg1 string) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "HandleUnauthorized", arg0, arg1)
-}
-
-// HandleUnauthorized indicates an expected call of HandleUnauthorized.
-func (mr *MockClientMockRecorder) HandleUnauthorized(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleUnauthorized", reflect.TypeOf((*MockClient)(nil).HandleUnauthorized), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadFileContent", reflect.TypeOf((*MockClient)(nil).LoadFileContent), arg0, arg1)
 }
 
 // Put mocks base method.
