@@ -9,8 +9,6 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 )
 
-var responseHandlerCtxKey = &contextKey{name: "ResponseHandlerCtxKey"}
-
 // Entry Entry with path for internal use (template).
 type Entry struct {
 	Type         string
@@ -38,6 +36,7 @@ type StreamInput struct {
 }
 
 // ResponseHandler will handle responses.
+//go:generate mockgen -destination=./mocks/mock_ResponseHandler.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler ResponseHandler
 type ResponseHandler interface {
 	// TargetList will answer for the target list response.
 	TargetList()
@@ -94,9 +93,4 @@ func NewHandler(req *http.Request, res http.ResponseWriter, cfgManager config.Ma
 		cfgManager: cfgManager,
 		targetKey:  targetKey,
 	}
-}
-
-// GetResponseHandlerFromContext will return the response handler object from context.
-func GetResponseHandlerFromContext(ctx context.Context) ResponseHandler {
-	return ctx.Value(responseHandlerCtxKey).(ResponseHandler)
 }
