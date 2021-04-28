@@ -122,7 +122,9 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 		// Create index key path
 		indexKey := path.Join(key, rctx.targetCfg.Actions.GET.IndexDocument)
 		// Head index file in bucket
-		headOutput, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).HeadObject(ctx, indexKey)
+		headOutput, err := rctx.s3ClientManager.
+			GetClientForTarget(rctx.targetCfg.Name).
+			HeadObject(ctx, indexKey)
 		// Check if error exists and not a not found error
 		if err != nil && !errors.Is(err, s3client.ErrNotFound) {
 			// Manage error response
@@ -165,7 +167,9 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 	}
 
 	// Directory listing case
-	s3Entries, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).ListFilesAndDirectories(ctx, key)
+	s3Entries, err := rctx.s3ClientManager.
+		GetClientForTarget(rctx.targetCfg.Name).
+		ListFilesAndDirectories(ctx, key)
 	if err != nil {
 		resHan.InternalServerError(rctx.LoadFileContent, err)
 		// Stop
@@ -222,7 +226,9 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 		// Check if allow override is enabled
 		if !rctx.targetCfg.Actions.PUT.Config.AllowOverride {
 			// Need to check if file already exists
-			headOutput, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).HeadObject(ctx, key)
+			headOutput, err := rctx.s3ClientManager.
+				GetClientForTarget(rctx.targetCfg.Name).
+				HeadObject(ctx, key)
 			// Check if error is not found if exists
 			if err != nil && !errors.Is(err, s3client.ErrNotFound) {
 				resHan.InternalServerError(rctx.LoadFileContent, err)
@@ -241,7 +247,9 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 		}
 	}
 	// Put file
-	err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).PutObject(ctx, input)
+	err := rctx.s3ClientManager.
+		GetClientForTarget(rctx.targetCfg.Name).
+		PutObject(ctx, input)
 	if err != nil {
 		resHan.InternalServerError(rctx.LoadFileContent, err)
 		// Stop
@@ -280,7 +288,11 @@ func (rctx *requestContext) Delete(ctx context.Context, requestPath string) {
 	resHan.NoContent()
 }
 
-func transformS3Entries(s3Entries []*s3client.ListElementOutput, rctx *requestContext, bucketRootPrefixKey string) []*responsehandler.Entry {
+func transformS3Entries(
+	s3Entries []*s3client.ListElementOutput,
+	rctx *requestContext,
+	bucketRootPrefixKey string,
+) []*responsehandler.Entry {
 	// Prepare result
 	entries := make([]*responsehandler.Entry, 0)
 	// Loop over s3 entries
@@ -292,7 +304,7 @@ func transformS3Entries(s3Entries []*s3client.ListElementOutput, rctx *requestCo
 			LastModified: item.LastModified,
 			Size:         item.Size,
 			Key:          item.Key,
-			Path:         rctx.mountPath + strings.TrimPrefix(item.Key, bucketRootPrefixKey),
+			Path:         path.Join(rctx.mountPath, strings.TrimPrefix(item.Key, bucketRootPrefixKey)),
 		})
 	}
 	// Return result
@@ -325,14 +337,16 @@ func (rctx *requestContext) streamFileForResponse(ctx context.Context, key strin
 	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
 	// Get object from s3
-	objOutput, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).GetObject(ctx, &s3client.GetInput{
-		Key:               key,
-		IfModifiedSince:   input.IfModifiedSince,
-		IfMatch:           input.IfMatch,
-		IfNoneMatch:       input.IfNoneMatch,
-		IfUnmodifiedSince: input.IfUnmodifiedSince,
-		Range:             input.Range,
-	})
+	objOutput, err := rctx.s3ClientManager.
+		GetClientForTarget(rctx.targetCfg.Name).
+		GetObject(ctx, &s3client.GetInput{
+			Key:               key,
+			IfModifiedSince:   input.IfModifiedSince,
+			IfMatch:           input.IfMatch,
+			IfNoneMatch:       input.IfNoneMatch,
+			IfUnmodifiedSince: input.IfUnmodifiedSince,
+			Range:             input.Range,
+		})
 	// Check error
 	if err != nil {
 		return err
