@@ -26,10 +26,15 @@ type Manager interface {
 // Client S3 Context interface.
 //go:generate mockgen -destination=./mocks/mock_Client.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client Client
 type Client interface {
+	// ListFilesAndDirectories will list files and directories in S3.
 	ListFilesAndDirectories(ctx context.Context, key string) ([]*ListElementOutput, error)
+	// HeadObject will head a key.
 	HeadObject(ctx context.Context, key string) (*HeadOutput, error)
+	// GetObject will get an object.
 	GetObject(ctx context.Context, input *GetInput) (*GetOutput, error)
+	// PutObject will put an object.
 	PutObject(ctx context.Context, input *PutInput) error
+	// DeleteObject will delete an object.
 	DeleteObject(ctx context.Context, key string) error
 }
 
