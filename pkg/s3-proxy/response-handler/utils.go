@@ -42,8 +42,11 @@ func (h *handler) manageHeaders(helpersContent string, headersTpl map[string]str
 		str := buf.String()
 		// Remove all new lines
 		str = reg.ReplaceAllString(str, "")
-		// Save data
-		res[k] = str
+		// Save data only if the header isn't empty
+		if str != "" {
+			// Save
+			res[k] = str
+		}
 	}
 
 	// Return
