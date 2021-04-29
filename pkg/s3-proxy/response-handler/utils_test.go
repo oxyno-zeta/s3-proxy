@@ -107,6 +107,19 @@ func Test_handler_manageHeaders(t *testing.T) {
 				"h1": "fixed",
 			},
 		},
+		{
+			name: "empty header must be removed",
+			args: args{
+				helpersContent: "",
+				headersTpl: map[string]string{
+					"h1": "fixed",
+					"h2": "",
+				},
+			},
+			want: map[string]string{
+				"h1": "fixed",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
