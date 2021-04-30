@@ -1,3 +1,5 @@
+// +build integration
+
 package server
 
 import (
@@ -11,8 +13,57 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 )
+
+var testsDefaultGeneralTemplateConfig = &config.TemplateConfig{
+	Helpers: []string{
+		"../../../templates/_helpers.tpl",
+	},
+	FolderList: &config.TemplateConfigItem{
+		Path: "../../../templates/folder-list.tpl",
+		Headers: map[string]string{
+			"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+		},
+	},
+	TargetList: &config.TemplateConfigItem{
+		Path: "../../../templates/target-list.tpl",
+		Headers: map[string]string{
+			"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+		},
+	},
+	BadRequestError: &config.TemplateConfigItem{
+		Path: "../../../templates/bad-request-error.tpl",
+		Headers: map[string]string{
+			"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+		},
+	},
+	NotFoundError: &config.TemplateConfigItem{
+		Path: "../../../templates/not-found-error.tpl",
+		Headers: map[string]string{
+			"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+		},
+	},
+	InternalServerError: &config.TemplateConfigItem{
+		Path: "../../../templates/internal-server-error.tpl",
+		Headers: map[string]string{
+			"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+		},
+	},
+	UnauthorizedError: &config.TemplateConfigItem{
+		Path: "../../../templates/unauthorized-error.tpl",
+		Headers: map[string]string{
+			"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+		},
+	},
+	ForbiddenError: &config.TemplateConfigItem{
+		Path: "../../../templates/forbidden-error.tpl",
+		Headers: map[string]string{
+			"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+		},
+	},
+}
 
 // Generate metrics instance
 var metricsCtx = metrics.NewClient()
