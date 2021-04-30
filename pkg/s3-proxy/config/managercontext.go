@@ -445,8 +445,34 @@ func loadBusinessDefaultValues(out *Config) error {
 			item.Actions = &ActionsConfig{GET: &GetActionConfig{Enabled: true}}
 		}
 		// Manage default for target templates configurations
+		// Else put default headers for template override
 		if item.Templates == nil {
 			item.Templates = &TargetTemplateConfig{}
+		} else {
+			// Check if folder list template have been override and not headers
+			if item.Templates.FolderList != nil && item.Templates.FolderList.Headers == nil {
+				item.Templates.FolderList.Headers = DefaultTemplateHeaders
+			}
+			// Check if not found error template have been override and not headers
+			if item.Templates.NotFoundError != nil && item.Templates.NotFoundError.Headers == nil {
+				item.Templates.NotFoundError.Headers = DefaultTemplateHeaders
+			}
+			// Check if internal server error template have been override and not headers
+			if item.Templates.InternalServerError != nil && item.Templates.InternalServerError.Headers == nil {
+				item.Templates.InternalServerError.Headers = DefaultTemplateHeaders
+			}
+			// Check if forbidden error template have been override and not headers
+			if item.Templates.ForbiddenError != nil && item.Templates.ForbiddenError.Headers == nil {
+				item.Templates.ForbiddenError.Headers = DefaultTemplateHeaders
+			}
+			// Check if unauthorized error template have been override and not headers
+			if item.Templates.UnauthorizedError != nil && item.Templates.UnauthorizedError.Headers == nil {
+				item.Templates.UnauthorizedError.Headers = DefaultTemplateHeaders
+			}
+			// Check if bad request error template have been override and not headers
+			if item.Templates.BadRequestError != nil && item.Templates.BadRequestError.Headers == nil {
+				item.Templates.BadRequestError.Headers = DefaultTemplateHeaders
+			}
 		}
 		// Manage default value for resources methods
 		if item.Resources != nil {
