@@ -23,6 +23,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	cmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config/mocks"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/stretchr/testify/assert"
 )
@@ -82,15 +83,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -130,15 +123,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -171,21 +156,13 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
-			name: "GET a folder without index document enabled and custom folder list template",
+			name: "GET a folder without index document enabled and custom folder list template override",
 			args: args{
 				cfg: &config.Config{
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -209,6 +186,9 @@ func TestPublicRouter(t *testing.T) {
 								FolderList: &config.TargetTemplateConfigItem{
 									InBucket: true,
 									Path:     "templates/folder-list.tpl",
+									Headers: map[string]string{
+										"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+									},
 								},
 							},
 						},
@@ -231,15 +211,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -279,15 +251,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -337,15 +301,7 @@ func TestPublicRouter(t *testing.T) {
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -388,15 +344,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -442,15 +390,7 @@ func TestPublicRouter(t *testing.T) {
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -501,15 +441,7 @@ func TestPublicRouter(t *testing.T) {
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -552,15 +484,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -592,8 +516,7 @@ func TestPublicRouter(t *testing.T) {
   <body>
     <h1>Not Found /mount/folder1/test.txt-not-existing</h1>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/html; charset=utf-8",
@@ -606,15 +529,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -647,8 +562,7 @@ func TestPublicRouter(t *testing.T) {
   <body>
     <h1>Not Found /mount/folder1/test.txt</h1>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/html; charset=utf-8",
@@ -661,15 +575,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -710,15 +616,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
 							"provider1": {
@@ -773,9 +671,9 @@ func TestPublicRouter(t *testing.T) {
 <html>
   <body>
     <h1>Forbidden</h1>
+    <p>no resource found for path /mount/folder1/test.txt and method GET => Forbidden access</p>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/html; charset=utf-8",
@@ -788,15 +686,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
 							"provider1": {
@@ -851,9 +741,9 @@ func TestPublicRouter(t *testing.T) {
 <html>
   <body>
     <h1>Forbidden</h1>
+    <p>no resource found for path /mount/folder1/test.txt and method GET => Forbidden access</p>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/html; charset=utf-8",
@@ -866,15 +756,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
 							"provider1": {
@@ -929,9 +811,9 @@ func TestPublicRouter(t *testing.T) {
 <html>
   <body>
     <h1>Unauthorized</h1>
+    <p>no basic auth detected in request</p>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":     "text/html; charset=utf-8",
@@ -945,15 +827,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
 							"provider1": {
@@ -1010,9 +884,9 @@ func TestPublicRouter(t *testing.T) {
 <html>
   <body>
     <h1>Unauthorized</h1>
+    <p>username user2 not found in authorized users</p>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":     "text/html; charset=utf-8",
@@ -1026,15 +900,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
 							"provider1": {
@@ -1091,9 +957,9 @@ func TestPublicRouter(t *testing.T) {
 <html>
   <body>
     <h1>Unauthorized</h1>
+    <p>username user1 not authorized</p>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":     "text/html; charset=utf-8",
@@ -1107,15 +973,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
 							"provider1": {
@@ -1181,15 +1039,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						Basic: map[string]*config.BasicAuthConfig{
 							"provider1": {
@@ -1262,16 +1112,8 @@ func TestPublicRouter(t *testing.T) {
 							Path: []string{"/"},
 						},
 					},
-					Tracing: tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Tracing:   tracingConfig,
+					Templates: testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -1305,13 +1147,12 @@ func TestPublicRouter(t *testing.T) {
     <ul>
         <li>target1:
           <ul>
-            <li><a href="/mount/">/mount/</a></li>
+            <li><a href="http://localhost/mount/">http://localhost/mount/</a></li>
           </ul>
         </li>
     </ul>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/html; charset=utf-8",
@@ -1351,15 +1192,7 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates: testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -1390,9 +1223,9 @@ func TestPublicRouter(t *testing.T) {
 <html>
   <body>
     <h1>Unauthorized</h1>
+    <p>no basic auth detected in request</p>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":     "text/html; charset=utf-8",
@@ -1433,15 +1266,7 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates: testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -1474,9 +1299,9 @@ func TestPublicRouter(t *testing.T) {
 <html>
   <body>
     <h1>Unauthorized</h1>
+    <p>username user2 not found in authorized users</p>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":     "text/html; charset=utf-8",
@@ -1517,15 +1342,7 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates: testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -1558,9 +1375,9 @@ func TestPublicRouter(t *testing.T) {
 <html>
   <body>
     <h1>Unauthorized</h1>
+    <p>username user1 not authorized</p>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":     "text/html; charset=utf-8",
@@ -1601,15 +1418,7 @@ func TestPublicRouter(t *testing.T) {
 							},
 						},
 					},
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates: testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -1645,13 +1454,12 @@ func TestPublicRouter(t *testing.T) {
     <ul>
         <li>target1:
           <ul>
-            <li><a href="/mount/">/mount/</a></li>
+            <li><a href="http://localhost/mount/">http://localhost/mount/</a></li>
           </ul>
         </li>
     </ul>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/html; charset=utf-8",
@@ -1664,15 +1472,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -1715,15 +1515,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -1766,15 +1558,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -1812,15 +1596,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -1859,15 +1635,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -1917,15 +1685,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -1968,9 +1728,9 @@ func TestPublicRouter(t *testing.T) {
 <html>
   <body>
     <h1>Forbidden</h1>
+    <p>file detected on path folder1/test.txt for PUT request and override isn't allowed</p>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/html; charset=utf-8",
@@ -1983,15 +1743,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -2042,15 +1794,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -2086,8 +1830,7 @@ func TestPublicRouter(t *testing.T) {
     <h1>Internal Server Error</h1>
     <p>missing form body</p>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/html; charset=utf-8",
@@ -2100,15 +1843,7 @@ func TestPublicRouter(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates: &config.TemplateConfig{
-						FolderList:          "../../../templates/folder-list.tpl",
-						TargetList:          "../../../templates/target-list.tpl",
-						NotFound:            "../../../templates/not-found.tpl",
-						Forbidden:           "../../../templates/forbidden.tpl",
-						BadRequest:          "../../../templates/bad-request.tpl",
-						InternalServerError: "../../../templates/internal-server-error.tpl",
-						Unauthorized:        "../../../templates/unauthorized.tpl",
-					},
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name: "target1",
@@ -2147,8 +1882,7 @@ func TestPublicRouter(t *testing.T) {
     <h1>Internal Server Error</h1>
     <p>http: no such file</p>
   </body>
-</html>
-`,
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/html; charset=utf-8",
@@ -2169,11 +1903,17 @@ func TestPublicRouter(t *testing.T) {
 			tsvc, err := tracing.New(cfgManagerMock, logger)
 			assert.NoError(t, err)
 
+			// Create S3 Manager
+			s3Manager := s3client.NewManager(cfgManagerMock, metricsCtx)
+			err = s3Manager.Load()
+			assert.NoError(t, err)
+
 			svr := &Server{
-				logger:     logger,
-				cfgManager: cfgManagerMock,
-				metricsCl:  metricsCtx,
-				tracingSvc: tsvc,
+				logger:          logger,
+				cfgManager:      cfgManagerMock,
+				metricsCl:       metricsCtx,
+				tracingSvc:      tsvc,
+				s3clientManager: s3Manager,
 			}
 			got, err := svr.generateRouter()
 			if (err != nil) != tt.wantErr {
@@ -2240,30 +1980,22 @@ func TestPublicRouter(t *testing.T) {
 
 			if tt.expectedBody != "" {
 				body := w.Body.String()
-				if tt.expectedBody != body {
-					t.Errorf("Integration test on GenerateRouter() body = \"%v\", expected body \"%v\"", body, tt.expectedBody)
-				}
+				assert.Equal(t, tt.expectedBody, body)
 			}
 
 			if tt.notExpectedBody != "" {
 				body := w.Body.String()
-				if tt.notExpectedBody == body {
-					t.Errorf("Integration test on GenerateRouter() body = \"%v\", not expected body \"%v\"", body, tt.notExpectedBody)
-				}
+				assert.NotEqual(t, tt.notExpectedBody, body)
 			}
 
 			if tt.expectedHeaders != nil {
 				for key, val := range tt.expectedHeaders {
 					wheader := w.HeaderMap.Get(key)
-					if val != wheader {
-						t.Errorf("Integration test on GenerateRouter() header %s = %v, expected %v", key, wheader, val)
-					}
+					assert.Equal(t, val, wheader, key)
 				}
 			}
 
-			if tt.expectedCode != w.Code {
-				t.Errorf("Integration test on GenerateRouter() status code = %v, expected status code %v", w.Code, tt.expectedCode)
-			}
+			assert.Equal(t, tt.expectedCode, w.Code)
 		})
 	}
 }
@@ -2291,15 +2023,6 @@ func TestTracing(t *testing.T) {
 			Level:   config.DefaultServerCompressLevel,
 			Types:   config.DefaultServerCompressTypes,
 		},
-	}
-	tplConfig := &config.TemplateConfig{
-		FolderList:          "../../../templates/folder-list.tpl",
-		TargetList:          "../../../templates/target-list.tpl",
-		NotFound:            "../../../templates/not-found.tpl",
-		Forbidden:           "../../../templates/forbidden.tpl",
-		BadRequest:          "../../../templates/bad-request.tpl",
-		InternalServerError: "../../../templates/internal-server-error.tpl",
-		Unauthorized:        "../../../templates/unauthorized.tpl",
 	}
 	targetsCfg := map[string]*config.TargetConfig{
 		"target1": {
@@ -2348,7 +2071,7 @@ func TestTracing(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
-					Templates:   tplConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets:     targetsCfg,
 				},
 			},
@@ -2372,7 +2095,7 @@ func TestTracing(t *testing.T) {
 						UDPHost:       "localhost:6831",
 						FlushInterval: "120s",
 					},
-					Templates: tplConfig,
+					Templates: testsDefaultGeneralTemplateConfig,
 					Targets:   targetsCfg,
 				},
 			},
@@ -2400,11 +2123,17 @@ func TestTracing(t *testing.T) {
 			tsvc, err := tracing.New(cfgManagerMock, logger)
 			assert.NoError(t, err)
 
+			// Create S3 Manager
+			s3Manager := s3client.NewManager(cfgManagerMock, metricsCtx)
+			err = s3Manager.Load()
+			assert.NoError(t, err)
+
 			svr := &Server{
-				logger:     logger,
-				cfgManager: cfgManagerMock,
-				metricsCl:  metricsCtx,
-				tracingSvc: tsvc,
+				logger:          logger,
+				cfgManager:      cfgManagerMock,
+				metricsCl:       metricsCtx,
+				tracingSvc:      tsvc,
+				s3clientManager: s3Manager,
 			}
 			got, err := svr.generateRouter()
 			if (err != nil) != tt.wantErr {
@@ -2463,30 +2192,22 @@ func TestTracing(t *testing.T) {
 
 			if tt.expectedBody != "" {
 				body := w.Body.String()
-				if tt.expectedBody != body {
-					t.Errorf("Integration test on GenerateRouter() body = \"%v\", expected body \"%v\"", body, tt.expectedBody)
-				}
+				assert.Equal(t, tt.expectedBody, body)
 			}
 
 			if tt.notExpectedBody != "" {
 				body := w.Body.String()
-				if tt.notExpectedBody == body {
-					t.Errorf("Integration test on GenerateRouter() body = \"%v\", not expected body \"%v\"", body, tt.notExpectedBody)
-				}
+				assert.NotEqual(t, tt.notExpectedBody, body)
 			}
 
 			if tt.expectedHeaders != nil {
 				for key, val := range tt.expectedHeaders {
 					wheader := w.HeaderMap.Get(key)
-					if val != wheader {
-						t.Errorf("Integration test on GenerateRouter() header %s = %v, expected %v", key, wheader, val)
-					}
+					assert.Equal(t, val, wheader, key)
 				}
 			}
 
-			if tt.expectedCode != w.Code {
-				t.Errorf("Integration test on GenerateRouter() status code = %v, expected status code %v", w.Code, tt.expectedCode)
-			}
+			assert.Equal(t, tt.expectedCode, w.Code)
 		})
 	}
 }
@@ -2510,15 +2231,6 @@ func TestOIDCAuthentication(t *testing.T) {
 		return
 	}
 
-	tplCfg := &config.TemplateConfig{
-		FolderList:          "../../../templates/folder-list.tpl",
-		TargetList:          "../../../templates/target-list.tpl",
-		NotFound:            "../../../templates/not-found.tpl",
-		Forbidden:           "../../../templates/forbidden.tpl",
-		BadRequest:          "../../../templates/bad-request.tpl",
-		InternalServerError: "../../../templates/internal-server-error.tpl",
-		Unauthorized:        "../../../templates/unauthorized.tpl",
-	}
 	tracingConfig := &config.TracingConfig{}
 	targetsTpl := map[string]*config.TargetConfig{
 		"target1": {
@@ -2663,7 +2375,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Provider: "provider1",
 					OIDC: &config.ResourceOIDC{
 						AuthorizationAccesses: []*config.OIDCAuthorizationAccess{
-							&config.OIDCAuthorizationAccess{
+							{
 								Group: "group1",
 							},
 						},
@@ -2714,7 +2426,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates:   tplCfg,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
 							"provider1": {
@@ -2739,7 +2451,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates:   tplCfg,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
 							"provider1": {
@@ -2773,7 +2485,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates:   tplCfg,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
 							"provider1": {
@@ -2802,6 +2514,7 @@ func TestOIDCAuthentication(t *testing.T) {
 			expectedResponseHost: "localhost:8080",
 			expectedResponsePath: "/mount/folder1/test.txt",
 			expectedCode:         200,
+			expectedBody:         "Hello folder1!",
 		},
 		{
 			name: "GET a file with oidc bearer token and email verified flag enabled should be ok",
@@ -2810,7 +2523,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates:   tplCfg,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
 							"provider1": {
@@ -2848,7 +2561,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates:   tplCfg,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
 							"provider1": {
@@ -2886,7 +2599,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates:   tplCfg,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
 							"provider1": {
@@ -2925,7 +2638,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates:   tplCfg,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
 							"provider1": {
@@ -2964,7 +2677,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates:   tplCfg,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
 							"provider1": {
@@ -3003,7 +2716,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates:   tplCfg,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
 							"provider1": {
@@ -3042,7 +2755,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates:   tplCfg,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
 							"provider1": {
@@ -3081,7 +2794,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Server:      svrCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     tracingConfig,
-					Templates:   tplCfg,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					AuthProviders: &config.AuthProviderConfig{
 						OIDC: map[string]*config.OIDCAuthConfig{
 							"provider1": {
@@ -3138,7 +2851,12 @@ func TestOIDCAuthentication(t *testing.T) {
 			tsvc, err := tracing.New(cfgManagerMock, logger)
 			assert.NoError(t, err)
 
-			ssvr := NewServer(logger, cfgManagerMock, metricsCtx, tsvc)
+			// Create S3 Manager
+			s3Manager := s3client.NewManager(cfgManagerMock, metricsCtx)
+			err = s3Manager.Load()
+			assert.NoError(t, err)
+
+			ssvr := NewServer(logger, cfgManagerMock, metricsCtx, tsvc, s3Manager)
 			err = ssvr.GenerateServer()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("generateServer() error = %v, wantErr %v", err, tt.wantErr)
@@ -3251,34 +2969,23 @@ func TestOIDCAuthentication(t *testing.T) {
 				return
 			}
 
-			if tt.expectedResponseHost != resp.Request.URL.Host {
-				t.Errorf("OIDC Integration test on GenerateRouter() response host = %v, expected response host %v", resp.Request.URL.Host, tt.expectedResponseHost)
-			}
+			assert.Equal(t, tt.expectedResponseHost, resp.Request.URL.Host)
+			assert.Equal(t, tt.expectedResponsePath, resp.Request.URL.Path)
 
-			if tt.expectedResponsePath != resp.Request.URL.Path {
-				t.Errorf("OIDC Integration test on GenerateRouter() response path = %v, expected response path %v", resp.Request.URL.Path, tt.expectedResponsePath)
+			if tt.expectedBody != "" {
+				bodyBytes, _ := ioutil.ReadAll(resp.Body)
+				body := string(bodyBytes)
+				assert.Equal(t, tt.expectedBody, body)
 			}
 
 			if tt.expectedHeaders != nil {
 				for key, val := range tt.expectedHeaders {
 					wheader := resp.Header.Get(key)
-					if val != wheader {
-						t.Errorf("OIDC Integration test on GenerateRouter() header %s = %v, expected %v", key, wheader, val)
-					}
+					assert.Equal(t, val, wheader, key)
 				}
 			}
 
-			if tt.expectedCode != resp.StatusCode {
-				t.Errorf("OIDC Integration test on GenerateRouter() status code = %v, expected status code %v", resp.StatusCode, tt.expectedCode)
-			}
-
-			if tt.expectedBody != "" {
-				bodyBytes, _ := ioutil.ReadAll(resp.Body)
-				body := string(bodyBytes)
-				if tt.expectedBody != body {
-					t.Errorf("OIDC Integration test on GenerateRouter() body = \"%v\", not expected body \"%v\"", body, tt.expectedBody)
-				}
-			}
+			assert.Equal(t, tt.expectedCode, resp.StatusCode)
 		})
 	}
 }
@@ -3300,15 +3007,6 @@ func TestCORS(t *testing.T) {
 		return
 	}
 
-	tplConfig := &config.TemplateConfig{
-		FolderList:          "../../../templates/folder-list.tpl",
-		TargetList:          "../../../templates/target-list.tpl",
-		NotFound:            "../../../templates/not-found.tpl",
-		Forbidden:           "../../../templates/forbidden.tpl",
-		BadRequest:          "../../../templates/bad-request.tpl",
-		InternalServerError: "../../../templates/internal-server-error.tpl",
-		Unauthorized:        "../../../templates/unauthorized.tpl",
-	}
 	targetsCfg := map[string]*config.TargetConfig{
 		"target1": {
 			Name: "target1",
@@ -3362,7 +3060,7 @@ func TestCORS(t *testing.T) {
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
-					Templates:   tplConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets:     targetsCfg,
 				},
 			},
@@ -3397,7 +3095,7 @@ func TestCORS(t *testing.T) {
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
-					Templates:   tplConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets:     targetsCfg,
 				},
 			},
@@ -3435,7 +3133,7 @@ func TestCORS(t *testing.T) {
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
-					Templates:   tplConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets:     targetsCfg,
 				},
 			},
@@ -3473,7 +3171,7 @@ func TestCORS(t *testing.T) {
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
-					Templates:   tplConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets:     targetsCfg,
 				},
 			},
@@ -3511,7 +3209,7 @@ func TestCORS(t *testing.T) {
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
-					Templates:   tplConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets:     targetsCfg,
 				},
 			},
@@ -3549,7 +3247,7 @@ func TestCORS(t *testing.T) {
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
-					Templates:   tplConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets:     targetsCfg,
 				},
 			},
@@ -3587,7 +3285,7 @@ func TestCORS(t *testing.T) {
 					},
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
-					Templates:   tplConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets:     targetsCfg,
 				},
 			},
@@ -3620,11 +3318,17 @@ func TestCORS(t *testing.T) {
 			tsvc, err := tracing.New(cfgManagerMock, logger)
 			assert.NoError(t, err)
 
+			// Create S3 Manager
+			s3Manager := s3client.NewManager(cfgManagerMock, metricsCtx)
+			err = s3Manager.Load()
+			assert.NoError(t, err)
+
 			svr := &Server{
-				logger:     logger,
-				cfgManager: cfgManagerMock,
-				metricsCl:  metricsCtx,
-				tracingSvc: tsvc,
+				logger:          logger,
+				cfgManager:      cfgManagerMock,
+				metricsCl:       metricsCtx,
+				tracingSvc:      tsvc,
+				s3clientManager: s3Manager,
 			}
 			got, err := svr.generateRouter()
 			if (err != nil) != tt.wantErr {
@@ -3657,30 +3361,22 @@ func TestCORS(t *testing.T) {
 
 			if tt.expectedBody != "" {
 				body := w.Body.String()
-				if tt.expectedBody != body {
-					t.Errorf("Integration test on GenerateRouter() body = \"%v\", expected body \"%v\"", body, tt.expectedBody)
-				}
+				assert.Equal(t, tt.expectedBody, body)
 			}
 
 			if tt.notExpectedBody != "" {
 				body := w.Body.String()
-				if tt.notExpectedBody == body {
-					t.Errorf("Integration test on GenerateRouter() body = \"%v\", not expected body \"%v\"", body, tt.notExpectedBody)
-				}
+				assert.NotEqual(t, tt.notExpectedBody, body)
 			}
 
 			if tt.expectedHeaders != nil {
 				for key, val := range tt.expectedHeaders {
 					wheader := w.HeaderMap.Get(key)
-					if val != wheader {
-						t.Errorf("Integration test on GenerateRouter() header %s = %v, expected %v", key, wheader, val)
-					}
+					assert.Equal(t, val, wheader, key)
 				}
 			}
 
-			if tt.expectedCode != w.Code {
-				t.Errorf("Integration test on GenerateRouter() status code = %v, expected status code %v", w.Code, tt.expectedCode)
-			}
+			assert.Equal(t, tt.expectedCode, w.Code)
 		})
 	}
 }
@@ -3702,15 +3398,6 @@ func TestIndexLargeBucket(t *testing.T) {
 		return
 	}
 
-	tplConfig := &config.TemplateConfig{
-		FolderList:          "../../../templates/folder-list.tpl",
-		TargetList:          "../../../templates/target-list.tpl",
-		NotFound:            "../../../templates/not-found.tpl",
-		Forbidden:           "../../../templates/forbidden.tpl",
-		BadRequest:          "../../../templates/bad-request.tpl",
-		InternalServerError: "../../../templates/internal-server-error.tpl",
-		Unauthorized:        "../../../templates/unauthorized.tpl",
-	}
 	targetsCfg := map[string]*config.TargetConfig{
 		"target1": {
 			Name: "target1",
@@ -3753,7 +3440,7 @@ func TestIndexLargeBucket(t *testing.T) {
 		},
 		ListTargets: &config.ListTargetsConfig{},
 		Tracing:     &config.TracingConfig{},
-		Templates:   tplConfig,
+		Templates:   testsDefaultGeneralTemplateConfig,
 		Targets:     targetsCfg,
 	})
 
@@ -3762,11 +3449,17 @@ func TestIndexLargeBucket(t *testing.T) {
 	tsvc, err := tracing.New(cfgManagerMock, logger)
 	assert.NoError(t, err)
 
+	// Create S3 Manager
+	s3Manager := s3client.NewManager(cfgManagerMock, metricsCtx)
+	err = s3Manager.Load()
+	assert.NoError(t, err)
+
 	svr := &Server{
-		logger:     logger,
-		cfgManager: cfgManagerMock,
-		metricsCl:  metricsCtx,
-		tracingSvc: tsvc,
+		logger:          logger,
+		cfgManager:      cfgManagerMock,
+		metricsCl:       metricsCtx,
+		tracingSvc:      tsvc,
+		s3clientManager: s3Manager,
 	}
 	got, err := svr.generateRouter()
 	if err != nil {
@@ -3787,15 +3480,11 @@ func TestIndexLargeBucket(t *testing.T) {
 	got.ServeHTTP(w, req)
 
 	// Test status code
-	if w.Code != 200 {
-		t.Errorf("TestIndexLargeBucket.GenerateRouter() status code = %v, expected status code %v", w.Code, 200)
-	}
+	assert.Equal(t, http.StatusOK, w.Code)
 	// Test body
 	body := w.Body.String()
 	expectedBody := "<!DOCTYPE html><html><body><h1>Hello folder3!</h1></body></html>"
-	if body != expectedBody {
-		t.Errorf("TestIndexLargeBucket.GenerateRouter() body = \"%v\", expected body \"%v\"", body, expectedBody)
-	}
+	assert.Equal(t, expectedBody, body)
 }
 
 func TestListLargeBucketAndSmallMaxKeys(t *testing.T) {
@@ -3816,15 +3505,6 @@ func TestListLargeBucketAndSmallMaxKeys(t *testing.T) {
 		return
 	}
 
-	tplConfig := &config.TemplateConfig{
-		FolderList:          "../../../templates/folder-list.tpl",
-		TargetList:          "../../../templates/target-list.tpl",
-		NotFound:            "../../../templates/not-found.tpl",
-		Forbidden:           "../../../templates/forbidden.tpl",
-		BadRequest:          "../../../templates/bad-request.tpl",
-		InternalServerError: "../../../templates/internal-server-error.tpl",
-		Unauthorized:        "../../../templates/unauthorized.tpl",
-	}
 	targetsCfg := map[string]*config.TargetConfig{
 		"target1": {
 			Name: "target1",
@@ -3864,7 +3544,7 @@ func TestListLargeBucketAndSmallMaxKeys(t *testing.T) {
 		},
 		ListTargets: &config.ListTargetsConfig{},
 		Tracing:     &config.TracingConfig{},
-		Templates:   tplConfig,
+		Templates:   testsDefaultGeneralTemplateConfig,
 		Targets:     targetsCfg,
 	})
 
@@ -3873,34 +3553,33 @@ func TestListLargeBucketAndSmallMaxKeys(t *testing.T) {
 	tsvc, err := tracing.New(cfgManagerMock, logger)
 	assert.NoError(t, err)
 
+	// Create S3 Manager
+	s3Manager := s3client.NewManager(cfgManagerMock, metricsCtx)
+	err = s3Manager.Load()
+	assert.NoError(t, err)
+
 	svr := &Server{
-		logger:     logger,
-		cfgManager: cfgManagerMock,
-		metricsCl:  metricsCtx,
-		tracingSvc: tsvc,
+		logger:          logger,
+		cfgManager:      cfgManagerMock,
+		metricsCl:       metricsCtx,
+		tracingSvc:      tsvc,
+		s3clientManager: s3Manager,
 	}
 	got, err := svr.generateRouter()
-	if err != nil {
-		t.Errorf("TestListLargeBucketAndSmallMaxKeys.GenerateRouter() error = %v", err)
-		return
-	}
+	assert.NoError(t, err)
+
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest(
 		"GET",
 		"http://localhost/folder3/",
 		nil,
 	)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NoError(t, err)
 
 	got.ServeHTTP(w, req)
 
 	// Test status code
-	if w.Code != 200 {
-		t.Errorf("TestListLargeBucketAndSmallMaxKeys.GenerateRouter() status code = %v, expected status code %v", w.Code, 200)
-	}
+	assert.Equal(t, http.StatusOK, w.Code)
 	// Test body
 	body := w.Body.String()
 	if strings.Count(body, "\"/folder3/") != maxKeys {
@@ -3926,15 +3605,6 @@ func TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys(t *testing.T) {
 		return
 	}
 
-	tplConfig := &config.TemplateConfig{
-		FolderList:          "../../../templates/folder-list.tpl",
-		TargetList:          "../../../templates/target-list.tpl",
-		NotFound:            "../../../templates/not-found.tpl",
-		Forbidden:           "../../../templates/forbidden.tpl",
-		BadRequest:          "../../../templates/bad-request.tpl",
-		InternalServerError: "../../../templates/internal-server-error.tpl",
-		Unauthorized:        "../../../templates/unauthorized.tpl",
-	}
 	targetsCfg := map[string]*config.TargetConfig{
 		"target1": {
 			Name: "target1",
@@ -3974,7 +3644,7 @@ func TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys(t *testing.T) {
 		},
 		ListTargets: &config.ListTargetsConfig{},
 		Tracing:     &config.TracingConfig{},
-		Templates:   tplConfig,
+		Templates:   testsDefaultGeneralTemplateConfig,
 		Targets:     targetsCfg,
 	})
 
@@ -3983,34 +3653,33 @@ func TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys(t *testing.T) {
 	tsvc, err := tracing.New(cfgManagerMock, logger)
 	assert.NoError(t, err)
 
+	// Create S3 Manager
+	s3Manager := s3client.NewManager(cfgManagerMock, metricsCtx)
+	err = s3Manager.Load()
+	assert.NoError(t, err)
+
 	svr := &Server{
-		logger:     logger,
-		cfgManager: cfgManagerMock,
-		metricsCl:  metricsCtx,
-		tracingSvc: tsvc,
+		logger:          logger,
+		cfgManager:      cfgManagerMock,
+		metricsCl:       metricsCtx,
+		tracingSvc:      tsvc,
+		s3clientManager: s3Manager,
 	}
 	got, err := svr.generateRouter()
-	if err != nil {
-		t.Errorf("TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys.GenerateRouter() error = %v", err)
-		return
-	}
+	assert.NoError(t, err)
+
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest(
 		"GET",
 		"http://localhost/folder3/",
 		nil,
 	)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NoError(t, err)
 
 	got.ServeHTTP(w, req)
 
 	// Test status code
-	if w.Code != 200 {
-		t.Errorf("TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys.GenerateRouter() status code = %v, expected status code %v", w.Code, 200)
-	}
+	assert.Equal(t, http.StatusOK, w.Code)
 	// Test body
 	body := w.Body.String()
 	if strings.Count(body, "\"/folder3/") != maxKeys {
@@ -4035,15 +3704,6 @@ func TestFolderWithSubFolders(t *testing.T) {
 		return
 	}
 
-	tplConfig := &config.TemplateConfig{
-		FolderList:          "../../../templates/folder-list.tpl",
-		TargetList:          "../../../templates/target-list.tpl",
-		NotFound:            "../../../templates/not-found.tpl",
-		Forbidden:           "../../../templates/forbidden.tpl",
-		BadRequest:          "../../../templates/bad-request.tpl",
-		InternalServerError: "../../../templates/internal-server-error.tpl",
-		Unauthorized:        "../../../templates/unauthorized.tpl",
-	}
 	targetsCfg := map[string]*config.TargetConfig{
 		"target1": {
 			Name: "target1",
@@ -4082,7 +3742,7 @@ func TestFolderWithSubFolders(t *testing.T) {
 		},
 		ListTargets: &config.ListTargetsConfig{},
 		Tracing:     &config.TracingConfig{},
-		Templates:   tplConfig,
+		Templates:   testsDefaultGeneralTemplateConfig,
 		Targets:     targetsCfg,
 	})
 
@@ -4091,48 +3751,39 @@ func TestFolderWithSubFolders(t *testing.T) {
 	tsvc, err := tracing.New(cfgManagerMock, logger)
 	assert.NoError(t, err)
 
+	// Create S3 Manager
+	s3Manager := s3client.NewManager(cfgManagerMock, metricsCtx)
+	err = s3Manager.Load()
+	assert.NoError(t, err)
+
 	svr := &Server{
-		logger:     logger,
-		cfgManager: cfgManagerMock,
-		metricsCl:  metricsCtx,
-		tracingSvc: tsvc,
+		logger:          logger,
+		cfgManager:      cfgManagerMock,
+		metricsCl:       metricsCtx,
+		tracingSvc:      tsvc,
+		s3clientManager: s3Manager,
 	}
 	got, err := svr.generateRouter()
-	if err != nil {
-		t.Errorf("TestFolderWithSubFolders.GenerateRouter() error = %v", err)
-		return
-	}
+	assert.NoError(t, err)
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest(
 		"GET",
 		"http://localhost/folder4/",
 		nil,
 	)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NoError(t, err)
 
 	got.ServeHTTP(w, req)
 
 	// Test status code
-	if w.Code != 200 {
-		t.Errorf("TestFolderWithSubFolders.GenerateRouter() status code = %v, expected status code %v", w.Code, 200)
-	}
+	assert.Equal(t, http.StatusOK, w.Code)
 	// Test body
 	body := w.Body.String()
-	if !strings.Contains(body, "\"/folder4/test.txt") {
-		t.Errorf("TestFolderWithSubFolders.GenerateRouter() body = \"%v\", must contains text.txt file", body)
-	}
-	if !strings.Contains(body, "\"/folder4/index.html") {
-		t.Errorf("TestFolderWithSubFolders.GenerateRouter() body = \"%v\", must contains index.html file", body)
-	}
-	if !strings.Contains(body, "\"/folder4/sub1/") {
-		t.Errorf("TestFolderWithSubFolders.GenerateRouter() body = \"%v\", must contains sub1 folder", body)
-	}
-	if !strings.Contains(body, "\"/folder4/sub2/") {
-		t.Errorf("TestFolderWithSubFolders.GenerateRouter() body = \"%v\", must contains sub2 folder", body)
-	}
+	assert.Contains(t, body, "\"/folder4/test.txt")
+	assert.Contains(t, body, "\"/folder4/index.html")
+	assert.Contains(t, body, "\"/folder4/sub1/")
+	assert.Contains(t, body, "\"/folder4/sub2/")
+
 }
 
 func TestTrailingSlashRedirect(t *testing.T) {
@@ -4148,19 +3799,10 @@ func TestTrailingSlashRedirect(t *testing.T) {
 	)
 	defer s3server.Close()
 	if err != nil {
-		t.Error(err)
+		assert.NoError(t, err)
 		return
 	}
 
-	tplConfig := &config.TemplateConfig{
-		FolderList:          "../../../templates/folder-list.tpl",
-		TargetList:          "../../../templates/target-list.tpl",
-		NotFound:            "../../../templates/not-found.tpl",
-		Forbidden:           "../../../templates/forbidden.tpl",
-		BadRequest:          "../../../templates/bad-request.tpl",
-		InternalServerError: "../../../templates/internal-server-error.tpl",
-		Unauthorized:        "../../../templates/unauthorized.tpl",
-	}
 	srvCfg := &config.ServerConfig{
 		Port: 8080,
 		Compress: &config.ServerCompressConfig{
@@ -4201,7 +3843,7 @@ func TestTrailingSlashRedirect(t *testing.T) {
 					Server:      srvCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
-					Templates:   tplConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name:   "target1",
@@ -4238,7 +3880,7 @@ func TestTrailingSlashRedirect(t *testing.T) {
 					Server:      srvCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
-					Templates:   tplConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name:   "target1",
@@ -4274,7 +3916,7 @@ func TestTrailingSlashRedirect(t *testing.T) {
 					Server:      srvCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
-					Templates:   tplConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name:   "target1",
@@ -4311,7 +3953,7 @@ func TestTrailingSlashRedirect(t *testing.T) {
 					Server:      srvCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
-					Templates:   tplConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name:   "target1",
@@ -4348,7 +3990,7 @@ func TestTrailingSlashRedirect(t *testing.T) {
 					Server:      srvCfg,
 					ListTargets: &config.ListTargetsConfig{},
 					Tracing:     &config.TracingConfig{},
-					Templates:   tplConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
 					Targets: map[string]*config.TargetConfig{
 						"target1": {
 							Name:   "target1",
@@ -4393,11 +4035,17 @@ func TestTrailingSlashRedirect(t *testing.T) {
 			tsvc, err := tracing.New(cfgManagerMock, logger)
 			assert.NoError(t, err)
 
+			// Create S3 Manager
+			s3Manager := s3client.NewManager(cfgManagerMock, metricsCtx)
+			err = s3Manager.Load()
+			assert.NoError(t, err)
+
 			svr := &Server{
-				logger:     logger,
-				cfgManager: cfgManagerMock,
-				metricsCl:  metricsCtx,
-				tracingSvc: tsvc,
+				logger:          logger,
+				cfgManager:      cfgManagerMock,
+				metricsCl:       metricsCtx,
+				tracingSvc:      tsvc,
+				s3clientManager: s3Manager,
 			}
 			got, err := svr.generateRouter()
 			if (err != nil) != tt.wantErr {
@@ -4414,10 +4062,7 @@ func TestTrailingSlashRedirect(t *testing.T) {
 				tt.inputURL,
 				nil,
 			)
-			if err != nil {
-				t.Error(err)
-				return
-			}
+			assert.NoError(t, err)
 
 			// Set input headers
 			if tt.inputHeaders != nil {
@@ -4430,30 +4075,22 @@ func TestTrailingSlashRedirect(t *testing.T) {
 
 			if tt.expectedBody != "" {
 				body := w.Body.String()
-				if tt.expectedBody != body {
-					t.Errorf("Integration test on TestTrailingSlashRedirect() body = \"%v\", expected body \"%v\"", body, tt.expectedBody)
-				}
+				assert.Equal(t, tt.expectedBody, body)
 			}
 
 			if tt.notExpectedBody != "" {
 				body := w.Body.String()
-				if tt.notExpectedBody == body {
-					t.Errorf("Integration test on TestTrailingSlashRedirect() body = \"%v\", not expected body \"%v\"", body, tt.notExpectedBody)
-				}
+				assert.NotEqual(t, tt.notExpectedBody, body)
 			}
 
 			if tt.expectedHeaders != nil {
 				for key, val := range tt.expectedHeaders {
 					wheader := w.HeaderMap.Get(key)
-					if val != wheader {
-						t.Errorf("Integration test on TestTrailingSlashRedirect() header %s = %v, expected %v", key, wheader, val)
-					}
+					assert.Equal(t, val, wheader, key)
 				}
 			}
 
-			if tt.expectedCode != w.Code {
-				t.Errorf("Integration test on TestTrailingSlashRedirect() status code = %v, expected status code %v", w.Code, tt.expectedCode)
-			}
+			assert.Equal(t, tt.expectedCode, w.Code)
 		})
 	}
 }
