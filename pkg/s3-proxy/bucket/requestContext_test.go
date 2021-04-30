@@ -5,7 +5,6 @@ package bucket
 import (
 	"context"
 	"errors"
-	"reflect"
 	"regexp"
 	"testing"
 	"time"
@@ -17,6 +16,7 @@ import (
 	responsehandlermocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/mocks"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	s3clientmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client/mocks"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_transformS3Entries(t *testing.T) {
@@ -45,7 +45,7 @@ func Test_transformS3Entries(t *testing.T) {
 			args: args{
 				s3Entries: []*s3client.ListElementOutput{
 					{
-						Type:         "type",
+						Type:         s3client.FileType,
 						ETag:         "etag",
 						Name:         "name",
 						LastModified: now,
@@ -60,7 +60,7 @@ func Test_transformS3Entries(t *testing.T) {
 			},
 			want: []*responsehandler.Entry{
 				{
-					Type:         "type",
+					Type:         s3client.FileType,
 					ETag:         "etag",
 					Name:         "name",
 					LastModified: now,
@@ -75,7 +75,7 @@ func Test_transformS3Entries(t *testing.T) {
 			args: args{
 				s3Entries: []*s3client.ListElementOutput{
 					{
-						Type:         "type",
+						Type:         s3client.FileType,
 						ETag:         "etag",
 						Name:         "name",
 						LastModified: now,
@@ -90,7 +90,7 @@ func Test_transformS3Entries(t *testing.T) {
 			},
 			want: []*responsehandler.Entry{
 				{
-					Type:         "type",
+					Type:         s3client.FileType,
 					ETag:         "etag",
 					Name:         "name",
 					LastModified: now,
@@ -105,7 +105,7 @@ func Test_transformS3Entries(t *testing.T) {
 			args: args{
 				s3Entries: []*s3client.ListElementOutput{
 					{
-						Type:         "type",
+						Type:         s3client.FileType,
 						ETag:         "etag",
 						Name:         "name",
 						LastModified: now,
@@ -120,7 +120,7 @@ func Test_transformS3Entries(t *testing.T) {
 			},
 			want: []*responsehandler.Entry{
 				{
-					Type:         "type",
+					Type:         s3client.FileType,
 					ETag:         "etag",
 					Name:         "name",
 					LastModified: now,
@@ -135,7 +135,7 @@ func Test_transformS3Entries(t *testing.T) {
 			args: args{
 				s3Entries: []*s3client.ListElementOutput{
 					{
-						Type:         "type",
+						Type:         s3client.FileType,
 						ETag:         "etag",
 						Name:         "name",
 						LastModified: now,
@@ -150,7 +150,7 @@ func Test_transformS3Entries(t *testing.T) {
 			},
 			want: []*responsehandler.Entry{
 				{
-					Type:         "type",
+					Type:         s3client.FileType,
 					ETag:         "etag",
 					Name:         "name",
 					LastModified: now,
@@ -160,12 +160,72 @@ func Test_transformS3Entries(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "ensure end / is added on folder type",
+			args: args{
+				s3Entries: []*s3client.ListElementOutput{
+					{
+						Type:         s3client.FolderType,
+						ETag:         "etag",
+						Name:         "name",
+						LastModified: now,
+						Size:         300,
+						Key:          "key",
+					},
+				},
+				rctx: &requestContext{
+					mountPath: "mount/",
+				},
+				bucketRootPrefixKey: "/",
+			},
+			want: []*responsehandler.Entry{
+				{
+					Type:         s3client.FolderType,
+					ETag:         "etag",
+					Name:         "name",
+					LastModified: now,
+					Size:         300,
+					Key:          "key",
+					Path:         "mount/key/",
+				},
+			},
+		},
+		{
+			name: "ensure end / isn't added on folder type",
+			args: args{
+				s3Entries: []*s3client.ListElementOutput{
+					{
+						Type:         s3client.FolderType,
+						ETag:         "etag",
+						Name:         "name",
+						LastModified: now,
+						Size:         300,
+						Key:          "key/",
+					},
+				},
+				rctx: &requestContext{
+					mountPath: "mount/",
+				},
+				bucketRootPrefixKey: "/",
+			},
+			want: []*responsehandler.Entry{
+				{
+					Type:         s3client.FolderType,
+					ETag:         "etag",
+					Name:         "name",
+					LastModified: now,
+					Size:         300,
+					Key:          "key/",
+					Path:         "mount/key/",
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := transformS3Entries(tt.args.s3Entries, tt.args.rctx, tt.args.bucketRootPrefixKey); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("transformS3Entries() = %+v, want %+v", got, tt.want)
-			}
+			got := transformS3Entries(tt.args.s3Entries, tt.args.rctx, tt.args.bucketRootPrefixKey)
+
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
