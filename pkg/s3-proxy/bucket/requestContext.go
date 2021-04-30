@@ -297,6 +297,14 @@ func transformS3Entries(
 	entries := make([]*responsehandler.Entry, 0)
 	// Loop over s3 entries
 	for _, item := range s3Entries {
+		// Store path
+		ePath := path.Join(rctx.mountPath, strings.TrimPrefix(item.Key, bucketRootPrefixKey))
+		// Check if type is a folder in order to add a trailing /
+		// Note: path.Join removed trailing /
+		if item.Type == s3client.FolderType {
+			ePath += "/"
+		}
+		// Save new entry
 		entries = append(entries, &responsehandler.Entry{
 			Type:         item.Type,
 			ETag:         item.ETag,
@@ -304,7 +312,7 @@ func transformS3Entries(
 			LastModified: item.LastModified,
 			Size:         item.Size,
 			Key:          item.Key,
-			Path:         path.Join(rctx.mountPath, strings.TrimPrefix(item.Key, bucketRootPrefixKey)),
+			Path:         ePath,
 		})
 	}
 	// Return result
