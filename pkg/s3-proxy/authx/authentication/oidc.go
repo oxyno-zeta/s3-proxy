@@ -313,7 +313,7 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 			resHan.UpdateRequestAndResponse(r, w)
 
 			// Check if email is verified or not
-			if !ouser.EmailVerified {
+			if oidcAuthCfg.EmailVerified && !ouser.EmailVerified {
 				// Create error
 				err := fmt.Errorf("email not verified for user %s", ouser.GetIdentifier())
 				// Check if bucket request context doesn't exist to use local default files
