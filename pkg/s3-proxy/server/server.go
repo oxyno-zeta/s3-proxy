@@ -19,7 +19,6 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version"
 	"github.com/thoas/go-funk"
 )
@@ -134,8 +133,6 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	r.Use(log.NewStructuredLogger(
 		svr.logger,
 		tracing.GetTraceIDFromRequest,
-		utils.ClientIP,
-		utils.GetRequestURI,
 	))
 	r.Use(log.HTTPAddLoggerToContextMiddleware())
 	r.Use(svr.metricsCl.Instrument("business"))

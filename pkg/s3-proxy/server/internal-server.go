@@ -12,7 +12,6 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
 )
 
 type InternalServer struct {
@@ -80,8 +79,6 @@ func (svr *InternalServer) generateInternalRouter() http.Handler {
 	r.Use(log.NewStructuredLogger(
 		svr.logger,
 		tracing.GetTraceIDFromRequest,
-		utils.ClientIP,
-		utils.GetRequestURI,
 	))
 	r.Use(log.HTTPAddLoggerToContextMiddleware())
 	r.Use(svr.metricsCl.Instrument("internal"))
