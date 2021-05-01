@@ -8,11 +8,11 @@ import (
 	oidc "github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gobwas/glob"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/thoas/go-funk"
 )
 
@@ -50,7 +50,7 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 			httpMethod := r.Method
 
 			// Get bucket request context
-			brctx := middlewares.GetBucketRequestContext(r)
+			brctx := bucket.GetBucketRequestContextFromContext(r.Context())
 			// Find resource
 			res, err := findResource(resources, requestURI, httpMethod)
 			if err != nil {

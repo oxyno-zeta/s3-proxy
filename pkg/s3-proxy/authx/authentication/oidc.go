@@ -11,10 +11,10 @@ import (
 	oidc "github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/chi/v5"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
 
 	"golang.org/x/net/context"
@@ -198,8 +198,7 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 			// Get logger from request
 			logEntry := log.GetLoggerFromContext(r.Context())
 			// Get bucket request context from request
-			// TODO change this to another package
-			brctx := middlewares.GetBucketRequestContext(r)
+			brctx := bucket.GetBucketRequestContextFromContext(r.Context())
 			// Get response handler
 			resHan := responsehandler.GetResponseHandlerFromContext(r.Context())
 

@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/thoas/go-funk"
 )
 
@@ -21,7 +21,7 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 			// Get logger from request
 			logEntry := log.GetLoggerFromContext(r.Context())
 			// Get bucket request context from request
-			brctx := middlewares.GetBucketRequestContext(r)
+			brctx := bucket.GetBucketRequestContextFromContext(r.Context())
 			// Get response handler
 			resHan := responsehandler.GetResponseHandlerFromContext(r.Context())
 

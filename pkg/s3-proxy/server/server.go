@@ -236,7 +236,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				rt2.Use(responsehandler.HTTPMiddleware(svr.cfgManager, targetKey))
 
 				// Add Bucket request context middleware to initialize it
-				rt2.Use(middlewares.BucketRequestContext(tgt, path, svr.s3clientManager))
+				rt2.Use(bucket.HTTPMiddleware(tgt, path, svr.s3clientManager))
 
 				// Add authentication middleware to router
 				rt2.Use(authenticationSvc.Middleware(tgt.Resources))
@@ -249,7 +249,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 					// Add GET method to router
 					rt2.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
 						// Get bucket request context
-						brctx := middlewares.GetBucketRequestContext(req)
+						brctx := bucket.GetBucketRequestContextFromContext(req.Context())
 						// Get response handler
 						resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
 
@@ -320,7 +320,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 					// Add PUT method to router
 					rt2.Put("/*", func(rw http.ResponseWriter, req *http.Request) {
 						// Get bucket request context
-						brctx := middlewares.GetBucketRequestContext(req)
+						brctx := bucket.GetBucketRequestContextFromContext(req.Context())
 						// Get response handler
 						resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
 
@@ -365,7 +365,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 					// Add DELETE method to router
 					rt2.Delete("/*", func(rw http.ResponseWriter, req *http.Request) {
 						// Get bucket request context
-						brctx := middlewares.GetBucketRequestContext(req)
+						brctx := bucket.GetBucketRequestContextFromContext(req.Context())
 						// Get request path
 						requestPath := chi.URLParam(req, "*")
 						// Proxy GET Request
