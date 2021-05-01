@@ -747,12 +747,6 @@ func Test_requestContext_Put(t *testing.T) {
 
 func Test_requestContext_Get(t *testing.T) {
 	fakeDate := time.Date(1990, time.December, 25, 1, 1, 1, 1, time.UTC)
-	// TODO
-	// emptyHeader := http.Header{}
-	// h := http.Header{}
-	// h.Set("Content-Type", "text/html; charset=utf-8")
-	// fakeIndexIoReadCloser := ioutil.NopCloser(strings.NewReader("fake-index.html-content"))
-	// fakeIndexIoReadCloser2 := ioutil.NopCloser(strings.NewReader("fake-index.html-content"))
 
 	type responseHandlerErrorsMockResult struct {
 		input2 error
