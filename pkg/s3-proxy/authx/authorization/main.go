@@ -6,11 +6,11 @@ import (
 	"net/http"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 )
 
 var errAuthorizationMiddlewareNotSupported = errors.New("authorization not supported")
@@ -65,7 +65,7 @@ func Middleware(
 			}
 
 			// Get bucket request context
-			brctx := middlewares.GetBucketRequestContext(r)
+			brctx := bucket.GetBucketRequestContextFromContext(r.Context())
 			// Get response handler
 			resHan := responsehandler.GetResponseHandlerFromContext(r.Context())
 
