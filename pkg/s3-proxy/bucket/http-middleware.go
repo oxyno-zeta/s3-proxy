@@ -1,9 +1,8 @@
-package middlewares
+package bucket
 
 import (
 	"net/http"
 
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	"golang.org/x/net/context"
@@ -18,7 +17,7 @@ type contextKey struct {
 
 var bucketRequestContextKey = &contextKey{name: "bucket-request-context"}
 
-func BucketRequestContext(
+func HTTPMiddleware(
 	tgt *config.TargetConfig,
 	path string,
 	s3clientManager s3client.Manager,
@@ -26,7 +25,7 @@ func BucketRequestContext(
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			// Generate new bucket client
-			brctx := bucket.NewClient(tgt, path, s3clientManager)
+			brctx := NewClient(tgt, path, s3clientManager)
 			// Add bucket structure to request context by creating a new context
 			ctx := context.WithValue(req.Context(), bucketRequestContextKey, brctx)
 			// Create new request with new context
@@ -37,8 +36,8 @@ func BucketRequestContext(
 	}
 }
 
-func GetBucketRequestContext(req *http.Request) bucket.Client {
-	res, _ := req.Context().Value(bucketRequestContextKey).(bucket.Client)
+func GetBucketRequestContextFromContext(ctx context.Context) Client {
+	res, _ := ctx.Value(bucketRequestContextKey).(Client)
 
 	return res
 }
