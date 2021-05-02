@@ -883,7 +883,7 @@ func Test_requestContext_Get(t *testing.T) {
 						Prefix: "/",
 					},
 					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
-						IndexDocument: "index.html",
+						Config: &config.GetActionConfigConfig{IndexDocument: "index.html"},
 					}},
 				},
 				mountPath: "/mount",
@@ -926,7 +926,7 @@ func Test_requestContext_Get(t *testing.T) {
 						Prefix: "/",
 					},
 					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
-						IndexDocument: "index.html",
+						Config: &config.GetActionConfigConfig{IndexDocument: "index.html"},
 					}},
 				},
 				mountPath: "/mount",
@@ -962,7 +962,7 @@ func Test_requestContext_Get(t *testing.T) {
 						Prefix: "/",
 					},
 					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
-						IndexDocument: "index.html",
+						Config: &config.GetActionConfigConfig{IndexDocument: "index.html"},
 					}},
 				},
 				mountPath: "/mount",
@@ -998,7 +998,7 @@ func Test_requestContext_Get(t *testing.T) {
 						Prefix: "/",
 					},
 					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
-						IndexDocument: "index.html",
+						Config: &config.GetActionConfigConfig{IndexDocument: "index.html"},
 					}},
 				},
 				mountPath: "/mount",
@@ -1049,7 +1049,7 @@ func Test_requestContext_Get(t *testing.T) {
 						Prefix: "/",
 					},
 					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
-						IndexDocument: "index.html",
+						Config: &config.GetActionConfigConfig{IndexDocument: "index.html"},
 					}},
 				},
 				mountPath: "/mount",
@@ -1078,7 +1078,7 @@ func Test_requestContext_Get(t *testing.T) {
 						Prefix: "/",
 					},
 					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
-						IndexDocument: "index.html",
+						Config: &config.GetActionConfigConfig{IndexDocument: "index.html"},
 					}},
 				},
 				mountPath: "/mount",
@@ -1117,7 +1117,7 @@ func Test_requestContext_Get(t *testing.T) {
 						Prefix: "/",
 					},
 					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
-						IndexDocument: "index.html",
+						Config: &config.GetActionConfigConfig{IndexDocument: "index.html"},
 					}},
 				},
 				mountPath: "/mount",
