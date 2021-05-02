@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -256,6 +257,16 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						// Get request path
 						requestPath := chi.URLParam(req, "*")
 
+						// Unescape it
+						// Found a bug where sometimes the request path isn't unescaped
+						requestPath, err := url.PathUnescape(requestPath)
+						// Check error
+						if err != nil {
+							resHan.InternalServerError(brctx.LoadFileContent, err)
+
+							return
+						}
+
 						// Get ETag headers
 
 						// Get If-Modified-Since as string
@@ -326,15 +337,28 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 
 						// Get request path
 						requestPath := chi.URLParam(req, "*")
+						// Unescape it
+						// Found a bug where sometimes the request path isn't unescaped
+						requestPath, err := url.PathUnescape(requestPath)
+						// Check error
+						if err != nil {
+							resHan.InternalServerError(brctx.LoadFileContent, err)
+
+							return
+						}
+
 						// Get logger
 						logEntry := log.GetLoggerFromContext(req.Context())
-						if err := req.ParseForm(); err != nil {
+						// Parse form
+						err = req.ParseForm()
+						// Check error
+						if err != nil {
 							resHan.InternalServerError(brctx.LoadFileContent, err)
 
 							return
 						}
 						// Parse multipart form
-						err := req.ParseMultipartForm(0)
+						err = req.ParseMultipartForm(0)
 						if err != nil {
 							logEntry.Error(err)
 							resHan.InternalServerError(brctx.LoadFileContent, err)
@@ -366,8 +390,19 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 					rt2.Delete("/*", func(rw http.ResponseWriter, req *http.Request) {
 						// Get bucket request context
 						brctx := bucket.GetBucketRequestContextFromContext(req.Context())
+						// Get response handler
+						resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
 						// Get request path
 						requestPath := chi.URLParam(req, "*")
+						// Unescape it
+						// Found a bug where sometimes the request path isn't unescaped
+						requestPath, err := url.PathUnescape(requestPath)
+						// Check error
+						if err != nil {
+							resHan.InternalServerError(brctx.LoadFileContent, err)
+
+							return
+						}
 						// Proxy GET Request
 						brctx.Delete(req.Context(), requestPath)
 					})
