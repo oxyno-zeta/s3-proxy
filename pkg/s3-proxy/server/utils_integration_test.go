@@ -95,16 +95,17 @@ func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*httptest.S
 	}
 
 	files := map[string]string{
-		"folder1/test.txt":          "Hello folder1!",
-		"folder1/index.html":        "<!DOCTYPE html><html><body><h1>Hello folder1!</h1></body></html>",
-		"folder2/index.html":        "<!DOCTYPE html><html><body><h1>Hello folder2!</h1></body></html>",
-		"folder3/index.html":        "<!DOCTYPE html><html><body><h1>Hello folder3!</h1></body></html>",
-		"folder3/test.txt":          "Hello folder3!",
-		"folder4/test.txt":          "Hello folder4!",
-		"folder4/index.html":        "<!DOCTYPE html><html><body><h1>Hello folder4!</h1></body></html>",
-		"folder4/sub1/test.txt":     "Hello folder4!",
-		"folder4/sub2/test.txt":     "Hello folder4!",
-		"templates/folder-list.tpl": "fake template !",
+		"folder0/test with space and special (1).txt": "test with space !",
+		"folder1/test.txt":                            "Hello folder1!",
+		"folder1/index.html":                          "<!DOCTYPE html><html><body><h1>Hello folder1!</h1></body></html>",
+		"folder2/index.html":                          "<!DOCTYPE html><html><body><h1>Hello folder2!</h1></body></html>",
+		"folder3/index.html":                          "<!DOCTYPE html><html><body><h1>Hello folder3!</h1></body></html>",
+		"folder3/test.txt":                            "Hello folder3!",
+		"folder4/test.txt":                            "Hello folder4!",
+		"folder4/index.html":                          "<!DOCTYPE html><html><body><h1>Hello folder4!</h1></body></html>",
+		"folder4/sub1/test.txt":                       "Hello folder4!",
+		"folder4/sub2/test.txt":                       "Hello folder4!",
+		"templates/folder-list.tpl":                   "fake template !",
 	}
 
 	// Inject large number of elements
