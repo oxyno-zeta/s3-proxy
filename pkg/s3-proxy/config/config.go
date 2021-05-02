@@ -168,6 +168,7 @@ type BasicAuthUserConfig struct {
 	Password *CredentialConfig `mapstructure:"password" validate:"required,dive"`
 }
 
+// TemplateConfigItem Template configuration item.
 type TemplateConfigItem struct {
 	Path    string            `mapstructure:"path" validate:"required"`
 	Headers map[string]string `mapstructure:"headers"`
@@ -278,13 +279,13 @@ type DeleteActionConfig struct {
 	Enabled bool `mapstructure:"enabled"`
 }
 
-// PutActionConfig Post action configuration.
+// PutActionConfig Put action configuration.
 type PutActionConfig struct {
 	Enabled bool                   `mapstructure:"enabled"`
 	Config  *PutActionConfigConfig `mapstructure:"config"`
 }
 
-// PutActionConfigConfig Post action configuration object configuration.
+// PutActionConfigConfig Put action configuration object configuration.
 type PutActionConfigConfig struct {
 	Metadata      map[string]string `mapstructure:"metadata"`
 	StorageClass  string            `mapstructure:"storageClass"`
@@ -293,7 +294,12 @@ type PutActionConfigConfig struct {
 
 // GetActionConfig Get action configuration.
 type GetActionConfig struct {
-	Enabled                                  bool   `mapstructure:"enabled"`
+	Enabled bool                   `mapstructure:"enabled"`
+	Config  *GetActionConfigConfig `mapstructure:"config"`
+}
+
+// GetActionConfigConfig Get action configuration object configuration.
+type GetActionConfigConfig struct {
 	RedirectWithTrailingSlashForNotFoundFile bool   `mapstructure:"redirectWithTrailingSlashForNotFoundFile"`
 	IndexDocument                            string `mapstructure:"indexDocument"`
 }
