@@ -1491,8 +1491,8 @@ func TestPublicRouter(t *testing.T) {
 							},
 							Actions: &config.ActionsConfig{
 								GET: &config.GetActionConfig{
-									Enabled:       true,
-									IndexDocument: "index.html",
+									Enabled: true,
+									Config:  &config.GetActionConfigConfig{IndexDocument: "index.html"},
 								},
 							},
 						},
@@ -1534,8 +1534,8 @@ func TestPublicRouter(t *testing.T) {
 							},
 							Actions: &config.ActionsConfig{
 								GET: &config.GetActionConfig{
-									Enabled:       true,
-									IndexDocument: "index.html-fake",
+									Enabled: true,
+									Config:  &config.GetActionConfigConfig{IndexDocument: "index.html-fake"},
 								},
 							},
 						},
@@ -3457,8 +3457,8 @@ func TestIndexLargeBucket(t *testing.T) {
 			},
 			Actions: &config.ActionsConfig{
 				GET: &config.GetActionConfig{
-					Enabled:       true,
-					IndexDocument: "index.html",
+					Enabled: true,
+					Config:  &config.GetActionConfigConfig{IndexDocument: "index.html"},
 				},
 			},
 		},
@@ -3893,8 +3893,8 @@ func TestTrailingSlashRedirect(t *testing.T) {
 							},
 							Actions: &config.ActionsConfig{
 								GET: &config.GetActionConfig{
-									Enabled:                                  true,
-									RedirectWithTrailingSlashForNotFoundFile: false,
+									Enabled: true,
+									Config:  &config.GetActionConfigConfig{RedirectWithTrailingSlashForNotFoundFile: false},
 								},
 							},
 						},
@@ -3930,8 +3930,8 @@ func TestTrailingSlashRedirect(t *testing.T) {
 							},
 							Actions: &config.ActionsConfig{
 								GET: &config.GetActionConfig{
-									Enabled:                                  true,
-									RedirectWithTrailingSlashForNotFoundFile: true,
+									Enabled: true,
+									Config:  &config.GetActionConfigConfig{RedirectWithTrailingSlashForNotFoundFile: true},
 								},
 							},
 						},
@@ -3966,8 +3966,8 @@ func TestTrailingSlashRedirect(t *testing.T) {
 							},
 							Actions: &config.ActionsConfig{
 								GET: &config.GetActionConfig{
-									Enabled:                                  true,
-									RedirectWithTrailingSlashForNotFoundFile: true,
+									Enabled: true,
+									Config:  &config.GetActionConfigConfig{RedirectWithTrailingSlashForNotFoundFile: true},
 								},
 							},
 						},
@@ -4003,8 +4003,8 @@ func TestTrailingSlashRedirect(t *testing.T) {
 							},
 							Actions: &config.ActionsConfig{
 								GET: &config.GetActionConfig{
-									Enabled:                                  true,
-									RedirectWithTrailingSlashForNotFoundFile: true,
+									Enabled: true,
+									Config:  &config.GetActionConfigConfig{RedirectWithTrailingSlashForNotFoundFile: true},
 								},
 							},
 						},
@@ -4040,8 +4040,8 @@ func TestTrailingSlashRedirect(t *testing.T) {
 							},
 							Actions: &config.ActionsConfig{
 								GET: &config.GetActionConfig{
-									Enabled:                                  true,
-									RedirectWithTrailingSlashForNotFoundFile: true,
+									Enabled: true,
+									Config:  &config.GetActionConfigConfig{RedirectWithTrailingSlashForNotFoundFile: true},
 								},
 							},
 						},

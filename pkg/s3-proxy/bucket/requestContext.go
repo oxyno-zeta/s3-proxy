@@ -84,7 +84,8 @@ func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
 		if errors.Is(err, s3client.ErrNotFound) {
 			// Test that redirect with trailing slash isn't asked and possible on this request
 			if rctx.targetCfg.Actions != nil && rctx.targetCfg.Actions.GET != nil &&
-				rctx.targetCfg.Actions.GET.RedirectWithTrailingSlashForNotFoundFile &&
+				rctx.targetCfg.Actions.GET.Config != nil &&
+				rctx.targetCfg.Actions.GET.Config.RedirectWithTrailingSlashForNotFoundFile &&
 				!strings.HasSuffix(input.RequestPath, "/") {
 				// Redirect with trailing slash
 				resHan.RedirectWithTrailingSlash()
@@ -118,9 +119,11 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
 	// Check if index document is activated
-	if rctx.targetCfg.Actions.GET.IndexDocument != "" {
+	if rctx.targetCfg.Actions != nil && rctx.targetCfg.Actions.GET != nil &&
+		rctx.targetCfg.Actions.GET.Config != nil &&
+		rctx.targetCfg.Actions.GET.Config.IndexDocument != "" {
 		// Create index key path
-		indexKey := path.Join(key, rctx.targetCfg.Actions.GET.IndexDocument)
+		indexKey := path.Join(key, rctx.targetCfg.Actions.GET.Config.IndexDocument)
 		// Head index file in bucket
 		headOutput, err := rctx.s3ClientManager.
 			GetClientForTarget(rctx.targetCfg.Name).
