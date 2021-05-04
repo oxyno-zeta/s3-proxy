@@ -1,5 +1,5 @@
 {{- if contains "application/json" (.Request.Header.Get "Accept") -}}
-{{ template "main.body.jsonBody" . }}
+{{ template "main.body.errorJsonBody" . }}
 {{- else -}}
 <!DOCTYPE html>
 <html>
