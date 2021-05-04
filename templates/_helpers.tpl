@@ -17,6 +17,6 @@ text/html; charset=utf-8
 {{- end -}}
 
 {{- /* This will forge the json output of an error */ -}}
-{{- define "main.body.jsonBody" -}}
+{{- define "main.body.errorJsonBody" -}}
 {"error": "{{ js .Error }}"}
 {{- end -}}
