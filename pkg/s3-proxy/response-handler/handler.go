@@ -235,7 +235,7 @@ func (h *handler) FoldersFilesList(
 	}
 
 	// Create bucket list data for templating
-	data := &bucketListingData{
+	data := &folderListingData{
 		Request:    h.req,
 		User:       models.GetAuthenticatedUserFromContext(h.req.Context()),
 		Entries:    entries,

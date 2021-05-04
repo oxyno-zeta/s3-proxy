@@ -6,8 +6,8 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 )
 
-// bucketListingData Bucket listing data for templating.
-type bucketListingData struct {
+// folderListingData Folder listing data for templating.
+type folderListingData struct {
 	Request    *http.Request
 	User       models.GenericUser
 	Entries    []*Entry
