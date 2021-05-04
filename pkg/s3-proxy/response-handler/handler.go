@@ -241,7 +241,6 @@ func (h *handler) FoldersFilesList(
 		Entries:    entries,
 		BucketName: targetCfg.Bucket.Name,
 		Name:       targetCfg.Name,
-		Path:       h.req.URL.RequestURI(),
 	}
 
 	// Execute main template

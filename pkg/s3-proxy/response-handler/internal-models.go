@@ -13,7 +13,6 @@ type bucketListingData struct {
 	Entries    []*Entry
 	BucketName string
 	Name       string
-	Path       string
 }
 
 // errorData represents the structure used by error templating.
