@@ -17,7 +17,7 @@
 <!DOCTYPE html>
 <html>
   <body>
-    <h1>Index of {{ .Path }}</h1>
+    <h1>Index of {{ .Request.URL.Path }}</h1>
     <table style="width:100%">
         <thead>
             <tr>
