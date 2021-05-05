@@ -2,6 +2,10 @@
 
 This section will describe the prometheus metrics that the application is serving.
 
+Here is also an example of Prometheus dashboard that you can import as JSON file: [dashboard](./s3-proxy-dashboard.json).
+
+This dashboard has been done and tested on Grafana 7.0.
+
 ## http_requests_total
 
 Type: Counter
@@ -104,6 +108,7 @@ Description: 1 = up (hardcoded)
 Type: Counter
 
 Prometheus data:
+
 - `s3_operations_total`
 
 Description: How many operations are generated to s3 in total ?
@@ -148,6 +153,3 @@ Fields:
 | Field name      | Description                                            |
 | --------------- | ------------------------------------------------------ |
 | `provider_type` | Provider type (`oidc-opa` or `basic-auth` for example) |
-
-
-

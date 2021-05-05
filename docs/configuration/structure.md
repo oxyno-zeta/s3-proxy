@@ -1,4 +1,4 @@
-# Configuration
+# Structure
 
 The configuration must be set in multiple YAML files located in `conf/` folder from the current working directory.
 
@@ -6,19 +6,19 @@ You can create multiple files containing different part of the configuration. A 
 
 Moreover, the configuration files will be watched for modifications.
 
-You can see a full example in the [Example section](#example)
+You can see a full example in the [Example section](./example.md)
 
 ## Main structure
 
-| Key            | Type                                                      | Required | Default | Description                            |
-| -------------- | --------------------------------------------------------- | -------- | ------- | -------------------------------------- |
-| log            | [LogConfiguration](#logconfiguration)                     | No       | None    | Log configurations                     |
-| server         | [ServerConfiguration](#serverconfiguration)               | No       | None    | Server configurations                  |
-| internalServer | [ServerConfiguration](#serverconfiguration)               | No       | None    | Internal Server configurations         |
-| template       | [TemplateConfiguration](#templateconfiguration)           | No       | None    | Template configurations                |
-| targets        | [[TargetConfiguration]](#targetconfiguration)             | Yes      | None    | Targets configuration                  |
-| authProviders  | [AuthProvidersConfiguration](#authProvidersconfiguration) | No       | None    | Authentication providers configuration |
-| listTargets    | [ListTargetsConfiguration](#listtargetsconfiguration)     | No       | None    | List targets feature configuration     |
+| Key            | Type                                                      | Required | Default | Description                                                                                                         |
+| -------------- | --------------------------------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
+| log            | [LogConfiguration](#logconfiguration)                     | No       | None    | Log configurations                                                                                                  |
+| server         | [ServerConfiguration](#serverconfiguration)               | No       | None    | Server configurations                                                                                               |
+| internalServer | [ServerConfiguration](#serverconfiguration)               | No       | None    | Internal Server configurations                                                                                      |
+| template       | [TemplateConfiguration](#templateconfiguration)           | No       | None    | Template configurations                                                                                             |
+| targets        | Map[String][targetconfiguration](#targetconfiguration)    | Yes      | None    | Targets configuration. Map key will be considered as the target name. (This will used in urls and list of targets.) |
+| authProviders  | [AuthProvidersConfiguration](#authProvidersconfiguration) | No       | None    | Authentication providers configuration                                                                              |
+| listTargets    | [ListTargetsConfiguration](#listtargetsconfiguration)     | No       | None    | List targets feature configuration                                                                                  |
 
 ## LogConfiguration
 
@@ -34,8 +34,8 @@ You can see a full example in the [Example section](#example)
 | ---------- | --------------------------------------- | -------- | ------- | ------------------- |
 | listenAddr | String                                  | No       | `""`    | Listen Address      |
 | port       | Integer                                 | No       | `8080`  | Listening Port      |
-| cors       | [ServerCorsConfig](#servercorsconfig)   | No       | `nil`   | CORS configuration  |
-| cache      | [ServerCacheConfig](#servercacheconfig) | No       | `nil`   | Cache configuration |
+| cors       | [ServerCorsConfig](#servercorsconfig)   | No       | None    | CORS configuration  |
+| cache      | [ServerCacheConfig](#servercacheconfig) | No       | None    | Cache configuration |
 
 ## ServerCompressConfig
 
@@ -82,32 +82,38 @@ This feature is powered by [go-chi/cors](https://github.com/go-chi/cors). You ca
 
 ## TemplateConfiguration
 
-| Key                 | Type   | Required | Default                               | Description                         |
-| ------------------- | ------ | -------- | ------------------------------------- | ----------------------------------- |
-| targetList          | String | No       | `templates/target-list.tpl`           | Target list template path           |
-| folderList          | String | No       | `templates/folder-list.tpl`           | Folder list template path           |
-| notFound            | String | No       | `templates/not-found.tpl`             | Not found template path             |
-| unauthorized        | String | No       | `templates/unauthorized.tpl`          | Unauthorized template path          |
-| forbidden           | String | No       | `templates/forbidden.tpl`             | Forbidden template path             |
-| badRequest          | String | No       | `templates/bad-request.tpl`           | Bad Request template path           |
-| internalServerError | String | No       | `templates/internal-server-error.tpl` | Internal server error template path |
+| Key                 | Type                                                    | Required | Default                                                                                                                                              | Description                         |
+| ------------------- | ------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| helpers             | [String]                                                | No       | `[templates/_helpers.tpl]`                                                                                                                           | Template Golang helpers             |
+| targetList          | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `targetList: { path: "templates/target-list.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`                    | Target list template path           |
+| folderList          | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `folderList: { path: "templates/folder-list.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`                    | Folder list template path           |
+| notFoundError       | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `notFoundError: { path: "templates/not-found-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`             | Not found template path             |
+| unauthorizedError   | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `unauthorizedError: { path: "templates/unauthorized-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`      | Unauthorized template path          |
+| forbiddenError      | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `forbiddenError: { path: "templates/forbidden-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`            | Forbidden template path             |
+| badRequestError     | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `badRequestError: { path: "templates/bad-request-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`         | Bad Request template path           |
+| internalServerError | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `internalServerError: { path: "templates/internal-server-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }` | Internal server error template path |
+
+## TemplateConfigurationItem
+
+| Key     | Type              | Required | Default | Description                                                                                                                                          |
+| ------- | ----------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| path    | String            | True     | `""`    | File path to template file                                                                                                                           |
+| headers | Map[String]String | False    | None    | Headers containing templates. Key corresponds to header and value to the template. If templated value is empty, the header won't be added to answer. |
 
 ## TargetConfiguration
 
 | Key            | Type                                          | Required | Default            | Description                                                                                                                                                                                                                              |
 | -------------- | --------------------------------------------- | -------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| name           | String                                        | Yes      | None               | Target name. (This will used in urls and list of targets.)                                                                                                                                                                               |
 | bucket         | [BucketConfiguration](#bucketconfiguration)   | Yes      | None               | Bucket configuration                                                                                                                                                                                                                     |
-| indexDocument  | String                                        | No       | `""`               | **DEPRECATED** The index document name. If this document is found, get it instead of list folder. Example: `index.html`                                                                                                                  |
 | resources      | [[Resource]](#resource)                       | No       | None               | Resources declaration for path whitelist or specific authentication on path list. WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /\* otherwise, it will be public. |
 | mount          | [MountConfiguration](#mountconfiguration)     | Yes      | None               | Mount point configuration                                                                                                                                                                                                                |
 | actions        | [ActionsConfiguration](#actionsconfiguration) | No       | GET action enabled | Actions allowed on target (GET, PUT or DELETE)                                                                                                                                                                                           |
-| keyRewriteList | [[KeyRewrite]](#keyrewrite)                   | No       | None               | Key rewrite list is here to allow rewriting keys before sending request to S3 (See more information [here](./key-rewrite.md))                                                                                                            |
+| keyRewriteList | [[KeyRewrite]](#keyrewrite)                   | No       | None               | Key rewrite list is here to allow rewriting keys before sending request to S3 (See more information [here](../feature-guide/key-rewrite.md))                                                                                             |
 | templates      | [TargetTemplateConfig](#targettemplateconfig) | No       | None               | Custom target templates from files on local filesystem or in bucket                                                                                                                                                                      |
 
 ## KeyRewrite
 
-See more information [here](./key-rewrite.md).
+See more information [here](../feature-guide/key-rewrite.md).
 
 | Key    | Type   | Required | Default | Description                                             |
 | ------ | ------ | -------- | ------- | ------------------------------------------------------- |
@@ -118,6 +124,7 @@ See more information [here](./key-rewrite.md).
 
 | Key                 | Type                                                  | Required | Default | Description                                       |
 | ------------------- | ----------------------------------------------------- | -------- | ------- | ------------------------------------------------- |
+| helpers             | [[TargetHelperConfigItem](#targethelperconfigitem)]   | No       | None    | Helpers list custom template declarations         |
 | folderList          | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Folder list custom template declaration           |
 | notFound            | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Not Found custom template declaration             |
 | internalServerError | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Internal server error custom template declaration |
@@ -125,12 +132,20 @@ See more information [here](./key-rewrite.md).
 | unauthorized        | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Unauthorized custom template declaration          |
 | badRequest          | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Bad Request custom template declaration           |
 
-## TargetTemplateConfigItem
+## TargetHelperConfigItem
 
 | Key      | Type    | Required | Default | Description                                     |
 | -------- | ------- | -------- | ------- | ----------------------------------------------- |
 | inBucket | Boolean | No       | `false` | Is the file in bucket or on local file system ? |
 | path     | String  | Yes      | None    | Path for template file                          |
+
+## TargetTemplateConfigItem
+
+| Key      | Type              | Required | Default                                                                                     | Description                                                                                                                                          |
+| -------- | ----------------- | -------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| inBucket | Boolean           | No       | `false`                                                                                     | Is the file in bucket or on local file system ?                                                                                                      |
+| path     | String            | Yes      | None                                                                                        | Path for template file                                                                                                                               |
+| headers  | Map[String]String | False    | This will be set to corresponding [TemplateConfiguration](#templateconfiguration) if empty. | Headers containing templates. Key corresponds to header and value to the template. If templated value is empty, the header won't be added to answer. |
 
 ## ActionsConfiguration
 
@@ -142,9 +157,15 @@ See more information [here](./key-rewrite.md).
 
 ## GetActionConfiguration
 
+| Key     | Type                                                          | Required | Default | Description                    |
+| ------- | ------------------------------------------------------------- | -------- | ------- | ------------------------------ |
+| enabled | Boolean                                                       | No       | `false` | Will allow GET requests        |
+| config  | [GetActionConfigConfiguration](#getactionconfigconfiguration) | No       | None    | Configuration for GET requests |
+
+## GetActionConfigConfiguration
+
 | Key                                      | Type    | Required | Default | Description                                                                                                                       |
 | ---------------------------------------- | ------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| enabled                                  | Boolean | No       | `false` | Will allow GET requests                                                                                                           |
 | redirectWithTrailingSlashForNotFoundFile | Boolean | No       | `false` | This option allow to do a redirect with a trailing slash when a GET request on a file (not a folder) encountered a 404 not found. |
 | indexDocument                            | String  | No       | `""`    | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                          |
 
@@ -236,7 +257,7 @@ See more information [here](./key-rewrite.md).
 | oidc      | [ResourceOIDC](#resourceoidc)   | Required without whitelist or oidc  | None    | OIDC configuration authorization                             |
 | basic     | [ResourceBasic](#resourcebasic) | Required without whitelist or basic | None    | Basic auth configuration                                     |
 
-# ResourceOIDC
+## ResourceOIDC
 
 | Key                    | Type                                                      | Required | Default | Description                                                                                                                                                                               |
 | ---------------------- | --------------------------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -245,10 +266,10 @@ See more information [here](./key-rewrite.md).
 
 ## OPAServerAuthorization
 
-| Key  | Type                | Required | Default | Description                                                                                           |
-| ---- | ------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------- |
-| url  | String              | Yes      | None    | URL of the OPA server including the data path (see the dedicated section for [OPA](./opa.md))         |
-| tags | `map[string]string` | No       | `{}`    | Data that will be added as tags in the OPA input data (see the dedicated section for [OPA](./opa.md)) |
+| Key  | Type              | Required | Default | Description                                                                                                          |
+| ---- | ----------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
+| url  | String            | Yes      | None    | URL of the OPA server including the data path (see the dedicated section for [OPA](../feature-guide/opa.md))         |
+| tags | Map[String]String | No       | `{}`    | Data that will be added as tags in the OPA input data (see the dedicated section for [OPA](../feature-guide/opa.md)) |
 
 ## OIDCAuthorizationAccesses
 
@@ -285,276 +306,3 @@ See more information [here](./key-rewrite.md).
 | enabled  | Boolean                                   | Yes      | None    | To enable the list targets feature                                          |
 | mount    | [MountConfiguration](#mountconfiguration) | Yes      | None    | Mount point configuration                                                   |
 | resource | [Resource](#resource)                     | No       | None    | Resources declaration for path whitelist or specific authentication on path |
-
-## Example
-
-```yaml
-# Log configuration
-log:
-  # Log level
-  level: info
-  # Log format
-  format: text
-  # Log file path
-  # filePath:
-
-# Server configurations
-# server:
-#   listenAddr: ""
-#   port: 8080
-#   # Compress options
-#   compress:
-#     enabled: true
-#     # Compression level
-#     # level: 5
-#     # Types
-#     # types:
-#     #   - text/html
-#     #   - text/css
-#     #   - text/plain
-#     #   - text/javascript
-#     #   - application/javascript
-#     #   - application/x-javascript
-#     #   - application/json
-#     #   - application/atom+xml
-#     #   - application/rss+xml
-#     #   - image/svg+xml
-#   # CORS configuration
-#   cors:
-#     # Enabled
-#     enabled: false
-#     # Allow all traffic
-#     allowAll: true
-#     # Allow Origins
-#     # Example: https://fake.com
-#     allowOrigins: []
-#     # Allow HTTP Methods
-#     allowMethods: []
-#     # Allow Headers
-#     allowHeaders: []
-#     # Expose Headers
-#     exposeHeaders: []
-#     # Max age
-#     # 300 is the maximum value not ignored by any of major browsers
-#     # Source: https://github.com/go-chi/cors
-#     maxAge: 0
-#     # Allow credentials
-#     allowCredentials: false
-#     # Run debug
-#     debug: false
-#     # OPTIONS method Passthrough
-#     optionsPassthrough: false
-#   # Cache configuration
-#   cache:
-#     # Force no cache headers on all responses
-#     noCacheEnabled: true
-#     # Expires header value
-#     expires:
-#     # Cache-control header value
-#     cacheControl:
-#     # Pragma header value
-#     pragma:
-#     # X-Accel-Expires header value
-#     xAccelExpires:
-
-# Template configurations
-# templates:
-#   badRequest: templates/bad-request.tpl
-#   folderList: templates/folder-list.tpl
-#   forbidden: templates/forbidden.tpl
-#   internalServerError: templates/internal-server-error.tpl
-#   notFound: templates/not-found.tpl
-#   targetList: templates/target-list.tpl
-#   unauthorized: templates/unauthorized.tpl
-
-# Authentication Providers
-# authProviders:
-#   oidc:
-#     provider1:
-#       clientID: client-id
-#       clientSecret:
-#         path: client-secret-in-file # client secret file
-#       state: my-secret-state-key # do not use this in production ! put something random here
-#       issuerUrl: https://issuer-url/
-#       redirectUrl: http://localhost:8080/ # /auth/oidc/callback will be added automatically
-#       scopes: # OIDC Scopes (defaults: openid, email, profile)
-#         - openid
-#         - email
-#         - profile
-#       groupClaim: groups # path in token
-#       # cookieSecure: true # Is the cookie generated secure ?
-#       # cookieName: oidc # Cookie generated name
-#       emailVerified: true # check email verified field from token
-#       # loginPath: /auth/provider1 # Override login path dynamically generated from provider key
-#       # callbackPath: /auth/provider1/callback # Override callback path dynamically generated from provider key
-#   basic:
-#     provider2:
-#       realm: My Basic Auth Realm
-
-# List targets feature
-# This will generate a webpage with list of targets with links using targetList template
-# listTargets:
-#   # To enable the list targets feature
-#   enabled: false
-#   ## Mount point
-#   mount:
-#     path:
-#       - /
-#     # A specific host can be added for filtering. Otherwise, all hosts will be accepted
-#     # host: localhost:8080
-#   ## Resource configuration
-#   resource:
-#     # A Path must be declared for a resource filtering
-#     path: /
-#     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
-#     methods:
-#       - GET
-#       - PUT
-#       - DELETE
-#     # Whitelist
-#     whitelist: false
-#     # A authentication provider declared in section before, here is the key name
-#     provider: provider1
-#     # OIDC section for access filter
-#     oidc:
-#       # NOTE: This list can be empty ([]) for authentication only and no group filter
-#       authorizationAccesses: # Authorization accesses : groups or email or regexp
-#         - group: devops_users
-#     # Basic authentication section
-#     basic:
-#       credentials:
-#         - user: user1
-#           password:
-#             path: password1-in-file
-
-# Targets
-targets:
-  - name: first-bucket
-    ## Mount point
-    mount:
-      path:
-        - /
-      # A specific host can be added for filtering. Otherwise, all hosts will be accepted
-      # host: localhost:8080
-    # ## Resources declaration
-    # ## WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /* otherwise, it will be public.
-    # resources:
-    #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
-    #   - path: /
-    #     # Whitelist
-    #     whiteList: true
-    #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
-    #   - path: /specific_doc/*
-    #     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
-    #     methods:
-    #       - GET
-    #       - PUT
-    #       - DELETE
-    #     # A authentication provider declared in section before, here is the key name
-    #     provider: provider1
-    #     # OIDC section for access filter
-    #     oidc:
-    #       # NOTE: This list can be empty ([]) for authentication only and no group filter
-    #       authorizationAccesses: # Authorization accesses : groups or email or regexp
-    #         - group: specific_users
-    #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
-    #   - path: /directory1/*
-    #     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
-    #     methods:
-    #       - GET
-    #       - PUT
-    #       - DELETE
-    #     # A authentication provider declared in section before, here is the key name
-    #     provider: provider1
-    #     # Basic authentication section
-    #     basic:
-    #       credentials:
-    #         - user: user1
-    #           password:
-    #             path: password1-in-file
-    #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
-    #   - path: /opa-protected/*
-    #     # OIDC section for access filter
-    #     oidc:
-    #       # Authorization through OPA server configuration
-    #       authorizationOPAServer:
-    #         # OPA server url with data path
-    #         url: http://localhost:8181/v1/data/example/authz/allowed
-    # ## DEPRECATED Index document to display if exists in folder
-    # indexDocument: index.html
-    # ## Actions
-    # actions:
-    #   # Action for GET requests on target
-    #   GET:
-    #     # Will allow GET requests
-    #     enabled: true
-    #     # Redirect with trailing slash when a file isn't found
-    #     redirectWithTrailingSlashForNotFoundFile: true
-    #     # Index document to display if exists in folder
-    #     indexDocument: index.html
-    #   # Action for PUT requests on target
-    #   PUT:
-    #     # Will allow PUT requests
-    #     enabled: true
-    #     # Configuration for PUT requests
-    #     config:
-    #       # Metadata key/values that will be put on S3 objects
-    #       metadata:
-    #         key: value
-    #       # Storage class that will be used for uploaded objects
-    #       # See storage class here: https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html
-    #       storageClass: STANDARD # GLACIER, ...
-    #       # Will allow override objects if enabled
-    #       allowOverride: false
-    #   # Action for DELETE requests on target
-    #   DELETE:
-    #     # Will allow DELETE requests
-    #     enabled: true
-    # # Key rewrite list
-    # # This will allow to rewrite keys before doing any requests to S3
-    # # For more information about how this works, see in the documentation.
-    # keyRewriteList:
-    #   - # Source represents a Regexp (golang format with group naming support)
-    #     source: ^/(?P<one>\w+)/(?P<two>\w+)/(?P<three>\w+)?$
-    #     # Target represents the template of the new key that will be used
-    #     target: /$two/$one/$three/$one/
-    ## Target custom templates
-    # templates:
-    #   # Folder list template
-    #   folderList:
-    #     inBucket: false
-    #     path: ""
-    #   # Not found template
-    #   notFound:
-    #     inBucket: false
-    #     path: ""
-    #   # Internal server error template
-    #   internalServerError:
-    #     inBucket: false
-    #     path: ""
-    #   # Forbidden template
-    #   forbidden:
-    #     inBucket: false
-    #     path: ""
-    #   # Unauthorized template
-    #   unauthorized:
-    #     inBucket: false
-    #     path: ""
-    #   # BadRequest template
-    #   badRequest:
-    #     inBucket: false
-    #     path: ""
-    ## Bucket configuration
-    bucket:
-      name: super-bucket
-      prefix:
-      region: eu-west-1
-      s3Endpoint:
-      disableSSL: false
-      # s3ListMaxKeys: 1000
-      # credentials:
-      #   accessKey:
-      #     env: AWS_ACCESS_KEY_ID
-      #   secretKey:
-      #     path: secret_key_file
-```
