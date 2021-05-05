@@ -1,0 +1,75 @@
+# Site configuration
+site_author: "havrileckalexandre@gmail.com"
+site_description: "Documentation website for S3-Proxy"
+site_name: "S3-Proxy"
+site_url: "https://oxyno-zeta.github.io/s3-proxy/"
+
+# Copyright
+copyright: Copyright &copy; 2019 - 2021 Oxyno-zeta
+
+# Repository
+repo_name: oxyno-zeta/s3-proxy
+repo_url: https://github.com/oxyno-zeta/s3-proxy
+edit_uri: ""
+
+# Extensions
+markdown_extensions:
+  - codehilite:
+      linenums: true
+      guess_lang: false
+  - admonition
+  - footnotes
+  - pymdownx.arithmatex
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.emoji
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - toc:
+      permalink: true
+
+# Plugins
+plugins:
+  - search
+  - awesome-pages:
+      collapse_single_pages: false
+
+# Theme
+theme:
+  name: "material"
+
+  # Don't include MkDocs' JavaScript
+  include_search_page: false
+  search_index_only: true
+
+  # Colors
+  palette:
+    - scheme: default
+      primary: deep orange
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep orange
+      accent: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+# Customization
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/oxyno-zeta/s3-proxy
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/oxynozeta/s3-proxy

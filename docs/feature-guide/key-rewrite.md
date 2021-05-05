@@ -1,4 +1,4 @@
-# Key Rewrite feature
+# Key Rewrite
 
 ## What is a "key" ?
 

@@ -1,0 +1,52 @@
+name: docs
+on:
+  push:
+    branches:
+      - "*"
+jobs:
+  changes:
+    if: |
+      (github.repository == 'oxyno-zeta/s3-proxy')
+    runs-on: ubuntu-latest
+    outputs:
+      docs: ${{ steps.filter.outputs.docs }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            docs:
+              - 'docs/**/*'
+  docs-build:
+    needs:
+      - changes
+    if: |
+      (github.repository == 'oxyno-zeta/s3-proxy') &&
+      (needs.changes.outputs.docs == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - run: pip install mkdocs-material
+      - run: pip install mkdocs-awesome-pages-plugin==2.5.0
+      - run: mkdocs build
+  docs-deploy:
+    needs:
+      - docs-build
+      - changes
+    if: |
+      (github.repository == 'oxyno-zeta/s3-proxy')  &&
+      (needs.changes.outputs.docs == 'true') &&
+      (github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - run: pip install mkdocs-material
+      - run: pip install mkdocs-awesome-pages-plugin==2.5.0
+      - run: mkdocs gh-deploy --force

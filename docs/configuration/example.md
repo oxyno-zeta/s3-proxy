@@ -1,3 +1,13 @@
+# Example
+
+<!-- prettier-ignore-start -->
+!!! Note
+  The following example is a full file example. But this can be split in multiple files, it will be merged by S3-Proxy automatically.
+<!-- prettier-ignore-end -->
+
+Here is a full example of a configuration file:
+
+```yaml
 # Log configuration
 log:
   # Log level
@@ -299,3 +309,4 @@ targets:
       #     env: AWS_ACCESS_KEY_ID
       #   secretKey:
       #     path: secret_key_file
+```
