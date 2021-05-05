@@ -1,7 +1,5 @@
 # Open Policy Agent (OPA)
 
-## Introduction
-
 S3-proxy integrate [Open Policy Agent](https://www.openpolicyagent.org/) for authorization process after OpenID Connect logins.
 
 ## Integration
@@ -51,5 +49,15 @@ The following section will present the input data that s3-proxy will send to the
       "fake": "tag"
     }
   }
+}
+```
+
+## Output Data
+
+Here is an example of the expected output schema:
+
+```json
+{
+  "result": true
 }
 ```
