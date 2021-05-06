@@ -33,6 +33,7 @@ type StreamInput struct {
 	ContentType        string
 	ETag               string
 	LastModified       time.Time
+	Metadata           map[string]string
 }
 
 // ResponseHandler will handle responses.
@@ -50,7 +51,10 @@ type ResponseHandler interface {
 	RedirectWithTrailingSlash()
 	// StreamFile will stream file in output.
 	// Error will be managed outside of this function because of the workflow in the caller function.
-	StreamFile(output *StreamInput) error
+	StreamFile(
+		loadFileContent func(ctx context.Context, path string) (string, error),
+		input *StreamInput,
+	) error
 	// FoldersFilesList will answer with the folder list output coming from template.
 	FoldersFilesList(
 		loadFileContent func(ctx context.Context, path string) (string, error),

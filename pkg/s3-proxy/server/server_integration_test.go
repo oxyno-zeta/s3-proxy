@@ -1928,6 +1928,108 @@ func TestPublicRouter(t *testing.T) {
 				"Content-Type":  "text/plain; charset=utf-8",
 			},
 		},
+		{
+			name: "GET a file with success with custom headers (general helpers)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{
+									Enabled: true,
+									Config: &config.GetActionConfigConfig{
+										StreamedFileHeaders: map[string]string{
+											"Fake": "{{ index .StreamFile.Metadata \"M1-Key\" }}",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder3/test.txt",
+			expectedCode: 200,
+			expectedBody: "Hello folder3!",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+				"Fake":          "v1",
+			},
+		},
+		{
+			name: "GET a file with success with custom headers (target helpers)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Templates: &config.TargetTemplateConfig{
+								Helpers: []*config.TargetHelperConfigItem{{
+									InBucket: false,
+									Path:     "../../../templates/_helpers.tpl",
+								}},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{
+									Enabled: true,
+									Config: &config.GetActionConfigConfig{
+										StreamedFileHeaders: map[string]string{
+											"Fake": "{{ index .StreamFile.Metadata \"M1-Key\" }}",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder3/test.txt",
+			expectedCode: 200,
+			expectedBody: "Hello folder3!",
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/plain; charset=utf-8",
+				"Fake":          "v1",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

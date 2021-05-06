@@ -234,6 +234,8 @@ targets:
     #       redirectWithTrailingSlashForNotFoundFile: true
     #       # Index document to display if exists in folder
     #       indexDocument: index.html
+    #       # Allow to add headers to streamed files (can be templated)
+    #       streamedFileHeaders: {}
     #   # Action for PUT requests on target
     #   PUT:
     #     # Will allow PUT requests
