@@ -11,19 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
 )
 
-func (h *handler) manageHeaders(helpersContent string, headersTpl map[string]string) (map[string]string, error) {
+func (h *handler) manageHeaders(helpersContent string, headersTpl map[string]string, hData interface{}) (map[string]string, error) {
 	// Create regex to remove all new lines
 	reg := regexp.MustCompile(`\r?\n`)
-	// Create header data
-	hData := &headerData{
-		Request: h.req,
-		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
-	}
 
 	// Store result
 	res := map[string]string{}

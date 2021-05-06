@@ -129,7 +129,7 @@ func Test_handler_manageHeaders(t *testing.T) {
 			h := &handler{
 				req: req,
 			}
-			got, err := h.manageHeaders(tt.args.helpersContent, tt.args.headersTpl)
+			got, err := h.manageHeaders(tt.args.helpersContent, tt.args.headersTpl, &headerData{Request: req})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("handler.manageHeaders() error = %v, wantErr %v", err, tt.wantErr)
 			}

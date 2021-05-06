@@ -145,17 +145,17 @@ func (mr *MockResponseHandlerMockRecorder) RedirectWithTrailingSlash() *gomock.C
 }
 
 // StreamFile mocks base method.
-func (m *MockResponseHandler) StreamFile(arg0 *responsehandler.StreamInput) error {
+func (m *MockResponseHandler) StreamFile(arg0 func(context.Context, string) (string, error), arg1 *responsehandler.StreamInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StreamFile", arg0)
+	ret := m.ctrl.Call(m, "StreamFile", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // StreamFile indicates an expected call of StreamFile.
-func (mr *MockResponseHandlerMockRecorder) StreamFile(arg0 interface{}) *gomock.Call {
+func (mr *MockResponseHandlerMockRecorder) StreamFile(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StreamFile", reflect.TypeOf((*MockResponseHandler)(nil).StreamFile), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StreamFile", reflect.TypeOf((*MockResponseHandler)(nil).StreamFile), arg0, arg1)
 }
 
 // TargetList mocks base method.

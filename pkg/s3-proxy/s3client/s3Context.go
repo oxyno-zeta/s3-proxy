@@ -203,6 +203,11 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 		Body: obj.Body,
 	}
 
+	// Metadata transformation
+	if obj.Metadata != nil {
+		output.Metadata = aws.StringValueMap(obj.Metadata)
+	}
+
 	if obj.CacheControl != nil {
 		output.CacheControl = *obj.CacheControl
 	}

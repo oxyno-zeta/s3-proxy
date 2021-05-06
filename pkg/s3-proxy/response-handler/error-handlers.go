@@ -305,18 +305,26 @@ func (h *handler) handleGenericErrorTemplate(
 	// Store headers
 	var headers map[string]string
 
+	// Create header data
+	hData := &headerData{
+		Request: h.req,
+		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
+	}
+
 	// Check if target config item exists
 	if tplCfgItem != nil {
 		// Manage headers
 		headers, err2 = h.manageHeaders(
 			helpersContent,
 			tplCfgItem.Headers,
+			hData,
 		)
 	} else {
 		// Manage headers
 		headers, err2 = h.manageHeaders(
 			helpersContent,
 			baseTpl.Headers,
+			hData,
 		)
 	}
 
@@ -404,6 +412,11 @@ func (h *handler) InternalServerError(
 
 	// Store headers
 	var headers map[string]string
+	// Create header data
+	hData := &headerData{
+		Request: h.req,
+		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
+	}
 	// Check if error 2 doesn't exist
 	if err2 == nil {
 		// Check if target config item exists
@@ -412,12 +425,14 @@ func (h *handler) InternalServerError(
 			headers, err2 = h.manageHeaders(
 				helpersContent,
 				tplCfgItem.Headers,
+				hData,
 			)
 		} else {
 			// Manage headers
 			headers, err2 = h.manageHeaders(
 				helpersContent,
 				cfg.Templates.InternalServerError.Headers,
+				hData,
 			)
 		}
 	}

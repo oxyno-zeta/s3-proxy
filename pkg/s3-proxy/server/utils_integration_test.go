@@ -120,6 +120,9 @@ func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*httptest.S
 			Body:   strings.NewReader(v),
 			Bucket: aws.String(bucket),
 			Key:    aws.String(k),
+			Metadata: aws.StringMap(map[string]string{
+				"m1-key": "v1",
+			}),
 		})
 		if err != nil {
 			return nil, err

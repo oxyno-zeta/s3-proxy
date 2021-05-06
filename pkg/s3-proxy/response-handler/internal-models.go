@@ -34,3 +34,10 @@ type headerData struct {
 	Request *http.Request
 	User    models.GenericUser
 }
+
+// streamFileHeaderData represents the structure used by stream file header templating.
+type streamFileHeaderData struct {
+	Request    *http.Request
+	User       models.GenericUser
+	StreamFile *StreamInput
+}

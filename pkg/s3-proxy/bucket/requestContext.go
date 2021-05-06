@@ -376,10 +376,11 @@ func (rctx *requestContext) streamFileForResponse(ctx context.Context, key strin
 		ContentType:        objOutput.ContentType,
 		ETag:               objOutput.ETag,
 		LastModified:       objOutput.LastModified,
+		Metadata:           objOutput.Metadata,
 	}
 
 	// Stream
-	err = resHan.StreamFile(inp)
+	err = resHan.StreamFile(rctx.LoadFileContent, inp)
 
 	// Return potential error
 	return err
