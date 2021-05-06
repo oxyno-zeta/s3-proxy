@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 )
 
 // folderListingData Folder listing data for templating.
@@ -26,7 +27,7 @@ type errorData struct {
 type targetListData struct {
 	Request *http.Request
 	User    models.GenericUser
-	Targets map[string]interface{}
+	Targets map[string]*config.TargetConfig
 }
 
 // headerData represents the structure used by header templating.
