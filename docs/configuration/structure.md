@@ -164,10 +164,11 @@ See more information [here](../feature-guide/key-rewrite.md).
 
 ## GetActionConfigConfiguration
 
-| Key                                      | Type    | Required | Default | Description                                                                                                                       |
-| ---------------------------------------- | ------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| redirectWithTrailingSlashForNotFoundFile | Boolean | No       | `false` | This option allow to do a redirect with a trailing slash when a GET request on a file (not a folder) encountered a 404 not found. |
-| indexDocument                            | String  | No       | `""`    | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                          |
+| Key                                      | Type              | Required | Default | Description                                                                                                                                                                                               |
+| ---------------------------------------- | ----------------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| redirectWithTrailingSlashForNotFoundFile | Boolean           | No       | `false` | This option allow to do a redirect with a trailing slash when a GET request on a file (not a folder) encountered a 404 not found.                                                                         |
+| indexDocument                            | String            | No       | `""`    | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                                                                                                  |
+| streamedFileHeaders                      | Map[String]String | No       | `nil`   |  Headers containing templates that will be added to streamed files in this target. Key corresponds to header and value to the template. If templated value is empty, the header won't be added to answer. |
 
 ## PutActionConfiguration
 

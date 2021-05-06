@@ -1356,7 +1356,7 @@ func Test_requestContext_Get(t *testing.T) {
 				NotFoundError(gomock.Any()).
 				Times(tt.responseHandlerNotFoundErrorMockResult.times)
 			resHandlerMock.EXPECT().
-				StreamFile(tt.responseHandlerStreamFileMockResult.input).
+				StreamFile(gomock.Any(), tt.responseHandlerStreamFileMockResult.input).
 				Return(tt.responseHandlerStreamFileMockResult.err).
 				Times(tt.responseHandlerStreamFileMockResult.times)
 			resHandlerMock.EXPECT().

@@ -92,6 +92,7 @@ type GetOutput struct {
 	ContentType        string
 	ETag               string
 	LastModified       time.Time
+	Metadata           map[string]string
 }
 
 // PutInput Put input object for PUT request.

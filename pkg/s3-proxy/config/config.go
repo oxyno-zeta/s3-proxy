@@ -300,8 +300,9 @@ type GetActionConfig struct {
 
 // GetActionConfigConfig Get action configuration object configuration.
 type GetActionConfigConfig struct {
-	RedirectWithTrailingSlashForNotFoundFile bool   `mapstructure:"redirectWithTrailingSlashForNotFoundFile"`
-	IndexDocument                            string `mapstructure:"indexDocument"`
+	RedirectWithTrailingSlashForNotFoundFile bool              `mapstructure:"redirectWithTrailingSlashForNotFoundFile"`
+	IndexDocument                            string            `mapstructure:"indexDocument"`
+	StreamedFileHeaders                      map[string]string `mapstructure:"streamedFileHeaders"`
 }
 
 // Resource Resource.

@@ -54,10 +54,17 @@ func (h *handler) TargetList() {
 		return
 	}
 
+	// Create header data
+	hData := &headerData{
+		Request: h.req,
+		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
+	}
+
 	// Manage headers
 	headers, err := h.manageHeaders(
 		helpersTpl,
 		cfg.Templates.TargetList.Headers,
+		hData,
 	)
 	// Check if error exists
 	if err != nil {
@@ -127,11 +134,63 @@ func (h *handler) RedirectWithTrailingSlash() {
 	http.Redirect(h.res, h.req, p, http.StatusFound)
 }
 
-func (h *handler) StreamFile(output *StreamInput) error {
+func (h *handler) StreamFile(
+	loadFileContent func(ctx context.Context, path string) (string, error),
+	input *StreamInput,
+) error {
+	// Get configuration
+	cfg := h.cfgManager.GetConfig()
+	// Get target configuration (exists in this case)
+	targetCfg := cfg.Targets[h.targetKey]
+
 	// Set headers from object
-	setHeadersFromObjectOutput(h.res, output)
+	setHeadersFromObjectOutput(h.res, input)
+
+	// Check if headers templates are defined in the GET configuration
+	if targetCfg.Actions != nil &&
+		targetCfg.Actions.GET != nil &&
+		targetCfg.Actions.GET.Config != nil &&
+		targetCfg.Actions.GET.Config.StreamedFileHeaders != nil {
+		// Target template helpers
+		var tplHelpers []*config.TargetHelperConfigItem
+		// Check if target templates are defined
+		if targetCfg.Templates != nil {
+			tplHelpers = targetCfg.Templates.Helpers
+		}
+
+		// Get template content
+		helpersTpl, err := h.loadAllHelpersContent(
+			loadFileContent,
+			tplHelpers,
+			cfg.Templates.Helpers,
+		)
+		// Check error
+		if err != nil {
+			return err
+		}
+
+		// Create data structure
+		data := &streamFileHeaderData{
+			Request:    h.req,
+			User:       models.GetAuthenticatedUserFromContext(h.req.Context()),
+			StreamFile: input,
+		}
+		// Manage headers
+		headers, err := h.manageHeaders(helpersTpl, targetCfg.Actions.GET.Config.StreamedFileHeaders, data)
+		// Check error
+		if err != nil {
+			return err
+		}
+
+		// Loop over them to add them to response
+		for k, v := range headers {
+			// Add them
+			h.res.Header().Set(k, v)
+		}
+	}
+
 	// Copy data stream to output stream
-	_, err := io.Copy(h.res, output.Body)
+	_, err := io.Copy(h.res, input.Body)
 
 	return err
 }
@@ -176,18 +235,26 @@ func (h *handler) FoldersFilesList(
 	// Store headers
 	var headers map[string]string
 
+	// Create header data
+	hData := &headerData{
+		Request: h.req,
+		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
+	}
+
 	// Check if target config item exists
 	if tplConfigItem != nil {
 		// Manage headers
 		headers, err = h.manageHeaders(
 			helpersContent,
 			tplConfigItem.Headers,
+			hData,
 		)
 	} else {
 		// Manage headers
 		headers, err = h.manageHeaders(
 			helpersContent,
 			cfg.Templates.FolderList.Headers,
+			hData,
 		)
 	}
 
