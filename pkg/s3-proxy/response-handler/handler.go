@@ -85,19 +85,11 @@ func (h *handler) TargetList() {
 	// Concat
 	tplContent := helpersTpl + "\n" + tpl
 
-	// Transform map structure of target config to interface in order to use sprig functions
-	// Those functions only use map[string]interface{}
-	targetsMap := map[string]interface{}{}
-	// Loop over map targets
-	for k, v := range cfg.Targets {
-		targetsMap[k] = v
-	}
-
 	// Create data structure
 	data := targetListData{
 		Request: h.req,
 		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
-		Targets: targetsMap,
+		Targets: cfg.Targets,
 	}
 
 	// Execute main template
