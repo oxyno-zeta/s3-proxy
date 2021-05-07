@@ -82,23 +82,23 @@ This feature is powered by [go-chi/cors](https://github.com/go-chi/cors). You ca
 
 ## TemplateConfiguration
 
-| Key                 | Type                                                    | Required | Default                                                                                                                                              | Description                         |
-| ------------------- | ------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| helpers             | [String]                                                | No       | `[templates/_helpers.tpl]`                                                                                                                           | Template Golang helpers             |
-| targetList          | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `targetList: { path: "templates/target-list.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`                    | Target list template path           |
-| folderList          | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `folderList: { path: "templates/folder-list.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`                    | Folder list template path           |
-| notFoundError       | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `notFoundError: { path: "templates/not-found-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`             | Not found template path             |
-| unauthorizedError   | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `unauthorizedError: { path: "templates/unauthorized-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`      | Unauthorized template path          |
-| forbiddenError      | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `forbiddenError: { path: "templates/forbidden-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`            | Forbidden template path             |
-| badRequestError     | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `badRequestError: { path: "templates/bad-request-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`         | Bad Request template path           |
-| internalServerError | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `internalServerError: { path: "templates/internal-server-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }` | Internal server error template path |
+| Key                 | Type                                                    | Required | Default                                                                                                                                              | Description                                                                                               |
+| ------------------- | ------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| helpers             | [String]                                                | No       | `[templates/_helpers.tpl]`                                                                                                                           | Template Golang helpers                                                                                   |
+| targetList          | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `targetList: { path: "templates/target-list.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`                    | Target list template path. More information [here](../feature-guide/templates.md#generic-case).           |
+| folderList          | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `folderList: { path: "templates/folder-list.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`                    | Folder list template path. More information [here](../feature-guide/templates.md#generic-case).           |
+| notFoundError       | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `notFoundError: { path: "templates/not-found-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`             | Not found template path. More information [here](../feature-guide/templates.md#generic-case).             |
+| unauthorizedError   | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `unauthorizedError: { path: "templates/unauthorized-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`      | Unauthorized template path. More information [here](../feature-guide/templates.md#generic-case).          |
+| forbiddenError      | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `forbiddenError: { path: "templates/forbidden-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`            | Forbidden template path. More information [here](../feature-guide/templates.md#generic-case).             |
+| badRequestError     | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `badRequestError: { path: "templates/bad-request-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }`         | Bad Request template path. More information [here](../feature-guide/templates.md#generic-case).           |
+| internalServerError | [TemplateConfigurationItem](#templateconfigurationitem) | No       | `internalServerError: { path: "templates/internal-server-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" } }` | Internal server error template path. More information [here](../feature-guide/templates.md#generic-case). |
 
 ## TemplateConfigurationItem
 
-| Key     | Type              | Required | Default | Description                                                                                                                                          |
-| ------- | ----------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| path    | String            | True     | `""`    | File path to template file                                                                                                                           |
-| headers | Map[String]String | False    | None    | Headers containing templates. Key corresponds to header and value to the template. If templated value is empty, the header won't be added to answer. |
+| Key     | Type              | Required | Default | Description                                                                                                                                                                                                               |
+| ------- | ----------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| path    | String            | True     | `""`    | File path to template file                                                                                                                                                                                                |
+| headers | Map[String]String | False    | None    | Headers containing templates. Key corresponds to header and value to the template. If templated value is empty, the header won't be added to answer. More information [here](../feature-guide/templates.md#generic-case). |
 
 ## TargetConfiguration
 
@@ -122,15 +122,15 @@ See more information [here](../feature-guide/key-rewrite.md).
 
 ## TargetTemplateConfig
 
-| Key                 | Type                                                  | Required | Default | Description                                       |
-| ------------------- | ----------------------------------------------------- | -------- | ------- | ------------------------------------------------- |
-| helpers             | [[TargetHelperConfigItem](#targethelperconfigitem)]   | No       | None    | Helpers list custom template declarations         |
-| folderList          | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Folder list custom template declaration           |
-| notFound            | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Not Found custom template declaration             |
-| internalServerError | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Internal server error custom template declaration |
-| forbidden           | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Forbidden custom template declaration             |
-| unauthorized        | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Unauthorized custom template declaration          |
-| badRequest          | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Bad Request custom template declaration           |
+| Key                 | Type                                                  | Required | Default | Description                                                                                                |
+| ------------------- | ----------------------------------------------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| helpers             | [[TargetHelperConfigItem](#targethelperconfigitem)]   | No       | None    | Helpers list custom template declarations.                                                                 |
+| folderList          | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Folder list custom template declaration. More information [here](../feature-guide/templates.md).           |
+| notFound            | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Not Found custom template declaration. More information [here](../feature-guide/templates.md).             |
+| internalServerError | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Internal server error custom template declaration. More information [here](../feature-guide/templates.md). |
+| forbidden           | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Forbidden custom template declaration. More information [here](../feature-guide/templates.md).             |
+| unauthorized        | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Unauthorized custom template declaration. More information [here](../feature-guide/templates.md).          |
+| badRequest          | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Bad Request custom template declaration. More information [here](../feature-guide/templates.md).           |
 
 ## TargetHelperConfigItem
 
@@ -141,11 +141,11 @@ See more information [here](../feature-guide/key-rewrite.md).
 
 ## TargetTemplateConfigItem
 
-| Key      | Type              | Required | Default                                                                                     | Description                                                                                                                                          |
-| -------- | ----------------- | -------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| inBucket | Boolean           | No       | `false`                                                                                     | Is the file in bucket or on local file system ?                                                                                                      |
-| path     | String            | Yes      | None                                                                                        | Path for template file                                                                                                                               |
-| headers  | Map[String]String | False    | This will be set to corresponding [TemplateConfiguration](#templateconfiguration) if empty. | Headers containing templates. Key corresponds to header and value to the template. If templated value is empty, the header won't be added to answer. |
+| Key      | Type              | Required | Default                                                                                     | Description                                                                                                                                                                                                               |
+| -------- | ----------------- | -------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| inBucket | Boolean           | No       | `false`                                                                                     | Is the file in bucket or on local file system ?                                                                                                                                                                           |
+| path     | String            | Yes      | None                                                                                        | Path for template file                                                                                                                                                                                                    |
+| headers  | Map[String]String | False    | This will be set to corresponding [TemplateConfiguration](#templateconfiguration) if empty. | Headers containing templates. Key corresponds to header and value to the template. If templated value is empty, the header won't be added to answer. More information [here](../feature-guide/templates.md#generic-case). |
 
 ## ActionsConfiguration
 
@@ -164,11 +164,11 @@ See more information [here](../feature-guide/key-rewrite.md).
 
 ## GetActionConfigConfiguration
 
-| Key                                      | Type              | Required | Default | Description                                                                                                                                                                                               |
-| ---------------------------------------- | ----------------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| redirectWithTrailingSlashForNotFoundFile | Boolean           | No       | `false` | This option allow to do a redirect with a trailing slash when a GET request on a file (not a folder) encountered a 404 not found.                                                                         |
-| indexDocument                            | String            | No       | `""`    | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                                                                                                  |
-| streamedFileHeaders                      | Map[String]String | No       | `nil`   |  Headers containing templates that will be added to streamed files in this target. Key corresponds to header and value to the template. If templated value is empty, the header won't be added to answer. |
+| Key                                      | Type              | Required | Default | Description                                                                                                                                                                                                                                                                        |
+| ---------------------------------------- | ----------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| redirectWithTrailingSlashForNotFoundFile | Boolean           | No       | `false` | This option allow to do a redirect with a trailing slash when a GET request on a file (not a folder) encountered a 404 not found.                                                                                                                                                  |
+| indexDocument                            | String            | No       | `""`    | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                                                                                                                                                                           |
+| streamedFileHeaders                      | Map[String]String | No       | `nil`   |  Headers containing templates that will be added to streamed files in this target. Key corresponds to header and value to the template. If templated value is empty, the header won't be added to answer. More information [here](../feature-guide/templates.md#stream-file-case). |
 
 ## PutActionConfiguration
 
