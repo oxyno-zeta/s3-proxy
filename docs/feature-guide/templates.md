@@ -123,6 +123,31 @@ Available data:
 | Request | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
 | Error   | Error                                                    | Error raised and caught                           |
 
+## Headers templates and structures
+
+### Generic case
+
+This case is the main one and used for all templates rendered explained before.
+
+The following table will show the data structure available for the header template rendering:
+
+| Name    | Type                                                     | Description                                       |
+| ------- | -------------------------------------------------------- | ------------------------------------------------- |
+| User    | [GenericUser](#genericuser)                              | Authenticated user if present in incoming request |
+| Request | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
+
+### Stream file case
+
+This case is a special case, used only when a file is streamed from S3. This will allow to add headers to streamed files with GET requests.
+
+The following table will show the data structure available for the header template rendering:
+
+| Name       | Type                                                     | Description                                       |
+| ---------- | -------------------------------------------------------- | ------------------------------------------------- |
+| User       | [GenericUser](#genericuser)                              | Authenticated user if present in incoming request |
+| Request    | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
+| StreamFile | [StreamFile](#streamfile)                                | Stream file object                                |
+
 ## Common/Other structures
 
 ### GenericUser
@@ -154,3 +179,19 @@ These are the properties available:
 | Size         | Integer | Entry file (file only)        |
 | Key          | String  | Full key from S3 response     |
 | Path         | String  | Access path to entry from web |
+
+### StreamFile
+
+| Name               | Type                                      | Description                       |
+| ------------------ | ----------------------------------------- | --------------------------------- |
+| CacheControl       | String                                    | Cache control value from S3       |
+| Expires            | String                                    | Expires value from S3             |
+| ContentDisposition | String                                    | Content disposition value from S3 |
+| ContentEncoding    | String                                    | Content encoding value from S3    |
+| ContentLanguage    | String                                    | Content language value from S3    |
+| ContentLength      | Integer                                   | Content length value from S3      |
+| ContentRange       | String                                    | Content range value from S3       |
+| ContentType        | String                                    | Content type value from S3        |
+| ETag               | String                                    | ETag value from S3                |
+| LastModified       | [Time](https://golang.org/pkg/time/#Time) | Last modified value from S3       |
+| Metadata           | Map[String]String                         | Metadata value from S3            |
