@@ -306,7 +306,7 @@ func (h *handler) handleGenericErrorTemplate(
 	var headers map[string]string
 
 	// Create header data
-	hData := &headerData{
+	hData := &genericHeaderData{
 		Request: h.req,
 		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
 	}
@@ -413,7 +413,7 @@ func (h *handler) InternalServerError(
 	// Store headers
 	var headers map[string]string
 	// Create header data
-	hData := &headerData{
+	hData := &genericHeaderData{
 		Request: h.req,
 		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
 	}

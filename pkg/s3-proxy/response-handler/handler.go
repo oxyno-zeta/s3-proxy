@@ -55,7 +55,7 @@ func (h *handler) TargetList() {
 	}
 
 	// Create header data
-	hData := &headerData{
+	hData := &genericHeaderData{
 		Request: h.req,
 		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
 	}
@@ -228,7 +228,7 @@ func (h *handler) FoldersFilesList(
 	var headers map[string]string
 
 	// Create header data
-	hData := &headerData{
+	hData := &genericHeaderData{
 		Request: h.req,
 		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
 	}
