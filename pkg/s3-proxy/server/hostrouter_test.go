@@ -28,20 +28,24 @@ func TestHostRouter_ServeHTTP(t *testing.T) {
 		w.Write([]byte("localhost"))
 	})
 
+	type routeInput struct {
+		domain string
+		router chi.Router
+	}
 	tests := []struct {
 		name           string
 		inputURL       string
-		routes         map[string]chi.Router
+		routes         []*routeInput
 		expectedStatus int
 		expectedBody   string
 	}{
 		{
 			name:     "should match the star glob",
 			inputURL: "http://fake/",
-			routes: map[string]chi.Router{
-				"localhost":   localhostRouter,
-				"*.localhost": starLocalhostRouter,
-				"*":           starRouter,
+			routes: []*routeInput{
+				{"localhost", localhostRouter},
+				{"*.localhost", starLocalhostRouter},
+				{"*", starRouter},
 			},
 			expectedStatus: 200,
 			expectedBody:   "star",
@@ -49,10 +53,10 @@ func TestHostRouter_ServeHTTP(t *testing.T) {
 		{
 			name:     "should match the perfect host",
 			inputURL: "http://localhost/",
-			routes: map[string]chi.Router{
-				"localhost":   localhostRouter,
-				"*.localhost": starLocalhostRouter,
-				"*":           starRouter,
+			routes: []*routeInput{
+				{"localhost", localhostRouter},
+				{"*.localhost", starLocalhostRouter},
+				{"*", starRouter},
 			},
 			expectedStatus: 200,
 			expectedBody:   "localhost",
@@ -60,10 +64,10 @@ func TestHostRouter_ServeHTTP(t *testing.T) {
 		{
 			name:     "should match the glob host",
 			inputURL: "http://api.localhost/",
-			routes: map[string]chi.Router{
-				"localhost":   localhostRouter,
-				"*.localhost": starLocalhostRouter,
-				"*":           starRouter,
+			routes: []*routeInput{
+				{"localhost", localhostRouter},
+				{"*.localhost", starLocalhostRouter},
+				{"*", starRouter},
 			},
 			expectedStatus: 200,
 			expectedBody:   "starLocalhost",
@@ -71,10 +75,10 @@ func TestHostRouter_ServeHTTP(t *testing.T) {
 		{
 			name:     "should match the glob host (2)",
 			inputURL: "http://ui.localhost/",
-			routes: map[string]chi.Router{
-				"localhost":   localhostRouter,
-				"*.localhost": starLocalhostRouter,
-				"*":           starRouter,
+			routes: []*routeInput{
+				{"localhost", localhostRouter},
+				{"*.localhost", starLocalhostRouter},
+				{"*", starRouter},
 			},
 			expectedStatus: 200,
 			expectedBody:   "starLocalhost",
@@ -82,8 +86,8 @@ func TestHostRouter_ServeHTTP(t *testing.T) {
 		{
 			name:     "should return a not found error",
 			inputURL: "http://ui.localhost/",
-			routes: map[string]chi.Router{
-				"localhost": localhostRouter,
+			routes: []*routeInput{
+				{"localhost", localhostRouter},
 			},
 			expectedStatus: 404,
 			expectedBody:   "hostrouter not found",
@@ -91,18 +95,21 @@ func TestHostRouter_ServeHTTP(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hr := HostRouter{
-				routes: tt.routes,
-				notFoundHandler: func(w http.ResponseWriter, r *http.Request) {
+			hr := NewHostRouter(
+				func(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(404)
 					w.Write([]byte("hostrouter not found"))
 				},
-				internalServerHandler: func(err error) http.HandlerFunc {
+				func(err error) http.HandlerFunc {
 					return func(w http.ResponseWriter, r *http.Request) {
 						w.WriteHeader(500)
 						w.Write([]byte("hostrouter internal server error"))
 					}
 				},
+			)
+
+			for _, it := range tt.routes {
+				hr.Map(it.domain, it.router)
 			}
 
 			w := httptest.NewRecorder()
