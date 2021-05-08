@@ -12,8 +12,10 @@ import (
 // Fork dead project https://github.com/go-chi/hostrouter/
 // Add wildcard support, not found handler and internal server handler
 // Remove not necessary parts
+// Update to ensure that all wildcard domains will be tested in the injection order
 
 type HostRouter struct {
+	domainList            []string
 	routes                map[string]chi.Router
 	notFoundHandler       http.HandlerFunc
 	internalServerHandler func(err error) http.HandlerFunc
@@ -21,18 +23,21 @@ type HostRouter struct {
 
 func NewHostRouter(notFoundHandler http.HandlerFunc, internalServerHandler func(err error) http.HandlerFunc) HostRouter {
 	return HostRouter{
+		domainList:            []string{},
 		routes:                map[string]chi.Router{},
 		notFoundHandler:       notFoundHandler,
 		internalServerHandler: internalServerHandler,
 	}
 }
 
-func (hr HostRouter) Get(domain string) chi.Router {
-	return hr.routes[domain]
+func (hr *HostRouter) Get(domain string) chi.Router {
+	return hr.routes[strings.ToLower(domain)]
 }
 
-func (hr HostRouter) Map(host string, h chi.Router) {
-	hr.routes[strings.ToLower(host)] = h
+func (hr *HostRouter) Map(host string, h chi.Router) {
+	lowercaseHost := strings.ToLower(host)
+	hr.domainList = append(hr.domainList, lowercaseHost)
+	hr.routes[lowercaseHost] = h
 }
 
 func (hr HostRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -64,8 +69,8 @@ func (hr HostRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	hr.notFoundHandler(w, r)
 }
 
-func (hr HostRouter) getRouterWithWildcard(host string) (chi.Router, error) {
-	for wh, rt := range hr.routes {
+func (hr *HostRouter) getRouterWithWildcard(host string) (chi.Router, error) {
+	for _, wh := range hr.domainList {
 		g, err := glob.Compile(wh)
 		// Check if error exists
 		if err != nil {
@@ -73,7 +78,7 @@ func (hr HostRouter) getRouterWithWildcard(host string) (chi.Router, error) {
 		}
 		// Check if wildcard host match current host
 		if g.Match(host) {
-			return rt, nil
+			return hr.routes[wh], nil
 		}
 	}
 
