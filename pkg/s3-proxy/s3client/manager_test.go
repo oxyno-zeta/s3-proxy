@@ -57,7 +57,9 @@ func Test_manager_Load_Cleanup(t *testing.T) {
 		return
 	}
 
-	assert.Equal(t, []string{"t1", "t2"}, funk.Keys(s3Manager.targetClient))
+	assert.Contains(t, funk.Keys(s3Manager.targetClient), "t1")
+	assert.Contains(t, funk.Keys(s3Manager.targetClient), "t2")
+	assert.Len(t, funk.Keys(s3Manager.targetClient), 2)
 
 	cfgManagerMock.EXPECT().GetConfig().Times(1).Return(&config.Config{
 		Targets: map[string]*config.TargetConfig{
