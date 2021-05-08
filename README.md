@@ -15,42 +15,11 @@
 
 ---
 
-## Menu
-
-- [Why ?](#why-)
-- [Features](#features)
-- [Configuration](#configuration)
-- [Templates](#templates)
-- [Open Policy Agent (OPA)](#open-policy-agent-opa)
-- [API](#api)
-  - [GET](#get)
-  - [PUT](#put)
-  - [DELETE](#delete)
-- [AWS IAM Policy](#aws-iam-policy)
-- [Grafana Dashboard](#grafana-dashboard)
-- [Prometheus metrics](#prometheus-metrics)
-- [Deployment](#deployment)
-  - [Kubernetes - Helm](#kubernetes---helm)
-  - [Docker](#docker)
-- [TODO](#todo)
-- [Want to contribute ?](#want-to-contribute-)
-- [Inspired by](#inspired-by)
-- [Thanks](#thanks)
-- [Author](#author)
-- [License](#license)
-
-## Why ?
-
-First of all, yes, this is another S3 proxy written in Golang.
-
-I've created this project because I couldn't find any other that allow to proxy multiple S3 buckets or to have custom templates with OpenID Connect authentication and also to get, upload and delete files.
-
 ## Features
 
 - Multi S3 bucket proxy
 - Index document (display index document instead of listing when found)
 - Custom templates
-- AWS S3 Login from files or environment variables
 - Custom S3 endpoints supported
 - Basic Authentication support
 - Multiple Basic Authentication support
@@ -62,103 +31,14 @@ I've created this project because I couldn't find any other that allow to proxy 
 - Prometheus metrics
 - Allow to publish files on S3 bucket
 - Allow to delete files on S3 bucket
-- Open Policy Agent integration for authorizations
-- Configuration hot reload
-- CORS support
-- S3 Key Rewrite possibility ([Here](./docs/key-rewrite.md) for more information)
 
-## Configuration
+And many others.
 
-See here: [Configuration](./docs/configuration.md)
+## Documentation
 
-## Templates
+There is an online documentation generated for this project.
 
-See here: [Templates](./docs/templates.md)
-
-## Open Policy Agent (OPA)
-
-See here: [OPA](./docs/opa.md) and in the configuration here: [OPA Configuration](./docs/configuration.md#opaserverauthorization)
-
-## API
-
-### GET
-
-This kind of requests will allow to get files or directory listing.
-
-If path ends with a slash, the backend will consider this as a directory and will perform a directory listing or will display index document.
-Example: `GET /dir1/`
-
-If path doesn't end with a slash, the backend will consider this as a file request. Example: `GET /file.pdf`
-
-### PUT
-
-This kind of requests will allow to send file in directory.
-
-The PUT request path must be a directory and must be a multipart form with a key named `file` with a file inside.
-Example: `PUT --form file:@file.pdf /dir1/`
-
-### DELETE
-
-This kind of requests will allow to delete files (**only**).
-
-The DELETE request path must contain the file name. Example: `DELETE /dir1/dir2/file.pdf`.
-
-## AWS IAM Policy
-
-```js
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        // Needed for GET API/Action
-        "s3:ListBucket",
-        "s3:GetObject",
-        // Needed for PUT API/Action
-        "s3:PutObject",
-        // Needed for DELETE API/Action
-        "s3:DeleteObject"
-      ],
-      "Resource": ["arn:aws:s3:::<bucket-name>", "arn:aws:s3:::<bucket-name>/*"]
-    }
-  ]
-}
-```
-
-## Grafana Dashboard
-
-This project exports Prometheus metrics. Here is an example of Prometheus dashboard that you can import as JSON file: [dashboard](docs/s3-proxy-dashboard.json).
-
-This dashboard has been done and tested on Grafana 7.0.
-
-## Prometheus metrics
-
-See here: [Prometheus metrics](./docs/metrics.md)
-
-## Deployment
-
-### Kubernetes - Helm
-
-A helm chart have been created to deploy this in a Kubernetes cluster.
-
-You can find it here: [https://github.com/oxyno-zeta/helm-charts/tree/master/stable/s3-proxy](https://github.com/oxyno-zeta/helm-charts/tree/master/stable/s3-proxy)
-
-### Docker
-
-First, write the configuration file in a config folder. That one will be mounted.
-
-Run this command:
-
-```shell
-docker run -d --name s3-proxy -p 8080:8080 -p 9090:9090 -v $PWD/conf:/proxy/conf oxynozeta/s3-proxy
-```
-
-## TODO
-
-- Support more authentication and authorization systems
-- JSON response
-- Add tests
+You can find it here: [https://oxyno-zeta.github.io/s3-proxy/](https://oxyno-zeta.github.io/s3-proxy/)
 
 ## Want to contribute ?
 
