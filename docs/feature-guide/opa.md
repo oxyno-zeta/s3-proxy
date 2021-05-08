@@ -10,7 +10,7 @@ This project integrate OPA with the REST API. You can see an example [here](http
 
 The following section will present the input data that s3-proxy will send to the Open Policy Agent.
 
-```json
+```json linenums="1"
 {
   "input": {
     "user": {
@@ -56,7 +56,7 @@ The following section will present the input data that s3-proxy will send to the
 
 Here is an example of the expected output schema:
 
-```json
+```json linenums="1"
 {
   "result": true
 }
