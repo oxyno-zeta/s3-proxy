@@ -13,7 +13,7 @@ This configuration by default enabled for all responses including templates and 
 
 Here is an example to enforce this default value:
 
-```yaml
+```yaml linenums="1"
 server:
   # Cache configuration
   cache:
@@ -30,7 +30,7 @@ server:
 
 This will allow to manage all cache headers values for all responses including templates and streamed files.
 
-```yaml
+```yaml linenums="1"
 server:
   # Cache configuration
   cache:
@@ -57,7 +57,7 @@ This configuration will be applied to all responses, for all requests.
 
 Here is an example of configuration to allow ETag support globally:
 
-```yaml
+```yaml linenums="1"
 server:
   # Cache configuration
   cache:
@@ -73,7 +73,7 @@ You can override the headers on a specific template to add `Cache-Control` and o
 
 The following example will show how to disable the "no-cache" feature and add a `Cache-Control` header that will allow the ETag support in browsers:
 
-```yaml
+```yaml linenums="1"
 server:
   # Cache configuration
   cache:
@@ -95,7 +95,7 @@ You can override the headers on streamed files to add `Cache-Control` and others
 
 The following example will show how to disable the "no-cache" feature and add a `Cache-Control` header that will allow the ETag support in browsers:
 
-```yaml
+```yaml linenums="1"
 server:
   # Cache configuration
   cache:

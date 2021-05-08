@@ -49,7 +49,7 @@ This example will show the ignore key behavior explained before.
 
 In this example, we will consider this request `GET /file.html` and the following configuration:
 
-```yaml
+```yaml linenums="1"
 # ...
 targets:
   - name: test
@@ -70,7 +70,7 @@ This example will show a simple key rewrite without any group name or capture.
 
 In this example, we will consider this request `GET /file.html` and the following configuration:
 
-```yaml
+```yaml linenums="1"
 # ...
 targets:
   - name: test
@@ -91,7 +91,7 @@ This example will show a capture with name reused in template.
 
 In this example, we will consider this request `GET /folder1/file.html` and the following configuration:
 
-```yaml
+```yaml linenums="1"
 # ...
 targets:
   - name: test
@@ -112,7 +112,7 @@ This example will show a simple key rewrite with the S3 prefix data.
 
 In this example, we will consider this request `GET /file.html` and the following configuration:
 
-```yaml
+```yaml linenums="1"
 # ...
 targets:
   - name: test
