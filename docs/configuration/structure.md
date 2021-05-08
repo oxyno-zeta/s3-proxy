@@ -55,13 +55,7 @@ You can see a full example in the [Example section](./example.md)
 | pragma         | String  | false    | `""`    | `Pragma` header value                   |
 | xAccelExpires  | String  | false    | `""`    | `X-Accel-Expires` header value          |
 
-Here is an example of configuration to allow ETag support:
-
-```yaml
-server:
-  cache:
-    cacheControl: must-revalidate, max-age=0
-```
+See more information [here](../feature-guide/cache-control.md).
 
 ## ServerCorsConfig
 
@@ -81,6 +75,11 @@ This feature is powered by [go-chi/cors](https://github.com/go-chi/cors). You ca
 | optionsPassthrough | Boolean  | No       | OPTIONS method Passthrough                                                     |
 
 ## TemplateConfiguration
+
+<!-- prettier-ignore-start -->
+!!! Warning
+    Override headers will remove the default value containing the `Content-Type` header. Why ? Because it was though that it was better to know why it is override and not have magical values coming from nowhere.
+<!-- prettier-ignore-end -->
 
 | Key                 | Type                                                    | Required | Default                                                                                                                                              | Description                                                                                               |
 | ------------------- | ------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
