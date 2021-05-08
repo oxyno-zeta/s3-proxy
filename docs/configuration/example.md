@@ -7,7 +7,7 @@
 
 Here is a full example of a configuration file:
 
-```yaml
+```yaml linenums="1"
 # Log configuration
 log:
   # Log level
