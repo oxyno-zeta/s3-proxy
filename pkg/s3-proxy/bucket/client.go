@@ -6,6 +6,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 )
@@ -43,6 +44,13 @@ type PutInput struct {
 	Body        io.ReadSeeker
 	ContentType string
 	ContentSize int64
+}
+
+// PutData Put Data represents a put data structure used in put templates rendering.
+type PutData struct {
+	User  models.GenericUser
+	Input *PutInput
+	Key   string
 }
 
 // NewClient will generate a new client to do GET,PUT or DELETE actions.

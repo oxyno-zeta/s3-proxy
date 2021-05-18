@@ -688,6 +688,277 @@ func Test_requestContext_Put(t *testing.T) {
 			},
 			responseHandlerNoContentMockResultTimes: 1,
 		},
+		{
+			name: "should be ok to do templating on metadata",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Bucket: &config.BucketConfig{Prefix: "/"},
+					Actions: &config.ActionsConfig{
+						PUT: &config.PutActionConfig{
+							Config: &config.PutActionConfigConfig{
+								Metadata: map[string]string{
+									"fixed":   "fixed",
+									"testkey": "{{ .Key }}",
+									"tpl":     "{{ .Key }} - {{ .Input.ContentType }}",
+								},
+								StorageClass:  "storage-class",
+								AllowOverride: true,
+							},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args: args{
+				inp: &PutInput{
+					RequestPath: "/test",
+					Filename:    "file",
+					Body:        nil,
+					ContentType: "content-type",
+				},
+			},
+			s3ClientHeadObjectMockResult: s3ClientHeadObjectMockResult{
+				times: 0,
+			},
+			s3ClientPutObjectMockResult: s3ClientPutObjectMockResult{
+				input2: &s3client.PutInput{
+					Key:         "/test/file",
+					ContentType: "content-type",
+					Metadata: map[string]string{
+						"fixed":   "fixed",
+						"testkey": "/test/file",
+						"tpl":     "/test/file - content-type",
+					},
+					StorageClass: "storage-class",
+				},
+				times: 1,
+			},
+			responseHandlerNoContentMockResultTimes: 1,
+		},
+		{
+			name: "should be ok to flush empty metadata",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Bucket: &config.BucketConfig{Prefix: "/"},
+					Actions: &config.ActionsConfig{
+						PUT: &config.PutActionConfig{
+							Config: &config.PutActionConfigConfig{
+								Metadata: map[string]string{
+									"fixed":   "fixed",
+									"testkey": "",
+								},
+								StorageClass:  "storage-class",
+								AllowOverride: true,
+							},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args: args{
+				inp: &PutInput{
+					RequestPath: "/test",
+					Filename:    "file",
+					Body:        nil,
+					ContentType: "content-type",
+				},
+			},
+			s3ClientHeadObjectMockResult: s3ClientHeadObjectMockResult{
+				times: 0,
+			},
+			s3ClientPutObjectMockResult: s3ClientPutObjectMockResult{
+				input2: &s3client.PutInput{
+					Key:         "/test/file",
+					ContentType: "content-type",
+					Metadata: map[string]string{
+						"fixed": "fixed",
+					},
+					StorageClass: "storage-class",
+				},
+				times: 1,
+			},
+			responseHandlerNoContentMockResultTimes: 1,
+		},
+		{
+			name: "should be ok to do templating on metadata and remove new lines",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Bucket: &config.BucketConfig{Prefix: "/"},
+					Actions: &config.ActionsConfig{
+						PUT: &config.PutActionConfig{
+							Config: &config.PutActionConfigConfig{
+								Metadata: map[string]string{
+									"fixed":   "fixed",
+									"testkey": "{{ .Key }}",
+									"tpl": `
+{{ .Key }} - {{ .Input.ContentType }}
+`,
+								},
+								StorageClass:  "storage-class",
+								AllowOverride: true,
+							},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args: args{
+				inp: &PutInput{
+					RequestPath: "/test",
+					Filename:    "file",
+					Body:        nil,
+					ContentType: "content-type",
+				},
+			},
+			s3ClientHeadObjectMockResult: s3ClientHeadObjectMockResult{
+				times: 0,
+			},
+			s3ClientPutObjectMockResult: s3ClientPutObjectMockResult{
+				input2: &s3client.PutInput{
+					Key:         "/test/file",
+					ContentType: "content-type",
+					Metadata: map[string]string{
+						"fixed":   "fixed",
+						"testkey": "/test/file",
+						"tpl":     "/test/file - content-type",
+					},
+					StorageClass: "storage-class",
+				},
+				times: 1,
+			},
+			responseHandlerNoContentMockResultTimes: 1,
+		},
+		{
+			name: "should be ok to do templating on storage class",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Bucket: &config.BucketConfig{Prefix: "/"},
+					Actions: &config.ActionsConfig{
+						PUT: &config.PutActionConfig{
+							Config: &config.PutActionConfigConfig{
+								Metadata: map[string]string{
+									"fixed": "fixed",
+								},
+								StorageClass:  "{{ .Key }} - {{ .Input.ContentType }}",
+								AllowOverride: true,
+							},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args: args{
+				inp: &PutInput{
+					RequestPath: "/test",
+					Filename:    "file",
+					Body:        nil,
+					ContentType: "content-type",
+				},
+			},
+			s3ClientHeadObjectMockResult: s3ClientHeadObjectMockResult{
+				times: 0,
+			},
+			s3ClientPutObjectMockResult: s3ClientPutObjectMockResult{
+				input2: &s3client.PutInput{
+					Key:         "/test/file",
+					ContentType: "content-type",
+					Metadata: map[string]string{
+						"fixed": "fixed",
+					},
+					StorageClass: "/test/file - content-type",
+				},
+				times: 1,
+			},
+			responseHandlerNoContentMockResultTimes: 1,
+		},
+		{
+			name: "should be ok to flush storage class",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Bucket: &config.BucketConfig{Prefix: "/"},
+					Actions: &config.ActionsConfig{
+						PUT: &config.PutActionConfig{
+							Config: &config.PutActionConfigConfig{
+								Metadata: map[string]string{
+									"fixed": "fixed",
+								},
+								StorageClass:  "",
+								AllowOverride: true,
+							},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args: args{
+				inp: &PutInput{
+					RequestPath: "/test",
+					Filename:    "file",
+					Body:        nil,
+					ContentType: "content-type",
+				},
+			},
+			s3ClientHeadObjectMockResult: s3ClientHeadObjectMockResult{
+				times: 0,
+			},
+			s3ClientPutObjectMockResult: s3ClientPutObjectMockResult{
+				input2: &s3client.PutInput{
+					Key:         "/test/file",
+					ContentType: "content-type",
+					Metadata: map[string]string{
+						"fixed": "fixed",
+					},
+					StorageClass: "",
+				},
+				times: 1,
+			},
+			responseHandlerNoContentMockResultTimes: 1,
+		},
+		{
+			name: "should be ok to do templating on storage class and remove new lines",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Bucket: &config.BucketConfig{Prefix: "/"},
+					Actions: &config.ActionsConfig{
+						PUT: &config.PutActionConfig{
+							Config: &config.PutActionConfigConfig{
+								Metadata: map[string]string{
+									"fixed": "fixed",
+								},
+								StorageClass: `
+{{ .Key }} - {{ .Input.ContentType }}
+`,
+								AllowOverride: true,
+							},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args: args{
+				inp: &PutInput{
+					RequestPath: "/test",
+					Filename:    "file",
+					Body:        nil,
+					ContentType: "content-type",
+				},
+			},
+			s3ClientHeadObjectMockResult: s3ClientHeadObjectMockResult{
+				times: 0,
+			},
+			s3ClientPutObjectMockResult: s3ClientPutObjectMockResult{
+				input2: &s3client.PutInput{
+					Key:         "/test/file",
+					ContentType: "content-type",
+					Metadata: map[string]string{
+						"fixed": "fixed",
+					},
+					StorageClass: "/test/file - content-type",
+				},
+				times: 1,
+			},
+			responseHandlerNoContentMockResultTimes: 1,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

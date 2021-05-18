@@ -242,11 +242,13 @@ targets:
     #     enabled: true
     #     # Configuration for PUT requests
     #     config:
-    #       # Metadata key/values that will be put on S3 objects
+    #       # Metadata key/values that will be put on S3 objects.
+    #       # Values can be templated. Empty values will be flushed.
     #       metadata:
     #         key: value
     #       # Storage class that will be used for uploaded objects
     #       # See storage class here: https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html
+    #       # Values can be templated. Empty values will be flushed.
     #       storageClass: STANDARD # GLACIER, ...
     #       # Will allow override objects if enabled
     #       allowOverride: false
