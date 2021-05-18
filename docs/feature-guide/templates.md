@@ -123,11 +123,37 @@ Available data:
 | Request | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
 | Error   | Error                                                    | Error raised and caught                           |
 
+## PUT Metadata and Storage class
+
+### PUT Metadata
+
+This case will be used for all PUT metadata templates.
+
+Available data:
+
+| Name  | Type                        | Description                                       |
+| ----- | --------------------------- | ------------------------------------------------- |
+| User  | [GenericUser](#genericuser) | Authenticated user if present in incoming request |
+| Input | [PutInput](#putinput)       | PutInput structure data                           |
+| Key   | String                      | The final S3 key generated for upload request     |
+
+### PUT Storage class
+
+This case will be used for all PUT storage class templates.
+
+Available data:
+
+| Name  | Type                        | Description                                       |
+| ----- | --------------------------- | ------------------------------------------------- |
+| User  | [GenericUser](#genericuser) | Authenticated user if present in incoming request |
+| Input | [PutInput](#putinput)       | PutInput structure data                           |
+| Key   | String                      | The final S3 key generated for upload request     |
+
 ## Headers templates and structures
 
 ### Generic case
 
-This case is the main one and used for all templates rendered explained before.
+This case is the main one and used for all header templates rendered explained before.
 
 The following table will show the data structure available for the header template rendering:
 
@@ -195,3 +221,12 @@ These are the properties available:
 | ETag               | String                                    | ETag value from S3                |
 | LastModified       | [Time](https://golang.org/pkg/time/#Time) | Last modified value from S3       |
 | Metadata           | Map[String]String                         | Metadata value from S3            |
+
+### PutInput
+
+| Name        | Type    | Description                  |
+| ----------- | ------- | ---------------------------- |
+| RequestPath | String  | Request path                 |
+| Filename    | String  | Filename used for upload     |
+| ContentType | String  | File content type for upload |
+| ContentSize | Integer | File content size for upload |

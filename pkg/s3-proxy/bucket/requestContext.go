@@ -8,9 +8,11 @@ import (
 	"path"
 	"strings"
 
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
 )
 
 // requestContext Bucket request context.
@@ -218,12 +220,64 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 		rctx.targetCfg.Actions.PUT.Config != nil {
 		// Check if metadata is configured in target configuration
 		if rctx.targetCfg.Actions.PUT.Config.Metadata != nil {
-			input.Metadata = rctx.targetCfg.Actions.PUT.Config.Metadata
+			// Store templated data
+			metadata := map[string]string{}
+
+			// Render templates
+			for k, v := range rctx.targetCfg.Actions.PUT.Config.Metadata {
+				// Execute template
+				buf, err := utils.ExecuteTemplate(v, &PutData{
+					User:  models.GetAuthenticatedUserFromContext(ctx),
+					Input: inp,
+					Key:   key,
+				})
+				// Check error
+				if err != nil {
+					resHan.InternalServerError(rctx.LoadFileContent, err)
+
+					return
+				}
+
+				// Store value
+				val := buf.String()
+				// Remove all new lines
+				val = utils.NewLineMatcherRegex.ReplaceAllString(val, "")
+				// Check if value is empty or not
+				if val != "" {
+					// Store
+					metadata[k] = val
+				}
+			}
+
+			// Store all metadata
+			input.Metadata = metadata
 		}
 
 		// Check if storage class is present in target configuration
 		if rctx.targetCfg.Actions.PUT.Config.StorageClass != "" {
-			input.StorageClass = rctx.targetCfg.Actions.PUT.Config.StorageClass
+			// Execute template
+			buf, err := utils.ExecuteTemplate(rctx.targetCfg.Actions.PUT.Config.StorageClass, &PutData{
+				User:  models.GetAuthenticatedUserFromContext(ctx),
+				Input: inp,
+				Key:   key,
+			})
+
+			// Check error
+			if err != nil {
+				resHan.InternalServerError(rctx.LoadFileContent, err)
+
+				return
+			}
+
+			// Store value
+			val := buf.String()
+			// Remove all new lines
+			val = utils.NewLineMatcherRegex.ReplaceAllString(val, "")
+			// Check if value is empty or not
+			if val != "" {
+				// Store
+				input.StorageClass = val
+			}
 		}
 
 		// Check if allow override is enabled

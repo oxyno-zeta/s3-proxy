@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"reflect"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -16,9 +15,6 @@ import (
 )
 
 func (h *handler) manageHeaders(helpersContent string, headersTpl map[string]string, hData interface{}) (map[string]string, error) {
-	// Create regex to remove all new lines
-	reg := regexp.MustCompile(`\r?\n`)
-
 	// Store result
 	res := map[string]string{}
 
@@ -35,7 +31,7 @@ func (h *handler) manageHeaders(helpersContent string, headersTpl map[string]str
 		// Get string from buffer
 		str := buf.String()
 		// Remove all new lines
-		str = reg.ReplaceAllString(str, "")
+		str = utils.NewLineMatcherRegex.ReplaceAllString(str, "")
 		// Save data only if the header isn't empty
 		if str != "" {
 			// Save
