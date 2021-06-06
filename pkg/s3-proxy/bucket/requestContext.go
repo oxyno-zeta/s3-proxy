@@ -13,11 +13,13 @@ import (
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
 )
 
 // requestContext Bucket request context.
 type requestContext struct {
 	s3ClientManager s3client.Manager
+	webhookManager  webhook.Manager
 	targetCfg       *config.TargetConfig
 	mountPath       string
 }
@@ -172,7 +174,7 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 	}
 
 	// Directory listing case
-	s3Entries, err := rctx.s3ClientManager.
+	s3Entries, info, err := rctx.s3ClientManager.
 		GetClientForTarget(rctx.targetCfg.Name).
 		ListFilesAndDirectories(ctx, key)
 	if err != nil {
@@ -180,6 +182,26 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 		// Stop
 		return
 	}
+
+	// Send hook
+	rctx.webhookManager.ManageGETHooks(
+		ctx,
+		rctx.targetCfg.Name,
+		input.RequestPath,
+		&webhook.GetInputMetadata{
+			IfModifiedSince:   input.IfModifiedSince,
+			IfMatch:           input.IfMatch,
+			IfNoneMatch:       input.IfNoneMatch,
+			IfUnmodifiedSince: input.IfUnmodifiedSince,
+			Range:             input.Range,
+		},
+		&webhook.S3Metadata{
+			Bucket:     info.Bucket,
+			Region:     info.Region,
+			S3Endpoint: info.S3Endpoint,
+			Key:        info.Key,
+		},
+	)
 
 	// Transform entries in entry with path objects
 	bucketRootPrefixKey := rctx.targetCfg.Bucket.GetRootPrefix()
@@ -303,15 +325,35 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 			}
 		}
 	}
+
 	// Put file
-	err := rctx.s3ClientManager.
+	info, err := rctx.s3ClientManager.
 		GetClientForTarget(rctx.targetCfg.Name).
 		PutObject(ctx, input)
+	// Check error
 	if err != nil {
 		resHan.InternalServerError(rctx.LoadFileContent, err)
 		// Stop
 		return
 	}
+
+	// Send hook
+	rctx.webhookManager.ManagePUTHooks(
+		ctx,
+		rctx.targetCfg.Name,
+		inp.RequestPath,
+		&webhook.PutInputMetadata{
+			Filename:    inp.Filename,
+			ContentType: inp.ContentType,
+			ContentSize: inp.ContentSize,
+		},
+		&webhook.S3Metadata{
+			Bucket:     info.Bucket,
+			Region:     info.Region,
+			S3Endpoint: info.S3Endpoint,
+			Key:        info.Key,
+		},
+	)
 
 	// Answer with no content
 	resHan.NoContent()
@@ -332,14 +374,28 @@ func (rctx *requestContext) Delete(ctx context.Context, requestPath string) {
 		// Stop
 		return
 	}
+
 	// Delete object in S3
-	err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).DeleteObject(ctx, key)
+	info, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).DeleteObject(ctx, key)
 	// Check if error exists
 	if err != nil {
 		resHan.InternalServerError(rctx.LoadFileContent, err)
 		// Stop
 		return
 	}
+
+	// Send hook
+	rctx.webhookManager.ManageDELETEHooks(
+		ctx,
+		rctx.targetCfg.Name,
+		requestPath,
+		&webhook.S3Metadata{
+			Bucket:     info.Bucket,
+			Region:     info.Region,
+			S3Endpoint: info.S3Endpoint,
+			Key:        info.Key,
+		},
+	)
 
 	// Answer with no content
 	resHan.NoContent()
@@ -378,7 +434,7 @@ func transformS3Entries(
 
 func (rctx *requestContext) LoadFileContent(ctx context.Context, path string) (string, error) {
 	// Get object from s3
-	objOutput, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).GetObject(ctx, &s3client.GetInput{
+	objOutput, _, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).GetObject(ctx, &s3client.GetInput{
 		Key: path,
 	})
 	// Check error
@@ -402,7 +458,7 @@ func (rctx *requestContext) streamFileForResponse(ctx context.Context, key strin
 	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
 	// Get object from s3
-	objOutput, err := rctx.s3ClientManager.
+	objOutput, info, err := rctx.s3ClientManager.
 		GetClientForTarget(rctx.targetCfg.Name).
 		GetObject(ctx, &s3client.GetInput{
 			Key:               key,
@@ -435,7 +491,30 @@ func (rctx *requestContext) streamFileForResponse(ctx context.Context, key strin
 
 	// Stream
 	err = resHan.StreamFile(rctx.LoadFileContent, inp)
+	// Check error
+	if err != nil {
+		return err
+	}
 
-	// Return potential error
-	return err
+	// Send hook
+	rctx.webhookManager.ManageGETHooks(
+		ctx,
+		rctx.targetCfg.Name,
+		input.RequestPath,
+		&webhook.GetInputMetadata{
+			IfModifiedSince:   input.IfModifiedSince,
+			IfMatch:           input.IfMatch,
+			IfNoneMatch:       input.IfNoneMatch,
+			IfUnmodifiedSince: input.IfUnmodifiedSince,
+		},
+		&webhook.S3Metadata{
+			Bucket:     info.Bucket,
+			Region:     info.Region,
+			S3Endpoint: info.S3Endpoint,
+			Key:        info.Key,
+		},
+	)
+
+	// Default return
+	return nil
 }

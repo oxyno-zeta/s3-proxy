@@ -37,7 +37,7 @@ const DeleteObjectOperation = "delete-object"
 const s3MaxKeys int64 = 1000
 
 // ListFilesAndDirectories List files and directories.
-func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string) ([]*ListElementOutput, error) {
+func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string) ([]*ListElementOutput, *ResultInfo, error) {
 	// List files on path
 	folders := make([]*ListElementOutput, 0)
 	files := make([]*ListElementOutput, 0)
@@ -130,18 +130,26 @@ func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string)
 
 		// Check if errors exists
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	// Concat folders and files
 	all := append(folders, files...)
 
-	return all, nil
+	// Create info
+	info := &ResultInfo{
+		Bucket:     s3ctx.target.Bucket.Name,
+		Region:     s3ctx.target.Bucket.Region,
+		S3Endpoint: s3ctx.target.Bucket.S3Endpoint,
+		Key:        key,
+	}
+
+	return all, info, nil
 }
 
 // GetObject Get object from S3 bucket.
-func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOutput, error) {
+func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOutput, *ResultInfo, error) {
 	// Get trace
 	parentTrace := tracing.GetTraceFromContext(ctx)
 	// Create child trace
@@ -188,15 +196,15 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 			// Check if it is a not found case
 			// nolint: gocritic // Because don't want to write a switch for the moment
 			if aerr.Code() == s3.ErrCodeNoSuchKey {
-				return nil, ErrNotFound
+				return nil, nil, ErrNotFound
 			} else if aerr.Code() == "NotModified" {
-				return nil, ErrNotModified
+				return nil, nil, ErrNotModified
 			} else if aerr.Code() == "PreconditionFailed" {
-				return nil, ErrPreconditionFailed
+				return nil, nil, ErrPreconditionFailed
 			}
 		}
 
-		return nil, err
+		return nil, nil, err
 	}
 	// Build output
 	output := &GetOutput{
@@ -248,10 +256,18 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 		output.LastModified = *obj.LastModified
 	}
 
-	return output, nil
+	// Create info
+	info := &ResultInfo{
+		Bucket:     s3ctx.target.Bucket.Name,
+		S3Endpoint: s3ctx.target.Bucket.S3Endpoint,
+		Region:     s3ctx.target.Bucket.Region,
+		Key:        input.Key,
+	}
+
+	return output, info, nil
 }
 
-func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) error {
+func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*ResultInfo, error) {
 	// Get trace
 	parentTrace := tracing.GetTraceFromContext(ctx)
 	// Create child trace
@@ -286,10 +302,24 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) error {
 
 	// Upload to S3 bucket
 	_, err := s3ctx.svcClient.PutObject(inp)
+	// Check error
+	if err != nil {
+		return nil, err
+	}
+
 	// Metrics
 	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, PutObjectOperation)
-	// Return error
-	return err
+
+	// Create info
+	info := &ResultInfo{
+		Bucket:     s3ctx.target.Bucket.Name,
+		S3Endpoint: s3ctx.target.Bucket.S3Endpoint,
+		Region:     s3ctx.target.Bucket.Region,
+		Key:        input.Key,
+	}
+
+	// Return
+	return info, nil
 }
 
 func (s3ctx *s3Context) HeadObject(ctx context.Context, key string) (*HeadOutput, error) {
@@ -335,7 +365,7 @@ func (s3ctx *s3Context) HeadObject(ctx context.Context, key string) (*HeadOutput
 	return output, nil
 }
 
-func (s3ctx *s3Context) DeleteObject(ctx context.Context, key string) error {
+func (s3ctx *s3Context) DeleteObject(ctx context.Context, key string) (*ResultInfo, error) {
 	// Get trace
 	parentTrace := tracing.GetTraceFromContext(ctx)
 	// Create child trace
@@ -353,8 +383,22 @@ func (s3ctx *s3Context) DeleteObject(ctx context.Context, key string) error {
 		Bucket: aws.String(s3ctx.target.Bucket.Name),
 		Key:    aws.String(key),
 	})
+	// Check error
+	if err != nil {
+		return nil, err
+	}
+
 	// Metrics
 	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, DeleteObjectOperation)
-	// Return error
-	return err
+
+	// Create info
+	info := &ResultInfo{
+		Bucket:     s3ctx.target.Bucket.Name,
+		S3Endpoint: s3ctx.target.Bucket.S3Endpoint,
+		Region:     s3ctx.target.Bucket.Region,
+		Key:        key,
+	}
+
+	// Return
+	return info, nil
 }

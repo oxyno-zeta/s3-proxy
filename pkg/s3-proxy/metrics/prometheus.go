@@ -18,6 +18,8 @@ type prometheusClient struct {
 	s3OperationsTotal  *prometheus.CounterVec
 	authenticatedTotal *prometheus.CounterVec
 	authorizedTotal    *prometheus.CounterVec
+	succeedWebhooks    *prometheus.CounterVec
+	failedWebhooks     *prometheus.CounterVec
 }
 
 // Instrument will instrument gin routes.
@@ -68,6 +70,9 @@ func (ctx *prometheusClient) IncAuthenticated(providerType, providerName string)
 func (ctx *prometheusClient) IncAuthorized(providerType string) {
 	ctx.authorizedTotal.WithLabelValues(providerType).Inc()
 }
+
+func (ctx *prometheusClient) IncSucceedWebhooks(targetName, actionName string) {}
+func (ctx *prometheusClient) IncFailedWebhooks(targetName, actionName string)  {}
 
 func (ctx *prometheusClient) register() {
 	ctx.reqCnt = prometheus.NewCounterVec(
@@ -142,4 +147,22 @@ func (ctx *prometheusClient) register() {
 		[]string{"provider_type"},
 	)
 	prometheus.MustRegister(ctx.authorizedTotal)
+
+	ctx.succeedWebhooks = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "succeed_webhooks",
+			Help: "How many webhooks have been succeed ?",
+		},
+		[]string{"target_name", "action_name"},
+	)
+	prometheus.MustRegister(ctx.succeedWebhooks)
+
+	ctx.failedWebhooks = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "failed_webhooks",
+			Help: "How many webhooks have been failed ?",
+		},
+		[]string{"target_name", "action_name"},
+	)
+	prometheus.MustRegister(ctx.failedWebhooks)
 }

@@ -14,6 +14,7 @@ require (
 	github.com/go-chi/cors v1.1.1
 	github.com/go-chi/httptracer v0.3.0
 	github.com/go-playground/validator/v10 v10.4.1
+	github.com/go-resty/resty/v2 v2.6.0
 	github.com/gobwas/glob v0.2.3
 	github.com/golang/mock v1.5.0
 	github.com/google/uuid v1.1.4 // indirect
@@ -34,10 +35,9 @@ require (
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.0+incompatible
 	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/net v0.0.0-20210315170653-34ac3e1c2000
+	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
 	golang.org/x/oauth2 v0.0.0-20210220000619-9bb904979d93
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20210315160823-c6e025ad8005 // indirect
 	golang.org/x/tools v0.1.0 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 )

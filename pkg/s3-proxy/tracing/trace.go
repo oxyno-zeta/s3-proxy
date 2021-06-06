@@ -39,6 +39,14 @@ func (t *trace) GetTraceID() string {
 	return ""
 }
 
+func (t *trace) InjectInHTTPHeader(header http.Header) error {
+	return opentracing.GlobalTracer().Inject(
+		t.span.Context(),
+		opentracing.HTTPHeaders,
+		opentracing.HTTPHeadersCarrier(header),
+	)
+}
+
 func GetTraceFromContext(ctx context.Context) Trace {
 	sp := opentracing.SpanFromContext(ctx)
 	if sp == nil {

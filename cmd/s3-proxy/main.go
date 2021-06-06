@@ -8,6 +8,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -81,7 +82,27 @@ func main() {
 	// Prepare on reload hook
 	cfgManager.AddOnChangeHook(func() {
 		logger.Info("Reload S3 clients for all targets")
+		// Load
 		err2 := s3clientManager.Load()
+		// Check error
+		if err2 != nil {
+			logger.Fatal(err2)
+		}
+	})
+
+	// Create webhook manager
+	webhookManager := webhook.NewManager(cfgManager, metricsCtx)
+	// Load
+	err = webhookManager.Load()
+	// Check error
+	if err != nil {
+		logger.Fatal(err)
+	}
+	// Prepare on reload hook
+	cfgManager.AddOnChangeHook(func() {
+		logger.Info("Reload webhook clients for all targets")
+		// Load
+		err2 := webhookManager.Load()
 		// Check error
 		if err2 != nil {
 			logger.Fatal(err2)
@@ -93,7 +114,7 @@ func main() {
 	// Generate server
 	intSvr.GenerateServer()
 	// Create server
-	svr := server.NewServer(logger, cfgManager, metricsCtx, tracingSvc, s3clientManager)
+	svr := server.NewServer(logger, cfgManager, metricsCtx, tracingSvc, s3clientManager, webhookManager)
 	// Generate server
 	err = svr.GenerateServer()
 	if err != nil {

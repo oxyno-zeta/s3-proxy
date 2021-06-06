@@ -1,6 +1,8 @@
 package tracing
 
 import (
+	"net/http"
+
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
@@ -24,6 +26,8 @@ type Trace interface {
 	Finish()
 	// Get trace id as a string (useful for logs).
 	GetTraceID() string
+	// InjectInHTTPHeader will inject span in http header for forwarding.
+	InjectInHTTPHeader(header http.Header) error
 }
 
 func New(cfgManager config.Manager, logger log.Logger) (Service, error) {
