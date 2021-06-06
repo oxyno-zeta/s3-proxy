@@ -9,6 +9,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
 )
 
 // ErrRemovalFolder will be raised when end user is trying to delete a folder and not a file.
@@ -58,10 +59,12 @@ func NewClient(
 	tgt *config.TargetConfig,
 	mountPath string,
 	s3clientManager s3client.Manager,
+	wbManager webhook.Manager,
 ) Client {
 	return &requestContext{
 		s3ClientManager: s3clientManager,
 		targetCfg:       tgt,
 		mountPath:       mountPath,
+		webhookManager:  wbManager,
 	}
 }

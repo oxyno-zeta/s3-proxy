@@ -36,11 +36,12 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // DeleteObject mocks base method.
-func (m *MockClient) DeleteObject(arg0 context.Context, arg1 string) error {
+func (m *MockClient) DeleteObject(arg0 context.Context, arg1 string) (*s3client.ResultInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteObject", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*s3client.ResultInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // DeleteObject indicates an expected call of DeleteObject.
@@ -50,12 +51,13 @@ func (mr *MockClientMockRecorder) DeleteObject(arg0, arg1 interface{}) *gomock.C
 }
 
 // GetObject mocks base method.
-func (m *MockClient) GetObject(arg0 context.Context, arg1 *s3client.GetInput) (*s3client.GetOutput, error) {
+func (m *MockClient) GetObject(arg0 context.Context, arg1 *s3client.GetInput) (*s3client.GetOutput, *s3client.ResultInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetObject", arg0, arg1)
 	ret0, _ := ret[0].(*s3client.GetOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(*s3client.ResultInfo)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetObject indicates an expected call of GetObject.
@@ -80,12 +82,13 @@ func (mr *MockClientMockRecorder) HeadObject(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // ListFilesAndDirectories mocks base method.
-func (m *MockClient) ListFilesAndDirectories(arg0 context.Context, arg1 string) ([]*s3client.ListElementOutput, error) {
+func (m *MockClient) ListFilesAndDirectories(arg0 context.Context, arg1 string) ([]*s3client.ListElementOutput, *s3client.ResultInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListFilesAndDirectories", arg0, arg1)
 	ret0, _ := ret[0].([]*s3client.ListElementOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(*s3client.ResultInfo)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // ListFilesAndDirectories indicates an expected call of ListFilesAndDirectories.
@@ -95,11 +98,12 @@ func (mr *MockClientMockRecorder) ListFilesAndDirectories(arg0, arg1 interface{}
 }
 
 // PutObject mocks base method.
-func (m *MockClient) PutObject(arg0 context.Context, arg1 *s3client.PutInput) error {
+func (m *MockClient) PutObject(arg0 context.Context, arg1 *s3client.PutInput) (*s3client.ResultInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutObject", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*s3client.ResultInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // PutObject indicates an expected call of PutObject.

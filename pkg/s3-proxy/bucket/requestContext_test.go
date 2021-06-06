@@ -16,6 +16,8 @@ import (
 	responsehandlermocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/mocks"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	s3clientmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client/mocks"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
+	wmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -237,7 +239,14 @@ func Test_requestContext_Delete(t *testing.T) {
 	}
 	type s3ClientDeleteObjectMockResult struct {
 		input2 string
+		res    *s3client.ResultInfo
 		err    error
+		times  int
+	}
+	type webhookManagerManageDeleteHooksMockResult struct {
+		input2 string
+		input3 string
+		input4 *webhook.S3Metadata
 		times  int
 	}
 	type fields struct {
@@ -255,6 +264,7 @@ func Test_requestContext_Delete(t *testing.T) {
 		responseHandlerNoContentMockResultTimes      int
 		responseHandlerInternalServerErrorMockResult responseHandlerInternalServerErrorMockResult
 		s3ClientDeleteObjectMockResult               s3ClientDeleteObjectMockResult
+		webhookManagerManageDeleteHooksMockResult    webhookManagerManageDeleteHooksMockResult
 	}{
 		{
 			name: "Can't delete a directory with empty request path",
@@ -318,7 +328,24 @@ func Test_requestContext_Delete(t *testing.T) {
 			s3clManagerClientForTargetMockInput: "bucket",
 			s3ClientDeleteObjectMockResult: s3ClientDeleteObjectMockResult{
 				input2: "/file",
-				times:  1,
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManageDeleteHooksMockResult: webhookManagerManageDeleteHooksMockResult{
+				input2: "bucket",
+				input3: "/file",
+				input4: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
 			},
 			responseHandlerNoContentMockResultTimes: 1,
 		},
@@ -339,7 +366,24 @@ func Test_requestContext_Delete(t *testing.T) {
 			s3clManagerClientForTargetMockInput: "bucket",
 			s3ClientDeleteObjectMockResult: s3ClientDeleteObjectMockResult{
 				input2: "/fake/file2",
-				times:  1,
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManageDeleteHooksMockResult: webhookManagerManageDeleteHooksMockResult{
+				input2: "bucket",
+				input3: "/file",
+				input4: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
 			},
 			responseHandlerNoContentMockResultTimes: 1,
 		},
@@ -351,6 +395,9 @@ func Test_requestContext_Delete(t *testing.T) {
 
 			// Create mocks
 			resHandlerMock := responsehandlermocks.NewMockResponseHandler(ctrl)
+			webhookManagerMock := wmocks.NewMockManager(ctrl)
+			s3ClientMock := s3clientmocks.NewMockClient(ctrl)
+			s3clManagerMock := s3clientmocks.NewMockManager(ctrl)
 
 			// Create context
 			ctx := context.TODO()
@@ -366,22 +413,31 @@ func Test_requestContext_Delete(t *testing.T) {
 				Times(tt.responseHandlerInternalServerErrorMockResult.times)
 			resHandlerMock.EXPECT().NoContent().Times(tt.responseHandlerNoContentMockResultTimes)
 
-			s3ClientMock := s3clientmocks.NewMockClient(ctrl)
-
 			s3ClientMock.EXPECT().
 				DeleteObject(ctx, tt.s3ClientDeleteObjectMockResult.input2).
-				Return(tt.s3ClientDeleteObjectMockResult.err).
+				Return(
+					tt.s3ClientDeleteObjectMockResult.res,
+					tt.s3ClientDeleteObjectMockResult.err,
+				).
 				Times(tt.s3ClientDeleteObjectMockResult.times)
-
-			s3clManagerMock := s3clientmocks.NewMockManager(ctrl)
 
 			s3clManagerMock.EXPECT().
 				GetClientForTarget(tt.s3clManagerClientForTargetMockInput).
 				AnyTimes().
 				Return(s3ClientMock)
 
+			webhookManagerMock.EXPECT().
+				ManageDELETEHooks(
+					ctx,
+					tt.webhookManagerManageDeleteHooksMockResult.input2,
+					tt.webhookManagerManageDeleteHooksMockResult.input3,
+					tt.webhookManagerManageDeleteHooksMockResult.input4,
+				).
+				Times(tt.webhookManagerManageDeleteHooksMockResult.times)
+
 			rctx := &requestContext{
 				s3ClientManager: s3clManagerMock,
+				webhookManager:  webhookManagerMock,
 				targetCfg:       tt.fields.targetCfg,
 				mountPath:       tt.fields.mountPath,
 			}
@@ -397,6 +453,7 @@ func Test_requestContext_Put(t *testing.T) {
 	}
 	type s3ClientPutObjectMockResult struct {
 		input2 *s3client.PutInput
+		res    *s3client.ResultInfo
 		err    error
 		times  int
 	}
@@ -404,6 +461,13 @@ func Test_requestContext_Put(t *testing.T) {
 		input2 string
 		err    error
 		res    *s3client.HeadOutput
+		times  int
+	}
+	type webhookManagerManagePutHooksMockResult struct {
+		input2 string
+		input3 string
+		input4 *webhook.PutInputMetadata
+		input5 *webhook.S3Metadata
 		times  int
 	}
 	type fields struct {
@@ -423,6 +487,7 @@ func Test_requestContext_Put(t *testing.T) {
 		s3clManagerClientForTargetMockInput          string
 		s3ClientHeadObjectMockResult                 s3ClientHeadObjectMockResult
 		s3ClientPutObjectMockResult                  s3ClientPutObjectMockResult
+		webhookManagerManagePutHooksMockResult       webhookManagerManagePutHooksMockResult
 	}{
 		{
 			name: "should fail when put object failed and no put configuration exists",
@@ -502,6 +567,7 @@ func Test_requestContext_Put(t *testing.T) {
 			name: "should be ok with allow override",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
+					Name:   "name",
 					Bucket: &config.BucketConfig{Prefix: "/"},
 					Actions: &config.ActionsConfig{
 						PUT: &config.PutActionConfig{
@@ -523,19 +589,44 @@ func Test_requestContext_Put(t *testing.T) {
 					Filename:    "file",
 					Body:        nil,
 					ContentType: "content-type",
+					ContentSize: 1,
 				},
 			},
 			s3ClientPutObjectMockResult: s3ClientPutObjectMockResult{
 				input2: &s3client.PutInput{
 					Key:         "/test/file",
 					ContentType: "content-type",
+					ContentSize: 1,
 					Metadata: map[string]string{
 						"testkey": "testvalue",
 					},
 					StorageClass: "storage-class",
 				},
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
 				times: 1,
 			},
+			webhookManagerManagePutHooksMockResult: webhookManagerManagePutHooksMockResult{
+				input2: "name",
+				input3: "/test",
+				input4: &webhook.PutInputMetadata{
+					Filename:    "file",
+					ContentType: "content-type",
+					ContentSize: 1,
+				},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			s3clManagerClientForTargetMockInput:     "name",
 			responseHandlerNoContentMockResultTimes: 1,
 		},
 		{
@@ -608,6 +699,7 @@ func Test_requestContext_Put(t *testing.T) {
 			name: "should be ok when head object return that file doesn't exist",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
+					Name:   "name",
 					Bucket: &config.BucketConfig{Prefix: "/"},
 					Actions: &config.ActionsConfig{
 						PUT: &config.PutActionConfig{
@@ -637,14 +729,37 @@ func Test_requestContext_Put(t *testing.T) {
 					Key:         "/test/file",
 					ContentType: "content-type",
 				},
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
 				times: 1,
 			},
+			webhookManagerManagePutHooksMockResult: webhookManagerManagePutHooksMockResult{
+				input2: "name",
+				input3: "/test",
+				input4: &webhook.PutInputMetadata{
+					Filename:    "file",
+					ContentType: "content-type",
+				},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			s3clManagerClientForTargetMockInput:     "name",
 			responseHandlerNoContentMockResultTimes: 1,
 		},
 		{
 			name: "should be ok with allow override and key rewrite",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
+					Name:   "name",
 					Bucket: &config.BucketConfig{Prefix: "/"},
 					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
 						SourceRegex: regexp.MustCompile("/test/file"),
@@ -684,14 +799,37 @@ func Test_requestContext_Put(t *testing.T) {
 					},
 					StorageClass: "storage-class",
 				},
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
 				times: 1,
 			},
+			webhookManagerManagePutHooksMockResult: webhookManagerManagePutHooksMockResult{
+				input2: "name",
+				input3: "/test",
+				input4: &webhook.PutInputMetadata{
+					Filename:    "file",
+					ContentType: "content-type",
+				},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			s3clManagerClientForTargetMockInput:     "name",
 			responseHandlerNoContentMockResultTimes: 1,
 		},
 		{
 			name: "should be ok to do templating on metadata",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
+					Name:   "name",
 					Bucket: &config.BucketConfig{Prefix: "/"},
 					Actions: &config.ActionsConfig{
 						PUT: &config.PutActionConfig{
@@ -731,14 +869,37 @@ func Test_requestContext_Put(t *testing.T) {
 					},
 					StorageClass: "storage-class",
 				},
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
 				times: 1,
 			},
+			webhookManagerManagePutHooksMockResult: webhookManagerManagePutHooksMockResult{
+				input2: "name",
+				input3: "/test",
+				input4: &webhook.PutInputMetadata{
+					Filename:    "file",
+					ContentType: "content-type",
+				},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			s3clManagerClientForTargetMockInput:     "name",
 			responseHandlerNoContentMockResultTimes: 1,
 		},
 		{
 			name: "should be ok to flush empty metadata",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
+					Name:   "name",
 					Bucket: &config.BucketConfig{Prefix: "/"},
 					Actions: &config.ActionsConfig{
 						PUT: &config.PutActionConfig{
@@ -775,14 +936,37 @@ func Test_requestContext_Put(t *testing.T) {
 					},
 					StorageClass: "storage-class",
 				},
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
 				times: 1,
 			},
+			webhookManagerManagePutHooksMockResult: webhookManagerManagePutHooksMockResult{
+				input2: "name",
+				input3: "/test",
+				input4: &webhook.PutInputMetadata{
+					Filename:    "file",
+					ContentType: "content-type",
+				},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			s3clManagerClientForTargetMockInput:     "name",
 			responseHandlerNoContentMockResultTimes: 1,
 		},
 		{
 			name: "should be ok to do templating on metadata and remove new lines",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
+					Name:   "name",
 					Bucket: &config.BucketConfig{Prefix: "/"},
 					Actions: &config.ActionsConfig{
 						PUT: &config.PutActionConfig{
@@ -824,14 +1008,37 @@ func Test_requestContext_Put(t *testing.T) {
 					},
 					StorageClass: "storage-class",
 				},
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
 				times: 1,
 			},
+			webhookManagerManagePutHooksMockResult: webhookManagerManagePutHooksMockResult{
+				input2: "name",
+				input3: "/test",
+				input4: &webhook.PutInputMetadata{
+					Filename:    "file",
+					ContentType: "content-type",
+				},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			s3clManagerClientForTargetMockInput:     "name",
 			responseHandlerNoContentMockResultTimes: 1,
 		},
 		{
 			name: "should be ok to do templating on storage class",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
+					Name:   "name",
 					Bucket: &config.BucketConfig{Prefix: "/"},
 					Actions: &config.ActionsConfig{
 						PUT: &config.PutActionConfig{
@@ -867,14 +1074,37 @@ func Test_requestContext_Put(t *testing.T) {
 					},
 					StorageClass: "/test/file - content-type",
 				},
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
 				times: 1,
 			},
+			webhookManagerManagePutHooksMockResult: webhookManagerManagePutHooksMockResult{
+				input2: "name",
+				input3: "/test",
+				input4: &webhook.PutInputMetadata{
+					Filename:    "file",
+					ContentType: "content-type",
+				},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			s3clManagerClientForTargetMockInput:     "name",
 			responseHandlerNoContentMockResultTimes: 1,
 		},
 		{
 			name: "should be ok to flush storage class",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
+					Name:   "name",
 					Bucket: &config.BucketConfig{Prefix: "/"},
 					Actions: &config.ActionsConfig{
 						PUT: &config.PutActionConfig{
@@ -910,14 +1140,37 @@ func Test_requestContext_Put(t *testing.T) {
 					},
 					StorageClass: "",
 				},
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
 				times: 1,
 			},
+			webhookManagerManagePutHooksMockResult: webhookManagerManagePutHooksMockResult{
+				input2: "name",
+				input3: "/test",
+				input4: &webhook.PutInputMetadata{
+					Filename:    "file",
+					ContentType: "content-type",
+				},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			s3clManagerClientForTargetMockInput:     "name",
 			responseHandlerNoContentMockResultTimes: 1,
 		},
 		{
 			name: "should be ok to do templating on storage class and remove new lines",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
+					Name:   "name",
 					Bucket: &config.BucketConfig{Prefix: "/"},
 					Actions: &config.ActionsConfig{
 						PUT: &config.PutActionConfig{
@@ -955,8 +1208,30 @@ func Test_requestContext_Put(t *testing.T) {
 					},
 					StorageClass: "/test/file - content-type",
 				},
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
 				times: 1,
 			},
+			webhookManagerManagePutHooksMockResult: webhookManagerManagePutHooksMockResult{
+				input2: "name",
+				input3: "/test",
+				input4: &webhook.PutInputMetadata{
+					Filename:    "file",
+					ContentType: "content-type",
+				},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			s3clManagerClientForTargetMockInput:     "name",
 			responseHandlerNoContentMockResultTimes: 1,
 		},
 	}
@@ -967,6 +1242,9 @@ func Test_requestContext_Put(t *testing.T) {
 
 			// Create mocks
 			resHandlerMock := responsehandlermocks.NewMockResponseHandler(ctrl)
+			s3ClientMock := s3clientmocks.NewMockClient(ctrl)
+			s3clManagerMock := s3clientmocks.NewMockManager(ctrl)
+			webhookManagerMock := wmocks.NewMockManager(ctrl)
 
 			// Create context
 			ctx := context.TODO()
@@ -985,8 +1263,6 @@ func Test_requestContext_Put(t *testing.T) {
 				Times(tt.responseHandlerForbiddenErrorMockResult.times)
 			resHandlerMock.EXPECT().NoContent().Times(tt.responseHandlerNoContentMockResultTimes)
 
-			s3ClientMock := s3clientmocks.NewMockClient(ctrl)
-
 			s3ClientMock.EXPECT().
 				HeadObject(ctx, tt.s3ClientHeadObjectMockResult.input2).
 				Return(
@@ -996,18 +1272,32 @@ func Test_requestContext_Put(t *testing.T) {
 				Times(tt.s3ClientHeadObjectMockResult.times)
 			s3ClientMock.EXPECT().
 				PutObject(ctx, tt.s3ClientPutObjectMockResult.input2).
-				Return(tt.s3ClientPutObjectMockResult.err).
+				Return(
+					tt.s3ClientPutObjectMockResult.res,
+					tt.s3ClientPutObjectMockResult.err,
+				).
 				Times(tt.s3ClientPutObjectMockResult.times)
-
-			s3clManagerMock := s3clientmocks.NewMockManager(ctrl)
 
 			s3clManagerMock.EXPECT().
 				GetClientForTarget(tt.s3clManagerClientForTargetMockInput).
 				AnyTimes().
 				Return(s3ClientMock)
 
+			webhookManagerMock.EXPECT().
+				ManagePUTHooks(
+					ctx,
+					tt.webhookManagerManagePutHooksMockResult.input2,
+					tt.webhookManagerManagePutHooksMockResult.input3,
+					tt.webhookManagerManagePutHooksMockResult.input4,
+					tt.webhookManagerManagePutHooksMockResult.input5,
+				).
+				Times(
+					tt.webhookManagerManagePutHooksMockResult.times,
+				)
+
 			rctx := &requestContext{
 				s3ClientManager: s3clManagerMock,
+				webhookManager:  webhookManagerMock,
 				targetCfg:       tt.fields.targetCfg,
 				mountPath:       tt.fields.mountPath,
 			}
@@ -1035,6 +1325,7 @@ func Test_requestContext_Get(t *testing.T) {
 	type s3ClientListFilesAndDirectoriesMockResult struct {
 		input2 string
 		res    []*s3client.ListElementOutput
+		res2   *s3client.ResultInfo
 		err    error
 		times  int
 	}
@@ -1047,7 +1338,15 @@ func Test_requestContext_Get(t *testing.T) {
 	type s3ClientGetObjectMockResult struct {
 		input2 *s3client.GetInput
 		res    *s3client.GetOutput
+		res2   *s3client.ResultInfo
 		err    error
+		times  int
+	}
+	type webhookManagerManageGetHooksMockResult struct {
+		input2 string
+		input3 string
+		input4 *webhook.GetInputMetadata
+		input5 *webhook.S3Metadata
 		times  int
 	}
 	type fields struct {
@@ -1072,6 +1371,7 @@ func Test_requestContext_Get(t *testing.T) {
 		s3ClientListFilesAndDirectoriesMockResult    s3ClientListFilesAndDirectoriesMockResult
 		s3ClientGetObjectMockResult                  s3ClientGetObjectMockResult
 		s3clManagerClientForTargetMockInput          string
+		webhookManagerManageGetHooksMockResult       webhookManagerManageGetHooksMockResult
 	}{
 		{
 			name: "should fail if list files and directories failed",
@@ -1114,7 +1414,14 @@ func Test_requestContext_Get(t *testing.T) {
 				mountPath: "/mount",
 			},
 			args: args{
-				input: &GetInput{RequestPath: "/folder/"},
+				input: &GetInput{
+					RequestPath:       "/folder/",
+					IfModifiedSince:   &fakeDate,
+					IfMatch:           "ifmatch",
+					IfNoneMatch:       "ifnonematch",
+					IfUnmodifiedSince: &fakeDate,
+					Range:             "range",
+				},
 			},
 			s3clManagerClientForTargetMockInput: "target",
 			s3ClientListFilesAndDirectoriesMockResult: s3ClientListFilesAndDirectoriesMockResult{
@@ -1128,6 +1435,30 @@ func Test_requestContext_Get(t *testing.T) {
 						Size:         300,
 						Key:          "/folder/file1",
 					},
+				},
+				res2: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManageGetHooksMockResult: webhookManagerManageGetHooksMockResult{
+				input2: "target",
+				input3: "/folder/",
+				input4: &webhook.GetInputMetadata{
+					IfModifiedSince:   &fakeDate,
+					IfMatch:           "ifmatch",
+					IfNoneMatch:       "ifnonematch",
+					IfUnmodifiedSince: &fakeDate,
+					Range:             "range",
+				},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
 				},
 				times: 1,
 			},
@@ -1178,6 +1509,24 @@ func Test_requestContext_Get(t *testing.T) {
 				res: &s3client.GetOutput{
 					ContentType: "text/html; charset=utf-8",
 				},
+				res2: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManageGetHooksMockResult: webhookManagerManageGetHooksMockResult{
+				input2: "target",
+				input3: "/folder/",
+				input4: &webhook.GetInputMetadata{},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
 				times: 1,
 			},
 			responseHandlerStreamFileMockResult: responseHandlerStreamFileMockResult{
@@ -1218,6 +1567,12 @@ func Test_requestContext_Get(t *testing.T) {
 				input2: &s3client.GetInput{
 					Key: "/folder/index.html",
 				},
+				res2: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
 				err:   s3client.ErrNotModified,
 				times: 1,
 			},
@@ -1254,6 +1609,12 @@ func Test_requestContext_Get(t *testing.T) {
 				input2: &s3client.GetInput{
 					Key: "/folder/index.html",
 				},
+				res2: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
 				err:   s3client.ErrPreconditionFailed,
 				times: 1,
 			},
@@ -1289,6 +1650,24 @@ func Test_requestContext_Get(t *testing.T) {
 						Size:         300,
 						Key:          "/folder/file1",
 					},
+				},
+				res2: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManageGetHooksMockResult: webhookManagerManageGetHooksMockResult{
+				input2: "target",
+				input3: "/folder/",
+				input4: &webhook.GetInputMetadata{},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
 				},
 				times: 1,
 			},
@@ -1442,6 +1821,24 @@ func Test_requestContext_Get(t *testing.T) {
 					ContentDisposition: "disposition",
 					ContentType:        "type",
 				},
+				res2: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManageGetHooksMockResult: webhookManagerManageGetHooksMockResult{
+				input2: "target",
+				input3: "/folder/index.html",
+				input4: &webhook.GetInputMetadata{},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
 				times: 1,
 			},
 			responseHandlerStreamFileMockResult: responseHandlerStreamFileMockResult{
@@ -1589,6 +1986,24 @@ func Test_requestContext_Get(t *testing.T) {
 					ContentType:     "type",
 					ContentEncoding: "encoding",
 				},
+				res2: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManageGetHooksMockResult: webhookManagerManageGetHooksMockResult{
+				input2: "target",
+				input3: "/folder/index.html",
+				input4: &webhook.GetInputMetadata{},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
 				times: 1,
 			},
 			responseHandlerStreamFileMockResult: responseHandlerStreamFileMockResult{
@@ -1607,6 +2022,9 @@ func Test_requestContext_Get(t *testing.T) {
 
 			// Create mocks
 			resHandlerMock := responsehandlermocks.NewMockResponseHandler(ctrl)
+			s3ClientMock := s3clientmocks.NewMockClient(ctrl)
+			s3clManagerMock := s3clientmocks.NewMockManager(ctrl)
+			webhookManagerMock := wmocks.NewMockManager(ctrl)
 
 			// Create context
 			ctx := context.TODO()
@@ -1640,8 +2058,6 @@ func Test_requestContext_Get(t *testing.T) {
 				FoldersFilesList(gomock.Any(), tt.responseHandlerFoldersFilesListMockResult.input2).
 				Times(tt.responseHandlerFoldersFilesListMockResult.times)
 
-			s3ClientMock := s3clientmocks.NewMockClient(ctrl)
-
 			s3ClientMock.EXPECT().
 				HeadObject(ctx, tt.s3ClientHeadObjectMockResult.input2).
 				Return(
@@ -1653,6 +2069,7 @@ func Test_requestContext_Get(t *testing.T) {
 				GetObject(ctx, tt.s3ClientGetObjectMockResult.input2).
 				Return(
 					tt.s3ClientGetObjectMockResult.res,
+					tt.s3ClientGetObjectMockResult.res2,
 					tt.s3ClientGetObjectMockResult.err,
 				).
 				Times(tt.s3ClientGetObjectMockResult.times)
@@ -1660,19 +2077,31 @@ func Test_requestContext_Get(t *testing.T) {
 				ListFilesAndDirectories(ctx, tt.s3ClientListFilesAndDirectoriesMockResult.input2).
 				Return(
 					tt.s3ClientListFilesAndDirectoriesMockResult.res,
+					tt.s3ClientListFilesAndDirectoriesMockResult.res2,
 					tt.s3ClientListFilesAndDirectoriesMockResult.err,
 				).
 				Times(tt.s3ClientListFilesAndDirectoriesMockResult.times)
-
-			s3clManagerMock := s3clientmocks.NewMockManager(ctrl)
 
 			s3clManagerMock.EXPECT().
 				GetClientForTarget(tt.s3clManagerClientForTargetMockInput).
 				AnyTimes().
 				Return(s3ClientMock)
 
+			webhookManagerMock.EXPECT().
+				ManageGETHooks(
+					ctx,
+					tt.webhookManagerManageGetHooksMockResult.input2,
+					tt.webhookManagerManageGetHooksMockResult.input3,
+					tt.webhookManagerManageGetHooksMockResult.input4,
+					tt.webhookManagerManageGetHooksMockResult.input5,
+				).
+				Times(
+					tt.webhookManagerManageGetHooksMockResult.times,
+				)
+
 			rctx := &requestContext{
 				s3ClientManager: s3clManagerMock,
+				webhookManager:  webhookManagerMock,
 				targetCfg:       tt.fields.targetCfg,
 				mountPath:       tt.fields.mountPath,
 			}

@@ -276,7 +276,13 @@ type ActionsConfig struct {
 
 // DeleteActionConfig Delete action configuration.
 type DeleteActionConfig struct {
-	Enabled bool `mapstructure:"enabled"`
+	Enabled bool                      `mapstructure:"enabled"`
+	Config  *DeleteActionConfigConfig `mapstructure:"config"`
+}
+
+// DeleteActionConfigConfig Delete action configuration object configuration.
+type DeleteActionConfigConfig struct {
+	Webhooks []*WebhookConfig `mapstructure:"webhooks" validate:"dive"`
 }
 
 // PutActionConfig Put action configuration.
@@ -290,6 +296,7 @@ type PutActionConfigConfig struct {
 	Metadata      map[string]string `mapstructure:"metadata"`
 	StorageClass  string            `mapstructure:"storageClass"`
 	AllowOverride bool              `mapstructure:"allowOverride"`
+	Webhooks      []*WebhookConfig  `mapstructure:"webhooks" validate:"dive"`
 }
 
 // GetActionConfig Get action configuration.
@@ -303,6 +310,18 @@ type GetActionConfigConfig struct {
 	RedirectWithTrailingSlashForNotFoundFile bool              `mapstructure:"redirectWithTrailingSlashForNotFoundFile"`
 	IndexDocument                            string            `mapstructure:"indexDocument"`
 	StreamedFileHeaders                      map[string]string `mapstructure:"streamedFileHeaders"`
+	Webhooks                                 []*WebhookConfig  `mapstructure:"webhooks" validate:"dive"`
+}
+
+// WebhookConfig Webhook configuration.
+type WebhookConfig struct {
+	Method          string                       `mapstructure:"method" validate:"required,oneof=POST PATCH PUT DELETE"`
+	URL             string                       `mapstructure:"url" validate:"required,url"`
+	Headers         map[string]string            `mapstructure:"headers"`
+	SecretHeaders   map[string]*CredentialConfig `mapstructure:"secretHeaders" validate:"omitempty,dive"`
+	RetryCount      int                          `mapstructure:"retryCount" validate:"gte=0"`
+	MaxWaitTime     string                       `mapstructure:"maxWaitTime"`
+	DefaultWaitTime string                       `mapstructure:"defaultWaitTime"`
 }
 
 // Resource Resource.

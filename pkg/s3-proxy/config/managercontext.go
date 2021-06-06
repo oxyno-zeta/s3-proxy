@@ -306,6 +306,7 @@ func loadAllCredentials(out *Config) ([]*CredentialConfig, error) {
 		// Check if resources are declared
 		if item.Resources != nil {
 			for j := 0; j < len(item.Resources); j++ {
+				// Store ressource
 				res := item.Resources[j]
 				// Check if basic auth configuration exists
 				if res.Basic != nil && res.Basic.Credentials != nil {
@@ -321,6 +322,44 @@ func loadAllCredentials(out *Config) ([]*CredentialConfig, error) {
 						result = append(result, it.Password)
 					}
 				}
+			}
+		}
+		// Check if actions are declared
+		if item.Actions != nil {
+			// Check if GET actions are declared and webhook configs
+			if item.Actions.GET != nil && item.Actions.GET.Config != nil {
+				// Load webhook secrets
+				res, err := loadWebhookCfgCredentials(item.Actions.GET.Config.Webhooks)
+				// Check error
+				if err != nil {
+					return nil, err
+				}
+				// Save credential
+				result = append(result, res...)
+			}
+
+			// Check if PUT actions are declared and webhook configs
+			if item.Actions.PUT != nil && item.Actions.PUT.Config != nil {
+				// Load webhook secrets
+				res, err := loadWebhookCfgCredentials(item.Actions.PUT.Config.Webhooks)
+				// Check error
+				if err != nil {
+					return nil, err
+				}
+				// Save credential
+				result = append(result, res...)
+			}
+
+			// Check if DELETE actions are declared and webhook configs
+			if item.Actions.DELETE != nil && item.Actions.DELETE.Config != nil {
+				// Load webhook secrets
+				res, err := loadWebhookCfgCredentials(item.Actions.DELETE.Config.Webhooks)
+				// Check error
+				if err != nil {
+					return nil, err
+				}
+				// Save credential
+				result = append(result, res...)
 			}
 		}
 		// Load credentials for access key and secret key
@@ -377,6 +416,29 @@ func loadAllCredentials(out *Config) ([]*CredentialConfig, error) {
 	}
 
 	return result, nil
+}
+
+func loadWebhookCfgCredentials(cfgList []*WebhookConfig) ([]*CredentialConfig, error) {
+	// Create result
+	res := make([]*CredentialConfig, 0)
+	// Loop over the list
+	for _, wbCfg := range cfgList {
+		// Loop over the secret header
+		for _, secCre := range wbCfg.SecretHeaders {
+			// Loop credential
+			err := loadCredential(secCre)
+			// Check error
+			if err != nil {
+				return nil, err
+			}
+
+			// Save
+			res = append(res, secCre)
+		}
+	}
+
+	// Default
+	return res, nil
 }
 
 func loadCredential(credCfg *CredentialConfig) error {

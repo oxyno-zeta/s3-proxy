@@ -163,11 +163,12 @@ See more information [here](../feature-guide/key-rewrite.md).
 
 ## GetActionConfigConfiguration
 
-| Key                                      | Type              | Required | Default | Description                                                                                                                                                                                                                                                                        |
-| ---------------------------------------- | ----------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| redirectWithTrailingSlashForNotFoundFile | Boolean           | No       | `false` | This option allow to do a redirect with a trailing slash when a GET request on a file (not a folder) encountered a 404 not found.                                                                                                                                                  |
-| indexDocument                            | String            | No       | `""`    | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                                                                                                                                                                           |
-| streamedFileHeaders                      | Map[String]String | No       | `nil`   |  Headers containing templates that will be added to streamed files in this target. Key corresponds to header and value to the template. If templated value is empty, the header won't be added to answer. More information [here](../feature-guide/templates.md#stream-file-case). |
+| Key                                      | Type                                            | Required | Default | Description                                                                                                                                                                                                                                                                        |
+| ---------------------------------------- | ----------------------------------------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| redirectWithTrailingSlashForNotFoundFile | Boolean                                         | No       | `false` | This option allow to do a redirect with a trailing slash when a GET request on a file (not a folder) encountered a 404 not found.                                                                                                                                                  |
+| indexDocument                            | String                                          | No       | `""`    | The index document name. If this document is found, get it instead of list folder. Example: `index.html`                                                                                                                                                                           |
+| streamedFileHeaders                      | Map[String]String                               | No       | `nil`   |  Headers containing templates that will be added to streamed files in this target. Key corresponds to header and value to the template. If templated value is empty, the header won't be added to answer. More information [here](../feature-guide/templates.md#stream-file-case). |
+| webhooks                                 | [[WebhookConfiguration](#webhookconfiguration)] | No       | `nil`   | Webhooks configuration list to call when a GET request is performed                                                                                                                                                                                                                |
 
 ## PutActionConfiguration
 
@@ -178,17 +179,39 @@ See more information [here](../feature-guide/key-rewrite.md).
 
 ## PutActionConfigConfiguration
 
-| Key           | Type              | Required | Default | Description                                                                                                                                                                                                                                                                                                                                           |
-| ------------- | ----------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| metadata      | Map[String]String | No       | None    | Metadata key/values that will be put on S3 objects. Map Values can be templated. Empty values will be flushed. See [here](../feature-guide/templates.md#put-metadata)                                                                                                                                                                                 |
-| storageClass  | String            | No       | `""`    | Storage class that will be used for uploaded objects. See storage class here: [https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html](https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html). Value can be templated. Empty values will be flushed. See [here](../feature-guide/templates.md#put-storage-class) |
-| allowOverride | Boolean           | No       | `false` | Will allow override objects if enabled                                                                                                                                                                                                                                                                                                                |
+| Key           | Type                                            | Required | Default | Description                                                                                                                                                                                                                                                                                                                                           |
+| ------------- | ----------------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| metadata      | Map[String]String                               | No       | None    | Metadata key/values that will be put on S3 objects. Map Values can be templated. Empty values will be flushed. See [here](../feature-guide/templates.md#put-metadata)                                                                                                                                                                                 |
+| storageClass  | String                                          | No       | `""`    | Storage class that will be used for uploaded objects. See storage class here: [https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html](https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html). Value can be templated. Empty values will be flushed. See [here](../feature-guide/templates.md#put-storage-class) |
+| allowOverride | Boolean                                         | No       | `false` | Will allow override objects if enabled                                                                                                                                                                                                                                                                                                                |
+| webhooks      | [[WebhookConfiguration](#webhookconfiguration)] | No       | `nil`   | Webhooks configuration list to call when a PUT request is performed                                                                                                                                                                                                                                                                                   |
 
 ## DeleteActionConfiguration
 
-| Key     | Type    | Required | Default | Description                |
-| ------- | ------- | -------- | ------- | -------------------------- |
-| enabled | Boolean | No       | `false` | Will allow DELETE requests |
+| Key     | Type                                                                | Required | Default | Description                       |
+| ------- | ------------------------------------------------------------------- | -------- | ------- | --------------------------------- |
+| enabled | Boolean                                                             | No       | `false` | Will allow DELETE requests        |
+| config  | [DeleteActionConfigConfiguration](#deleteactionconfigconfiguration) | No       | None    | Configuration for DELETE requests |
+
+## DeleteActionConfigConfiguration
+
+| Key      | Type                                            | Required | Default | Description                                                            |
+| -------- | ----------------------------------------------- | -------- | ------- | ---------------------------------------------------------------------- |
+| webhooks | [[WebhookConfiguration](#webhookconfiguration)] | No       | `nil`   | Webhooks configuration list to call when a DELETE request is performed |
+
+## WebhookConfiguration
+
+You can found more information [here](../feature-guide/webhooks.md) about webhooks and this works in the application.
+
+| Key             | Type                                                           | Required | Default | Description                                                                                     |
+| --------------- | -------------------------------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------- |
+| method          | String                                                         | Yes      | None    | HTTP Method used for webhook call. Can be `POST`, `PUT`, `DELETE` or `PATCH`                    |
+| url             | String                                                         | Yes      | None    | URL to be called                                                                                |
+| headers         | Map[String]String                                              | No       | `nil`   | Fixed headers                                                                                   |
+| secretHeaders   | Map[String][credentialconfiguration](#credentialconfiguration) | No       | `nil`   | Headers coming from secrets (for credentials for example)                                       |
+| retryCount      | Integer                                                        | No       | `0`     | Number of retry in case of error                                                                |
+| defaultWaitTime | String                                                         | No       | `""`    | Default wait time to sleep before retrying request. Default is 100 ms (injected by HTTP client) |
+| maxWaitTime     | String                                                         | No       | `""`    | Max wait time to sleep before retrying request. Default is 2 seconds (injected by HTTP client)  |
 
 ## BucketConfiguration
 
