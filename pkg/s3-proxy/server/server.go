@@ -21,6 +21,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
 	"github.com/thoas/go-funk"
 )
 
@@ -31,6 +32,7 @@ type Server struct {
 	server          *http.Server
 	tracingSvc      tracing.Service
 	s3clientManager s3client.Manager
+	webhookManager  webhook.Manager
 }
 
 func NewServer(
@@ -39,6 +41,7 @@ func NewServer(
 	metricsCl metrics.Client,
 	tracingSvc tracing.Service,
 	s3clientManager s3client.Manager,
+	webhookManager webhook.Manager,
 ) *Server {
 	return &Server{
 		logger:          logger,
@@ -46,6 +49,7 @@ func NewServer(
 		metricsCl:       metricsCl,
 		tracingSvc:      tracingSvc,
 		s3clientManager: s3clientManager,
+		webhookManager:  webhookManager,
 	}
 }
 
@@ -237,7 +241,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				rt2.Use(responsehandler.HTTPMiddleware(svr.cfgManager, targetKey))
 
 				// Add Bucket request context middleware to initialize it
-				rt2.Use(bucket.HTTPMiddleware(tgt, path, svr.s3clientManager))
+				rt2.Use(bucket.HTTPMiddleware(tgt, path, svr.s3clientManager, svr.webhookManager))
 
 				// Add authentication middleware to router
 				rt2.Use(authenticationSvc.Middleware(tgt.Resources))

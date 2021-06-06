@@ -2,7 +2,7 @@
 
 <!-- prettier-ignore-start -->
 !!! Note
-  The following example is a full file example. But this can be split in multiple files, it will be merged by S3-Proxy automatically.
+    The following example is a full file example. But this can be split in multiple files, it will be merged by S3-Proxy automatically.
 <!-- prettier-ignore-end -->
 
 Here is a full example of a configuration file:
@@ -236,6 +236,8 @@ targets:
     #       indexDocument: index.html
     #       # Allow to add headers to streamed files (can be templated)
     #       streamedFileHeaders: {}
+    #       # Webhooks
+    #       webhooks: []
     #   # Action for PUT requests on target
     #   PUT:
     #     # Will allow PUT requests
@@ -252,10 +254,16 @@ targets:
     #       storageClass: STANDARD # GLACIER, ...
     #       # Will allow override objects if enabled
     #       allowOverride: false
+    #       # Webhooks
+    #       webhooks: []
     #   # Action for DELETE requests on target
     #   DELETE:
     #     # Will allow DELETE requests
     #     enabled: true
+    #     # Configuration for DELETE requests
+    #     config:
+    #       # Webhooks
+    #       webhooks: []
     # # Key rewrite list
     # # This will allow to rewrite keys before doing any requests to S3
     # # For more information about how this works, see in the documentation.

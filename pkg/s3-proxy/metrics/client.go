@@ -3,6 +3,7 @@ package metrics
 import "net/http"
 
 // Client Client metrics interface.
+//go:generate mockgen -destination=./mocks/mock_Client.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics Client
 type Client interface {
 	// Will return a middleware to instrument http routers.
 	Instrument(serverLabel string) func(next http.Handler) http.Handler
@@ -14,6 +15,10 @@ type Client interface {
 	IncAuthenticated(providerType, providerName string)
 	// Will increase counter of authorized user.
 	IncAuthorized(providerType string)
+	// Will increase counter of succeed webhooks
+	IncSucceedWebhooks(targetName, actionName string)
+	// Will increase counter of failed webhooks
+	IncFailedWebhooks(targetName, actionName string)
 }
 
 // NewClient will generate a new client instance.

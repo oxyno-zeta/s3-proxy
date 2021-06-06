@@ -25,6 +25,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -2050,12 +2051,16 @@ func TestPublicRouter(t *testing.T) {
 			err = s3Manager.Load()
 			assert.NoError(t, err)
 
+			// Create webhook manager
+			webhookManager := webhook.NewManager(cfgManagerMock, metricsCtx)
+
 			svr := &Server{
 				logger:          logger,
 				cfgManager:      cfgManagerMock,
 				metricsCl:       metricsCtx,
 				tracingSvc:      tsvc,
 				s3clientManager: s3Manager,
+				webhookManager:  webhookManager,
 			}
 			got, err := svr.generateRouter()
 			if (err != nil) != tt.wantErr {
@@ -2270,12 +2275,16 @@ func TestTracing(t *testing.T) {
 			err = s3Manager.Load()
 			assert.NoError(t, err)
 
+			// Create webhook manager
+			webhookManager := webhook.NewManager(cfgManagerMock, metricsCtx)
+
 			svr := &Server{
 				logger:          logger,
 				cfgManager:      cfgManagerMock,
 				metricsCl:       metricsCtx,
 				tracingSvc:      tsvc,
 				s3clientManager: s3Manager,
+				webhookManager:  webhookManager,
 			}
 			got, err := svr.generateRouter()
 			if (err != nil) != tt.wantErr {
@@ -2993,12 +3002,15 @@ func TestOIDCAuthentication(t *testing.T) {
 			tsvc, err := tracing.New(cfgManagerMock, logger)
 			assert.NoError(t, err)
 
+			// Create webhook manager
+			webhookManager := webhook.NewManager(cfgManagerMock, metricsCtx)
+
 			// Create S3 Manager
 			s3Manager := s3client.NewManager(cfgManagerMock, metricsCtx)
 			err = s3Manager.Load()
 			assert.NoError(t, err)
 
-			ssvr := NewServer(logger, cfgManagerMock, metricsCtx, tsvc, s3Manager)
+			ssvr := NewServer(logger, cfgManagerMock, metricsCtx, tsvc, s3Manager, webhookManager)
 			err = ssvr.GenerateServer()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("generateServer() error = %v, wantErr %v", err, tt.wantErr)
@@ -3465,12 +3477,16 @@ func TestCORS(t *testing.T) {
 			err = s3Manager.Load()
 			assert.NoError(t, err)
 
+			// Create webhook manager
+			webhookManager := webhook.NewManager(cfgManagerMock, metricsCtx)
+
 			svr := &Server{
 				logger:          logger,
 				cfgManager:      cfgManagerMock,
 				metricsCl:       metricsCtx,
 				tracingSvc:      tsvc,
 				s3clientManager: s3Manager,
+				webhookManager:  webhookManager,
 			}
 			got, err := svr.generateRouter()
 			if (err != nil) != tt.wantErr {
@@ -3596,12 +3612,16 @@ func TestIndexLargeBucket(t *testing.T) {
 	err = s3Manager.Load()
 	assert.NoError(t, err)
 
+	// Create webhook manager
+	webhookManager := webhook.NewManager(cfgManagerMock, metricsCtx)
+
 	svr := &Server{
 		logger:          logger,
 		cfgManager:      cfgManagerMock,
 		metricsCl:       metricsCtx,
 		tracingSvc:      tsvc,
 		s3clientManager: s3Manager,
+		webhookManager:  webhookManager,
 	}
 	got, err := svr.generateRouter()
 	if err != nil {
@@ -3700,12 +3720,16 @@ func TestListLargeBucketAndSmallMaxKeys(t *testing.T) {
 	err = s3Manager.Load()
 	assert.NoError(t, err)
 
+	// Create webhook manager
+	webhookManager := webhook.NewManager(cfgManagerMock, metricsCtx)
+
 	svr := &Server{
 		logger:          logger,
 		cfgManager:      cfgManagerMock,
 		metricsCl:       metricsCtx,
 		tracingSvc:      tsvc,
 		s3clientManager: s3Manager,
+		webhookManager:  webhookManager,
 	}
 	got, err := svr.generateRouter()
 	assert.NoError(t, err)
@@ -3800,12 +3824,16 @@ func TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys(t *testing.T) {
 	err = s3Manager.Load()
 	assert.NoError(t, err)
 
+	// Create webhook manager
+	webhookManager := webhook.NewManager(cfgManagerMock, metricsCtx)
+
 	svr := &Server{
 		logger:          logger,
 		cfgManager:      cfgManagerMock,
 		metricsCl:       metricsCtx,
 		tracingSvc:      tsvc,
 		s3clientManager: s3Manager,
+		webhookManager:  webhookManager,
 	}
 	got, err := svr.generateRouter()
 	assert.NoError(t, err)
@@ -3898,12 +3926,16 @@ func TestFolderWithSubFolders(t *testing.T) {
 	err = s3Manager.Load()
 	assert.NoError(t, err)
 
+	// Create webhook manager
+	webhookManager := webhook.NewManager(cfgManagerMock, metricsCtx)
+
 	svr := &Server{
 		logger:          logger,
 		cfgManager:      cfgManagerMock,
 		metricsCl:       metricsCtx,
 		tracingSvc:      tsvc,
 		s3clientManager: s3Manager,
+		webhookManager:  webhookManager,
 	}
 	got, err := svr.generateRouter()
 	assert.NoError(t, err)
@@ -4182,12 +4214,16 @@ func TestTrailingSlashRedirect(t *testing.T) {
 			err = s3Manager.Load()
 			assert.NoError(t, err)
 
+			// Create webhook manager
+			webhookManager := webhook.NewManager(cfgManagerMock, metricsCtx)
+
 			svr := &Server{
 				logger:          logger,
 				cfgManager:      cfgManagerMock,
 				metricsCl:       metricsCtx,
 				tracingSvc:      tsvc,
 				s3clientManager: s3Manager,
+				webhookManager:  webhookManager,
 			}
 			got, err := svr.generateRouter()
 			if (err != nil) != tt.wantErr {

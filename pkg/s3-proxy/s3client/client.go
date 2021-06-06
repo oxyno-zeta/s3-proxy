@@ -27,15 +27,23 @@ type Manager interface {
 //go:generate mockgen -destination=./mocks/mock_Client.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client Client
 type Client interface {
 	// ListFilesAndDirectories will list files and directories in S3.
-	ListFilesAndDirectories(ctx context.Context, key string) ([]*ListElementOutput, error)
+	ListFilesAndDirectories(ctx context.Context, key string) ([]*ListElementOutput, *ResultInfo, error)
 	// HeadObject will head a key.
 	HeadObject(ctx context.Context, key string) (*HeadOutput, error)
 	// GetObject will get an object.
-	GetObject(ctx context.Context, input *GetInput) (*GetOutput, error)
+	GetObject(ctx context.Context, input *GetInput) (*GetOutput, *ResultInfo, error)
 	// PutObject will put an object.
-	PutObject(ctx context.Context, input *PutInput) error
+	PutObject(ctx context.Context, input *PutInput) (*ResultInfo, error)
 	// DeleteObject will delete an object.
-	DeleteObject(ctx context.Context, key string) error
+	DeleteObject(ctx context.Context, key string) (*ResultInfo, error)
+}
+
+// ResultInfo ResultInfo structure.
+type ResultInfo struct {
+	Bucket     string
+	Key        string
+	Region     string
+	S3Endpoint string
 }
 
 // FileType File type.
