@@ -158,6 +158,11 @@ func (s3ctx *s3Context) GetObject(input *GetInput) (*GetOutput, error) {
 		IfUnmodifiedSince: input.IfUnmodifiedSince,
 	}
 
+	// Add Range if not empty
+	if input.Range != "" {
+		s3Input.Range = aws.String(input.Range)
+	}
+
 	// Add If Match if not empty
 	if input.IfMatch != "" {
 		s3Input.IfMatch = aws.String(input.IfMatch)

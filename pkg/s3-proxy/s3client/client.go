@@ -62,6 +62,7 @@ type GetInput struct {
 	IfMatch           string
 	IfNoneMatch       string
 	IfUnmodifiedSince *time.Time
+	Range             string
 }
 
 // GetOutput Object output for S3 get object.

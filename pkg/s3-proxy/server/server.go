@@ -253,6 +253,9 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 							ifModifiedSince = &ifModifiedSinceTime
 						}
 
+						// Get Range
+						byteRange := req.Header.Get("Range")
+
 						// Get If-Match
 						ifMatch := req.Header.Get("If-Match")
 
@@ -284,6 +287,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 							IfMatch:           ifMatch,
 							IfNoneMatch:       ifNoneMatch,
 							IfUnmodifiedSince: ifUnmodifiedSince,
+							Range:             byteRange,
 						})
 					})
 				}
