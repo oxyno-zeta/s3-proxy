@@ -43,6 +43,7 @@ type GetInput struct {
 	IfMatch           string
 	IfNoneMatch       string
 	IfUnmodifiedSince *time.Time
+	Range             string
 }
 
 // PutInput represents Put input.

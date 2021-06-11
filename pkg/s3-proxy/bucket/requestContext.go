@@ -408,6 +408,7 @@ func (rctx *requestContext) getFileContent(key string, input *GetInput) (string,
 		IfMatch:           input.IfMatch,
 		IfNoneMatch:       input.IfNoneMatch,
 		IfUnmodifiedSince: input.IfUnmodifiedSince,
+		Range:             input.Range,
 	})
 	if err != nil {
 		return "", err
@@ -431,6 +432,7 @@ func (rctx *requestContext) streamFileForResponse(key string, input *GetInput) e
 		IfMatch:           input.IfMatch,
 		IfNoneMatch:       input.IfNoneMatch,
 		IfUnmodifiedSince: input.IfUnmodifiedSince,
+		Range:             input.Range,
 	})
 	if err != nil {
 		return err
