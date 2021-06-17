@@ -2,6 +2,7 @@ package bucket
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"html/template"
 	"io"
@@ -90,20 +91,20 @@ func (rctx *requestContext) manageKeyRewrite(key string) string {
 }
 
 // Get proxy GET requests.
-func (rctx *requestContext) Get(input *GetInput) {
+func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
 	// Generate start key
 	key := rctx.generateStartKey(input.RequestPath)
 	// Manage key rewrite
 	key = rctx.manageKeyRewrite(key)
 	// Check that the path ends with a / for a directory listing or the main path special case (empty path)
 	if strings.HasSuffix(input.RequestPath, "/") || input.RequestPath == "" {
-		rctx.manageGetFolder(key, input)
+		rctx.manageGetFolder(ctx, key, input)
 		// Stop
 		return
 	}
 
 	// Get object case
-	err := rctx.streamFileForResponse(key, input)
+	err := rctx.streamFileForResponse(ctx, key, input)
 	if err != nil {
 		// Check if error is a not found error
 		// nolint: gocritic // Don't want a switch
@@ -128,7 +129,7 @@ func (rctx *requestContext) Get(input *GetInput) {
 				return
 			}
 			// Not found
-			rctx.HandleNotFound(input.RequestPath)
+			rctx.HandleNotFound(ctx, input.RequestPath)
 			// Stop
 			return
 		} else if errors.Is(err, s3client.ErrNotModified) {
@@ -141,43 +142,49 @@ func (rctx *requestContext) Get(input *GetInput) {
 			rctx.httpRW.WriteHeader(http.StatusPreconditionFailed)
 
 			return
+		} else if errors.Is(err, context.Canceled) {
+			// Request canceled
+			return
 		}
 		// Log error
 		rctx.logger.Error(err)
 		// Manage error response
-		rctx.HandleInternalServerError(err, input.RequestPath)
+		rctx.HandleInternalServerError(ctx, err, input.RequestPath)
 		// Stop
 		return
 	}
 }
 
-func (rctx *requestContext) manageGetFolder(key string, input *GetInput) {
+func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, input *GetInput) {
 	// Check if index document is activated
 	if rctx.targetCfg.Actions.GET.IndexDocument != "" {
 		// Create index key path
 		indexKey := path.Join(key, rctx.targetCfg.Actions.GET.IndexDocument)
 		// Head index file in bucket
-		headOutput, err := rctx.s3Context.HeadObject(indexKey)
+		headOutput, err := rctx.s3Context.HeadObject(ctx, indexKey)
 		// Check if error exists and not a not found error
 		if err != nil && !errors.Is(err, s3client.ErrNotFound) {
-			// Log error
-			rctx.logger.Error(err)
-			// Manage error response
-			rctx.HandleInternalServerError(err, input.RequestPath)
+			if !errors.Is(err, context.Canceled) {
+				// Log error
+				rctx.logger.Error(err)
+				// Manage error response
+				rctx.HandleInternalServerError(ctx, err, input.RequestPath)
+			}
+
 			// Stop
 			return
 		}
 		// Check that we found the file
 		if headOutput != nil {
 			// Get data
-			err = rctx.streamFileForResponse(headOutput.Key, input)
+			err = rctx.streamFileForResponse(ctx, headOutput.Key, input)
 			// Check if error exists
 			if err != nil {
 				// Check if error is a not found error
 				// nolint: gocritic // Don't want a switch
 				if errors.Is(err, s3client.ErrNotFound) {
 					// Not found
-					rctx.HandleNotFound(input.RequestPath)
+					rctx.HandleNotFound(ctx, input.RequestPath)
 
 					return
 				} else if errors.Is(err, s3client.ErrNotModified) {
@@ -190,11 +197,14 @@ func (rctx *requestContext) manageGetFolder(key string, input *GetInput) {
 					rctx.httpRW.WriteHeader(http.StatusPreconditionFailed)
 
 					return
+				} else if errors.Is(err, context.Canceled) {
+					// Request canceled
+					return
 				}
 				// Log error
 				rctx.logger.Error(err)
 				// Response with error
-				rctx.HandleInternalServerError(err, input.RequestPath)
+				rctx.HandleInternalServerError(ctx, err, input.RequestPath)
 				// Stop
 				return
 			}
@@ -204,10 +214,13 @@ func (rctx *requestContext) manageGetFolder(key string, input *GetInput) {
 	}
 
 	// Directory listing case
-	s3Entries, err := rctx.s3Context.ListFilesAndDirectories(key)
+	s3Entries, err := rctx.s3Context.ListFilesAndDirectories(ctx, key)
 	if err != nil {
-		rctx.logger.Error(err)
-		rctx.HandleInternalServerError(err, input.RequestPath)
+		if !errors.Is(err, context.Canceled) {
+			rctx.logger.Error(err)
+			rctx.HandleInternalServerError(ctx, err, input.RequestPath)
+		}
+
 		// Stop
 		return
 	}
@@ -224,7 +237,7 @@ func (rctx *requestContext) manageGetFolder(key string, input *GetInput) {
 		tplFileName := filepath.Base(rctx.targetCfg.Templates.FolderList.Path)
 		// Get template content
 		var content string
-		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.FolderList)
+		content, err = rctx.loadTemplateContent(ctx, rctx.targetCfg.Templates.FolderList)
 		// Check if errors exists in load file content
 		if err == nil {
 			// Create template executor
@@ -239,8 +252,11 @@ func (rctx *requestContext) manageGetFolder(key string, input *GetInput) {
 
 	// Check error
 	if err != nil {
-		rctx.logger.Error(err)
-		rctx.HandleInternalServerError(err, input.RequestPath)
+		if !errors.Is(err, context.Canceled) {
+			rctx.logger.Error(err)
+			rctx.HandleInternalServerError(ctx, err, input.RequestPath)
+		}
+
 		// Stop
 		return
 	}
@@ -257,7 +273,7 @@ func (rctx *requestContext) manageGetFolder(key string, input *GetInput) {
 	err = tmpl.Execute(buf, data)
 	if err != nil {
 		rctx.logger.Error(err)
-		rctx.HandleInternalServerError(err, input.RequestPath)
+		rctx.HandleInternalServerError(ctx, err, input.RequestPath)
 		// Stop
 		return
 	}
@@ -269,14 +285,14 @@ func (rctx *requestContext) manageGetFolder(key string, input *GetInput) {
 	_, err = buf.WriteTo(rctx.httpRW)
 	if err != nil {
 		rctx.logger.Error(err)
-		rctx.HandleInternalServerError(err, input.RequestPath)
+		rctx.HandleInternalServerError(ctx, err, input.RequestPath)
 		// Stop
 		return
 	}
 }
 
 // Put proxy PUT requests.
-func (rctx *requestContext) Put(inp *PutInput) {
+func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 	key := rctx.generateStartKey(inp.RequestPath)
 	// Add / at the end if not present
 	if !strings.HasSuffix(key, "/") {
@@ -310,28 +326,33 @@ func (rctx *requestContext) Put(inp *PutInput) {
 		// Check if allow override is enabled
 		if !rctx.targetCfg.Actions.PUT.Config.AllowOverride {
 			// Need to check if file already exists
-			headOutput, err := rctx.s3Context.HeadObject(key)
+			headOutput, err := rctx.s3Context.HeadObject(ctx, key)
 			// Check if error is not found if exists
 			if err != nil && !errors.Is(err, s3client.ErrNotFound) {
-				rctx.logger.Error(err)
-				rctx.HandleInternalServerError(err, inp.RequestPath)
+				if !errors.Is(err, context.Canceled) {
+					rctx.logger.Error(err)
+					rctx.HandleInternalServerError(ctx, err, inp.RequestPath)
+				}
+
 				// Stop
 				return
 			}
 			// Check if file exists
 			if headOutput != nil {
 				rctx.logger.Errorf("File detected on path %s for PUT request and override isn't allowed", key)
-				rctx.HandleForbidden(inp.RequestPath)
+				rctx.HandleForbidden(ctx, inp.RequestPath)
 				// Stop
 				return
 			}
 		}
 	}
 	// Put file
-	err := rctx.s3Context.PutObject(input)
+	err := rctx.s3Context.PutObject(ctx, input)
 	if err != nil {
-		rctx.logger.Error(err)
-		rctx.HandleInternalServerError(err, inp.RequestPath)
+		if !errors.Is(err, context.Canceled) {
+			rctx.logger.Error(err)
+			rctx.HandleInternalServerError(ctx, err, inp.RequestPath)
+		}
 		// Stop
 		return
 	}
@@ -340,23 +361,26 @@ func (rctx *requestContext) Put(inp *PutInput) {
 }
 
 // Delete will delete object in S3.
-func (rctx *requestContext) Delete(requestPath string) {
+func (rctx *requestContext) Delete(ctx context.Context, requestPath string) {
 	key := rctx.generateStartKey(requestPath)
 	// Manage key rewrite
 	key = rctx.manageKeyRewrite(key)
 	// Check that the path ends with a / for a directory or the main path special case (empty path)
 	if strings.HasSuffix(requestPath, "/") || requestPath == "" {
 		rctx.logger.Error(ErrRemovalFolder)
-		rctx.HandleInternalServerError(ErrRemovalFolder, requestPath)
+		rctx.HandleInternalServerError(ctx, ErrRemovalFolder, requestPath)
 		// Stop
 		return
 	}
 	// Delete object in S3
-	err := rctx.s3Context.DeleteObject(key)
+	err := rctx.s3Context.DeleteObject(ctx, key)
 	// Check if error exists
 	if err != nil {
-		rctx.logger.Error(err)
-		rctx.HandleInternalServerError(err, requestPath)
+		if !errors.Is(err, context.Canceled) {
+			rctx.logger.Error(err)
+			rctx.HandleInternalServerError(ctx, err, requestPath)
+		}
+
 		// Stop
 		return
 	}
@@ -383,11 +407,11 @@ func transformS3Entries(s3Entries []*s3client.ListElementOutput, rctx *requestCo
 	return entries
 }
 
-func (rctx *requestContext) loadTemplateContent(item *config.TargetTemplateConfigItem) (string, error) {
+func (rctx *requestContext) loadTemplateContent(ctx context.Context, item *config.TargetTemplateConfigItem) (string, error) {
 	// Check if it is in bucket
 	if item.InBucket {
 		// Try to get file from bucket
-		return rctx.getFileContent(item.Path, &GetInput{})
+		return rctx.getFileContent(ctx, item.Path, &GetInput{})
 	}
 
 	// Not in bucket, need to load from FS
@@ -400,16 +424,18 @@ func (rctx *requestContext) loadTemplateContent(item *config.TargetTemplateConfi
 	return string(by), nil
 }
 
-func (rctx *requestContext) getFileContent(key string, input *GetInput) (string, error) {
+func (rctx *requestContext) getFileContent(ctx context.Context, key string, input *GetInput) (string, error) {
 	// Get object from s3
-	objOutput, err := rctx.s3Context.GetObject(&s3client.GetInput{
-		Key:               key,
-		IfModifiedSince:   input.IfModifiedSince,
-		IfMatch:           input.IfMatch,
-		IfNoneMatch:       input.IfNoneMatch,
-		IfUnmodifiedSince: input.IfUnmodifiedSince,
-		Range:             input.Range,
-	})
+	objOutput, err := rctx.s3Context.GetObject(
+		ctx,
+		&s3client.GetInput{
+			Key:               key,
+			IfModifiedSince:   input.IfModifiedSince,
+			IfMatch:           input.IfMatch,
+			IfNoneMatch:       input.IfNoneMatch,
+			IfUnmodifiedSince: input.IfUnmodifiedSince,
+			Range:             input.Range,
+		})
 	if err != nil {
 		return "", err
 	}
@@ -424,16 +450,18 @@ func (rctx *requestContext) getFileContent(key string, input *GetInput) (string,
 	return string(bb), nil
 }
 
-func (rctx *requestContext) streamFileForResponse(key string, input *GetInput) error {
+func (rctx *requestContext) streamFileForResponse(ctx context.Context, key string, input *GetInput) error {
 	// Get object from s3
-	objOutput, err := rctx.s3Context.GetObject(&s3client.GetInput{
-		Key:               key,
-		IfModifiedSince:   input.IfModifiedSince,
-		IfMatch:           input.IfMatch,
-		IfNoneMatch:       input.IfNoneMatch,
-		IfUnmodifiedSince: input.IfUnmodifiedSince,
-		Range:             input.Range,
-	})
+	objOutput, err := rctx.s3Context.GetObject(
+		ctx,
+		&s3client.GetInput{
+			Key:               key,
+			IfModifiedSince:   input.IfModifiedSince,
+			IfMatch:           input.IfMatch,
+			IfNoneMatch:       input.IfNoneMatch,
+			IfUnmodifiedSince: input.IfUnmodifiedSince,
+			Range:             input.Range,
+		})
 	if err != nil {
 		return err
 	}

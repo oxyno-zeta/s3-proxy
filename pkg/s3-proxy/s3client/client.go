@@ -1,6 +1,7 @@
 package s3client
 
 import (
+	"context"
 	"errors"
 	"io"
 	"time"
@@ -17,11 +18,11 @@ import (
 
 // Client S3 Context interface.
 type Client interface {
-	ListFilesAndDirectories(key string) ([]*ListElementOutput, error)
-	HeadObject(key string) (*HeadOutput, error)
-	GetObject(input *GetInput) (*GetOutput, error)
-	PutObject(input *PutInput) error
-	DeleteObject(key string) error
+	ListFilesAndDirectories(ctx context.Context, key string) ([]*ListElementOutput, error)
+	HeadObject(ctx context.Context, key string) (*HeadOutput, error)
+	GetObject(ctx context.Context, input *GetInput) (*GetOutput, error)
+	PutObject(ctx context.Context, input *PutInput) error
+	DeleteObject(ctx context.Context, key string) error
 }
 
 // FileType File type.

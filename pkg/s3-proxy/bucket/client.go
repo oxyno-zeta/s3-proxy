@@ -1,6 +1,7 @@
 package bucket
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -19,21 +20,21 @@ var ErrRemovalFolder = errors.New("can't remove folder")
 // Client represents a client in order to GET, PUT or DELETE file on a bucket with a html output.
 type Client interface {
 	// Get allow to GET what's inside a request path
-	Get(input *GetInput)
+	Get(ctx context.Context, input *GetInput)
 	// Put will put a file following input
-	Put(inp *PutInput)
+	Put(ctx context.Context, inp *PutInput)
 	// Delete will delete file on request path
-	Delete(requestPath string)
+	Delete(ctx context.Context, requestPath string)
 	// Handle not found errors with bucket configuration
-	HandleNotFound(requestPath string)
+	HandleNotFound(ctx context.Context, requestPath string)
 	// Handle forbidden errors with bucket configuration
-	HandleForbidden(requestPath string)
+	HandleForbidden(ctx context.Context, requestPath string)
 	// Handle bad request errors with bucket configuration
-	HandleBadRequest(err error, requestPath string)
+	HandleBadRequest(ctx context.Context, err error, requestPath string)
 	// Handle internal server error errors with bucket configuration
-	HandleInternalServerError(err error, requestPath string)
+	HandleInternalServerError(ctx context.Context, err error, requestPath string)
 	// Handle unauthorized errors with bucket configuration
-	HandleUnauthorized(requestPath string)
+	HandleUnauthorized(ctx context.Context, requestPath string)
 }
 
 // GetInput represents Get input.

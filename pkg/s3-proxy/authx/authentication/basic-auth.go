@@ -33,7 +33,7 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 				if brctx == nil {
 					utils.HandleUnauthorized(logEntry, w, s.cfg.Templates, path)
 				} else {
-					brctx.HandleUnauthorized(path)
+					brctx.HandleUnauthorized(r.Context(), path)
 				}
 
 				return
@@ -51,7 +51,7 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 				if brctx == nil {
 					utils.HandleUnauthorized(logEntry, w, s.cfg.Templates, path)
 				} else {
-					brctx.HandleUnauthorized(path)
+					brctx.HandleUnauthorized(r.Context(), path)
 				}
 
 				return
@@ -65,7 +65,7 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 				if brctx == nil {
 					utils.HandleUnauthorized(logEntry, w, s.cfg.Templates, path)
 				} else {
-					brctx.HandleUnauthorized(path)
+					brctx.HandleUnauthorized(r.Context(), path)
 				}
 
 				return

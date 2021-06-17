@@ -1,8 +1,11 @@
 package bucket
 
-import "path"
+import (
+	"context"
+	"path"
+)
 
-func (rctx *requestContext) HandleInternalServerError(err error, requestPath string) {
+func (rctx *requestContext) HandleInternalServerError(ctx context.Context, err error, requestPath string) {
 	// Initialize content
 	content := ""
 	// Check if file is in bucket
@@ -11,7 +14,7 @@ func (rctx *requestContext) HandleInternalServerError(err error, requestPath str
 		rctx.targetCfg.Templates.InternalServerError != nil {
 		// Put error err2 to avoid erase of err
 		var err2 error
-		content, err2 = rctx.loadTemplateContent(rctx.targetCfg.Templates.InternalServerError)
+		content, err2 = rctx.loadTemplateContent(ctx, rctx.targetCfg.Templates.InternalServerError)
 		// Check if error exists
 		if err2 != nil {
 			// This is a particular case. In this case, remove old error and manage new one
@@ -23,7 +26,7 @@ func (rctx *requestContext) HandleInternalServerError(err error, requestPath str
 	rctx.errorsHandlers.HandleInternalServerErrorWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath, err)
 }
 
-func (rctx *requestContext) HandleNotFound(requestPath string) {
+func (rctx *requestContext) HandleNotFound(ctx context.Context, requestPath string) {
 	// Initialize content
 	content := ""
 	// Check if file is in bucket
@@ -33,9 +36,9 @@ func (rctx *requestContext) HandleNotFound(requestPath string) {
 		// Declare error
 		var err error
 		// Try to get file from bucket
-		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.NotFound)
+		content, err = rctx.loadTemplateContent(ctx, rctx.targetCfg.Templates.NotFound)
 		if err != nil {
-			rctx.HandleInternalServerError(err, requestPath)
+			rctx.HandleInternalServerError(ctx, err, requestPath)
 
 			return
 		}
@@ -45,7 +48,7 @@ func (rctx *requestContext) HandleNotFound(requestPath string) {
 	rctx.errorsHandlers.HandleNotFoundWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath)
 }
 
-func (rctx *requestContext) HandleForbidden(requestPath string) {
+func (rctx *requestContext) HandleForbidden(ctx context.Context, requestPath string) {
 	// Initialize content
 	content := ""
 	// Check if file is in bucket
@@ -55,9 +58,9 @@ func (rctx *requestContext) HandleForbidden(requestPath string) {
 		// Declare error
 		var err error
 		// Try to get file from bucket
-		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.Forbidden)
+		content, err = rctx.loadTemplateContent(ctx, rctx.targetCfg.Templates.Forbidden)
 		if err != nil {
-			rctx.HandleInternalServerError(err, requestPath)
+			rctx.HandleInternalServerError(ctx, err, requestPath)
 
 			return
 		}
@@ -67,7 +70,7 @@ func (rctx *requestContext) HandleForbidden(requestPath string) {
 	rctx.errorsHandlers.HandleForbiddenWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath)
 }
 
-func (rctx *requestContext) HandleBadRequest(err error, requestPath string) {
+func (rctx *requestContext) HandleBadRequest(ctx context.Context, err error, requestPath string) {
 	// Initialize content
 	content := ""
 	// Check if file is in bucket
@@ -77,9 +80,9 @@ func (rctx *requestContext) HandleBadRequest(err error, requestPath string) {
 		// Declare error
 		var err2 error
 		// Try to get file from bucket
-		content, err2 = rctx.loadTemplateContent(rctx.targetCfg.Templates.BadRequest)
+		content, err2 = rctx.loadTemplateContent(ctx, rctx.targetCfg.Templates.BadRequest)
 		if err2 != nil {
-			rctx.HandleInternalServerError(err2, requestPath)
+			rctx.HandleInternalServerError(ctx, err2, requestPath)
 
 			return
 		}
@@ -89,7 +92,7 @@ func (rctx *requestContext) HandleBadRequest(err error, requestPath string) {
 	rctx.errorsHandlers.HandleBadRequestWithTemplate(rctx.logger, rctx.httpRW, rctx.tplConfig, content, rpath, err)
 }
 
-func (rctx *requestContext) HandleUnauthorized(requestPath string) {
+func (rctx *requestContext) HandleUnauthorized(ctx context.Context, requestPath string) {
 	// Initialize content
 	content := ""
 	// Check if file is in bucket
@@ -99,9 +102,9 @@ func (rctx *requestContext) HandleUnauthorized(requestPath string) {
 		// Declare error
 		var err error
 		// Try to get file from bucket
-		content, err = rctx.loadTemplateContent(rctx.targetCfg.Templates.Unauthorized)
+		content, err = rctx.loadTemplateContent(ctx, rctx.targetCfg.Templates.Unauthorized)
 		if err != nil {
-			rctx.HandleInternalServerError(err, requestPath)
+			rctx.HandleInternalServerError(ctx, err, requestPath)
 
 			return
 		}

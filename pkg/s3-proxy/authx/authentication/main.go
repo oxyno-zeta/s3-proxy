@@ -54,7 +54,7 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 				if brctx == nil {
 					utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, requestURI, err)
 				} else {
-					brctx.HandleInternalServerError(err, requestURI)
+					brctx.HandleInternalServerError(r.Context(), err, requestURI)
 				}
 
 				return
@@ -69,7 +69,7 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 				if brctx == nil {
 					utils.HandleForbidden(logEntry, w, s.cfg.Templates, requestURI)
 				} else {
-					brctx.HandleForbidden(requestURI)
+					brctx.HandleForbidden(r.Context(), requestURI)
 				}
 
 				return
@@ -113,7 +113,7 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 			if brctx == nil {
 				utils.HandleInternalServerError(logEntry, w, s.cfg.Templates, requestURI, err)
 			} else {
-				brctx.HandleInternalServerError(err, requestURI)
+				brctx.HandleInternalServerError(r.Context(), err, requestURI)
 			}
 		})
 	}

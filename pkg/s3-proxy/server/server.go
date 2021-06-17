@@ -245,7 +245,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 							ifModifiedSinceTime, err := http.ParseTime(ifModifiedSinceStr)
 							// Check error
 							if err != nil {
-								brctx.HandleBadRequest(err, requestPath)
+								brctx.HandleBadRequest(req.Context(), err, requestPath)
 
 								return
 							}
@@ -272,7 +272,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 							ifUnmodifiedSinceTime, err := http.ParseTime(ifUnmodifiedSinceStr)
 							// Check error
 							if err != nil {
-								brctx.HandleBadRequest(err, requestPath)
+								brctx.HandleBadRequest(req.Context(), err, requestPath)
 
 								return
 							}
@@ -281,14 +281,16 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						}
 
 						// Proxy GET Request
-						brctx.Get(&bucket.GetInput{
-							RequestPath:       requestPath,
-							IfModifiedSince:   ifModifiedSince,
-							IfMatch:           ifMatch,
-							IfNoneMatch:       ifNoneMatch,
-							IfUnmodifiedSince: ifUnmodifiedSince,
-							Range:             byteRange,
-						})
+						brctx.Get(
+							req.Context(),
+							&bucket.GetInput{
+								RequestPath:       requestPath,
+								IfModifiedSince:   ifModifiedSince,
+								IfMatch:           ifMatch,
+								IfNoneMatch:       ifNoneMatch,
+								IfUnmodifiedSince: ifUnmodifiedSince,
+								Range:             byteRange,
+							})
 					})
 				}
 
@@ -304,7 +306,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						logEntry := middlewares.GetLogEntry(req)
 						if err := req.ParseForm(); err != nil {
 							logEntry.Error(err)
-							brctx.HandleInternalServerError(err, path)
+							brctx.HandleInternalServerError(req.Context(), err, path)
 
 							return
 						}
@@ -312,7 +314,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						err := req.ParseMultipartForm(0)
 						if err != nil {
 							logEntry.Error(err)
-							brctx.HandleInternalServerError(err, path)
+							brctx.HandleInternalServerError(req.Context(), err, path)
 
 							return
 						}
@@ -320,7 +322,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						file, fileHeader, err := req.FormFile("file")
 						if err != nil {
 							logEntry.Error(err)
-							brctx.HandleInternalServerError(err, path)
+							brctx.HandleInternalServerError(req.Context(), err, path)
 
 							return
 						}
@@ -332,7 +334,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 							ContentType: fileHeader.Header.Get("Content-Type"),
 							ContentSize: fileHeader.Size,
 						}
-						brctx.Put(inp)
+						brctx.Put(req.Context(), inp)
 					})
 				}
 
@@ -345,7 +347,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						// Get request path
 						requestPath := chi.URLParam(req, "*")
 						// Proxy GET Request
-						brctx.Delete(requestPath)
+						brctx.Delete(req.Context(), requestPath)
 					})
 				}
 			})
