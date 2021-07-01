@@ -8,6 +8,8 @@ before:
 builds:
   - main: ./cmd/s3-proxy
     binary: s3-proxy
+    flags:
+      - -trimpath
     ldflags:
       - -extldflags "-static"
       - -X github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version.Version={{ .Tag }}
