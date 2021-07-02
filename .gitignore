@@ -138,3 +138,4 @@ dist/
 _dist/
 coverage.html
 bundle.tar.gz
+*.log
