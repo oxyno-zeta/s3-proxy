@@ -127,10 +127,7 @@ func (ll *loggerIns) WithError(err error) Logger {
 	}
 }
 
-func (ll *loggerIns) Error(args ...interface{}) {
-	// Get first element
-	elem := args[0]
-
+func (ll *loggerIns) addPotentialWithError(elem interface{}) {
 	// Try to cast element to error
 	err, ok := elem.(error)
 	// Check if can be casted to error
@@ -141,7 +138,52 @@ func (ll *loggerIns) Error(args ...interface{}) {
 		// Change internal field logger
 		ll.FieldLogger = res.(*loggerIns).FieldLogger
 	}
+}
+
+func (ll *loggerIns) Error(args ...interface{}) {
+	// Add potential "WithError"
+	ll.addPotentialWithError(args[0])
 
 	// Call logger error method
 	ll.FieldLogger.Error(args...)
+}
+
+func (ll *loggerIns) Fatal(args ...interface{}) {
+	// Add potential "WithError"
+	ll.addPotentialWithError(args[0])
+
+	// Call logger fatal method
+	ll.FieldLogger.Fatal(args...)
+}
+
+func (ll *loggerIns) Errorf(format string, args ...interface{}) {
+	// Create error
+	err := fmt.Errorf(format, args...)
+
+	// Log error
+	ll.Error(err)
+}
+
+func (ll *loggerIns) Fatalf(format string, args ...interface{}) {
+	// Create error
+	err := fmt.Errorf(format, args...)
+
+	// Log fatal
+	ll.Fatal(err)
+}
+
+func (ll *loggerIns) Errorln(args ...interface{}) {
+	// Add potential "WithError"
+	ll.addPotentialWithError(args[0])
+
+	// Log error
+	ll.FieldLogger.Errorln(args...)
+}
+
+func (ll *loggerIns) Fatalln(args ...interface{}) {
+	// Add potential "WithError"
+	ll.addPotentialWithError(args[0])
+
+	// Log fatal
+	ll.FieldLogger.Fatalln(args...)
 }
