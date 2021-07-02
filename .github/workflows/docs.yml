@@ -5,10 +5,30 @@ on:
       - "github-pages"
   pull_request: {}
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      md: ${{ steps.filter.outputs.md }}
+      config: ${{ steps.filter.outputs.config }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          filters: |
+            md:
+              - '**/*.md'
+            config:
+              - '.github/workflows/docs.yml'
+              - 'mkdocs.yml'
   docs-build:
     if: |
-      (github.repository == 'oxyno-zeta/s3-proxy')
+      (needs.changes.outputs.md == 'true') ||
+      (needs.changes.outputs.config == 'true')
     runs-on: ubuntu-latest
+    needs:
+      - changes
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -20,8 +40,9 @@ jobs:
   docs-deploy:
     needs:
       - docs-build
+      - changes
     if: |
-      (github.repository == 'oxyno-zeta/s3-proxy')  &&
+      ((needs.changes.outputs.md == 'true') || (needs.changes.outputs.config == 'true')) &&
       (github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
     steps:
