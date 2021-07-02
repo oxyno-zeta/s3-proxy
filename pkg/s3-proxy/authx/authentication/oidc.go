@@ -97,7 +97,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 		}
 
 		// Split request query state to get redirect url and original state
-		split := strings.SplitN(reqQueryState, stateRedirectSeparator, 2)
+		split := strings.SplitN(reqQueryState, stateRedirectSeparator, 2) // nolint: gomnd // Ignoring because create by app just before
 		// Prepare and affect values
 		reqState := split[0]
 		rdVal := ""
@@ -263,12 +263,12 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 
 			if emailClaim != nil {
 				// Get email
-				email = emailClaim.(string)
+				email, _ = emailClaim.(string)
 
 				// Check email verified
 				if oidcAuthCfg.EmailVerified && claims["email_verified"] != nil {
 					// Get email verified field
-					emailVerified := claims["email_verified"].(bool)
+					emailVerified, _ := claims["email_verified"].(bool)
 					// Update email verified in user
 					ouser.EmailVerified = emailVerified
 				}
@@ -292,16 +292,16 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 
 			// Finishing building user
 			if claims["family_name"] != nil {
-				ouser.FamilyName = claims["family_name"].(string)
+				ouser.FamilyName, _ = claims["family_name"].(string)
 			}
 			if claims["given_name"] != nil {
-				ouser.GivenName = claims["given_name"].(string)
+				ouser.GivenName, _ = claims["given_name"].(string)
 			}
 			if claims["name"] != nil {
-				ouser.Name = claims["name"].(string)
+				ouser.Name, _ = claims["name"].(string)
 			}
 			if claims["preferred_username"] != nil {
-				ouser.PreferredUsername = claims["preferred_username"].(string)
+				ouser.PreferredUsername, _ = claims["preferred_username"].(string)
 			}
 
 			// Add user to request context by creating a new context
