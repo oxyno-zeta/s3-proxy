@@ -55,7 +55,7 @@ func Middleware(
 			// Check if resource is basic authentication
 			if resource.Basic != nil {
 				// Case user in basic auth user
-				buser := user.(*models.BasicAuthUser)
+				buser, _ := user.(*models.BasicAuthUser)
 				// Resource is basic authenticated
 				logger.Debug("authorization for basic authentication => nothing needed")
 				logger.Infof("Basic auth user %s authorized", buser.GetIdentifier())
@@ -73,12 +73,12 @@ func Middleware(
 			// Check if resource is OIDC
 			if resource.OIDC != nil {
 				// Cast user in oidc user
-				ouser := user.(*models.OIDCUser)
+				ouser, _ := user.(*models.OIDCUser)
 
 				// Authorization part
 
-				authorizationProvider := ""
-				authorized := false
+				var authorizationProvider string
+				var authorized bool
 				// Check if case of opa server
 				if resource.OIDC.AuthorizationOPAServer != nil {
 					authorizationProvider = "oidc-opa"

@@ -137,6 +137,7 @@ func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string)
 	}
 
 	// Concat folders and files
+	// nolint:gocritic // Ignoring this: appendAssign: append result not assigned to the same slice
 	all := append(folders, files...)
 
 	// Create info

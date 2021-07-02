@@ -330,11 +330,9 @@ linters:
     - typecheck
     - bodyclose
     - noctx
-    - golint
     - rowserrcheck
     - stylecheck
     - gosec
-    - interfacer
     - unconvert
     - dupl
     - goconst
@@ -342,7 +340,6 @@ linters:
     - gofmt
     - goimports
     - goheader
-    - maligned
     - depguard
     - misspell
     - lll
@@ -363,6 +360,13 @@ linters:
     - sqlclosecheck
     - nlreturn
     - nolintlint
+    - forcetypeassert
+    - gomoddirectives
+    - importas
+    - nilerr
+    - promlinter
+    - revive
+    - wastedassign
   disable:
     - prealloc
     - gochecknoglobals
