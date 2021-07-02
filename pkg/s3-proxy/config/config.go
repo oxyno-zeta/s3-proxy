@@ -1,9 +1,10 @@
 package config
 
 import (
-	"errors"
 	"regexp"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // DefaultPort Default port.
