@@ -11,6 +11,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
+	"github.com/pkg/errors"
 )
 
 type s3Context struct {
@@ -130,7 +131,7 @@ func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string)
 
 		// Check if errors exists
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, errors.WithStack(err)
 		}
 	}
 
@@ -204,7 +205,7 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 			}
 		}
 
-		return nil, nil, err
+		return nil, nil, errors.WithStack(err)
 	}
 	// Build output
 	output := &GetOutput{
@@ -304,7 +305,7 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*Result
 	_, err := s3ctx.svcClient.PutObject(inp)
 	// Check error
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	// Metrics
@@ -354,7 +355,7 @@ func (s3ctx *s3Context) HeadObject(ctx context.Context, key string) (*HeadOutput
 			}
 		}
 
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	// Generate output
 	output := &HeadOutput{
@@ -385,7 +386,7 @@ func (s3ctx *s3Context) DeleteObject(ctx context.Context, key string) (*ResultIn
 	})
 	// Check error
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	// Metrics

@@ -12,6 +12,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
+	"github.com/pkg/errors"
 )
 
 type InternalServer struct {
@@ -31,9 +32,15 @@ func NewInternalServer(logger log.Logger, cfgManager config.Manager, metricsCl m
 
 func (svr *InternalServer) Listen() error {
 	svr.logger.Infof("Internal server listening on %s", svr.server.Addr)
+	// Listen
 	err := svr.server.ListenAndServe()
+	// Check error
+	if err != nil {
+		return errors.WithStack(err)
+	}
 
-	return err
+	// Default
+	return nil
 }
 
 func (svr *InternalServer) GenerateServer() {

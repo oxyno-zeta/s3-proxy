@@ -5,6 +5,7 @@ package server
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -3030,7 +3031,7 @@ func TestOIDCAuthentication(t *testing.T) {
 				wg.Done()
 				err := ssvr.Listen()
 
-				if err != http.ErrServerClosed {
+				if err != nil && errors.Unwrap(err) != http.ErrServerClosed {
 					assert.NoError(t, err)
 					return err
 				}

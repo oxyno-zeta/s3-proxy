@@ -7,6 +7,7 @@ import (
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	"github.com/pkg/errors"
 
 	"github.com/uber/jaeger-client-go"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
@@ -38,7 +39,7 @@ func (s *service) Reload() error {
 	// Close old one
 	err = cl.Close()
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -70,7 +71,7 @@ func (s *service) setup() error {
 			// Try to parse duration for flush interval
 			dur, err := time.ParseDuration(cfg.Tracing.FlushInterval)
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 
 			jcfg.Reporter.BufferFlushInterval = dur
@@ -89,7 +90,7 @@ func (s *service) setup() error {
 	)
 	// Check error
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	// Set the singleton opentracing.Tracer with the Jaeger tracer.
 	opentracing.SetGlobalTracer(tracer)
