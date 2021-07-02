@@ -12,6 +12,7 @@ import (
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
+	"github.com/pkg/errors"
 )
 
 func (h *handler) manageHeaders(helpersContent string, headersTpl map[string]string, hData interface{}) (map[string]string, error) {
@@ -129,7 +130,7 @@ func (h *handler) send(bodyBuf io.WriterTo, headers map[string]string, status in
 	_, err := bodyBuf.WriteTo(h.res)
 	// Check if error exists
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -140,7 +141,7 @@ func loadLocalFileContent(path string) (string, error) {
 	by, err := ioutil.ReadFile(path)
 	// Check if error exists
 	if err != nil {
-		return "", err
+		return "", errors.WithStack(err)
 	}
 
 	return string(by), nil

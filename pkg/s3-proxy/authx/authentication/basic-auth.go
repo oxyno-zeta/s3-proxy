@@ -9,6 +9,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
+	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
@@ -29,7 +30,7 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 			username, password, ok := r.BasicAuth()
 			if !ok {
 				// Create error
-				err := fmt.Errorf("no basic auth detected in request")
+				err := errors.New("no basic auth detected in request")
 				// Add header for basic auth realm
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
 				// Check if bucket request context doesn't exist to use local default files
@@ -62,6 +63,8 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 			if cred == nil {
 				// Create error
 				err := fmt.Errorf("username %s not found in authorized users", username)
+				// Add stack trace
+				err = errors.WithStack(err)
 				// Add header for basic auth realm
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
 				// Check if bucket request context doesn't exist to use local default files
@@ -78,6 +81,8 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 			if cred.(*config.BasicAuthUserConfig).Password.Value == "" || cred.(*config.BasicAuthUserConfig).Password.Value != password {
 				// Create error
 				err := fmt.Errorf("username %s not authorized", username)
+				// Add stack trace
+				err = errors.WithStack(err)
 				// Add header for basic auth realm
 				w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, basicConfig.Realm))
 				// Check if bucket request context doesn't exist to use local default files

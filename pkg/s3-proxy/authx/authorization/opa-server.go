@@ -10,6 +10,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
+	"github.com/pkg/errors"
 )
 
 type inputOPA struct {
@@ -78,21 +79,21 @@ func isOPAServerAuthorized(req *http.Request, oidcUser *models.OIDCUser, resourc
 	// Json encode body
 	bb, err := json.Marshal(input)
 	if err != nil {
-		return false, err
+		return false, errors.WithStack(err)
 	}
 
 	// Making request to OPA server
 	// Change NewRequest to NewRequestWithContext and pass context it
 	request, err := http.NewRequestWithContext(req.Context(), http.MethodPost, resource.OIDC.AuthorizationOPAServer.URL, bytes.NewBuffer(bb))
 	if err != nil {
-		return false, err
+		return false, errors.WithStack(err)
 	}
 	// Add content type
 	request.Header.Add("Content-Type", "application/json")
 	// Making request to OPA server
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return false, err
+		return false, errors.WithStack(err)
 	}
 	// Defer closing body
 	defer resp.Body.Close()
@@ -102,7 +103,7 @@ func isOPAServerAuthorized(req *http.Request, oidcUser *models.OIDCUser, resourc
 	// Decode answer
 	err = json.NewDecoder(resp.Body).Decode(&answer)
 	if err != nil {
-		return false, err
+		return false, errors.WithStack(err)
 	}
 
 	return answer.Result, nil

@@ -14,6 +14,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-playground/validator/v10"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"github.com/thoas/go-funk"
 )
@@ -39,7 +40,7 @@ func (ctx *managercontext) Load() error {
 	// List files
 	files, err := ioutil.ReadDir(mainConfigFolderPath)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	// Generate viper instances for static configs
@@ -85,7 +86,7 @@ func (ctx *managercontext) watchInternalFile(filePath string, forceStop chan boo
 	go func() {
 		watcher, err := fsnotify.NewWatcher()
 		if err != nil {
-			ctx.logger.Fatal(err)
+			ctx.logger.Fatal(errors.WithStack(err))
 		}
 		defer watcher.Close()
 
@@ -218,12 +219,12 @@ func (ctx *managercontext) loadConfiguration() error {
 	for _, vip := range ctx.configs {
 		err := vip.ReadInConfig()
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 
 		err = globalViper.MergeConfigMap(vip.AllSettings())
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 	}
 
@@ -232,7 +233,7 @@ func (ctx *managercontext) loadConfiguration() error {
 	// Quick unmarshal.
 	err := globalViper.Unmarshal(&out)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	// Load default values
@@ -244,7 +245,7 @@ func (ctx *managercontext) loadConfiguration() error {
 	// Configuration validation
 	err = validate.Struct(out)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	// Load all credentials
@@ -446,7 +447,7 @@ func loadCredential(credCfg *CredentialConfig) error {
 		// Secret file
 		databytes, err := ioutil.ReadFile(credCfg.Path)
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 		// Store value
 		credCfg.Value = string(databytes)
@@ -454,7 +455,9 @@ func loadCredential(credCfg *CredentialConfig) error {
 		// Environment variable
 		envValue := os.Getenv(credCfg.Env)
 		if envValue == "" {
-			return fmt.Errorf(TemplateErrLoadingEnvCredentialEmpty, credCfg.Env)
+			err := fmt.Errorf(TemplateErrLoadingEnvCredentialEmpty, credCfg.Env)
+
+			return errors.WithStack(err)
 		}
 		// Store value
 		credCfg.Value = envValue
@@ -616,7 +619,7 @@ func loadKeyRewriteValues(item *TargetKeyRewriteConfig) error {
 	rs, err := regexp.Compile(item.Source)
 	// Check error
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	// Save source
 	item.SourceRegex = rs
@@ -635,7 +638,7 @@ func loadRegexOIDCAuthorizationAccess(item *OIDCAuthorizationAccess) error {
 			reg, err2 := regexp.Compile(item.Group)
 			// Check error
 			if err2 != nil {
-				return err2
+				return errors.WithStack(err2)
 			}
 			// Save regexp
 			item.GroupRegexp = reg
@@ -647,7 +650,7 @@ func loadRegexOIDCAuthorizationAccess(item *OIDCAuthorizationAccess) error {
 			reg, err2 := regexp.Compile(item.Email)
 			// Check error
 			if err2 != nil {
-				return err2
+				return errors.WithStack(err2)
 			}
 			// Save regexp
 			item.EmailRegexp = reg

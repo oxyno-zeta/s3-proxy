@@ -55,13 +55,13 @@ func (ll *loggerIns) Configure(level string, format string, filePath string) err
 		// Create directory if necessary
 		err2 := os.MkdirAll(filepath.Dir(filePath), os.ModePerm)
 		if err2 != nil {
-			return err2
+			return errors.WithStack(err2)
 		}
 
 		// Open file
 		f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 
 		// Set output file

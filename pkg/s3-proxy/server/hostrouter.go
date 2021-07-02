@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/gobwas/glob"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
+	"github.com/pkg/errors"
 )
 
 // Fork dead project https://github.com/go-chi/hostrouter/
@@ -74,7 +75,7 @@ func (hr *HostRouter) getRouterWithWildcard(host string) (chi.Router, error) {
 		g, err := glob.Compile(wh)
 		// Check if error exists
 		if err != nil {
-			return nil, err
+			return nil, errors.WithStack(err)
 		}
 		// Check if wildcard host match current host
 		if g.Match(host) {

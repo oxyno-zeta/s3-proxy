@@ -9,6 +9,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
+	"github.com/pkg/errors"
 )
 
 type handler struct {
@@ -184,7 +185,7 @@ func (h *handler) StreamFile(
 	// Copy data stream to output stream
 	_, err := io.Copy(h.res, input.Body)
 
-	return err
+	return errors.WithStack(err)
 }
 
 func (h *handler) FoldersFilesList(

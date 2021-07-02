@@ -1,9 +1,10 @@
 package authentication
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/pkg/errors"
 
 	oidc "github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gobwas/glob"
@@ -69,6 +70,8 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 				// In this case, resource isn't found because not path not declared
 				// So access is forbidden
 				err2 := fmt.Errorf("no resource found for path %s and method %s => Forbidden access", requestURI, httpMethod)
+				// Add stack trace
+				err2 = errors.WithStack(err2)
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
 					responsehandler.GeneralForbiddenError(r, w, s.cfgManager, err2)
@@ -135,7 +138,7 @@ func findResource(resL []*config.Resource, requestURI string, httpMethod string)
 		g, err := glob.Compile(res.Path)
 		// Check if error exists
 		if err != nil {
-			return nil, err
+			return nil, errors.WithStack(err)
 		}
 		// Check if request uri match glob pattern declared in resource
 		if g.Match(requestURI) {

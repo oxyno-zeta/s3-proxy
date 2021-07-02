@@ -15,6 +15,7 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+// HookNumberOfRedirect will contains the number of redirect that a hook can follow.
 const HookNumberOfRedirect = 20
 
 type manager struct {
@@ -130,7 +131,7 @@ func (m *manager) createRestClients(list []*config.WebhookConfig) ([]*hookStorag
 			dur, err := time.ParseDuration(it.DefaultWaitTime)
 			// Check error
 			if err != nil {
-				return nil, err
+				return nil, errors.WithStack(err)
 			}
 			// Add it
 			cli = cli.SetRetryWaitTime(dur)
@@ -142,7 +143,7 @@ func (m *manager) createRestClients(list []*config.WebhookConfig) ([]*hookStorag
 			dur, err := time.ParseDuration(it.MaxWaitTime)
 			// Check error
 			if err != nil {
-				return nil, err
+				return nil, errors.WithStack(err)
 			}
 			// Add it
 			cli = cli.SetRetryMaxWaitTime(dur)
@@ -430,8 +431,10 @@ func (m *manager) runHooks(
 		spLogger = spLogger.WithField("webhook_status_code", fmt.Sprint(res.StatusCode()))
 		// Check status code
 		if res.StatusCode() >= http.StatusBadRequest {
+			// Create error
+			err := fmt.Errorf("%d - %s", res.StatusCode(), string(res.Body()))
 			// Log
-			spLogger.Error(errors.WithStack(errors.New(string(res.Body()))))
+			spLogger.Error(errors.WithStack(err))
 
 			// Increase failed webhooks
 			m.metricsSvc.IncFailedWebhooks(targetName, action)
