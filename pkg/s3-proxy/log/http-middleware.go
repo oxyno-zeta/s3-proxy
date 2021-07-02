@@ -121,7 +121,7 @@ func (l *StructuredLoggerEntry) Panic(v interface{}, stack []byte) {
 
 // GetLogEntry get log entry.
 func getLogEntry(r *http.Request) Logger {
-	entry := middleware.GetLogEntry(r).(*StructuredLoggerEntry)
+	entry, _ := middleware.GetLogEntry(r).(*StructuredLoggerEntry)
 
 	return entry.Logger
 }

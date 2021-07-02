@@ -150,7 +150,7 @@ func (ctx *prometheusClient) register() {
 
 	ctx.succeedWebhooks = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "succeed_webhooks",
+			Name: "succeed_webhooks_total",
 			Help: "How many webhooks have been succeed ?",
 		},
 		[]string{"target_name", "action_name"},
@@ -159,7 +159,7 @@ func (ctx *prometheusClient) register() {
 
 	ctx.failedWebhooks = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "failed_webhooks",
+			Name: "failed_webhooks_total",
 			Help: "How many webhooks have been failed ?",
 		},
 		[]string{"target_name", "action_name"},

@@ -11,7 +11,7 @@ import (
 const DefaultPort = 8080
 
 // DefaultServerCompressEnabled Default server compress enabled.
-var DefaultServerCompressEnabled bool = true
+var DefaultServerCompressEnabled = true
 
 // DefaultServerCompressLevel Default server compress level.
 const DefaultServerCompressLevel = 5

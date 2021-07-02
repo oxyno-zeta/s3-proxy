@@ -102,7 +102,7 @@ func (m *manager) Load() error {
 	// Check if result exists or not
 	if actualKeysInt != nil {
 		// Cast it to string array
-		actualKeys := actualKeysInt.([]string)
+		actualKeys, _ := actualKeysInt.([]string)
 		// Get difference between those 2 array
 		subtract := funk.SubtractString(actualKeys, tgtKeys)
 		// Loop over subtract keys
