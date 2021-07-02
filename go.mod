@@ -19,7 +19,7 @@ require (
 	github.com/golang/mock v1.5.0
 	github.com/google/uuid v1.1.4 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
-	github.com/johannesboyne/gofakes3 v0.0.0-20210217223559-02ffa763be97
+	github.com/johannesboyne/gofakes3 v0.0.0-20210608054100-92d5d4af5fde
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pelletier/go-toml v1.8.1 // indirect
