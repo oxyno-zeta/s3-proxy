@@ -153,3 +153,37 @@ Fields:
 | Field name      | Description                                            |
 | --------------- | ------------------------------------------------------ |
 | `provider_type` | Provider type (`oidc-opa` or `basic-auth` for example) |
+
+## succeed_webhooks_total
+
+Type: Counter
+
+Prometheus data:
+
+- `succeed_webhooks_total`
+
+Description: How many webhooks have been succeed ?
+
+Fields:
+
+| Field name    | Description                                         |
+| ------------- | --------------------------------------------------- |
+| `target_name` | Target name containing the webhook definition       |
+| `action_name` | Webhook action triggered (`GET`, `PUT` or `DELETE`) |
+
+## failed_webhooks_total
+
+Type: Counter
+
+Prometheus data:
+
+- `failed_webhooks_total`
+
+Description: How many webhooks have been failed ?
+
+Fields:
+
+| Field name    | Description                                         |
+| ------------- | --------------------------------------------------- |
+| `target_name` | Target name containing the webhook definition       |
+| `action_name` | Webhook action triggered (`GET`, `PUT` or `DELETE`) |
