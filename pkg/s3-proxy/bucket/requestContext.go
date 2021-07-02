@@ -2,11 +2,12 @@ package bucket
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"path"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
@@ -446,7 +447,7 @@ func (rctx *requestContext) LoadFileContent(ctx context.Context, path string) (s
 	bb, err := ioutil.ReadAll(objOutput.Body)
 	// Check error
 	if err != nil {
-		return "", err
+		return "", errors.WithStack(err)
 	}
 
 	// Transform it to string and return

@@ -22,6 +22,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
+	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
@@ -55,9 +56,15 @@ func NewServer(
 
 func (svr *Server) Listen() error {
 	svr.logger.Infof("Server listening on %s", svr.server.Addr)
+	// Listen
 	err := svr.server.ListenAndServe()
+	// Check error
+	if err != nil {
+		return errors.WithStack(err)
+	}
 
-	return err
+	// Default
+	return nil
 }
 
 func (svr *Server) GenerateServer() error {
@@ -155,7 +162,9 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	// Check if auth if enabled and oidc enabled
 	if cfg.AuthProviders != nil && cfg.AuthProviders.OIDC != nil {
 		for k, v := range cfg.AuthProviders.OIDC {
+			// Add oidc endpoints
 			err := authenticationSvc.OIDCEndpoints(k, v, r)
+			// Check error
 			if err != nil {
 				return nil, err
 			}
@@ -174,7 +183,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				r,
 				w,
 				svr.cfgManager,
-				err,
+				errors.WithStack(err),
 			)
 		}
 	}
@@ -230,6 +239,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 		}
 		// Get router from hostrouter if exists
 		rt := hr.Get(domain)
+		// Check nil
 		if rt == nil {
 			// Create a new router
 			rt = chi.NewRouter()
@@ -266,7 +276,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						requestPath, err := url.PathUnescape(requestPath)
 						// Check error
 						if err != nil {
-							resHan.InternalServerError(brctx.LoadFileContent, err)
+							resHan.InternalServerError(brctx.LoadFileContent, errors.WithStack(err))
 
 							return
 						}
@@ -283,7 +293,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 							ifModifiedSinceTime, err := http.ParseTime(ifModifiedSinceStr)
 							// Check error
 							if err != nil {
-								resHan.BadRequestError(brctx.LoadFileContent, err)
+								resHan.BadRequestError(brctx.LoadFileContent, errors.WithStack(err))
 
 								return
 							}
@@ -310,7 +320,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 							ifUnmodifiedSinceTime, err := http.ParseTime(ifUnmodifiedSinceStr)
 							// Check error
 							if err != nil {
-								resHan.BadRequestError(brctx.LoadFileContent, err)
+								resHan.BadRequestError(brctx.LoadFileContent, errors.WithStack(err))
 
 								return
 							}
@@ -346,33 +356,30 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						requestPath, err := url.PathUnescape(requestPath)
 						// Check error
 						if err != nil {
-							resHan.InternalServerError(brctx.LoadFileContent, err)
+							resHan.InternalServerError(brctx.LoadFileContent, errors.WithStack(err))
 
 							return
 						}
 
-						// Get logger
-						logEntry := log.GetLoggerFromContext(req.Context())
 						// Parse form
 						err = req.ParseForm()
 						// Check error
 						if err != nil {
-							resHan.InternalServerError(brctx.LoadFileContent, err)
+							resHan.InternalServerError(brctx.LoadFileContent, errors.WithStack(err))
 
 							return
 						}
 						// Parse multipart form
 						err = req.ParseMultipartForm(0)
 						if err != nil {
-							logEntry.Error(err)
-							resHan.InternalServerError(brctx.LoadFileContent, err)
+							resHan.InternalServerError(brctx.LoadFileContent, errors.WithStack(err))
 
 							return
 						}
 						// Get file from form
 						file, fileHeader, err := req.FormFile("file")
 						if err != nil {
-							resHan.InternalServerError(brctx.LoadFileContent, err)
+							resHan.InternalServerError(brctx.LoadFileContent, errors.WithStack(err))
 
 							return
 						}
@@ -384,6 +391,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 							ContentType: fileHeader.Header.Get("Content-Type"),
 							ContentSize: fileHeader.Size,
 						}
+						// Action
 						brctx.Put(req.Context(), inp)
 					})
 				}
@@ -403,11 +411,11 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						requestPath, err := url.PathUnescape(requestPath)
 						// Check error
 						if err != nil {
-							resHan.InternalServerError(brctx.LoadFileContent, err)
+							resHan.InternalServerError(brctx.LoadFileContent, errors.WithStack(err))
 
 							return
 						}
-						// Proxy GET Request
+						// Proxy DELETE Request
 						brctx.Delete(req.Context(), requestPath)
 					})
 				}

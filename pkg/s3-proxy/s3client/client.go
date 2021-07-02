@@ -2,14 +2,11 @@ package s3client
 
 import (
 	"context"
-	"errors"
 	"io"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/pkg/errors"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 )
@@ -120,36 +117,4 @@ func NewManager(cfgManager config.Manager, metricsCl metrics.Client) Manager {
 		cfgManager:   cfgManager,
 		metricCl:     metricsCl,
 	}
-}
-
-func newClient(tgt *config.TargetConfig, metricsCtx metrics.Client) (Client, error) {
-	sessionConfig := &aws.Config{
-		Region: aws.String(tgt.Bucket.Region),
-	}
-	// Load credentials if they exists
-	if tgt.Bucket.Credentials != nil && tgt.Bucket.Credentials.AccessKey != nil && tgt.Bucket.Credentials.SecretKey != nil {
-		sessionConfig.Credentials = credentials.NewStaticCredentials(tgt.Bucket.Credentials.AccessKey.Value, tgt.Bucket.Credentials.SecretKey.Value, "")
-	}
-	// Load custom endpoint if it exists
-	if tgt.Bucket.S3Endpoint != "" {
-		sessionConfig.Endpoint = aws.String(tgt.Bucket.S3Endpoint)
-		sessionConfig.S3ForcePathStyle = aws.Bool(true)
-	}
-	// Check if ssl needs to be disabled
-	if tgt.Bucket.DisableSSL {
-		sessionConfig.DisableSSL = aws.Bool(true)
-	}
-	// Create session
-	sess, err := session.NewSession(sessionConfig)
-	if err != nil {
-		return nil, err
-	}
-	// Create s3 client
-	svcClient := s3.New(sess)
-
-	return &s3Context{
-		svcClient:  svcClient,
-		target:     tgt,
-		metricsCtx: metricsCtx,
-	}, nil
 }

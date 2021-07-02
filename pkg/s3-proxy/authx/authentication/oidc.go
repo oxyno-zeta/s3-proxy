@@ -1,12 +1,13 @@
 package authentication
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	oidc "github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/chi/v5"
@@ -30,7 +31,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 
 	provider, err := oidc.NewProvider(ctx, oidcCfg.IssuerURL)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	oidcConfig := &oidc.Config{
@@ -42,7 +43,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 	mainRedirectURLObject, err := url.Parse(oidcCfg.RedirectURL)
 	// Check if error exists
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	// Continue to build redirect url
 	mainRedirectURLObject.Path = path.Join(mainRedirectURLObject.Path, oidcCfg.CallbackPath)
@@ -161,7 +162,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 		err = idToken.Claims(&resp)
 		if err != nil {
 			// Answer
-			responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
+			responsehandler.GeneralInternalServerError(r, w, s.cfgManager, errors.WithStack(err))
 
 			return
 		}

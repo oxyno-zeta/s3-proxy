@@ -9,6 +9,7 @@ import (
 
 	"github.com/Masterminds/sprig/v3"
 	"github.com/dustin/go-humanize"
+	"github.com/pkg/errors"
 )
 
 func ExecuteTemplate(tplString string, data interface{}) (*bytes.Buffer, error) {
@@ -20,7 +21,7 @@ func ExecuteTemplate(tplString string, data interface{}) (*bytes.Buffer, error) 
 		Parse(tplString)
 	// Check if error exists
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	// Generate template in buffer
@@ -28,7 +29,7 @@ func ExecuteTemplate(tplString string, data interface{}) (*bytes.Buffer, error) 
 	err = tmpl.Execute(buf, data)
 	// Check if error exists
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return buf, nil

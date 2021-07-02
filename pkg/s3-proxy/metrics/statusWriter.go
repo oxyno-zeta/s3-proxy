@@ -2,6 +2,8 @@ package metrics
 
 import (
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 type statusWriter struct {
@@ -25,5 +27,5 @@ func (w *statusWriter) Write(b []byte) (int, error) {
 	// Increase length
 	w.length += n
 	// Return result
-	return n, err
+	return n, errors.WithStack(err)
 }

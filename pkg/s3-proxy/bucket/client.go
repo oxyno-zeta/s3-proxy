@@ -2,9 +2,10 @@ package bucket
 
 import (
 	"context"
-	"errors"
 	"io"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"

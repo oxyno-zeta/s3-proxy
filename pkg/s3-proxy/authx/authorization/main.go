@@ -1,9 +1,10 @@
 package authorization
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/pkg/errors"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
@@ -105,6 +106,8 @@ func Middleware(
 				if !authorized {
 					// Create error
 					err := fmt.Errorf("forbidden user %s", ouser.GetIdentifier())
+					// Add stack trace
+					err = errors.WithStack(err)
 					// Check if bucket request context doesn't exist to use local default files
 					if brctx == nil {
 						responsehandler.GeneralForbiddenError(r, w, cfgManager, err)
