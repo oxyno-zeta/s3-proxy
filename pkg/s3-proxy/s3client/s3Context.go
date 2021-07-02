@@ -69,7 +69,8 @@ func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string)
 		childTrace.SetTag("s3-proxy.target-name", s3ctx.target.Name)
 
 		// Request S3
-		err := s3ctx.svcClient.ListObjectsV2Pages(
+		err := s3ctx.svcClient.ListObjectsV2PagesWithContext(
+			ctx,
 			&s3.ListObjectsV2Input{
 				Bucket:            aws.String(s3ctx.target.Bucket.Name),
 				Prefix:            aws.String(key),
@@ -185,7 +186,7 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 		s3Input.IfNoneMatch = aws.String(input.IfNoneMatch)
 	}
 
-	obj, err := s3ctx.svcClient.GetObject(s3Input)
+	obj, err := s3ctx.svcClient.GetObjectWithContext(ctx, s3Input)
 	// Metrics
 	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, GetObjectOperation)
 	// Check if error exists
@@ -302,7 +303,7 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*Result
 	}
 
 	// Upload to S3 bucket
-	_, err := s3ctx.svcClient.PutObject(inp)
+	_, err := s3ctx.svcClient.PutObjectWithContext(ctx, inp)
 	// Check error
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -337,7 +338,7 @@ func (s3ctx *s3Context) HeadObject(ctx context.Context, key string) (*HeadOutput
 	defer childTrace.Finish()
 
 	// Head object in bucket
-	_, err := s3ctx.svcClient.HeadObject(&s3.HeadObjectInput{
+	_, err := s3ctx.svcClient.HeadObjectWithContext(ctx, &s3.HeadObjectInput{
 		Bucket: aws.String(s3ctx.target.Bucket.Name),
 		Key:    aws.String(key),
 	})
@@ -380,7 +381,7 @@ func (s3ctx *s3Context) DeleteObject(ctx context.Context, key string) (*ResultIn
 	defer childTrace.Finish()
 
 	// Delete object
-	_, err := s3ctx.svcClient.DeleteObject(&s3.DeleteObjectInput{
+	_, err := s3ctx.svcClient.DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(s3ctx.target.Bucket.Name),
 		Key:    aws.String(key),
 	})
