@@ -90,6 +90,12 @@ func isOPAServerAuthorized(req *http.Request, oidcUser *models.OIDCUser, resourc
 	}
 	// Add content type
 	request.Header.Add("Content-Type", "application/json")
+	// Forward trace on request
+	err = childTrace.InjectInHTTPHeader(req.Header)
+	// Check error
+	if err != nil {
+		return false, err
+	}
 	// Making request to OPA server
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
