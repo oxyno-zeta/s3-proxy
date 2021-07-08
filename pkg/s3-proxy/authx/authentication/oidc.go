@@ -39,25 +39,23 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 	}
 	verifier := provider.Verifier(oidcConfig)
 
-	// Build redirect url
-	mainRedirectURLObject, err := url.Parse(oidcCfg.RedirectURL)
-	// Check if error exists
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	// Continue to build redirect url
-	mainRedirectURLObject.Path = path.Join(mainRedirectURLObject.Path, oidcCfg.CallbackPath)
-	mainRedirectURLStr := mainRedirectURLObject.String()
-
-	// Create OIDC configuration
-	config := oauth2.Config{
-		ClientID:    oidcCfg.ClientID,
-		Endpoint:    provider.Endpoint(),
-		RedirectURL: mainRedirectURLStr,
-		Scopes:      oidcCfg.Scopes,
-	}
-	if oidcCfg.ClientSecret != nil {
-		config.ClientSecret = oidcCfg.ClientSecret.Value
+	// Create main redirect url
+	mainRedirectURLStr := ""
+	// Create main redirect callback path
+	mainRedirectURLCallbackPath := oidcCfg.CallbackPath
+	// Check if redirect url is configured
+	if oidcCfg.RedirectURL != "" {
+		// Build redirect url
+		mainRedirectURLObject, err := url.Parse(oidcCfg.RedirectURL)
+		// Check if error exists
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		// Continue to build redirect url
+		mainRedirectURLObject.Path = path.Join(mainRedirectURLObject.Path, oidcCfg.CallbackPath)
+		mainRedirectURLStr = mainRedirectURLObject.String()
+		// Store path
+		mainRedirectURLCallbackPath = mainRedirectURLObject.Path
 	}
 
 	// Store state
@@ -75,10 +73,18 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 		// Same solution as here: https://github.com/oauth2-proxy/oauth2-proxy/blob/3fa42edb7350219d317c4bd47faf5da6192dc70f/oauthproxy.go#L751
 		newState := state + stateRedirectSeparator + rdVal
 
+		// Create OIDC configuration
+		config := generateOIDCConfig(
+			oidcCfg,
+			provider,
+			mainRedirectURLStr,
+			r,
+		)
+
 		http.Redirect(w, r, config.AuthCodeURL(newState), http.StatusFound)
 	})
 
-	mux.HandleFunc(mainRedirectURLObject.Path, func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(mainRedirectURLCallbackPath, func(w http.ResponseWriter, r *http.Request) {
 		// Get logger from request
 		logEntry := log.GetLoggerFromContext(r.Context())
 
@@ -126,6 +132,14 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 			return
 		}
 
+		// Create OIDC configuration
+		config := generateOIDCConfig(
+			oidcCfg,
+			provider,
+			mainRedirectURLStr,
+			r,
+		)
+
 		oauth2Token, err := config.Exchange(ctx, r.URL.Query().Get("code"))
 		if err != nil {
 			// Create error
@@ -166,7 +180,6 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 
 			return
 		}
-		// Now, we know that we can open jwt token to get claims
 
 		// Build cookie
 		cookie := &http.Cookie{
@@ -393,6 +406,40 @@ func getJWTToken(logEntry log.Logger, r *http.Request, cookieName string) (strin
 	}
 
 	return "", nil
+}
+
+func generateOIDCConfig(
+	oidcCfg *config.OIDCAuthConfig,
+	provider *oidc.Provider,
+	mainRedirectURL string,
+	req *http.Request,
+) *oauth2.Config {
+	// Create oidc configuration
+	config := oauth2.Config{
+		ClientID: oidcCfg.ClientID,
+		Endpoint: provider.Endpoint(),
+		Scopes:   oidcCfg.Scopes,
+	}
+	// Check if client secret is set
+	if oidcCfg.ClientSecret != nil {
+		config.ClientSecret = oidcCfg.ClientSecret.Value
+	}
+
+	// Check if main redirect url is defined
+	// Otherwise build a dynamic one
+	if mainRedirectURL != "" {
+		config.RedirectURL = mainRedirectURL
+	} else {
+		config.RedirectURL = fmt.Sprintf(
+			"%s://%s%s",
+			utils.GetRequestScheme(req),
+			utils.GetRequestHost(req),
+			oidcCfg.CallbackPath,
+		)
+	}
+
+	// Return
+	return &config
 }
 
 // IsValidRedirect checks whether the redirect URL is whitelisted.
