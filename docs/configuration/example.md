@@ -124,6 +124,7 @@ log:
 #         - email
 #         - profile
 #       groupClaim: groups # path in token
+#       # cookieDomains: [] # Cookie domains matching the request host
 #       # cookieSecure: true # Is the cookie generated secure ?
 #       # cookieName: oidc # Cookie generated name
 #       emailVerified: true # check email verified field from token

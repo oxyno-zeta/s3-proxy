@@ -181,6 +181,21 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 			return
 		}
 
+		// Initialize cookie domain
+		cookieDomain := ""
+		// Get request host of current request
+		reqHost := utils.GetRequestHost(r)
+		// Loop over domains
+		for _, it := range oidcCfg.CookieDomains {
+			// Check if domain asked is matching the one in the request host
+			if strings.HasSuffix(reqHost, it) {
+				// Save cookie domain
+				cookieDomain = it
+				// Break the loop
+				break
+			}
+		}
+
 		// Build cookie
 		cookie := &http.Cookie{
 			Expires:  oauth2Token.Expiry,
@@ -189,6 +204,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 			HttpOnly: true,
 			Secure:   oidcCfg.CookieSecure,
 			Path:     "/",
+			Domain:   cookieDomain,
 		}
 		http.SetCookie(w, cookie)
 

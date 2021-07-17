@@ -145,6 +145,7 @@ type OIDCAuthConfig struct {
 	CookieName    string            `mapstructure:"cookieName"`
 	EmailVerified bool              `mapstructure:"emailVerified"`
 	CookieSecure  bool              `mapstructure:"cookieSecure"`
+	CookieDomains []string          `mapstructure:"cookieDomains"`
 	LoginPath     string            `mapstructure:"loginPath"`
 	CallbackPath  string            `mapstructure:"callbackPath"`
 }
