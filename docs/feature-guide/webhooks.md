@@ -2,15 +2,19 @@
 
 This feature have been created to have hooks on all type of requests managed by s3-proxy.
 
+## Limitations
+
 These comes with some limitations:
 
+<!-- prettier-ignore -->
 - Only HTTP is supported.
-  - Why ? Because we aren't too much managing the maintenance of the app and managing different type of hooks will take a lot of efforts and time.
-  - If you need another type of message, we recommend you to develop a sidecar to this application that will transform the request.
+    - Why ? Because we aren't too much managing the maintenance of the app and managing different type of hooks will take a lot of efforts and time.
+    - If you need another type of message, we recommend you to develop a sidecar to this application that will transform the request.
 - mTLS isn't supported.
-  - Same reason as before.
+    - Same reason as before.
 - All hooks are run in a Go routine and in a sequential way in this one.
 - Webhook body isn't open to customization.
+<!-- prettier-ignore-end -->
 
 ## Body
 

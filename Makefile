@@ -59,6 +59,14 @@ endif
 code/clean:
 	@rm -rf $(BINDIR) $(DISTDIR)
 
+.PHONY: code/docs
+code/docs: setup/docs
+	docker run --rm -it --user 1000:1000 -v ${PWD}:/docs -p 8000:8000 mkdocs serve -a 0.0.0.0:8000
+
+.PHONY: code/build/docs
+code/build/docs: setup/docs
+	docker run --rm -it --user 1000:1000 -v ${PWD}:/docs -p 8000:8000 mkdocs build
+
 #############
 #  Release  #
 #############
@@ -127,6 +135,10 @@ setup/services: down/services
 	tar czvf local-resources/opa/bundle.tar.gz --directory=local-resources/opa/bundle example/
 	docker run -d --rm --name opa -p 8181:8181 -v $(CURRENT_DIR)/local-resources/opa/bundle.tar.gz:/bundle.tar.gz openpolicyagent/opa run --server --log-level debug --log-format text --bundle /bundle.tar.gz
 	docker run -d --rm --name keycloak -p 8088:8080 -e KEYCLOAK_IMPORT=/tmp/realm-export.json -v $(CURRENT_DIR)/local-resources/keycloak/realm-export.json:/tmp/realm-export.json -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin quay.io/keycloak/keycloak:11.0.3
+
+.PHONY: setup/docs
+setup/docs:
+	docker build -t mkdocs -f Dockerfile.docs .
 
 .PHONY: setup/mocks
 setup/mocks:
