@@ -2,6 +2,8 @@
 
 This feature have been created to have hooks on all type of requests managed by s3-proxy.
 
+## Limitations
+
 These comes with some limitations:
 
 <!-- prettier-ignore -->
