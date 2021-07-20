@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/opentracing/opentracing-go"
+	"github.com/pkg/errors"
 	"github.com/uber/jaeger-client-go"
 )
 
@@ -40,11 +41,11 @@ func (t *trace) GetTraceID() string {
 }
 
 func (t *trace) InjectInHTTPHeader(header http.Header) error {
-	return opentracing.GlobalTracer().Inject(
+	return errors.WithStack(opentracing.GlobalTracer().Inject(
 		t.span.Context(),
 		opentracing.HTTPHeaders,
 		opentracing.HTTPHeadersCarrier(header),
-	)
+	))
 }
 
 func GetTraceFromContext(ctx context.Context) Trace {
