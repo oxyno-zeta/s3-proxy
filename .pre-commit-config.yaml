@@ -2,7 +2,7 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v2.17.13
+    rev: v2.18.0
     hooks:
       - id: commitizen
         stages: [commit-msg]
