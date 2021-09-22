@@ -198,7 +198,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 
 		// Build cookie
 		cookie := &http.Cookie{
-			Expires:  oauth2Token.Expiry,
+			Expires:  idToken.Expiry,
 			Name:     oidcCfg.CookieName,
 			Value:    rawIDToken,
 			HttpOnly: true,
