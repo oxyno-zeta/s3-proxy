@@ -94,68 +94,70 @@ func (ll *loggerIns) WithFields(fields map[string]interface{}) Logger {
 }
 
 func (ll *loggerIns) WithError(err error) Logger {
-	// Create new field logger
-	fieldL := ll.FieldLogger.WithError(err)
-
-	addStackTrace := func(pError stackTracer) {
-		// Get stack trace from error
-		st := pError.StackTrace()
-		// Stringify stack trace
-		valued := fmt.Sprintf("%+v", st)
-		// Remove all tabs
-		valued = strings.ReplaceAll(valued, "\t", "")
-		// Split on new line
-		stack := strings.Split(valued, "\n")
-		// Remove first empty string
-		stack = stack[1:]
-		// Add stack trace to field logger
-		fieldL = fieldL.WithField("stack", strings.Join(stack, ","))
-	}
-
-	// Check if error is matching stack trace interface
-	// nolint: errorlint // Ignore this because the aim is to catch stack trace error at first level
-	if err2, ok := err.(stackTracer); ok {
-		addStackTrace(err2)
-	}
-
-	// Check if error cause is matching stack trace interface
-	// nolint: errorlint // Ignore this because the aim is to catch stack trace error at first level
-	if err2, ok := errors.Cause(err).(stackTracer); ok {
-		addStackTrace(err2)
-	}
-
+	// Create new field logger with error
+	fieldL := ll.addPotentialWithError(err)
+	// Return new logger
 	return &loggerIns{
 		FieldLogger: fieldL,
 	}
 }
 
-func (ll *loggerIns) addPotentialWithError(elem interface{}) {
+func (ll *loggerIns) addPotentialWithError(elem interface{}) logrus.FieldLogger {
 	// Try to cast element to error
 	err, ok := elem.(error)
 	// Check if can be casted to error
 	if ok {
-		// Call with error
-		res := ll.WithError(err)
+		// Create new field logger
+		fieldL := ll.FieldLogger.WithError(err)
 
-		// Change internal field logger
-		ll.FieldLogger = res.(*loggerIns).FieldLogger
+		addStackTrace := func(pError stackTracer) {
+			// Get stack trace from error
+			st := pError.StackTrace()
+			// Stringify stack trace
+			valued := fmt.Sprintf("%+v", st)
+			// Remove all tabs
+			valued = strings.ReplaceAll(valued, "\t", "")
+			// Split on new line
+			stack := strings.Split(valued, "\n")
+			// Remove first empty string
+			stack = stack[1:]
+			// Add stack trace to field logger
+			fieldL = fieldL.WithField("stack", strings.Join(stack, ","))
+		}
+
+		// Check if error is matching stack trace interface
+		// nolint: errorlint // Ignore this because the aim is to catch stack trace error at first level
+		if err2, ok := err.(stackTracer); ok {
+			addStackTrace(err2)
+		}
+
+		// Check if error cause is matching stack trace interface
+		// nolint: errorlint // Ignore this because the aim is to catch stack trace error at first level
+		if err2, ok := errors.Cause(err).(stackTracer); ok {
+			addStackTrace(err2)
+		}
+
+		return fieldL
 	}
+
+	// Default
+	return ll.FieldLogger
 }
 
 func (ll *loggerIns) Error(args ...interface{}) {
 	// Add potential "WithError"
-	ll.addPotentialWithError(args[0])
+	l := ll.addPotentialWithError(args[0])
 
 	// Call logger error method
-	ll.FieldLogger.Error(args...)
+	l.Error(args...)
 }
 
 func (ll *loggerIns) Fatal(args ...interface{}) {
 	// Add potential "WithError"
-	ll.addPotentialWithError(args[0])
+	l := ll.addPotentialWithError(args[0])
 
 	// Call logger fatal method
-	ll.FieldLogger.Fatal(args...)
+	l.Fatal(args...)
 }
 
 func (ll *loggerIns) Errorf(format string, args ...interface{}) {
@@ -176,16 +178,16 @@ func (ll *loggerIns) Fatalf(format string, args ...interface{}) {
 
 func (ll *loggerIns) Errorln(args ...interface{}) {
 	// Add potential "WithError"
-	ll.addPotentialWithError(args[0])
+	l := ll.addPotentialWithError(args[0])
 
 	// Log error
-	ll.FieldLogger.Errorln(args...)
+	l.Errorln(args...)
 }
 
 func (ll *loggerIns) Fatalln(args ...interface{}) {
 	// Add potential "WithError"
-	ll.addPotentialWithError(args[0])
+	l := ll.addPotentialWithError(args[0])
 
 	// Log fatal
-	ll.FieldLogger.Fatalln(args...)
+	l.Fatalln(args...)
 }
