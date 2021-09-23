@@ -38,6 +38,10 @@ HAS_MOCKGEN:=$(shell command -v mockgen;)
 #   Build   #
 #############
 
+.PHONY: code/generate
+code/generate:
+	$(GO) generate ./...
+
 .PHONY: code/lint
 code/lint: setup/dep/install
 	golangci-lint run ./...
@@ -140,10 +144,6 @@ setup/services: down/services
 setup/docs:
 	docker build -t mkdocs -f Dockerfile.docs .
 
-.PHONY: setup/mocks
-setup/mocks:
-	go generate ./...
-
 .PHONY: setup/dep/install
 setup/dep/install:
 ifndef HAS_GOLANGCI_LINT
@@ -158,7 +158,7 @@ ifndef HAS_GIT
 endif
 ifndef HAS_MOCKGEN
 	@echo "=> Installing mockgen tool"
-	go get -u github.com/golang/mock/mockgen@v1.5.0
+	go get -u github.com/golang/mock/mockgen@v1.6.0
 endif
 	go mod download
 	go mod tidy
