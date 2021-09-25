@@ -79,10 +79,14 @@ jobs:
       (needs.changes.outputs.go == 'true') ||
       (needs.changes.outputs.config == 'true')
     runs-on: ubuntu-latest
+    env:
+      DOCKER_CLI_EXPERIMENTAL: "enabled"
     needs:
       - changes
       - lint
     steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
