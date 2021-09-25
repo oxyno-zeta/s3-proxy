@@ -23,9 +23,6 @@ builds:
       - amd64
       - arm
       - arm64
-      - 386
-      - ppc64le
-      - s390x
     goarm:
       - 6
       - 7
@@ -36,6 +33,8 @@ builds:
     ignore:
       - goos: darwin
         goarch: 386
+      - goos: windows
+        goarch: arm64
 archives:
   - format_overrides:
       - goos: windows
@@ -65,65 +64,86 @@ dockers:
     ids:
       - s3-proxy
     image_templates:
-      - "oxynozeta/s3-proxy:latest"
-      - "oxynozeta/s3-proxy:{{ .Version }}"
-      - "oxynozeta/s3-proxy:{{ .Major }}"
-      - "oxynozeta/s3-proxy:{{ .Major }}.{{ .Minor }}"
+      - "oxynozeta/s3-proxy:{{ .Version }}-amd64"
     skip_push: false
+    use: buildx
     dockerfile: Dockerfile
     build_flag_templates:
+      - "--platform=linux/amd64"
       - "--label=oxyno-zeta.s3-proxy.version={{ .Version }}"
       - "--label=oxyno-zeta.s3-proxy.name={{ .ProjectName }}"
     extra_files:
       - templates/
-  # Disabled because can't build arm on release laptop
-  # - goos: linux
-  #   goarch: arm
-  #   goarm: 6
-  #   binaries:
-  #     - s3-proxy
-  #   image_templates:
-  #     - "oxynozeta/s3-proxy:latest-armv6"
-  #     - "oxynozeta/s3-proxy:{{ .Version }}-armv6"
-  #     - "oxynozeta/s3-proxy:{{ .Major }}-armv6"
-  #     - "oxynozeta/s3-proxy:{{ .Major }}.{{ .Minor }}-armv6"
-  #   skip_push: false
-  #   dockerfile: Dockerfile.armv6
-  #   build_flag_templates:
-  #     - "--label=oxyno-zeta.s3-proxy.version={{ .Version }}"
-  #     - "--label=oxyno-zeta.s3-proxy.name={{ .ProjectName }}"
-  #   extra_files:
-  #     - templates/
-  # - goos: linux
-  #   goarch: arm
-  #   goarm: 7
-  #   binaries:
-  #     - s3-proxy
-  #   image_templates:
-  #     - "oxynozeta/s3-proxy:latest-armv7"
-  #     - "oxynozeta/s3-proxy:{{ .Version }}-armv7"
-  #     - "oxynozeta/s3-proxy:{{ .Major }}-armv7"
-  #     - "oxynozeta/s3-proxy:{{ .Major }}.{{ .Minor }}-armv7"
-  #   skip_push: false
-  #   dockerfile: Dockerfile.armv7
-  #   build_flag_templates:
-  #     - "--label=oxyno-zeta.s3-proxy.version={{ .Version }}"
-  #     - "--label=oxyno-zeta.s3-proxy.name={{ .ProjectName }}"
-  #   extra_files:
-  #     - templates/
-  # - goos: linux
-  #   goarch: arm64
-  #   binaries:
-  #     - s3-proxy
-  #   image_templates:
-  #     - "oxynozeta/s3-proxy:latest-arm64"
-  #     - "oxynozeta/s3-proxy:{{ .Version }}-arm64"
-  #     - "oxynozeta/s3-proxy:{{ .Major }}-arm64"
-  #     - "oxynozeta/s3-proxy:{{ .Major }}.{{ .Minor }}-arm64"
-  #   skip_push: false
-  #   dockerfile: Dockerfile.arm64
-  #   build_flag_templates:
-  #     - "--label=oxyno-zeta.s3-proxy.version={{ .Version }}"
-  #     - "--label=oxyno-zeta.s3-proxy.name={{ .ProjectName }}"
-  #   extra_files:
-  #     - templates/
+  - goos: linux
+    goarch: arm
+    goarm: 6
+    ids:
+      - s3-proxy
+    image_templates:
+      - "oxynozeta/s3-proxy:{{ .Version }}-armv6"
+    skip_push: false
+    use: buildx
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/arm/v6"
+      - "--label=oxyno-zeta.s3-proxy.version={{ .Version }}"
+      - "--label=oxyno-zeta.s3-proxy.name={{ .ProjectName }}"
+    extra_files:
+      - templates/
+  - goos: linux
+    goarch: arm
+    goarm: 7
+    ids:
+      - s3-proxy
+    image_templates:
+      - "oxynozeta/s3-proxy:{{ .Version }}-armv7"
+    skip_push: false
+    use: buildx
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/arm/v7"
+      - "--label=oxyno-zeta.s3-proxy.version={{ .Version }}"
+      - "--label=oxyno-zeta.s3-proxy.name={{ .ProjectName }}"
+    extra_files:
+      - templates/
+  - goos: linux
+    goarch: arm64
+    ids:
+      - s3-proxy
+    image_templates:
+      - "oxynozeta/s3-proxy:{{ .Version }}-arm64"
+    skip_push: false
+    use: buildx
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/arm64/v8"
+      - "--label=oxyno-zeta.s3-proxy.version={{ .Version }}"
+      - "--label=oxyno-zeta.s3-proxy.name={{ .ProjectName }}"
+    extra_files:
+      - templates/
+
+docker_manifests:
+  - name_template: oxynozeta/s3-proxy:latest
+    image_templates:
+      - "oxynozeta/s3-proxy:{{ .Version }}-amd64"
+      - "oxynozeta/s3-proxy:{{ .Version }}-arm64"
+      - "oxynozeta/s3-proxy:{{ .Version }}-armv6"
+      - "oxynozeta/s3-proxy:{{ .Version }}-armv7"
+  - name_template: "oxynozeta/s3-proxy:{{ .Version }}"
+    image_templates:
+      - "oxynozeta/s3-proxy:{{ .Version }}-amd64"
+      - "oxynozeta/s3-proxy:{{ .Version }}-arm64"
+      - "oxynozeta/s3-proxy:{{ .Version }}-armv6"
+      - "oxynozeta/s3-proxy:{{ .Version }}-armv7"
+  - name_template: "oxynozeta/s3-proxy:{{ .Major }}"
+    image_templates:
+      - "oxynozeta/s3-proxy:{{ .Version }}-amd64"
+      - "oxynozeta/s3-proxy:{{ .Version }}-arm64"
+      - "oxynozeta/s3-proxy:{{ .Version }}-armv6"
+      - "oxynozeta/s3-proxy:{{ .Version }}-armv7"
+  - name_template: "oxynozeta/s3-proxy:{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - "oxynozeta/s3-proxy:{{ .Version }}-amd64"
+      - "oxynozeta/s3-proxy:{{ .Version }}-arm64"
+      - "oxynozeta/s3-proxy:{{ .Version }}-armv6"
+      - "oxynozeta/s3-proxy:{{ .Version }}-armv7"
