@@ -68,18 +68,23 @@ func ClientIP(r *http.Request) string {
 }
 
 func GetRequestScheme(r *http.Request) string {
-	// Default
-	scheme := "http"
-
 	// Get forwarded scheme
 	fwdScheme := r.Header.Get("X-Forwarded-Proto")
-
 	// Check if it is https
 	if r.TLS != nil || fwdScheme == "https" {
-		scheme = "https"
+		return "https"
 	}
 
-	return scheme
+	// RFC 7239
+	forwardedH := r.Header.Get("Forwarded")
+	proto, _ := parseForwarded(forwardedH)
+	// Check if protocol have been found
+	if proto != "" {
+		return proto
+	}
+
+	// Default
+	return "http"
 }
 
 func GetRequestURI(r *http.Request) string {
@@ -96,8 +101,8 @@ func GetRequestHost(r *http.Request) string {
 	}
 
 	// RFC 7239
-	host = r.Header.Get("Forwarded")
-	_, _, host = parseForwarded(host)
+	forwardedH := r.Header.Get("Forwarded")
+	_, host = parseForwarded(forwardedH)
 
 	if host != "" {
 		return host
@@ -109,7 +114,7 @@ func GetRequestHost(r *http.Request) string {
 	return host
 }
 
-func parseForwarded(forwarded string) (addr, proto, host string) {
+func parseForwarded(forwarded string) (proto, host string) {
 	if forwarded == "" {
 		return
 	}
@@ -121,8 +126,6 @@ func parseForwarded(forwarded string) (addr, proto, host string) {
 			value = strings.TrimSpace(strings.Trim(value, `"`))
 
 			switch strings.ToLower(token) {
-			case "for":
-				addr = value
 			case "proto":
 				proto = value
 			case "host":
