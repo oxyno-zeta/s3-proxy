@@ -2,7 +2,7 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v2.18.0
+    rev: v2.20.0
     hooks:
       - id: commitizen
         stages: [commit-msg]
@@ -29,12 +29,12 @@ repos:
         stages: [commit]
   - repo: https://github.com/pre-commit/mirrors-prettier
     # Use the sha or branch you want to point at
-    rev: v2.3.2
+    rev: v2.4.1
     hooks:
       - id: prettier
         stages: [commit]
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.7.2.1
+    rev: v0.8.0.1
     hooks:
       - id: shellcheck
         stages: [commit]
