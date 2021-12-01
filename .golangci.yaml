@@ -367,6 +367,10 @@ linters:
     - promlinter
     - revive
     - wastedassign
+    - bidichk
+    - contextcheck
+    - nilnil
+    - tenv
   disable:
     - prealloc
     - gochecknoglobals
@@ -379,6 +383,8 @@ linters:
     - goerr113 # Forbid dynamic errors
     - nestif
     - scopelint
+    - ireturn
+    - varnamelen
   disable-all: false
   presets:
     - bugs

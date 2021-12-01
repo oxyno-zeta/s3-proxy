@@ -126,8 +126,8 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 }
 
 func findResource(resL []*config.Resource, requestURI string, httpMethod string) (*config.Resource, error) {
-	for i := 0; i < len(resL); i++ {
-		res := resL[i]
+	// Loop over the list
+	for _, res := range resL {
 		// Check if http method is declared in resource
 		if !funk.Contains(res.Methods, httpMethod) {
 			// Http method not declared in resource
@@ -145,6 +145,7 @@ func findResource(resL []*config.Resource, requestURI string, httpMethod string)
 			return res, nil
 		}
 	}
+
 	// Not found case
-	return nil, nil
+	return nil, nil // nolint: nilnil // No need for a sentinel error in this case
 }
