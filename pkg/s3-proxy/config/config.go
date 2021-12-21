@@ -98,7 +98,7 @@ type Config struct {
 	Tracing        *TracingConfig           `mapstructure:"tracing"`
 	Server         *ServerConfig            `mapstructure:"server"`
 	InternalServer *ServerConfig            `mapstructure:"internalServer"`
-	Targets        map[string]*TargetConfig `mapstructure:"targets" validate:"required,dive"`
+	Targets        map[string]*TargetConfig `mapstructure:"targets" validate:"dive"`
 	Templates      *TemplateConfig          `mapstructure:"templates"`
 	AuthProviders  *AuthProviderConfig      `mapstructure:"authProviders"`
 	ListTargets    *ListTargetsConfig       `mapstructure:"listTargets"`
