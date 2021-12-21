@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/cache"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 )
@@ -111,10 +112,11 @@ type PutInput struct {
 }
 
 // NewManager will return a new S3 client manager.
-func NewManager(cfgManager config.Manager, metricsCl metrics.Client) Manager {
+func NewManager(cfgManager config.Manager, metricsCl metrics.Client, cacheCl cache.Client) Manager {
 	return &manager{
 		targetClient: map[string]Client{},
 		cfgManager:   cfgManager,
 		metricCl:     metricsCl,
+		cacheCl:      cacheCl,
 	}
 }

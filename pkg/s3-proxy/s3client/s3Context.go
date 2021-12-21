@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/cache"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
@@ -18,6 +19,7 @@ type s3Context struct {
 	svcClient  s3iface.S3API
 	target     *config.TargetConfig
 	metricsCtx metrics.Client
+	cacheCl    cache.Client
 }
 
 // ListObjectsOperation List objects operation.
@@ -54,6 +56,18 @@ func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string)
 	if s3ctx.target.Bucket.S3ListMaxKeys < maxKeys {
 		maxKeys = s3ctx.target.Bucket.S3ListMaxKeys
 	}
+
+	// res, err := s3ctx.cache.Get(ctx, "toto")
+	// fmt.Println(res)
+	// fmt.Println(err)
+	// if res != "" {
+	// 	var res2 []*ListElementOutput
+	// 	buf := bytes.NewBuffer([]byte(res.(string)))
+	// 	dec := gob.NewDecoder(buf)
+	// 	err = dec.Decode(&res2)
+	// 	fmt.Println(err)
+	// 	fmt.Println(res2)
+	// }
 
 	// Get trace
 	parentTrace := tracing.GetTraceFromContext(ctx)
@@ -139,6 +153,17 @@ func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string)
 	// Concat folders and files
 	// nolint:gocritic // Ignoring this: appendAssign: append result not assigned to the same slice
 	all := append(folders, files...)
+
+	// var buf2 bytes.Buffer
+	// enc := gob.NewEncoder(&buf2)
+	// err = enc.Encode(all)
+	// fmt.Println(err)
+
+	// // Save in cache
+	// err = s3ctx.cache.Set(ctx, "toto", string(buf2.Bytes()), nil)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
 	// Create info
 	info := &ResultInfo{

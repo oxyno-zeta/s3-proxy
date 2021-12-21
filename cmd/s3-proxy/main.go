@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/cache"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
@@ -69,8 +70,27 @@ func main() {
 		}
 	})
 
+	// Create cache
+	cacheCl := cache.NewCache(cfgManager)
+	// Initialize cache
+	err = cacheCl.Initialize()
+	// Check error
+	if err != nil {
+		logger.Fatal(err)
+	}
+	// Prepare on reload hook
+	cfgManager.AddOnChangeHook(func() {
+		logger.Info("Reload cache client")
+		// Reload
+		err2 := cacheCl.Reload()
+		// Check error
+		if err2 != nil {
+			logger.Fatal(err2)
+		}
+	})
+
 	// Create S3 client manager
-	s3clientManager := s3client.NewManager(cfgManager, metricsCtx)
+	s3clientManager := s3client.NewManager(cfgManager, metricsCtx, cacheCl)
 	// Log
 	logger.Info("Load S3 clients for all targets")
 	// Load configuration

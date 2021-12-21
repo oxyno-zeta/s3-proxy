@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/cache"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/pkg/errors"
@@ -15,6 +16,7 @@ type manager struct {
 	targetClient map[string]Client
 	cfgManager   config.Manager
 	metricCl     metrics.Client
+	cacheCl      cache.Client
 }
 
 func (m *manager) GetClientForTarget(name string) Client {
@@ -34,7 +36,7 @@ func (m *manager) Load() error {
 		tgtKeys = append(tgtKeys, key)
 
 		// Create new client
-		cl, err := newClient(tgt, m.metricCl)
+		cl, err := newClient(tgt, m.metricCl, m.cacheCl)
 		// Check error
 		if err != nil {
 			return err
@@ -62,7 +64,7 @@ func (m *manager) Load() error {
 	return nil
 }
 
-func newClient(tgt *config.TargetConfig, metricsCtx metrics.Client) (Client, error) {
+func newClient(tgt *config.TargetConfig, metricsCtx metrics.Client, cacheCl cache.Client) (Client, error) {
 	sessionConfig := &aws.Config{
 		Region: aws.String(tgt.Bucket.Region),
 	}
@@ -92,5 +94,6 @@ func newClient(tgt *config.TargetConfig, metricsCtx metrics.Client) (Client, err
 		svcClient:  svcClient,
 		target:     tgt,
 		metricsCtx: metricsCtx,
+		cacheCl:    cacheCl,
 	}, nil
 }

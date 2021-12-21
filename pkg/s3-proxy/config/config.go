@@ -3,6 +3,7 @@ package config
 import (
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -83,6 +84,15 @@ const DefaultOIDCGroupClaim = "groups"
 // DefaultOIDCCookieName Default OIDC Cookie name.
 const DefaultOIDCCookieName = "oidc"
 
+// DefaultCacheBigcacheType Default cache Bigcache type.
+const DefaultCacheBigcacheType = "BIGCACHE"
+
+// DefaultCacheGocacheType Default Cache go-cache type.
+const DefaultCacheGocacheType = "GOCACHE"
+
+// DefaultCacheFreecacheType Default cache Freecache type.
+const DefaultCacheFreecacheType = "FREECACHE"
+
 // ErrMainBucketPathSupportNotValid Error thrown when main bucket path support option isn't valid.
 var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support option can be enabled only when only one bucket is configured")
 
@@ -102,6 +112,27 @@ type Config struct {
 	Templates      *TemplateConfig          `mapstructure:"templates"`
 	AuthProviders  *AuthProviderConfig      `mapstructure:"authProviders"`
 	ListTargets    *ListTargetsConfig       `mapstructure:"listTargets"`
+	Cache          *CacheConfig             `mapstructure:"cache"`
+}
+
+// CacheConfig Cache configuration.
+type CacheConfig struct {
+	Type                    string `mapstructure:"type" validate:"required,oneof=BIGCACHE,GOCACHE,REDIS,MEMCACHE,FREECACHE"`
+	DefaultExpirationString string `mapstructure:"defaultExpiration" validate:"required"`
+	DefaultExpiration       time.Duration
+	GoCache                 *CacheGoCacheConfig   `mapstructure:"gocache"`
+	Freecache               *CacheFreecacheConfig `mapstructure:"freecache"`
+}
+
+// CacheGoCacheConfig Go-cache configuration.
+type CacheGoCacheConfig struct {
+	PurgeExpirationString string `mapstructure:"purgeExpiration"`
+	PurgeExpiration       time.Duration
+}
+
+// CacheFreecacheConfig Freecache configuration.
+type CacheFreecacheConfig struct {
+	Size int `mapstructure:"size" validate:"required,gt=0"`
 }
 
 // TracingConfig represents the Tracing configuration structure.
@@ -193,7 +224,7 @@ type ServerConfig struct {
 	ListenAddr string                `mapstructure:"listenAddr"`
 	Port       int                   `mapstructure:"port" validate:"required"`
 	CORS       *ServerCorsConfig     `mapstructure:"cors" validate:"omitempty"`
-	Cache      *CacheConfig          `mapstructure:"cache" validate:"omitempty"`
+	Cache      *ServerCacheConfig    `mapstructure:"cache" validate:"omitempty"`
 	Compress   *ServerCompressConfig `mapstructure:"compress" validate:"omitempty"`
 }
 
@@ -204,8 +235,8 @@ type ServerCompressConfig struct {
 	Types   []string `mapstructure:"types" validate:"required,min=1"`
 }
 
-// CacheConfig Cache configuration.
-type CacheConfig struct {
+// ServerCacheConfig Server Cache configuration.
+type ServerCacheConfig struct {
 	NoCacheEnabled bool   `mapstructure:"noCacheEnabled"`
 	Expires        string `mapstructure:"expires"`
 	CacheControl   string `mapstructure:"cacheControl"`

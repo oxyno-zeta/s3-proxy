@@ -7,7 +7,7 @@ import (
 )
 
 // CacheManagement is a middleware to manage cache header output.
-func CacheManagement(cfg *config.CacheConfig) func(http.Handler) http.Handler {
+func CacheManagement(cfg *config.ServerCacheConfig) func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			// Check if expires header is set

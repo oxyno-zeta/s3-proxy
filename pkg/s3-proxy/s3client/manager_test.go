@@ -48,7 +48,7 @@ func Test_manager_Load_Cleanup(t *testing.T) {
 	})
 
 	// create manager
-	s3Manager := NewManager(cfgManagerMock, nil).(*manager)
+	s3Manager := NewManager(cfgManagerMock, nil, nil).(*manager)
 
 	// Load
 	err := s3Manager.Load()

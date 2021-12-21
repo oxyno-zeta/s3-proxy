@@ -387,7 +387,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					Server: &config.ServerConfig{
-						Cache:    &config.CacheConfig{NoCacheEnabled: true},
+						Cache:    &config.ServerCacheConfig{NoCacheEnabled: true},
 						Compress: svrCfg.Compress,
 					},
 					ListTargets: &config.ListTargetsConfig{},
@@ -433,7 +433,7 @@ func TestPublicRouter(t *testing.T) {
 			args: args{
 				cfg: &config.Config{
 					Server: &config.ServerConfig{
-						Cache: &config.CacheConfig{
+						Cache: &config.ServerCacheConfig{
 							Expires:       "expires",
 							CacheControl:  "must-revalidate, max-age=0",
 							Pragma:        "pragma",
