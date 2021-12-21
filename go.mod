@@ -26,7 +26,7 @@ require (
 	github.com/thoas/go-funk v0.9.1
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
-	golang.org/x/net v0.0.0-20211201190559-0a0e4e1bb54c
+	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 )
