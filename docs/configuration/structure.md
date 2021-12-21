@@ -16,7 +16,7 @@ You can see a full example in the [Example section](./example.md)
 | server         | [ServerConfiguration](#serverconfiguration)               | No       | None    | Server configurations                                                                                               |
 | internalServer | [ServerConfiguration](#serverconfiguration)               | No       | None    | Internal Server configurations                                                                                      |
 | template       | [TemplateConfiguration](#templateconfiguration)           | No       | None    | Template configurations                                                                                             |
-| targets        | Map[String][targetconfiguration](#targetconfiguration)    | Yes      | None    | Targets configuration. Map key will be considered as the target name. (This will used in urls and list of targets.) |
+| targets        | Map[String][targetconfiguration](#targetconfiguration)    | No       | None    | Targets configuration. Map key will be considered as the target name. (This will used in urls and list of targets.) |
 | authProviders  | [AuthProvidersConfiguration](#authProvidersconfiguration) | No       | None    | Authentication providers configuration                                                                              |
 | listTargets    | [ListTargetsConfiguration](#listtargetsconfiguration)     | No       | None    | List targets feature configuration                                                                                  |
 

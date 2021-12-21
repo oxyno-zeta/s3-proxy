@@ -3145,6 +3145,109 @@ func TestOIDCAuthentication(t *testing.T) {
 	}
 }
 
+func TestStartWithOnlyDefaultConfiguration(t *testing.T) {
+	// Create go mock controller
+	ctrl := gomock.NewController(t)
+	cfgManagerMock := cmocks.NewMockManager(ctrl)
+
+	// Load configuration in manager
+	cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(&config.Config{
+		Log: &config.LogConfig{
+			Level:  "info",
+			Format: "json",
+		},
+		Server: &config.ServerConfig{
+			Port: 8080,
+			Compress: &config.ServerCompressConfig{
+				Enabled: &config.DefaultServerCompressEnabled,
+				Level:   config.DefaultServerCompressLevel,
+				Types:   config.DefaultServerCompressTypes,
+			},
+		},
+		InternalServer: &config.ServerConfig{
+			Port: 9090,
+			Compress: &config.ServerCompressConfig{
+				Enabled: &config.DefaultServerCompressEnabled,
+				Level:   config.DefaultServerCompressLevel,
+				Types:   config.DefaultServerCompressTypes,
+			},
+		},
+		Templates: testsDefaultGeneralTemplateConfig,
+		Tracing:   &config.TracingConfig{Enabled: false},
+		ListTargets: &config.ListTargetsConfig{
+			Enabled: false,
+		},
+		Targets: nil,
+	})
+	cfgManagerMock.EXPECT().AddOnChangeHook(gomock.Any()).AnyTimes()
+
+	logger := log.NewLogger()
+	// Create tracing service
+	tsvc, err := tracing.New(cfgManagerMock, logger)
+	assert.NoError(t, err)
+
+	// Create webhook manager
+	webhookManager := webhook.NewManager(cfgManagerMock, metricsCtx)
+
+	// Create S3 Manager
+	s3Manager := s3client.NewManager(cfgManagerMock, metricsCtx)
+	err = s3Manager.Load()
+	assert.NoError(t, err)
+
+	ssvr := NewServer(logger, cfgManagerMock, metricsCtx, tsvc, s3Manager, webhookManager)
+	err = ssvr.GenerateServer()
+	if err != nil {
+		t.Errorf("generateServer() error = %v", err)
+		return
+	}
+
+	var wg sync.WaitGroup
+
+	// Add a wait
+	wg.Add(1)
+	// Listen and synchronize wait
+	go func() error {
+		wg.Done()
+		err := ssvr.Listen()
+
+		if err != nil && errors.Unwrap(err) != http.ErrServerClosed {
+			assert.NoError(t, err)
+			return err
+		}
+
+		return nil
+	}()
+	// Wait server up and running
+	wg.Wait()
+	// Force a sleep in order to wait server up and running
+	time.Sleep(time.Second)
+	// Defer close server
+	defer func() {
+		err := ssvr.server.Close()
+		assert.NoError(t, err)
+	}()
+
+	request, err := http.NewRequest("GET", "http://localhost:8080", nil) // URL-encoded payload
+	// Check err
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	// Create http client
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Do(request)
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	assert.Equal(t, 404, resp.StatusCode)
+}
+
 func TestCORS(t *testing.T) {
 	accessKey := "YOUR-ACCESSKEYID"
 	secretAccessKey := "YOUR-SECRETACCESSKEY"

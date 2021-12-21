@@ -46,11 +46,142 @@ func Test_managercontext_Load(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Empty",
+			name: "Empty configuration file",
 			configs: map[string]string{
 				"config.yaml": "",
 			},
-			wantErr: true,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "info",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port:     8080,
+					Compress: svrCompressCfg,
+				},
+				InternalServer: &ServerConfig{
+					Port:     9090,
+					Compress: svrCompressCfg,
+				},
+				Templates: &TemplateConfig{
+					Helpers: []string{"templates/_helpers.tpl"},
+					FolderList: &TemplateConfigItem{
+						Path: "templates/folder-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					TargetList: &TemplateConfigItem{
+						Path: "templates/target-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					NotFoundError: &TemplateConfigItem{
+						Path: "templates/not-found-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					InternalServerError: &TemplateConfigItem{
+						Path: "templates/internal-server-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					UnauthorizedError: &TemplateConfigItem{
+						Path: "templates/unauthorized-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					ForbiddenError: &TemplateConfigItem{
+						Path: "templates/forbidden-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					BadRequestError: &TemplateConfigItem{
+						Path: "templates/bad-request-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+				},
+				Tracing: &TracingConfig{Enabled: false},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: nil,
+			},
+		},
+		{
+			name:    "no configuration file",
+			configs: map[string]string{},
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "info",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port:     8080,
+					Compress: svrCompressCfg,
+				},
+				InternalServer: &ServerConfig{
+					Port:     9090,
+					Compress: svrCompressCfg,
+				},
+				Templates: &TemplateConfig{
+					Helpers: []string{"templates/_helpers.tpl"},
+					FolderList: &TemplateConfigItem{
+						Path: "templates/folder-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					TargetList: &TemplateConfigItem{
+						Path: "templates/target-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					NotFoundError: &TemplateConfigItem{
+						Path: "templates/not-found-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					InternalServerError: &TemplateConfigItem{
+						Path: "templates/internal-server-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					UnauthorizedError: &TemplateConfigItem{
+						Path: "templates/unauthorized-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					ForbiddenError: &TemplateConfigItem{
+						Path: "templates/forbidden-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+					BadRequestError: &TemplateConfigItem{
+						Path: "templates/bad-request-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+					},
+				},
+				Tracing: &TracingConfig{Enabled: false},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: nil,
+			},
 		},
 		{
 			name: "Test all default values with minimal config",
