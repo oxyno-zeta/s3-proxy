@@ -367,6 +367,8 @@ linters:
     - promlinter
     - revive
     - wastedassign
+    - errname
+    - tagliatelle
     - bidichk
     - contextcheck
     - nilnil
@@ -396,6 +398,12 @@ issues:
     - linters:
         - lll
       source: "^//go:generate "
+    - linters:
+        - tagliatelle
+      path: pkg/.*/authx/models/oidc-user\.go
+    - linters:
+        - tagliatelle
+      path: pkg/.*/authx/authorization/opa-server\.go
 # issues:
 #   # List of regexps of issue texts to exclude, empty list by default.
 #   # But independently from this option we use default exclude patterns,
