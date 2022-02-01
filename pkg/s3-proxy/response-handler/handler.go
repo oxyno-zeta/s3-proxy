@@ -102,8 +102,17 @@ func (h *handler) TargetList() {
 		return
 	}
 
+	// Manage status code
+	statusCode, err := h.manageStatus(helpersTpl, nil, cfg.Templates.TargetList.Status, data)
+	// Check error
+	if err != nil {
+		h.InternalServerError(nil, err)
+
+		return
+	}
+
 	// Send
-	err = h.send(bodyBuf, headers, http.StatusOK)
+	err = h.send(bodyBuf, headers, statusCode)
 	// Check error
 	if err != nil {
 		h.InternalServerError(nil, err)
@@ -262,6 +271,15 @@ func (h *handler) FoldersFilesList(
 		return
 	}
 
+	// Create bucket list data for templating
+	data := &folderListingData{
+		Request:    h.req,
+		User:       models.GetAuthenticatedUserFromContext(h.req.Context()),
+		Entries:    entries,
+		BucketName: targetCfg.Bucket.Name,
+		Name:       targetCfg.Name,
+	}
+
 	// Create main content
 	content := helpersContent
 
@@ -294,15 +312,6 @@ func (h *handler) FoldersFilesList(
 		return
 	}
 
-	// Create bucket list data for templating
-	data := &folderListingData{
-		Request:    h.req,
-		User:       models.GetAuthenticatedUserFromContext(h.req.Context()),
-		Entries:    entries,
-		BucketName: targetCfg.Bucket.Name,
-		Name:       targetCfg.Name,
-	}
-
 	// Execute main template
 	bodyBuf, err := utils.ExecuteTemplate(content, data)
 	// Check error
@@ -312,8 +321,17 @@ func (h *handler) FoldersFilesList(
 		return
 	}
 
+	// Manage status code
+	statusCode, err := h.manageStatus(helpersContent, tplConfigItem, cfg.Templates.FolderList.Status, data)
+	// Check error
+	if err != nil {
+		h.InternalServerError(loadFileContent, err)
+
+		return
+	}
+
 	// Send
-	err = h.send(bodyBuf, headers, http.StatusOK)
+	err = h.send(bodyBuf, headers, statusCode)
 	// Check error
 	if err != nil {
 		h.InternalServerError(loadFileContent, err)

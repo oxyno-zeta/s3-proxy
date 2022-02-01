@@ -74,6 +74,24 @@ var DefaultTemplateHeaders = map[string]string{
 	"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 }
 
+// DefaultTemplateStatusOk Default template for status ok.
+const DefaultTemplateStatusOk = "200"
+
+// DefaultTemplateStatusNotFound Default template for status not found.
+const DefaultTemplateStatusNotFound = "404"
+
+// DefaultTemplateStatusForbidden Default template for status forbidden.
+const DefaultTemplateStatusForbidden = "403"
+
+// DefaultTemplateStatusBadRequest Default template for status bad request.
+const DefaultTemplateStatusBadRequest = "400"
+
+// DefaultTemplateStatusUnauthorized Default template for status Unauthorized.
+const DefaultTemplateStatusUnauthorized = "401"
+
+// DefaultTemplateStatusInternalServerError Default template for status Internal Server Error.
+const DefaultTemplateStatusInternalServerError = "500"
+
 // DefaultOIDCScopes Default OIDC Scopes.
 var DefaultOIDCScopes = []string{"openid", "profile", "email"}
 
@@ -174,6 +192,7 @@ type BasicAuthUserConfig struct {
 type TemplateConfigItem struct {
 	Path    string            `mapstructure:"path" validate:"required"`
 	Headers map[string]string `mapstructure:"headers"`
+	Status  string            `mapstructure:"status"`
 }
 
 // TemplateConfig Templates configuration.
@@ -266,6 +285,7 @@ type TargetHelperConfigItem struct {
 type TargetTemplateConfigItem struct {
 	Path     string            `mapstructure:"path" validate:"required,min=1"`
 	Headers  map[string]string `mapstructure:"headers"`
+	Status   string            `mapstructure:"status"`
 	InBucket bool              `mapstructure:"inBucket"`
 }
 

@@ -70,42 +70,49 @@ func Test_managercontext_Load(t *testing.T) {
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					TargetList: &TemplateConfigItem{
 						Path: "templates/target-list.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					NotFoundError: &TemplateConfigItem{
 						Path: "templates/not-found-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "404",
 					},
 					InternalServerError: &TemplateConfigItem{
 						Path: "templates/internal-server-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "500",
 					},
 					UnauthorizedError: &TemplateConfigItem{
 						Path: "templates/unauthorized-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "401",
 					},
 					ForbiddenError: &TemplateConfigItem{
 						Path: "templates/forbidden-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "403",
 					},
 					BadRequestError: &TemplateConfigItem{
 						Path: "templates/bad-request-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "400",
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
@@ -138,42 +145,49 @@ func Test_managercontext_Load(t *testing.T) {
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					TargetList: &TemplateConfigItem{
 						Path: "templates/target-list.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					NotFoundError: &TemplateConfigItem{
 						Path: "templates/not-found-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "404",
 					},
 					InternalServerError: &TemplateConfigItem{
 						Path: "templates/internal-server-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "500",
 					},
 					UnauthorizedError: &TemplateConfigItem{
 						Path: "templates/unauthorized-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "401",
 					},
 					ForbiddenError: &TemplateConfigItem{
 						Path: "templates/forbidden-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "403",
 					},
 					BadRequestError: &TemplateConfigItem{
 						Path: "templates/bad-request-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "400",
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
@@ -217,42 +231,49 @@ targets:
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					TargetList: &TemplateConfigItem{
 						Path: "templates/target-list.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					NotFoundError: &TemplateConfigItem{
 						Path: "templates/not-found-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "404",
 					},
 					InternalServerError: &TemplateConfigItem{
 						Path: "templates/internal-server-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "500",
 					},
 					UnauthorizedError: &TemplateConfigItem{
 						Path: "templates/unauthorized-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "401",
 					},
 					ForbiddenError: &TemplateConfigItem{
 						Path: "templates/forbidden-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "403",
 					},
 					BadRequestError: &TemplateConfigItem{
 						Path: "templates/bad-request-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "400",
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
@@ -321,42 +342,49 @@ targets:
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					TargetList: &TemplateConfigItem{
 						Path: "templates/target-list.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					NotFoundError: &TemplateConfigItem{
 						Path: "templates/not-found-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "404",
 					},
 					InternalServerError: &TemplateConfigItem{
 						Path: "templates/internal-server-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "500",
 					},
 					UnauthorizedError: &TemplateConfigItem{
 						Path: "templates/unauthorized-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "401",
 					},
 					ForbiddenError: &TemplateConfigItem{
 						Path: "templates/forbidden-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "403",
 					},
 					BadRequestError: &TemplateConfigItem{
 						Path: "templates/bad-request-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "400",
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
@@ -432,42 +460,49 @@ targets:
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					TargetList: &TemplateConfigItem{
 						Path: "templates/target-list.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					NotFoundError: &TemplateConfigItem{
 						Path: "templates/not-found-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "404",
 					},
 					InternalServerError: &TemplateConfigItem{
 						Path: "templates/internal-server-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "500",
 					},
 					UnauthorizedError: &TemplateConfigItem{
 						Path: "templates/unauthorized-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "401",
 					},
 					ForbiddenError: &TemplateConfigItem{
 						Path: "templates/forbidden-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "403",
 					},
 					BadRequestError: &TemplateConfigItem{
 						Path: "templates/bad-request-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "400",
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
@@ -549,42 +584,49 @@ targets:
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					TargetList: &TemplateConfigItem{
 						Path: "templates/target-list.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					NotFoundError: &TemplateConfigItem{
 						Path: "templates/not-found-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "404",
 					},
 					InternalServerError: &TemplateConfigItem{
 						Path: "templates/internal-server-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "500",
 					},
 					UnauthorizedError: &TemplateConfigItem{
 						Path: "templates/unauthorized-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "401",
 					},
 					ForbiddenError: &TemplateConfigItem{
 						Path: "templates/forbidden-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "403",
 					},
 					BadRequestError: &TemplateConfigItem{
 						Path: "templates/bad-request-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "400",
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
@@ -659,42 +701,49 @@ targets:
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					TargetList: &TemplateConfigItem{
 						Path: "templates/target-list.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					NotFoundError: &TemplateConfigItem{
 						Path: "templates/not-found-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "404",
 					},
 					InternalServerError: &TemplateConfigItem{
 						Path: "templates/internal-server-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "500",
 					},
 					UnauthorizedError: &TemplateConfigItem{
 						Path: "templates/unauthorized-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "401",
 					},
 					ForbiddenError: &TemplateConfigItem{
 						Path: "templates/forbidden-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "403",
 					},
 					BadRequestError: &TemplateConfigItem{
 						Path: "templates/bad-request-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "400",
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
@@ -721,6 +770,165 @@ targets:
 								Headers: map[string]string{
 									"override": "value",
 								},
+							},
+							NotFoundError: &TargetTemplateConfigItem{
+								Path: "fake2.tpl",
+								Headers: map[string]string{
+									"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+								},
+							},
+							InternalServerError: &TargetTemplateConfigItem{
+								Path: "fake2.tpl",
+								Headers: map[string]string{
+									"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+								},
+							},
+							UnauthorizedError: &TargetTemplateConfigItem{
+								Path: "fake2.tpl",
+								Headers: map[string]string{
+									"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+								},
+							},
+							ForbiddenError: &TargetTemplateConfigItem{
+								Path: "fake2.tpl",
+								Headers: map[string]string{
+									"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+								},
+							},
+							BadRequestError: &TargetTemplateConfigItem{
+								Path: "fake2.tpl",
+								Headers: map[string]string{
+									"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "override template status code should work in general and target override",
+			configs: map[string]string{
+				"config.yaml": `
+templates:
+  folderList:
+    status: "400"
+targets:
+ test:
+  mount:
+    path: /test/
+  templates:
+    folderList:
+      path: fake1.tpl
+      headers:
+        override: value
+      status: "499"
+    notFoundError:
+      path: fake2.tpl
+    internalServerError:
+      path: fake2.tpl
+    forbiddenError:
+      path: fake2.tpl
+    unauthorizedError:
+      path: fake2.tpl
+    badRequestError:
+      path: fake2.tpl
+  bucket:
+    name: bucket1
+    region: us-east-1
+`,
+			},
+			wantErr: false,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "info",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port:     8080,
+					Compress: svrCompressCfg,
+				},
+				InternalServer: &ServerConfig{
+					Port:     9090,
+					Compress: svrCompressCfg,
+				},
+				Templates: &TemplateConfig{
+					Helpers: []string{"templates/_helpers.tpl"},
+					FolderList: &TemplateConfigItem{
+						Path: "templates/folder-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+						Status: "400",
+					},
+					TargetList: &TemplateConfigItem{
+						Path: "templates/target-list.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+						Status: "200",
+					},
+					NotFoundError: &TemplateConfigItem{
+						Path: "templates/not-found-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+						Status: "404",
+					},
+					InternalServerError: &TemplateConfigItem{
+						Path: "templates/internal-server-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+						Status: "500",
+					},
+					UnauthorizedError: &TemplateConfigItem{
+						Path: "templates/unauthorized-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+						Status: "401",
+					},
+					ForbiddenError: &TemplateConfigItem{
+						Path: "templates/forbidden-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+						Status: "403",
+					},
+					BadRequestError: &TemplateConfigItem{
+						Path: "templates/bad-request-error.tpl",
+						Headers: map[string]string{
+							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+						},
+						Status: "400",
+					},
+				},
+				Tracing: &TracingConfig{Enabled: false},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name: "test",
+						Mount: &MountConfig{
+							Path: []string{"/test/"},
+						},
+						Bucket: &BucketConfig{
+							Name:          "bucket1",
+							Region:        "us-east-1",
+							S3ListMaxKeys: 1000,
+						},
+						Actions: &ActionsConfig{
+							GET: &GetActionConfig{Enabled: true},
+						},
+						Templates: &TargetTemplateConfig{
+							FolderList: &TargetTemplateConfigItem{
+								Path: "fake1.tpl",
+								Headers: map[string]string{
+									"override": "value",
+								},
+								Status: "499",
 							},
 							NotFoundError: &TargetTemplateConfigItem{
 								Path: "fake2.tpl",
@@ -837,42 +1045,49 @@ targets:
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					TargetList: &TemplateConfigItem{
 						Path: "templates/target-list.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					NotFoundError: &TemplateConfigItem{
 						Path: "templates/not-found-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "404",
 					},
 					InternalServerError: &TemplateConfigItem{
 						Path: "templates/internal-server-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "500",
 					},
 					UnauthorizedError: &TemplateConfigItem{
 						Path: "templates/unauthorized-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "401",
 					},
 					ForbiddenError: &TemplateConfigItem{
 						Path: "templates/forbidden-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "403",
 					},
 					BadRequestError: &TemplateConfigItem{
 						Path: "templates/bad-request-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "400",
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
@@ -990,42 +1205,49 @@ targets:
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					TargetList: &TemplateConfigItem{
 						Path: "templates/target-list.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					NotFoundError: &TemplateConfigItem{
 						Path: "templates/not-found-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "404",
 					},
 					InternalServerError: &TemplateConfigItem{
 						Path: "templates/internal-server-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "500",
 					},
 					UnauthorizedError: &TemplateConfigItem{
 						Path: "templates/unauthorized-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "401",
 					},
 					ForbiddenError: &TemplateConfigItem{
 						Path: "templates/forbidden-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "403",
 					},
 					BadRequestError: &TemplateConfigItem{
 						Path: "templates/bad-request-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "400",
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
@@ -1131,42 +1353,49 @@ targets:
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					TargetList: &TemplateConfigItem{
 						Path: "templates/target-list.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					NotFoundError: &TemplateConfigItem{
 						Path: "templates/not-found-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "404",
 					},
 					InternalServerError: &TemplateConfigItem{
 						Path: "templates/internal-server-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "500",
 					},
 					UnauthorizedError: &TemplateConfigItem{
 						Path: "templates/unauthorized-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "401",
 					},
 					ForbiddenError: &TemplateConfigItem{
 						Path: "templates/forbidden-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "403",
 					},
 					BadRequestError: &TemplateConfigItem{
 						Path: "templates/bad-request-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "400",
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
@@ -1253,42 +1482,49 @@ targets:
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					TargetList: &TemplateConfigItem{
 						Path: "templates/target-list.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					NotFoundError: &TemplateConfigItem{
 						Path: "templates/not-found-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "404",
 					},
 					InternalServerError: &TemplateConfigItem{
 						Path: "templates/internal-server-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "500",
 					},
 					UnauthorizedError: &TemplateConfigItem{
 						Path: "templates/unauthorized-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "401",
 					},
 					ForbiddenError: &TemplateConfigItem{
 						Path: "templates/forbidden-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "403",
 					},
 					BadRequestError: &TemplateConfigItem{
 						Path: "templates/bad-request-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "400",
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
@@ -1365,42 +1601,49 @@ targets:
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					TargetList: &TemplateConfigItem{
 						Path: "templates/target-list.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "200",
 					},
 					NotFoundError: &TemplateConfigItem{
 						Path: "templates/not-found-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "404",
 					},
 					InternalServerError: &TemplateConfigItem{
 						Path: "templates/internal-server-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "500",
 					},
 					UnauthorizedError: &TemplateConfigItem{
 						Path: "templates/unauthorized-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "401",
 					},
 					ForbiddenError: &TemplateConfigItem{
 						Path: "templates/forbidden-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "403",
 					},
 					BadRequestError: &TemplateConfigItem{
 						Path: "templates/bad-request-error.tpl",
 						Headers: map[string]string{
 							"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 						},
+						Status: "400",
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
@@ -1593,42 +1836,49 @@ targets:
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "200",
 			},
 			TargetList: &TemplateConfigItem{
 				Path: "templates/target-list.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "200",
 			},
 			NotFoundError: &TemplateConfigItem{
 				Path: "templates/not-found-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "404",
 			},
 			InternalServerError: &TemplateConfigItem{
 				Path: "templates/internal-server-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "500",
 			},
 			UnauthorizedError: &TemplateConfigItem{
 				Path: "templates/unauthorized-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "401",
 			},
 			ForbiddenError: &TemplateConfigItem{
 				Path: "templates/forbidden-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "403",
 			},
 			BadRequestError: &TemplateConfigItem{
 				Path: "templates/bad-request-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "400",
 			},
 		},
 		Tracing: &TracingConfig{Enabled: false},
@@ -1703,42 +1953,49 @@ log:
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "200",
 				},
 				TargetList: &TemplateConfigItem{
 					Path: "templates/target-list.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "200",
 				},
 				NotFoundError: &TemplateConfigItem{
 					Path: "templates/not-found-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "404",
 				},
 				InternalServerError: &TemplateConfigItem{
 					Path: "templates/internal-server-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "500",
 				},
 				UnauthorizedError: &TemplateConfigItem{
 					Path: "templates/unauthorized-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "401",
 				},
 				ForbiddenError: &TemplateConfigItem{
 					Path: "templates/forbidden-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "403",
 				},
 				BadRequestError: &TemplateConfigItem{
 					Path: "templates/bad-request-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "400",
 				},
 			},
 			Tracing: &TracingConfig{Enabled: false},
@@ -1869,42 +2126,49 @@ targets:
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "200",
 			},
 			TargetList: &TemplateConfigItem{
 				Path: "templates/target-list.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "200",
 			},
 			NotFoundError: &TemplateConfigItem{
 				Path: "templates/not-found-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "404",
 			},
 			InternalServerError: &TemplateConfigItem{
 				Path: "templates/internal-server-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "500",
 			},
 			UnauthorizedError: &TemplateConfigItem{
 				Path: "templates/unauthorized-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "401",
 			},
 			ForbiddenError: &TemplateConfigItem{
 				Path: "templates/forbidden-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "403",
 			},
 			BadRequestError: &TemplateConfigItem{
 				Path: "templates/bad-request-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "400",
 			},
 		},
 		Tracing: &TracingConfig{Enabled: false},
@@ -1977,42 +2241,49 @@ targets:
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "200",
 				},
 				TargetList: &TemplateConfigItem{
 					Path: "templates/target-list.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "200",
 				},
 				NotFoundError: &TemplateConfigItem{
 					Path: "templates/not-found-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "404",
 				},
 				InternalServerError: &TemplateConfigItem{
 					Path: "templates/internal-server-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "500",
 				},
 				UnauthorizedError: &TemplateConfigItem{
 					Path: "templates/unauthorized-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "401",
 				},
 				ForbiddenError: &TemplateConfigItem{
 					Path: "templates/forbidden-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "403",
 				},
 				BadRequestError: &TemplateConfigItem{
 					Path: "templates/bad-request-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "400",
 				},
 			},
 			Tracing: &TracingConfig{Enabled: false},
@@ -2143,42 +2414,49 @@ targets:
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "200",
 			},
 			TargetList: &TemplateConfigItem{
 				Path: "templates/target-list.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "200",
 			},
 			NotFoundError: &TemplateConfigItem{
 				Path: "templates/not-found-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "404",
 			},
 			InternalServerError: &TemplateConfigItem{
 				Path: "templates/internal-server-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "500",
 			},
 			UnauthorizedError: &TemplateConfigItem{
 				Path: "templates/unauthorized-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "401",
 			},
 			ForbiddenError: &TemplateConfigItem{
 				Path: "templates/forbidden-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "403",
 			},
 			BadRequestError: &TemplateConfigItem{
 				Path: "templates/bad-request-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "400",
 			},
 		},
 		Tracing: &TracingConfig{Enabled: false},
@@ -2254,42 +2532,49 @@ configuration with error
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "200",
 				},
 				TargetList: &TemplateConfigItem{
 					Path: "templates/target-list.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "200",
 				},
 				NotFoundError: &TemplateConfigItem{
 					Path: "templates/not-found-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "404",
 				},
 				InternalServerError: &TemplateConfigItem{
 					Path: "templates/internal-server-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "500",
 				},
 				UnauthorizedError: &TemplateConfigItem{
 					Path: "templates/unauthorized-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "401",
 				},
 				ForbiddenError: &TemplateConfigItem{
 					Path: "templates/forbidden-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "403",
 				},
 				BadRequestError: &TemplateConfigItem{
 					Path: "templates/bad-request-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "400",
 				},
 			},
 			Tracing: &TracingConfig{Enabled: false},
@@ -2424,42 +2709,49 @@ targets:
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "200",
 			},
 			TargetList: &TemplateConfigItem{
 				Path: "templates/target-list.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "200",
 			},
 			NotFoundError: &TemplateConfigItem{
 				Path: "templates/not-found-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "404",
 			},
 			InternalServerError: &TemplateConfigItem{
 				Path: "templates/internal-server-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "500",
 			},
 			UnauthorizedError: &TemplateConfigItem{
 				Path: "templates/unauthorized-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "401",
 			},
 			ForbiddenError: &TemplateConfigItem{
 				Path: "templates/forbidden-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "403",
 			},
 			BadRequestError: &TemplateConfigItem{
 				Path: "templates/bad-request-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "400",
 			},
 		},
 		AuthProviders: &AuthProviderConfig{
@@ -2541,42 +2833,49 @@ authProviders:
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "200",
 				},
 				TargetList: &TemplateConfigItem{
 					Path: "templates/target-list.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "200",
 				},
 				NotFoundError: &TemplateConfigItem{
 					Path: "templates/not-found-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "404",
 				},
 				InternalServerError: &TemplateConfigItem{
 					Path: "templates/internal-server-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "500",
 				},
 				UnauthorizedError: &TemplateConfigItem{
 					Path: "templates/unauthorized-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "401",
 				},
 				ForbiddenError: &TemplateConfigItem{
 					Path: "templates/forbidden-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "403",
 				},
 				BadRequestError: &TemplateConfigItem{
 					Path: "templates/bad-request-error.tpl",
 					Headers: map[string]string{
 						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 					},
+					Status: "400",
 				},
 			},
 			Tracing: &TracingConfig{Enabled: false},
@@ -2730,42 +3029,49 @@ targets:
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "200",
 			},
 			TargetList: &TemplateConfigItem{
 				Path: "templates/target-list.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "200",
 			},
 			NotFoundError: &TemplateConfigItem{
 				Path: "templates/not-found-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "404",
 			},
 			InternalServerError: &TemplateConfigItem{
 				Path: "templates/internal-server-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "500",
 			},
 			UnauthorizedError: &TemplateConfigItem{
 				Path: "templates/unauthorized-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "401",
 			},
 			ForbiddenError: &TemplateConfigItem{
 				Path: "templates/forbidden-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "403",
 			},
 			BadRequestError: &TemplateConfigItem{
 				Path: "templates/bad-request-error.tpl",
 				Headers: map[string]string{
 					"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 				},
+				Status: "400",
 			},
 		},
 		AuthProviders: &AuthProviderConfig{

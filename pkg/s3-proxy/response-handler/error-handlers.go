@@ -111,7 +111,6 @@ func (h *handler) BadRequestError(
 		helpersCfgItems,
 		cfg.Templates.BadRequestError,
 		cfg.Templates.Helpers,
-		http.StatusBadRequest,
 	)
 }
 
@@ -149,7 +148,6 @@ func (h *handler) ForbiddenError(
 		helpersCfgItems,
 		cfg.Templates.ForbiddenError,
 		cfg.Templates.Helpers,
-		http.StatusForbidden,
 	)
 }
 
@@ -189,7 +187,6 @@ func (h *handler) NotFoundError(
 		helpersCfgItems,
 		cfg.Templates.NotFoundError,
 		cfg.Templates.Helpers,
-		http.StatusNotFound,
 	)
 }
 
@@ -228,7 +225,6 @@ func (h *handler) UnauthorizedError(
 		helpersCfgItems,
 		cfg.Templates.UnauthorizedError,
 		cfg.Templates.Helpers,
-		http.StatusUnauthorized,
 	)
 }
 
@@ -239,7 +235,6 @@ func (h *handler) handleGenericErrorTemplate(
 	helpersTplCfgItems []*config.TargetHelperConfigItem,
 	baseTpl *config.TemplateConfigItem,
 	helpersTplFilePathList []string,
-	statusCode int,
 ) {
 	// Get logger from request
 	logger := log.GetLoggerFromContext(h.req.Context())
@@ -351,6 +346,15 @@ func (h *handler) handleGenericErrorTemplate(
 	// Check error
 	if err2 != nil {
 		h.InternalServerError(loadFileContent, err2)
+
+		return
+	}
+
+	// Manage status code
+	statusCode, err := h.manageStatus(helpersContent, tplCfgItem, baseTpl.Status, data)
+	// Check error
+	if err != nil {
+		h.InternalServerError(loadFileContent, err)
 
 		return
 	}

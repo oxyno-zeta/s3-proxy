@@ -17,52 +17,75 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 )
 
+var testsDefaultFolderListTemplateConfig = &config.TemplateConfigItem{
+	Path: "../../../templates/folder-list.tpl",
+	Headers: map[string]string{
+		"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+	},
+	Status: "200",
+}
+
+var testsDefaultTargetListTemplateConfig = &config.TemplateConfigItem{
+	Path: "../../../templates/target-list.tpl",
+	Headers: map[string]string{
+		"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+	},
+	Status: "200",
+}
+
+var testsDefaultBadRequestErrorTemplateConfig = &config.TemplateConfigItem{
+	Path: "../../../templates/bad-request-error.tpl",
+	Headers: map[string]string{
+		"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+	},
+	Status: "400",
+}
+
+var testsDefaultNotFoundErrorTemplateConfig = &config.TemplateConfigItem{
+	Path: "../../../templates/not-found-error.tpl",
+	Headers: map[string]string{
+		"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+	},
+	Status: "404",
+}
+
+var testsDefaultInternalServerErrorTemplateConfig = &config.TemplateConfigItem{
+	Path: "../../../templates/internal-server-error.tpl",
+	Headers: map[string]string{
+		"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+	},
+	Status: "500",
+}
+
+var testsDefaultUnauthorizedErrorTemplateConfig = &config.TemplateConfigItem{
+	Path: "../../../templates/unauthorized-error.tpl",
+	Headers: map[string]string{
+		"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+	},
+	Status: "401",
+}
+
+var testsDefaultForbiddenErrorTemplateConfig = &config.TemplateConfigItem{
+	Path: "../../../templates/forbidden-error.tpl",
+	Headers: map[string]string{
+		"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+	},
+	Status: "403",
+}
+
+var testsDefaultHelpersTemplateConfig = []string{
+	"../../../templates/_helpers.tpl",
+}
+
 var testsDefaultGeneralTemplateConfig = &config.TemplateConfig{
-	Helpers: []string{
-		"../../../templates/_helpers.tpl",
-	},
-	FolderList: &config.TemplateConfigItem{
-		Path: "../../../templates/folder-list.tpl",
-		Headers: map[string]string{
-			"Content-Type": "{{ template \"main.headers.contentType\" . }}",
-		},
-	},
-	TargetList: &config.TemplateConfigItem{
-		Path: "../../../templates/target-list.tpl",
-		Headers: map[string]string{
-			"Content-Type": "{{ template \"main.headers.contentType\" . }}",
-		},
-	},
-	BadRequestError: &config.TemplateConfigItem{
-		Path: "../../../templates/bad-request-error.tpl",
-		Headers: map[string]string{
-			"Content-Type": "{{ template \"main.headers.contentType\" . }}",
-		},
-	},
-	NotFoundError: &config.TemplateConfigItem{
-		Path: "../../../templates/not-found-error.tpl",
-		Headers: map[string]string{
-			"Content-Type": "{{ template \"main.headers.contentType\" . }}",
-		},
-	},
-	InternalServerError: &config.TemplateConfigItem{
-		Path: "../../../templates/internal-server-error.tpl",
-		Headers: map[string]string{
-			"Content-Type": "{{ template \"main.headers.contentType\" . }}",
-		},
-	},
-	UnauthorizedError: &config.TemplateConfigItem{
-		Path: "../../../templates/unauthorized-error.tpl",
-		Headers: map[string]string{
-			"Content-Type": "{{ template \"main.headers.contentType\" . }}",
-		},
-	},
-	ForbiddenError: &config.TemplateConfigItem{
-		Path: "../../../templates/forbidden-error.tpl",
-		Headers: map[string]string{
-			"Content-Type": "{{ template \"main.headers.contentType\" . }}",
-		},
-	},
+	Helpers:             testsDefaultHelpersTemplateConfig,
+	FolderList:          testsDefaultFolderListTemplateConfig,
+	TargetList:          testsDefaultTargetListTemplateConfig,
+	BadRequestError:     testsDefaultBadRequestErrorTemplateConfig,
+	NotFoundError:       testsDefaultNotFoundErrorTemplateConfig,
+	InternalServerError: testsDefaultInternalServerErrorTemplateConfig,
+	UnauthorizedError:   testsDefaultUnauthorizedErrorTemplateConfig,
+	ForbiddenError:      testsDefaultForbiddenErrorTemplateConfig,
 }
 
 // Generate metrics instance

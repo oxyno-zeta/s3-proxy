@@ -2032,6 +2032,118 @@ func TestPublicRouter(t *testing.T) {
 				"Fake":          "v1",
 			},
 		},
+		{
+			name: "GET a folder list with another status code and another content (general templates)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates: &config.TemplateConfig{
+						Helpers:             testsDefaultHelpersTemplateConfig,
+						FolderList:          testsDefaultNotFoundErrorTemplateConfig,
+						TargetList:          testsDefaultTargetListTemplateConfig,
+						BadRequestError:     testsDefaultBadRequestErrorTemplateConfig,
+						NotFoundError:       testsDefaultNotFoundErrorTemplateConfig,
+						InternalServerError: testsDefaultInternalServerErrorTemplateConfig,
+						UnauthorizedError:   testsDefaultUnauthorizedErrorTemplateConfig,
+						ForbiddenError:      testsDefaultForbiddenErrorTemplateConfig,
+					},
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{
+									Enabled: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder1/",
+			expectedCode: 404,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /mount/folder1/</h1>
+  </body>
+</html>`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "GET a folder list with another status code and another content (target override)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{
+									Enabled: true,
+								},
+							},
+							Templates: &config.TargetTemplateConfig{
+								FolderList: &config.TargetTemplateConfigItem{
+									Path: "../../../templates/not-found-error.tpl",
+									Headers: map[string]string{
+										"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+									},
+									Status: "404",
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder1/",
+			expectedCode: 404,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /mount/folder1/</h1>
+  </body>
+</html>`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

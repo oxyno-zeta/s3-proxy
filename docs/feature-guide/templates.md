@@ -220,7 +220,7 @@ These are the properties available:
 | ContentType        | String                                    | Content type value from S3        |
 | ETag               | String                                    | ETag value from S3                |
 | LastModified       | [Time](https://golang.org/pkg/time/#Time) | Last modified value from S3       |
-| Metadata           | Map[String]String                         | Metadata value from S3            |
+| Metadata           | Map[String]String                         | Metadata value from S3            |
 
 ### PutInput
 
