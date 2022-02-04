@@ -242,98 +242,6 @@ func (h *handler) handleGenericErrorTemplate(
 	// Log error
 	logger.Error(err)
 
-	// Put error err2 to avoid erase of err
-	var err2 error
-
-	// Get helpers template content
-	helpersContent, err2 := h.loadAllHelpersContent(
-		loadFileContent,
-		helpersTplCfgItems,
-		helpersTplFilePathList,
-	)
-	// Check if error exists
-	if err2 != nil {
-		// Return an internal server error
-		h.InternalServerError(
-			loadFileContent,
-			err2,
-		)
-
-		return
-	}
-	// Save in template
-	tplContent := helpersContent
-
-	// Check if a target template configuration exists
-	// Note: Done like this and not with list to avoid creating list of 1 element
-	// and to avoid loops etc to save potential memory and cpu
-	if tplCfgItem != nil {
-		// Load template content
-		tpl, err3 := h.loadTemplateContent(
-			loadFileContent,
-			tplCfgItem,
-		)
-		// Concat
-		tplContent = tplContent + "\n" + tpl
-		// Save error
-		err2 = err3
-	} else {
-		// Get template from general configuration
-		tpl, err3 := loadLocalFileContent(baseTpl.Path)
-		// Concat
-		tplContent = tplContent + "\n" + tpl
-		// Save error
-		err2 = err3
-	}
-
-	// Check if error exists
-	if err2 != nil {
-		// Return an internal server error
-		h.InternalServerError(
-			loadFileContent,
-			err2,
-		)
-
-		return
-	}
-
-	// Store headers
-	var headers map[string]string
-
-	// Create header data
-	hData := &genericHeaderData{
-		Request: h.req,
-		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
-	}
-
-	// Check if target config item exists
-	if tplCfgItem != nil {
-		// Manage headers
-		headers, err2 = h.manageHeaders(
-			helpersContent,
-			tplCfgItem.Headers,
-			hData,
-		)
-	} else {
-		// Manage headers
-		headers, err2 = h.manageHeaders(
-			helpersContent,
-			baseTpl.Headers,
-			hData,
-		)
-	}
-
-	// Check if error exists
-	if err2 != nil {
-		// Return an internal server error
-		h.InternalServerError(
-			loadFileContent,
-			err2,
-		)
-
-		return
-	}
-
 	// Create data
 	data := &errorData{
 		Request: h.req,
@@ -341,34 +249,14 @@ func (h *handler) handleGenericErrorTemplate(
 		Error:   err,
 	}
 
-	// Execute main template
-	bodyBuf, err2 := utils.ExecuteTemplate(tplContent, data)
-	// Check error
-	if err2 != nil {
-		h.InternalServerError(loadFileContent, err2)
-
-		return
-	}
-
-	// Manage status code
-	statusCode, err := h.manageStatus(helpersContent, tplCfgItem, baseTpl.Status, data)
-	// Check error
-	if err != nil {
-		h.InternalServerError(loadFileContent, err)
-
-		return
-	}
-
-	// Send
-	err2 = h.send(bodyBuf, headers, statusCode)
-	// Check error
-	if err2 != nil {
-		// Return an internal server error
-		h.InternalServerError(
-			loadFileContent,
-			err2,
-		)
-	}
+	h.handleGenericAnswer(
+		loadFileContent,
+		data,
+		tplCfgItem,
+		helpersTplCfgItems,
+		baseTpl,
+		helpersTplFilePathList,
+	)
 }
 
 func (h *handler) InternalServerError(
