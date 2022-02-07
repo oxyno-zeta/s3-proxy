@@ -115,6 +115,14 @@ log:
 #     headers:
 #       Content-Type: '{{ template "main.headers.contentType" . }}'
 #     status: "401"
+#   put:
+#     path: templates/put.tpl
+#     headers: {}
+#     status: "204"
+#   delete:
+#     path: templates/delete.tpl
+#     headers: {}
+#     status: "204"
 
 # Authentication Providers
 # authProviders:
@@ -322,6 +330,18 @@ targets:
     #     path: ""
     #     headers: {}
     #     status: "400"
+    #   # PUT template
+    #   put:
+    #     inBucket: false
+    #     path: ""
+    #     headers: {}
+    #     status: "204"
+    #   # DELETE template
+    #   delete:
+    #     inBucket: false
+    #     path: ""
+    #     headers: {}
+    #     status: "204"
     ## Bucket configuration
     bucket:
       name: super-bucket

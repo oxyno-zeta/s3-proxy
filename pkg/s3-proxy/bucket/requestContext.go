@@ -356,8 +356,18 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 		},
 	)
 
-	// Answer with no content
-	resHan.NoContent()
+	// Answer
+	resHan.Put(
+		rctx.LoadFileContent,
+		&responsehandler.PutInput{
+			Key:          key,
+			ContentType:  inp.ContentType,
+			ContentSize:  inp.ContentSize,
+			Metadata:     input.Metadata,
+			StorageClass: input.StorageClass,
+			Filename:     inp.Filename,
+		},
+	)
 }
 
 // Delete will delete object in S3.
@@ -377,7 +387,9 @@ func (rctx *requestContext) Delete(ctx context.Context, requestPath string) {
 	}
 
 	// Delete object in S3
-	info, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).DeleteObject(ctx, key)
+	info, err := rctx.s3ClientManager.
+		GetClientForTarget(rctx.targetCfg.Name).
+		DeleteObject(ctx, key)
 	// Check if error exists
 	if err != nil {
 		resHan.InternalServerError(rctx.LoadFileContent, err)
@@ -398,8 +410,13 @@ func (rctx *requestContext) Delete(ctx context.Context, requestPath string) {
 		},
 	)
 
-	// Answer with no content
-	resHan.NoContent()
+	// Answer
+	resHan.Delete(
+		rctx.LoadFileContent,
+		&responsehandler.DeleteInput{
+			Key: key,
+		},
+	)
 }
 
 func transformS3Entries(

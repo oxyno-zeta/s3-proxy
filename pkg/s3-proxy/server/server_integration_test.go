@@ -1631,6 +1631,124 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
+			name: "DELETE with a custom template and status code should be ok",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates: &config.TemplateConfig{
+						Helpers:             testsDefaultHelpersTemplateConfig,
+						FolderList:          testsDefaultFolderListTemplateConfig,
+						TargetList:          testsDefaultTargetListTemplateConfig,
+						BadRequestError:     testsDefaultBadRequestErrorTemplateConfig,
+						NotFoundError:       testsDefaultNotFoundErrorTemplateConfig,
+						InternalServerError: testsDefaultInternalServerErrorTemplateConfig,
+						UnauthorizedError:   testsDefaultUnauthorizedErrorTemplateConfig,
+						ForbiddenError:      testsDefaultForbiddenErrorTemplateConfig,
+						Put:                 testsDefaultPutTemplateConfig,
+						Delete: &config.TemplateConfigItem{
+							Path: "../../../tests-custom-templates/simple.tpl",
+							Headers: map[string]string{
+								"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+							},
+							Status: "200",
+						},
+					},
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET:    &config.GetActionConfig{Enabled: true},
+								DELETE: &config.DeleteActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "DELETE",
+			inputURL:     "http://localhost/mount/folder1/text.txt",
+			expectedCode: 200,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+			expectedBody: `<html>
+    <body>
+        <h1>Simple</h1>
+    </body>
+</html>
+`,
+		},
+		{
+			name: "DELETE with a custom target template and status code should be ok",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET:    &config.GetActionConfig{Enabled: true},
+								DELETE: &config.DeleteActionConfig{Enabled: true},
+							},
+							Templates: &config.TargetTemplateConfig{
+								Delete: &config.TargetTemplateConfigItem{
+									Path: "../../../tests-custom-templates/simple.tpl",
+									Headers: map[string]string{
+										"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+									},
+									Status: "200",
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "DELETE",
+			inputURL:     "http://localhost/mount/folder1/text.txt",
+			expectedCode: 200,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+			expectedBody: `<html>
+    <body>
+        <h1>Simple</h1>
+    </body>
+</html>
+`,
+		},
+		{
 			name: "PUT in a path with success without allow override and don't need it",
 			args: args{
 				cfg: &config.Config{
@@ -1889,6 +2007,148 @@ func TestPublicRouter(t *testing.T) {
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/html; charset=utf-8",
 			},
+		},
+		{
+			name: "PUT with a custom template and status code should be ok",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates: &config.TemplateConfig{
+						Helpers:             testsDefaultHelpersTemplateConfig,
+						FolderList:          testsDefaultFolderListTemplateConfig,
+						TargetList:          testsDefaultTargetListTemplateConfig,
+						BadRequestError:     testsDefaultBadRequestErrorTemplateConfig,
+						NotFoundError:       testsDefaultNotFoundErrorTemplateConfig,
+						InternalServerError: testsDefaultInternalServerErrorTemplateConfig,
+						UnauthorizedError:   testsDefaultUnauthorizedErrorTemplateConfig,
+						ForbiddenError:      testsDefaultForbiddenErrorTemplateConfig,
+						Put: &config.TemplateConfigItem{
+							Path: "../../../tests-custom-templates/simple.tpl",
+							Headers: map[string]string{
+								"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+							},
+							Status: "200",
+						},
+						Delete: testsDefaultDeleteTemplateConfig,
+					},
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+								PUT: &config.PutActionConfig{
+									Enabled: true,
+									Config: &config.PutActionConfigConfig{
+										StorageClass: "Standard",
+										Metadata: map[string]string{
+											"meta1": "meta1",
+										},
+										AllowOverride: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:   "PUT",
+			inputURL:      "http://localhost/mount/folder1/",
+			inputFileName: "test.txt",
+			inputFileKey:  "file",
+			inputBody:     "Hello test1!",
+			expectedCode:  200,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+			expectedBody: `<html>
+    <body>
+        <h1>Simple</h1>
+    </body>
+</html>
+`,
+		},
+		{
+			name: "PUT with a custom target template and status code should be ok",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+								PUT: &config.PutActionConfig{
+									Enabled: true,
+									Config: &config.PutActionConfigConfig{
+										StorageClass: "Standard",
+										Metadata: map[string]string{
+											"meta1": "meta1",
+										},
+										AllowOverride: true,
+									},
+								},
+							},
+							Templates: &config.TargetTemplateConfig{
+								Put: &config.TargetTemplateConfigItem{
+									Path: "../../../tests-custom-templates/simple.tpl",
+									Headers: map[string]string{
+										"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+									},
+									Status: "200",
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:   "PUT",
+			inputURL:      "http://localhost/mount/folder1/",
+			inputFileName: "test.txt",
+			inputFileKey:  "file",
+			inputBody:     "Hello test1!",
+			expectedCode:  200,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+			expectedBody: `<html>
+    <body>
+        <h1>Simple</h1>
+    </body>
+</html>
+`,
 		},
 		{
 			name: "GET a file with success with space in path",
@@ -2234,6 +2494,10 @@ func TestPublicRouter(t *testing.T) {
 				for key, value := range tt.inputHeaders {
 					req.Header.Set(key, value)
 				}
+			}
+
+			if tt.name == "DELETE a path with success" {
+				fmt.Println("toto")
 			}
 
 			got.ServeHTTP(w, req)

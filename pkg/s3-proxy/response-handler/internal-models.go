@@ -42,3 +42,17 @@ type streamFileHeaderData struct {
 	User       models.GenericUser
 	StreamFile *StreamInput
 }
+
+// putData represents the structure used by put templating.
+type putData struct {
+	Request *http.Request
+	User    models.GenericUser
+	PutData *PutInput
+}
+
+// deleteData represents the structure used by delete templating.
+type deleteData struct {
+	Request    *http.Request
+	User       models.GenericUser
+	DeleteData *DeleteInput
+}

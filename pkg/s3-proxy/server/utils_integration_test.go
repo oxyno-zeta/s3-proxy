@@ -73,6 +73,18 @@ var testsDefaultForbiddenErrorTemplateConfig = &config.TemplateConfigItem{
 	Status: "403",
 }
 
+var testsDefaultPutTemplateConfig = &config.TemplateConfigItem{
+	Path:    "../../../templates/put.tpl",
+	Headers: map[string]string{},
+	Status:  "204",
+}
+
+var testsDefaultDeleteTemplateConfig = &config.TemplateConfigItem{
+	Path:    "../../../templates/delete.tpl",
+	Headers: map[string]string{},
+	Status:  "204",
+}
+
 var testsDefaultHelpersTemplateConfig = []string{
 	"../../../templates/_helpers.tpl",
 }
@@ -86,6 +98,8 @@ var testsDefaultGeneralTemplateConfig = &config.TemplateConfig{
 	InternalServerError: testsDefaultInternalServerErrorTemplateConfig,
 	UnauthorizedError:   testsDefaultUnauthorizedErrorTemplateConfig,
 	ForbiddenError:      testsDefaultForbiddenErrorTemplateConfig,
+	Put:                 testsDefaultPutTemplateConfig,
+	Delete:              testsDefaultDeleteTemplateConfig,
 }
 
 // Generate metrics instance

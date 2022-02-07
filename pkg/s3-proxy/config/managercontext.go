@@ -183,6 +183,12 @@ func (ctx *managercontext) loadDefaultConfigurationValues(vip *viper.Viper) {
 	vip.SetDefault("templates.badRequestError.path", DefaultTemplateBadRequestErrorPath)
 	vip.SetDefault("templates.badRequestError.headers", DefaultTemplateHeaders)
 	vip.SetDefault("templates.badRequestError.status", DefaultTemplateStatusBadRequest)
+	vip.SetDefault("templates.put.path", DefaultTemplatePutPath)
+	vip.SetDefault("templates.put.headers", DefaultEmptyTemplateHeaders)
+	vip.SetDefault("templates.put.status", DefaultTemplateStatusNoContent)
+	vip.SetDefault("templates.delete.path", DefaultTemplateDeletePath)
+	vip.SetDefault("templates.delete.headers", DefaultEmptyTemplateHeaders)
+	vip.SetDefault("templates.delete.status", DefaultTemplateStatusNoContent)
 }
 
 func generateViperInstances(files []os.FileInfo) []*viper.Viper {
@@ -545,6 +551,16 @@ func loadBusinessDefaultValues(out *Config) error {
 			// Check if bad request error template have been override and not headers
 			if item.Templates.BadRequestError != nil && item.Templates.BadRequestError.Headers == nil {
 				item.Templates.BadRequestError.Headers = DefaultTemplateHeaders
+			}
+
+			// Check if put template have been override and not headers
+			if item.Templates.Put != nil && item.Templates.Put.Headers == nil {
+				item.Templates.Put.Headers = DefaultEmptyTemplateHeaders
+			}
+
+			// Check if delete template have been override and not headers
+			if item.Templates.Delete != nil && item.Templates.Delete.Headers == nil {
+				item.Templates.Delete.Headers = DefaultEmptyTemplateHeaders
 			}
 		}
 		// Manage default value for resources methods

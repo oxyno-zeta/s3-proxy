@@ -34,8 +34,94 @@ func (h *handler) NotModified() {
 	h.res.WriteHeader(http.StatusNotModified)
 }
 
-func (h *handler) NoContent() {
-	h.res.WriteHeader(http.StatusNoContent)
+func (h *handler) Put(
+	loadFileContent func(ctx context.Context, path string) (string, error),
+	input *PutInput,
+) {
+	// Get configuration
+	cfg := h.cfgManager.GetConfig()
+
+	// Variable to save target template configuration item override
+	var tplCfgItem *config.TargetTemplateConfigItem
+
+	// Store helpers template configs
+	var helpersCfgItems []*config.TargetHelperConfigItem
+
+	// Check if a target has been involve in this request
+	if h.targetKey != "" {
+		// Get target from key
+		targetCfg := cfg.Targets[h.targetKey]
+		// Check if have a template override
+		if targetCfg != nil &&
+			targetCfg.Templates != nil &&
+			targetCfg.Templates.Put != nil {
+			// Save override
+			tplCfgItem = targetCfg.Templates.Put
+			helpersCfgItems = targetCfg.Templates.Helpers
+		}
+	}
+
+	// Create data
+	data := &putData{
+		Request: h.req,
+		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
+		PutData: input,
+	}
+
+	// Call generic template handler
+	h.handleGenericAnswer(
+		loadFileContent,
+		data,
+		tplCfgItem,
+		helpersCfgItems,
+		cfg.Templates.Put,
+		cfg.Templates.Helpers,
+	)
+}
+
+func (h *handler) Delete(
+	loadFileContent func(ctx context.Context, path string) (string, error),
+	input *DeleteInput,
+) {
+	// Get configuration
+	cfg := h.cfgManager.GetConfig()
+
+	// Variable to save target template configuration item override
+	var tplCfgItem *config.TargetTemplateConfigItem
+
+	// Store helpers template configs
+	var helpersCfgItems []*config.TargetHelperConfigItem
+
+	// Check if a target has been involve in this request
+	if h.targetKey != "" {
+		// Get target from key
+		targetCfg := cfg.Targets[h.targetKey]
+		// Check if have a template override
+		if targetCfg != nil &&
+			targetCfg.Templates != nil &&
+			targetCfg.Templates.Delete != nil {
+			// Save override
+			tplCfgItem = targetCfg.Templates.Delete
+			helpersCfgItems = targetCfg.Templates.Helpers
+		}
+	}
+
+	// Create data
+	data := &deleteData{
+		Request:    h.req,
+		User:       models.GetAuthenticatedUserFromContext(h.req.Context()),
+		DeleteData: input,
+	}
+
+	// Call generic template handler
+	h.handleGenericAnswer(
+		loadFileContent,
+		data,
+		tplCfgItem,
+		helpersCfgItems,
+		cfg.Templates.Delete,
+		cfg.Templates.Helpers,
+	)
 }
 
 func (h *handler) TargetList() {

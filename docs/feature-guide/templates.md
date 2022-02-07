@@ -123,6 +123,30 @@ Available data:
 | Request | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
 | Error   | Error                                                    | Error raised and caught                           |
 
+### Put
+
+This template is used for all `PUT` response.
+
+Available data:
+
+| Name    | Type                                                     | Description                                       |
+| ------- | -------------------------------------------------------- | ------------------------------------------------- |
+| User    | [GenericUser](#genericuser)                              | Authenticated user if present in incoming request |
+| Request | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
+| PutData | [PutData](#putdata)                                      | Put Data                                          |
+
+### Delete
+
+This template is used for all `DELETE` response.
+
+Available data:
+
+| Name       | Type                                                     | Description                                       |
+| ---------- | -------------------------------------------------------- | ------------------------------------------------- |
+| User       | [GenericUser](#genericuser)                              | Authenticated user if present in incoming request |
+| Request    | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
+| DeleteData | [DeleteData](#deletedata)                                | Delete Data                                       |
+
 ## PUT Metadata and Storage class
 
 ### PUT Metadata
@@ -230,3 +254,20 @@ These are the properties available:
 | Filename    | String  | Filename used for upload     |
 | ContentType | String  | File content type for upload |
 | ContentSize | Integer | File content size for upload |
+
+### PutData
+
+| Name         | Type              | Description                  |
+| ------------ | ----------------- | ---------------------------- |
+| Key          | String            | Full key from S3 response    |
+| Filename     | String            | Filename used for upload     |
+| ContentType  | String            | File content type for upload |
+| ContentSize  | Integer           | File content size for upload |
+| Metadata     | Map[String]String | Metadata value from S3       |
+| StorageClass | String            | Storage class                |
+
+### DeleteData
+
+| Name | Type   | Description               |
+| ---- | ------ | ------------------------- |
+| Key  | String | Full key from S3 response |

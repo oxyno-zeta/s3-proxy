@@ -66,6 +66,12 @@ const DefaultTemplateInternalServerErrorPath = "templates/internal-server-error.
 // DefaultTemplateUnauthorizedErrorPath Default template unauthorized error path.
 const DefaultTemplateUnauthorizedErrorPath = "templates/unauthorized-error.tpl"
 
+// DefaultTemplatePutPath Default template put path.
+const DefaultTemplatePutPath = "templates/put.tpl"
+
+// DefaultTemplateDeletePath Default template delete path.
+const DefaultTemplateDeletePath = "templates/delete.tpl"
+
 // DefaultTemplateHelpersPath Default template helpers path.
 const DefaultTemplateHelpersPath = "templates/_helpers.tpl"
 
@@ -74,8 +80,14 @@ var DefaultTemplateHeaders = map[string]string{
 	"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 }
 
+// DefaultEmptyTemplateHeaders Default empty template headers.
+var DefaultEmptyTemplateHeaders = map[string]string{}
+
 // DefaultTemplateStatusOk Default template for status ok.
 const DefaultTemplateStatusOk = "200"
+
+// DefaultTemplateStatusNoContent Default template for status no content.
+const DefaultTemplateStatusNoContent = "204"
 
 // DefaultTemplateStatusNotFound Default template for status not found.
 const DefaultTemplateStatusNotFound = "404"
@@ -205,6 +217,8 @@ type TemplateConfig struct {
 	UnauthorizedError   *TemplateConfigItem `mapstructure:"unauthorizedError" validate:"required"`
 	ForbiddenError      *TemplateConfigItem `mapstructure:"forbiddenError" validate:"required"`
 	BadRequestError     *TemplateConfigItem `mapstructure:"badRequestError" validate:"required"`
+	Put                 *TemplateConfigItem `mapstructure:"put" validate:"required"`
+	Delete              *TemplateConfigItem `mapstructure:"delete" validate:"required"`
 }
 
 // ServerConfig Server configuration.
@@ -273,6 +287,8 @@ type TargetTemplateConfig struct {
 	ForbiddenError      *TargetTemplateConfigItem `mapstructure:"forbiddenError"`
 	UnauthorizedError   *TargetTemplateConfigItem `mapstructure:"unauthorizedError"`
 	BadRequestError     *TargetTemplateConfigItem `mapstructure:"badRequestError"`
+	Put                 *TargetTemplateConfigItem `mapstructure:"put"`
+	Delete              *TargetTemplateConfigItem `mapstructure:"delete"`
 }
 
 // TargetHelperConfigItem Target helper configuration item.
