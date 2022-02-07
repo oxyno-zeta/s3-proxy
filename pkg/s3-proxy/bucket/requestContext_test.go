@@ -647,6 +647,7 @@ func Test_requestContext_Put(t *testing.T) {
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
 				input: &responsehandler.PutInput{
 					Key:          "/test/file",
+					Filename:     "file",
 					ContentType:  "content-type",
 					ContentSize:  1,
 					Metadata:     map[string]string{"testkey": "testvalue"},
@@ -782,6 +783,7 @@ func Test_requestContext_Put(t *testing.T) {
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
 				input: &responsehandler.PutInput{
 					Key:         "/test/file",
+					Filename:    "file",
 					ContentType: "content-type",
 				},
 				times: 1,
@@ -858,6 +860,7 @@ func Test_requestContext_Put(t *testing.T) {
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
 				input: &responsehandler.PutInput{
 					Key:          "/test1/test2/file",
+					Filename:     "file",
 					ContentType:  "content-type",
 					Metadata:     map[string]string{"testkey": "testvalue"},
 					StorageClass: "storage-class",
@@ -936,6 +939,7 @@ func Test_requestContext_Put(t *testing.T) {
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
 				input: &responsehandler.PutInput{
 					Key:         "/test/file",
+					Filename:    "file",
 					ContentType: "content-type",
 					Metadata: map[string]string{
 						"fixed":   "fixed",
@@ -1015,6 +1019,7 @@ func Test_requestContext_Put(t *testing.T) {
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
 				input: &responsehandler.PutInput{
 					Key:         "/test/file",
+					Filename:    "file",
 					ContentType: "content-type",
 					Metadata: map[string]string{
 						"fixed": "fixed",
@@ -1097,6 +1102,7 @@ func Test_requestContext_Put(t *testing.T) {
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
 				input: &responsehandler.PutInput{
 					Key:         "/test/file",
+					Filename:    "file",
 					ContentType: "content-type",
 					Metadata: map[string]string{
 						"fixed":   "fixed",
@@ -1175,6 +1181,7 @@ func Test_requestContext_Put(t *testing.T) {
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
 				input: &responsehandler.PutInput{
 					Key:         "/test/file",
+					Filename:    "file",
 					ContentType: "content-type",
 					Metadata: map[string]string{
 						"fixed": "fixed",
@@ -1251,6 +1258,7 @@ func Test_requestContext_Put(t *testing.T) {
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
 				input: &responsehandler.PutInput{
 					Key:         "/test/file",
+					Filename:    "file",
 					ContentType: "content-type",
 					Metadata: map[string]string{
 						"fixed": "fixed",
@@ -1328,6 +1336,7 @@ func Test_requestContext_Put(t *testing.T) {
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
 				input: &responsehandler.PutInput{
 					Key:         "/test/file",
+					Filename:    "file",
 					ContentType: "content-type",
 					Metadata: map[string]string{
 						"fixed": "fixed",
