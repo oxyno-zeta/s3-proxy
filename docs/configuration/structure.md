@@ -126,11 +126,11 @@ See more information [here](../feature-guide/key-rewrite.md).
 | ------------------- | ----------------------------------------------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------- |
 | helpers             | [[TargetHelperConfigItem](#targethelperconfigitem)]   | No       | None    | Helpers list custom template declarations.                                                                 |
 | folderList          | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Folder list custom template declaration. More information [here](../feature-guide/templates.md).           |
-| notFound            | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Not Found custom template declaration. More information [here](../feature-guide/templates.md).             |
+| notFoundError       | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Not Found custom template declaration. More information [here](../feature-guide/templates.md).             |
 | internalServerError | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Internal server error custom template declaration. More information [here](../feature-guide/templates.md). |
-| forbidden           | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Forbidden custom template declaration. More information [here](../feature-guide/templates.md).             |
-| unauthorized        | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Unauthorized custom template declaration. More information [here](../feature-guide/templates.md).          |
-| badRequest          | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Bad Request custom template declaration. More information [here](../feature-guide/templates.md).           |
+| forbiddenError      | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Forbidden custom template declaration. More information [here](../feature-guide/templates.md).             |
+| unauthorizedError   | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Unauthorized custom template declaration. More information [here](../feature-guide/templates.md).          |
+| badRequestError     | [TargetTemplateConfigItem](#targettemplateconfigitem) | No       | None    | Bad Request custom template declaration. More information [here](../feature-guide/templates.md).           |
 
 ## TargetHelperConfigItem
 
