@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -129,6 +130,12 @@ func Test_handler_manageHeaders(t *testing.T) {
 			h := &handler{
 				req: req,
 			}
+
+			type genericHeaderData struct {
+				Request *http.Request
+				User    models.GenericUser
+			}
+
 			got, err := h.manageHeaders(tt.args.helpersContent, tt.args.headersTpl, &genericHeaderData{Request: req})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("handler.manageHeaders() error = %v, wantErr %v", err, tt.wantErr)

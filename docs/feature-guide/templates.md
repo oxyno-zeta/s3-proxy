@@ -1,6 +1,6 @@
 # Templates
 
-The template feature will allow to customize the response body given by the application for many responses. It will allow to customize response headers to have also customized headers that goes with the customized response body.
+The template feature will allow to customize the response body, status code and headers given by the application for many responses.
 
 All templates managed by S3-Proxy are Golang templates.
 
@@ -35,11 +35,11 @@ Different helpers are available by default:
 - `main.headers.contentType` will return the content type header from the incoming request
 - `main.body.errorJsonBody` will return the json content body for an error
 
-## Template data structure and usage
+## Templates data structure and usage
 
 ### Target List
 
-This template is used in order to list all targets buckets declared in the configuration file.
+This template is used in order to list all target buckets declared in the configuration file.
 
 Available data:
 
@@ -49,9 +49,15 @@ Available data:
 | Request | [http.Request](https://golang.org/pkg/net/http/#Request)               | HTTP Request object from golang                   |
 | Targets | Map[String][target](../configuration/structure.md#targetconfiguration) | The target map as coming from the configuration   |
 
+Available for:
+
+- Response body
+- Response headers
+- Response status code
+
 ### Folder List
 
-This template is used in order to list files and folders in a bucket folder.
+This template is used in order to list files and folders in a bucket "folder".
 
 Available data:
 
@@ -62,6 +68,12 @@ Available data:
 | Entries    | [[Entry](#entry)]                                        | Folder entries                                    |
 | BucketName | String                                                   | Bucket name                                       |
 | Name       | String                                                   | Target name                                       |
+
+Available for:
+
+- Response body
+- Response headers
+- Response status code
 
 ### Not found error
 
@@ -75,6 +87,12 @@ Available data:
 | Request | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
 | Error   | Error                                                    | Error raised and caught                           |
 
+Available for:
+
+- Response body
+- Response headers
+- Response status code
+
 ### Unauthorized error
 
 This template is used for all `Unauthorized` errors.
@@ -86,6 +104,12 @@ Available data:
 | User    | [GenericUser](#genericuser)                              | Authenticated user if present in incoming request |
 | Request | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
 | Error   | Error                                                    | Error raised and caught                           |
+
+Available for:
+
+- Response body
+- Response headers
+- Response status code
 
 ### Forbidden error
 
@@ -99,6 +123,12 @@ Available data:
 | Request | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
 | Error   | Error                                                    | Error raised and caught                           |
 
+Available for:
+
+- Response body
+- Response headers
+- Response status code
+
 ### Internal Server Error
 
 This template is used for all `Internal server error` errors.
@@ -110,6 +140,12 @@ Available data:
 | User    | [GenericUser](#genericuser)                              | Authenticated user if present in incoming request |
 | Request | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
 | Error   | Error                                                    | Error raised and caught                           |
+
+Available for:
+
+- Response body
+- Response headers
+- Response status code
 
 ### Bad Request error
 
@@ -123,6 +159,12 @@ Available data:
 | Request | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
 | Error   | Error                                                    | Error raised and caught                           |
 
+Available for:
+
+- Response body
+- Response headers
+- Response status code
+
 ### Put
 
 This template is used for all `PUT` response.
@@ -135,6 +177,12 @@ Available data:
 | Request | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
 | PutData | [PutData](#putdata)                                      | Put Data                                          |
 
+Available for:
+
+- Response body
+- Response headers
+- Response status code
+
 ### Delete
 
 This template is used for all `DELETE` response.
@@ -146,6 +194,28 @@ Available data:
 | User       | [GenericUser](#genericuser)                              | Authenticated user if present in incoming request |
 | Request    | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
 | DeleteData | [DeleteData](#deletedata)                                | Delete Data                                       |
+
+Available for:
+
+- Response body
+- Response headers
+- Response status code
+
+### Streamed file
+
+This case is a special case, used only when a file is streamed from S3. This will allow to add headers to streamed files with GET requests.
+
+The following table will show the data structure available for the header template rendering:
+
+| Name       | Type                                                     | Description                                       |
+| ---------- | -------------------------------------------------------- | ------------------------------------------------- |
+| User       | [GenericUser](#genericuser)                              | Authenticated user if present in incoming request |
+| Request    | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
+| StreamFile | [StreamFile](#streamfile)                                | Stream file object                                |
+
+Available for:
+
+- Response headers
 
 ## PUT Metadata and Storage class
 
@@ -172,31 +242,6 @@ Available data:
 | User  | [GenericUser](#genericuser) | Authenticated user if present in incoming request |
 | Input | [PutInput](#putinput)       | PutInput structure data                           |
 | Key   | String                      | The final S3 key generated for upload request     |
-
-## Headers templates and structures
-
-### Generic case
-
-This case is the main one and used for all header templates rendered explained before.
-
-The following table will show the data structure available for the header template rendering:
-
-| Name    | Type                                                     | Description                                       |
-| ------- | -------------------------------------------------------- | ------------------------------------------------- |
-| User    | [GenericUser](#genericuser)                              | Authenticated user if present in incoming request |
-| Request | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
-
-### Stream file case
-
-This case is a special case, used only when a file is streamed from S3. This will allow to add headers to streamed files with GET requests.
-
-The following table will show the data structure available for the header template rendering:
-
-| Name       | Type                                                     | Description                                       |
-| ---------- | -------------------------------------------------------- | ------------------------------------------------- |
-| User       | [GenericUser](#genericuser)                              | Authenticated user if present in incoming request |
-| Request    | [http.Request](https://golang.org/pkg/net/http/#Request) | HTTP Request object from golang                   |
-| StreamFile | [StreamFile](#streamfile)                                | Stream file object                                |
 
 ## Common/Other structures
 

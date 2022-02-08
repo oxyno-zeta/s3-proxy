@@ -301,14 +301,15 @@ func (h *handler) InternalServerError(
 		helpersCfgItems,
 		cfg.Templates.Helpers,
 	)
+	// Create data
+	data := errorData{
+		Request: h.req,
+		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
+		Error:   err,
+	}
 
 	// Store headers
 	var headers map[string]string
-	// Create header data
-	hData := &genericHeaderData{
-		Request: h.req,
-		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
-	}
 	// Check if error 2 doesn't exist
 	if err2 == nil {
 		// Check if target config item exists
@@ -317,14 +318,14 @@ func (h *handler) InternalServerError(
 			headers, err2 = h.manageHeaders(
 				helpersContent,
 				tplCfgItem.Headers,
-				hData,
+				data,
 			)
 		} else {
 			// Manage headers
 			headers, err2 = h.manageHeaders(
 				helpersContent,
 				cfg.Templates.InternalServerError.Headers,
-				hData,
+				data,
 			)
 		}
 	}
@@ -359,13 +360,6 @@ func (h *handler) InternalServerError(
 
 	// Check if error 2 doesn't exist
 	if err2 == nil {
-		// Create data
-		data := errorData{
-			Request: h.req,
-			User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
-			Error:   err,
-		}
-
 		// Execute template
 		bodyBuf, err2 = utils.ExecuteTemplate(tplContent, data)
 	}

@@ -752,7 +752,7 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 <html>
   <body>
     <h1>Internal Server Error</h1>
-    <p>template: template-string-loaded:25:3: executing "template-string-loaded" at <.NotWorking>: can't evaluate field NotWorking in type *responsehandler.genericHeaderData</p>
+    <p>template: template-string-loaded:25:3: executing "template-string-loaded" at <.NotWorking>: can't evaluate field NotWorking in type *responsehandler.errorData</p>
   </body>
 </html>`,
 		},
@@ -783,7 +783,7 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 <html>
   <body>
     <h1>Internal Server Error</h1>
-    <p>template: template-string-loaded:25:3: executing "template-string-loaded" at <.NotWorking>: can't evaluate field NotWorking in type *responsehandler.genericHeaderData</p>
+    <p>template: template-string-loaded:25:3: executing "template-string-loaded" at <.NotWorking>: can't evaluate field NotWorking in type *responsehandler.errorData</p>
   </body>
 </html>`,
 		},

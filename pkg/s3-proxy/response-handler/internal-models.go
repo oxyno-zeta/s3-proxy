@@ -30,12 +30,6 @@ type targetListData struct {
 	Targets map[string]*config.TargetConfig
 }
 
-// genericHeaderData represents the structure used by header templating.
-type genericHeaderData struct {
-	Request *http.Request
-	User    models.GenericUser
-}
-
 // streamFileHeaderData represents the structure used by stream file header templating.
 type streamFileHeaderData struct {
 	Request    *http.Request
