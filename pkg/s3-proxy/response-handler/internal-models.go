@@ -30,15 +30,23 @@ type targetListData struct {
 	Targets map[string]*config.TargetConfig
 }
 
-// genericHeaderData represents the structure used by header templating.
-type genericHeaderData struct {
-	Request *http.Request
-	User    models.GenericUser
-}
-
 // streamFileHeaderData represents the structure used by stream file header templating.
 type streamFileHeaderData struct {
 	Request    *http.Request
 	User       models.GenericUser
 	StreamFile *StreamInput
+}
+
+// putData represents the structure used by put templating.
+type putData struct {
+	Request *http.Request
+	User    models.GenericUser
+	PutData *PutInput
+}
+
+// deleteData represents the structure used by delete templating.
+type deleteData struct {
+	Request    *http.Request
+	User       models.GenericUser
+	DeleteData *DeleteInput
 }

@@ -36,13 +36,36 @@ type StreamInput struct {
 	Metadata           map[string]string
 }
 
+// PutInput represents a put input.
+type PutInput struct {
+	Key          string
+	ContentType  string
+	ContentSize  int64
+	Metadata     map[string]string
+	StorageClass string
+	Filename     string
+}
+
+// DeleteInput represents a delete input.
+type DeleteInput struct {
+	Key string
+}
+
 // ResponseHandler will handle responses.
 //go:generate mockgen -destination=./mocks/mock_ResponseHandler.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler ResponseHandler
 type ResponseHandler interface {
 	// TargetList will answer for the target list response.
 	TargetList()
-	// NoContent will answer with the NoContent status code.
-	NoContent()
+	// Put will answer for the put response.
+	Put(
+		loadFileContent func(ctx context.Context, path string) (string, error),
+		input *PutInput,
+	)
+	// Delete will answer for the delete response.
+	Delete(
+		loadFileContent func(ctx context.Context, path string) (string, error),
+		input *DeleteInput,
+	)
 	// NotModified will answer with a Not Modified status code.
 	NotModified()
 	// PreconditionFailed will answer with a Precondition Failed status code.

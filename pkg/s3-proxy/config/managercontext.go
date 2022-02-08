@@ -164,18 +164,31 @@ func (ctx *managercontext) loadDefaultConfigurationValues(vip *viper.Viper) {
 	vip.SetDefault("templates.helpers", []string{DefaultTemplateHelpersPath})
 	vip.SetDefault("templates.folderList.path", DefaultTemplateFolderListPath)
 	vip.SetDefault("templates.folderList.headers", DefaultTemplateHeaders)
+	vip.SetDefault("templates.folderList.status", DefaultTemplateStatusOk)
 	vip.SetDefault("templates.targetList.path", DefaultTemplateTargetListPath)
 	vip.SetDefault("templates.targetList.headers", DefaultTemplateHeaders)
+	vip.SetDefault("templates.targetList.status", DefaultTemplateStatusOk)
 	vip.SetDefault("templates.notFoundError.path", DefaultTemplateNotFoundErrorPath)
 	vip.SetDefault("templates.notFoundError.headers", DefaultTemplateHeaders)
+	vip.SetDefault("templates.notFoundError.status", DefaultTemplateStatusNotFound)
 	vip.SetDefault("templates.internalServerError.path", DefaultTemplateInternalServerErrorPath)
 	vip.SetDefault("templates.internalServerError.headers", DefaultTemplateHeaders)
+	vip.SetDefault("templates.internalServerError.status", DefaultTemplateStatusInternalServerError)
 	vip.SetDefault("templates.unauthorizedError.path", DefaultTemplateUnauthorizedErrorPath)
 	vip.SetDefault("templates.unauthorizedError.headers", DefaultTemplateHeaders)
+	vip.SetDefault("templates.unauthorizedError.status", DefaultTemplateStatusUnauthorized)
 	vip.SetDefault("templates.forbiddenError.path", DefaultTemplateForbiddenErrorPath)
 	vip.SetDefault("templates.forbiddenError.headers", DefaultTemplateHeaders)
+	vip.SetDefault("templates.forbiddenError.status", DefaultTemplateStatusForbidden)
 	vip.SetDefault("templates.badRequestError.path", DefaultTemplateBadRequestErrorPath)
 	vip.SetDefault("templates.badRequestError.headers", DefaultTemplateHeaders)
+	vip.SetDefault("templates.badRequestError.status", DefaultTemplateStatusBadRequest)
+	vip.SetDefault("templates.put.path", DefaultTemplatePutPath)
+	vip.SetDefault("templates.put.headers", DefaultEmptyTemplateHeaders)
+	vip.SetDefault("templates.put.status", DefaultTemplateStatusNoContent)
+	vip.SetDefault("templates.delete.path", DefaultTemplateDeletePath)
+	vip.SetDefault("templates.delete.headers", DefaultEmptyTemplateHeaders)
+	vip.SetDefault("templates.delete.status", DefaultTemplateStatusNoContent)
 }
 
 func generateViperInstances(files []os.FileInfo) []*viper.Viper {
@@ -538,6 +551,16 @@ func loadBusinessDefaultValues(out *Config) error {
 			// Check if bad request error template have been override and not headers
 			if item.Templates.BadRequestError != nil && item.Templates.BadRequestError.Headers == nil {
 				item.Templates.BadRequestError.Headers = DefaultTemplateHeaders
+			}
+
+			// Check if put template have been override and not headers
+			if item.Templates.Put != nil && item.Templates.Put.Headers == nil {
+				item.Templates.Put.Headers = DefaultEmptyTemplateHeaders
+			}
+
+			// Check if delete template have been override and not headers
+			if item.Templates.Delete != nil && item.Templates.Delete.Headers == nil {
+				item.Templates.Delete.Headers = DefaultEmptyTemplateHeaders
 			}
 		}
 		// Manage default value for resources methods

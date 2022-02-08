@@ -15,6 +15,40 @@ import (
 	"github.com/pkg/errors"
 )
 
+func (h *handler) manageStatus(
+	helpersContent string,
+	tplConfigItem *config.TargetTemplateConfigItem,
+	defaultTpl string,
+	data interface{},
+) (int, error) {
+	// Create main status content
+	statusContent := helpersContent
+
+	// Check if per target template is declared
+	if tplConfigItem != nil && tplConfigItem.Status != "" {
+		// Concat
+		statusContent = statusContent + "\n" + tplConfigItem.Status
+	} else {
+		// Concat
+		statusContent = statusContent + "\n" + defaultTpl
+	}
+
+	// Execute status main template
+	buf, err := utils.ExecuteTemplate(statusContent, data)
+	// Check error
+	if err != nil {
+		return 0, err
+	}
+
+	// Get string from buffer
+	str := buf.String()
+	// Remove all new lines
+	str = utils.NewLineMatcherRegex.ReplaceAllString(str, "")
+
+	// Try to parse int from string
+	return strconv.Atoi(str)
+}
+
 func (h *handler) manageHeaders(helpersContent string, headersTpl map[string]string, hData interface{}) (map[string]string, error) {
 	// Store result
 	res := map[string]string{}

@@ -48,6 +48,18 @@ func (mr *MockResponseHandlerMockRecorder) BadRequestError(arg0, arg1 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BadRequestError", reflect.TypeOf((*MockResponseHandler)(nil).BadRequestError), arg0, arg1)
 }
 
+// Delete mocks base method.
+func (m *MockResponseHandler) Delete(arg0 func(context.Context, string) (string, error), arg1 *responsehandler.DeleteInput) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Delete", arg0, arg1)
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockResponseHandlerMockRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockResponseHandler)(nil).Delete), arg0, arg1)
+}
+
 // FoldersFilesList mocks base method.
 func (m *MockResponseHandler) FoldersFilesList(arg0 func(context.Context, string) (string, error), arg1 []*responsehandler.Entry) {
 	m.ctrl.T.Helper()
@@ -84,18 +96,6 @@ func (mr *MockResponseHandlerMockRecorder) InternalServerError(arg0, arg1 interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InternalServerError", reflect.TypeOf((*MockResponseHandler)(nil).InternalServerError), arg0, arg1)
 }
 
-// NoContent mocks base method.
-func (m *MockResponseHandler) NoContent() {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "NoContent")
-}
-
-// NoContent indicates an expected call of NoContent.
-func (mr *MockResponseHandlerMockRecorder) NoContent() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NoContent", reflect.TypeOf((*MockResponseHandler)(nil).NoContent))
-}
-
 // NotFoundError mocks base method.
 func (m *MockResponseHandler) NotFoundError(arg0 func(context.Context, string) (string, error)) {
 	m.ctrl.T.Helper()
@@ -130,6 +130,18 @@ func (m *MockResponseHandler) PreconditionFailed() {
 func (mr *MockResponseHandlerMockRecorder) PreconditionFailed() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PreconditionFailed", reflect.TypeOf((*MockResponseHandler)(nil).PreconditionFailed))
+}
+
+// Put mocks base method.
+func (m *MockResponseHandler) Put(arg0 func(context.Context, string) (string, error), arg1 *responsehandler.PutInput) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Put", arg0, arg1)
+}
+
+// Put indicates an expected call of Put.
+func (mr *MockResponseHandlerMockRecorder) Put(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockResponseHandler)(nil).Put), arg0, arg1)
 }
 
 // RedirectWithTrailingSlash mocks base method.

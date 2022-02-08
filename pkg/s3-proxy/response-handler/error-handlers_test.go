@@ -87,7 +87,7 @@ func TestGeneralBadRequestError(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			cfgManagerMock := cmocks.NewMockManager(ctrl)
 
-			cfgManagerMock.EXPECT().GetConfig().Return(
+			cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(
 				&config.Config{
 					Templates: &config.TemplateConfig{
 						Helpers: []string{
@@ -98,6 +98,7 @@ func TestGeneralBadRequestError(t *testing.T) {
 							Headers: map[string]string{
 								"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 							},
+							Status: "400",
 						},
 					},
 				},
@@ -194,7 +195,7 @@ func TestGeneralForbiddenError(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			cfgManagerMock := cmocks.NewMockManager(ctrl)
 
-			cfgManagerMock.EXPECT().GetConfig().Return(
+			cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(
 				&config.Config{
 					Templates: &config.TemplateConfig{
 						Helpers: []string{
@@ -205,6 +206,7 @@ func TestGeneralForbiddenError(t *testing.T) {
 							Headers: map[string]string{
 								"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 							},
+							Status: "403",
 						},
 					},
 				},
@@ -301,7 +303,7 @@ func TestGeneralUnauthorizedError(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			cfgManagerMock := cmocks.NewMockManager(ctrl)
 
-			cfgManagerMock.EXPECT().GetConfig().Return(
+			cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(
 				&config.Config{
 					Templates: &config.TemplateConfig{
 						Helpers: []string{
@@ -312,6 +314,7 @@ func TestGeneralUnauthorizedError(t *testing.T) {
 							Headers: map[string]string{
 								"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 							},
+							Status: "401",
 						},
 					},
 				},
@@ -406,7 +409,7 @@ func TestGeneralNotFoundError(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			cfgManagerMock := cmocks.NewMockManager(ctrl)
 
-			cfgManagerMock.EXPECT().GetConfig().Return(
+			cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(
 				&config.Config{
 					Templates: &config.TemplateConfig{
 						Helpers: []string{
@@ -417,6 +420,7 @@ func TestGeneralNotFoundError(t *testing.T) {
 							Headers: map[string]string{
 								"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 							},
+							Status: "404",
 						},
 					},
 				},
@@ -510,7 +514,7 @@ func TestGeneralInternalServerError(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			cfgManagerMock := cmocks.NewMockManager(ctrl)
 
-			cfgManagerMock.EXPECT().GetConfig().Return(
+			cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(
 				&config.Config{
 					Templates: &config.TemplateConfig{
 						Helpers: []string{
@@ -521,6 +525,7 @@ func TestGeneralInternalServerError(t *testing.T) {
 							Headers: map[string]string{
 								"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 							},
+							Status: "500",
 						},
 					},
 				},
@@ -552,7 +557,6 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 		helpersTplCfgItems     []*config.TargetHelperConfigItem
 		baseTpl                *config.TemplateConfigItem
 		helpersTplFilePathList []string
-		statusCode             int
 	}
 	tests := []struct {
 		name                      string
@@ -567,6 +571,13 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 			args: args{
 				helpersTplFilePathList: []string{
 					"fake.tpl",
+				},
+				baseTpl: &config.TemplateConfigItem{
+					Path: "../../../templates/bad-request-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+					Status: "400",
 				},
 			},
 			expectedHeaders: map[string][]string{
@@ -589,6 +600,13 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 						InBucket: false,
 					},
 				},
+				baseTpl: &config.TemplateConfigItem{
+					Path: "../../../templates/bad-request-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+					Status: "400",
+				},
 			},
 			expectedHeaders: map[string][]string{
 				"Content-Type": {"text/html; charset=utf-8"},
@@ -609,6 +627,13 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 						Path:     "fake.tpl",
 						InBucket: true,
 					},
+				},
+				baseTpl: &config.TemplateConfigItem{
+					Path: "../../../templates/bad-request-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+					Status: "400",
 				},
 			},
 			loadFileContentMockError: errors.New("not found"),
@@ -631,6 +656,10 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 				},
 				baseTpl: &config.TemplateConfigItem{
 					Path: "fake.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+					Status: "400",
 				},
 			},
 			expectedHeaders: map[string][]string{
@@ -653,6 +682,13 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 				tplCfgItem: &config.TargetTemplateConfigItem{
 					Path: "fake.tpl",
 				},
+				baseTpl: &config.TemplateConfigItem{
+					Path: "../../../templates/bad-request-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+					Status: "400",
+				},
 			},
 			expectedHeaders: map[string][]string{
 				"Content-Type": {"text/html; charset=utf-8"},
@@ -674,6 +710,13 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 				tplCfgItem: &config.TargetTemplateConfigItem{
 					Path:     "fake.tpl",
 					InBucket: true,
+				},
+				baseTpl: &config.TemplateConfigItem{
+					Path: "../../../templates/bad-request-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+					Status: "400",
 				},
 			},
 			loadFileContentMockError: errors.New("not found"),
@@ -699,6 +742,7 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 					Headers: map[string]string{
 						"h1": "{{ .NotWorking }}",
 					},
+					Status: "400",
 				},
 			},
 			expectedHeaders: map[string][]string{
@@ -708,7 +752,7 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 <html>
   <body>
     <h1>Internal Server Error</h1>
-    <p>template: template-string-loaded:25:3: executing "template-string-loaded" at <.NotWorking>: can't evaluate field NotWorking in type *responsehandler.genericHeaderData</p>
+    <p>template: template-string-loaded:25:3: executing "template-string-loaded" at <.NotWorking>: can't evaluate field NotWorking in type *responsehandler.errorData</p>
   </body>
 </html>`,
 		},
@@ -724,6 +768,13 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 						"h1": "{{ .NotWorking }}",
 					},
 				},
+				baseTpl: &config.TemplateConfigItem{
+					Path: "../../../templates/bad-request-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+					Status: "400",
+				},
 			},
 			expectedHeaders: map[string][]string{
 				"Content-Type": {"text/html; charset=utf-8"},
@@ -732,7 +783,7 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 <html>
   <body>
     <h1>Internal Server Error</h1>
-    <p>template: template-string-loaded:25:3: executing "template-string-loaded" at <.NotWorking>: can't evaluate field NotWorking in type *responsehandler.genericHeaderData</p>
+    <p>template: template-string-loaded:25:3: executing "template-string-loaded" at <.NotWorking>: can't evaluate field NotWorking in type *responsehandler.errorData</p>
   </body>
 </html>`,
 		},
@@ -748,6 +799,13 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 						"h1": "fake",
 					},
 					InBucket: true,
+				},
+				baseTpl: &config.TemplateConfigItem{
+					Path: "../../../templates/bad-request-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+					Status: "400",
 				},
 			},
 			loadFileContentMockResult: "{{ .NotWorking }}",
@@ -769,13 +827,19 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 					"../../../templates/_helpers.tpl",
 				},
 				tplCfgItem: &config.TargetTemplateConfigItem{
-					Path: "../../../templates/bad-request-error.tpl",
+					Path: "../../../templates/internal-server-error.tpl",
 					Headers: map[string]string{
 						"h1": "fake",
 					},
 					InBucket: true,
 				},
-				statusCode: http.StatusInternalServerError,
+				baseTpl: &config.TemplateConfigItem{
+					Path: "../../../templates/internal-server-error.tpl",
+					Headers: map[string]string{
+						"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+					},
+					Status: "500",
+				},
 			},
 			loadFileContentMockResult: "{{ .Error }}",
 			expectedHeaders: map[string][]string{
@@ -832,7 +896,14 @@ func Test_handler_handleGenericErrorTemplate(t *testing.T) {
 				res:        res,
 				cfgManager: cfgManagerMock,
 			}
-			h.handleGenericErrorTemplate(loadFileContentMock, err, tt.args.tplCfgItem, tt.args.helpersTplCfgItems, tt.args.baseTpl, tt.args.helpersTplFilePathList, tt.args.statusCode)
+			h.handleGenericErrorTemplate(
+				loadFileContentMock,
+				err,
+				tt.args.tplCfgItem,
+				tt.args.helpersTplCfgItems,
+				tt.args.baseTpl,
+				tt.args.helpersTplFilePathList,
+			)
 
 			// Get all res headers
 			headers := map[string][]string{}
@@ -858,6 +929,7 @@ func Test_handler_BadRequestError(t *testing.T) {
 			Headers: map[string]string{
 				"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 			},
+			Status: "400",
 		},
 	}
 
@@ -972,6 +1044,7 @@ func Test_handler_ForbiddenError(t *testing.T) {
 			Headers: map[string]string{
 				"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 			},
+			Status: "403",
 		},
 	}
 
@@ -1086,6 +1159,7 @@ func Test_handler_NotFoundError(t *testing.T) {
 			Headers: map[string]string{
 				"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 			},
+			Status: "404",
 		},
 	}
 
@@ -1196,6 +1270,7 @@ func Test_handler_UnauthorizedError(t *testing.T) {
 			Headers: map[string]string{
 				"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 			},
+			Status: "401",
 		},
 	}
 
@@ -1373,6 +1448,7 @@ func Test_handler_InternalServerError(t *testing.T) {
 							Headers: map[string]string{
 								"Content-Type": "{{ template \"main.headers.contentType\" . }}",
 							},
+							Status: "500",
 						},
 					},
 					Targets: map[string]*config.TargetConfig{

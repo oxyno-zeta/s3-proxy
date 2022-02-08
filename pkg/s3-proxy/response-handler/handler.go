@@ -34,57 +34,99 @@ func (h *handler) NotModified() {
 	h.res.WriteHeader(http.StatusNotModified)
 }
 
-func (h *handler) NoContent() {
-	h.res.WriteHeader(http.StatusNoContent)
+func (h *handler) Put(
+	loadFileContent func(ctx context.Context, path string) (string, error),
+	input *PutInput,
+) {
+	// Get configuration
+	cfg := h.cfgManager.GetConfig()
+
+	// Variable to save target template configuration item override
+	var tplCfgItem *config.TargetTemplateConfigItem
+
+	// Store helpers template configs
+	var helpersCfgItems []*config.TargetHelperConfigItem
+
+	// Check if a target has been involve in this request
+	if h.targetKey != "" {
+		// Get target from key
+		targetCfg := cfg.Targets[h.targetKey]
+		// Check if have a template override
+		if targetCfg != nil &&
+			targetCfg.Templates != nil &&
+			targetCfg.Templates.Put != nil {
+			// Save override
+			tplCfgItem = targetCfg.Templates.Put
+			helpersCfgItems = targetCfg.Templates.Helpers
+		}
+	}
+
+	// Create data
+	data := &putData{
+		Request: h.req,
+		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
+		PutData: input,
+	}
+
+	// Call generic template handler
+	h.handleGenericAnswer(
+		loadFileContent,
+		data,
+		tplCfgItem,
+		helpersCfgItems,
+		cfg.Templates.Put,
+		cfg.Templates.Helpers,
+	)
+}
+
+func (h *handler) Delete(
+	loadFileContent func(ctx context.Context, path string) (string, error),
+	input *DeleteInput,
+) {
+	// Get configuration
+	cfg := h.cfgManager.GetConfig()
+
+	// Variable to save target template configuration item override
+	var tplCfgItem *config.TargetTemplateConfigItem
+
+	// Store helpers template configs
+	var helpersCfgItems []*config.TargetHelperConfigItem
+
+	// Check if a target has been involve in this request
+	if h.targetKey != "" {
+		// Get target from key
+		targetCfg := cfg.Targets[h.targetKey]
+		// Check if have a template override
+		if targetCfg != nil &&
+			targetCfg.Templates != nil &&
+			targetCfg.Templates.Delete != nil {
+			// Save override
+			tplCfgItem = targetCfg.Templates.Delete
+			helpersCfgItems = targetCfg.Templates.Helpers
+		}
+	}
+
+	// Create data
+	data := &deleteData{
+		Request:    h.req,
+		User:       models.GetAuthenticatedUserFromContext(h.req.Context()),
+		DeleteData: input,
+	}
+
+	// Call generic template handler
+	h.handleGenericAnswer(
+		loadFileContent,
+		data,
+		tplCfgItem,
+		helpersCfgItems,
+		cfg.Templates.Delete,
+		cfg.Templates.Helpers,
+	)
 }
 
 func (h *handler) TargetList() {
 	// Get configuration
 	cfg := h.cfgManager.GetConfig()
-
-	// Get template content
-	helpersTpl, err := h.loadAllHelpersContent(
-		nil,
-		nil,
-		cfg.Templates.Helpers,
-	)
-	// Check error
-	if err != nil {
-		h.InternalServerError(nil, err)
-
-		return
-	}
-
-	// Create header data
-	hData := &genericHeaderData{
-		Request: h.req,
-		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
-	}
-
-	// Manage headers
-	headers, err := h.manageHeaders(
-		helpersTpl,
-		cfg.Templates.TargetList.Headers,
-		hData,
-	)
-	// Check if error exists
-	if err != nil {
-		// Return an internal server error
-		h.InternalServerError(nil, err)
-
-		return
-	}
-
-	// Load main template content
-	tpl, err := loadLocalFileContent(cfg.Templates.TargetList.Path)
-	// Check error
-	if err != nil {
-		h.InternalServerError(nil, err)
-
-		return
-	}
-	// Concat
-	tplContent := helpersTpl + "\n" + tpl
 
 	// Create data structure
 	data := targetListData{
@@ -93,23 +135,14 @@ func (h *handler) TargetList() {
 		Targets: cfg.Targets,
 	}
 
-	// Execute main template
-	bodyBuf, err := utils.ExecuteTemplate(tplContent, data)
-	// Check error
-	if err != nil {
-		h.InternalServerError(nil, err)
-
-		return
-	}
-
-	// Send
-	err = h.send(bodyBuf, headers, http.StatusOK)
-	// Check error
-	if err != nil {
-		h.InternalServerError(nil, err)
-
-		return
-	}
+	h.handleGenericAnswer(
+		nil,
+		data,
+		nil,
+		nil,
+		cfg.Templates.TargetList,
+		cfg.Templates.Helpers,
+	)
 }
 
 func (h *handler) RedirectWithTrailingSlash() {
@@ -211,43 +244,103 @@ func (h *handler) FoldersFilesList(
 		tplConfigItem = targetCfg.Templates.FolderList
 	}
 
-	// Get content from helpers
-	// Note: separated because helpers and template are 2 different things and can be mixed
-	helpersContent, err := h.loadAllHelpersContent(
+	// Create bucket list data for templating
+	data := &folderListingData{
+		Request:    h.req,
+		User:       models.GetAuthenticatedUserFromContext(h.req.Context()),
+		Entries:    entries,
+		BucketName: targetCfg.Bucket.Name,
+		Name:       targetCfg.Name,
+	}
+
+	h.handleGenericAnswer(
 		loadFileContent,
+		data,
+		tplConfigItem,
 		helpersCfgList,
+		cfg.Templates.FolderList,
 		cfg.Templates.Helpers,
 	)
-	// Check error
+}
+
+func (h *handler) handleGenericAnswer(
+	loadFileContent func(ctx context.Context, path string) (string, error),
+	data interface{},
+	tplCfgItem *config.TargetTemplateConfigItem,
+	helpersTplCfgItems []*config.TargetHelperConfigItem,
+	baseTpl *config.TemplateConfigItem,
+	helpersTplFilePathList []string,
+) {
+	// Get helpers template content
+	helpersContent, err := h.loadAllHelpersContent(
+		loadFileContent,
+		helpersTplCfgItems,
+		helpersTplFilePathList,
+	)
+	// Check if error exists
 	if err != nil {
-		h.InternalServerError(loadFileContent, err)
-		// Stop
+		// Return an internal server error
+		h.InternalServerError(
+			loadFileContent,
+			err,
+		)
+
+		return
+	}
+
+	// Save in template
+	tplContent := helpersContent
+
+	// Check if a target template configuration exists
+	// Note: Done like this and not with list to avoid creating list of 1 element
+	// and to avoid loops etc to save potential memory and cpu
+	if tplCfgItem != nil {
+		// Load template content
+		tpl, err2 := h.loadTemplateContent(
+			loadFileContent,
+			tplCfgItem,
+		)
+		// Concat
+		tplContent = tplContent + "\n" + tpl
+		// Save error
+		err = err2
+	} else {
+		// Get template from general configuration
+		tpl, err2 := loadLocalFileContent(baseTpl.Path)
+		// Concat
+		tplContent = tplContent + "\n" + tpl
+		// Save error
+		err = err2
+	}
+
+	// Check if error exists
+	if err != nil {
+		// Return an internal server error
+		h.InternalServerError(
+			loadFileContent,
+			err,
+		)
+
 		return
 	}
 
 	// Store headers
 	var headers map[string]string
 
-	// Create header data
-	hData := &genericHeaderData{
-		Request: h.req,
-		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
-	}
-
 	// Check if target config item exists
-	if tplConfigItem != nil {
+	if tplCfgItem != nil {
 		// Manage headers
 		headers, err = h.manageHeaders(
 			helpersContent,
-			tplConfigItem.Headers,
-			hData,
+			tplCfgItem.Headers,
+			data,
 		)
 	} else {
 		// Manage headers
 		headers, err = h.manageHeaders(
 			helpersContent,
-			cfg.Templates.FolderList.Headers,
-			hData,
+			baseTpl.Headers,
+			data,
 		)
 	}
 
@@ -262,49 +355,17 @@ func (h *handler) FoldersFilesList(
 		return
 	}
 
-	// Create main content
-	content := helpersContent
-
-	// Check if per target template is declared
-	// Note: Done like this and not with list to avoid creating list of 1 element
-	// and to avoid loops etc to save potential memory and cpu
-	if tplConfigItem != nil {
-		// Load template content
-		tpl, err2 := h.loadTemplateContent(
-			loadFileContent,
-			tplConfigItem,
-		)
-		// Concat
-		content = content + "\n" + tpl
-		// Save error
-		err = err2
-	} else {
-		// Load template
-		tpl, err2 := loadLocalFileContent(cfg.Templates.FolderList.Path)
-		// Concat
-		content = content + "\n" + tpl
-		// Save error
-		err = err2
-	}
-
+	// Execute main template
+	bodyBuf, err := utils.ExecuteTemplate(tplContent, data)
 	// Check error
 	if err != nil {
 		h.InternalServerError(loadFileContent, err)
-		// Stop
+
 		return
 	}
 
-	// Create bucket list data for templating
-	data := &folderListingData{
-		Request:    h.req,
-		User:       models.GetAuthenticatedUserFromContext(h.req.Context()),
-		Entries:    entries,
-		BucketName: targetCfg.Bucket.Name,
-		Name:       targetCfg.Name,
-	}
-
-	// Execute main template
-	bodyBuf, err := utils.ExecuteTemplate(content, data)
+	// Manage status code
+	statusCode, err := h.manageStatus(helpersContent, tplCfgItem, baseTpl.Status, data)
 	// Check error
 	if err != nil {
 		h.InternalServerError(loadFileContent, err)
@@ -313,11 +374,13 @@ func (h *handler) FoldersFilesList(
 	}
 
 	// Send
-	err = h.send(bodyBuf, headers, http.StatusOK)
+	err = h.send(bodyBuf, headers, statusCode)
 	// Check error
 	if err != nil {
-		h.InternalServerError(loadFileContent, err)
-
-		return
+		// Return an internal server error
+		h.InternalServerError(
+			loadFileContent,
+			err,
+		)
 	}
 }

@@ -233,6 +233,10 @@ func Test_transformS3Entries(t *testing.T) {
 }
 
 func Test_requestContext_Delete(t *testing.T) {
+	type responseHandlerDeleteMockResult struct {
+		input *responsehandler.DeleteInput
+		times int
+	}
 	type responseHandlerInternalServerErrorMockResult struct {
 		input2 error
 		times  int
@@ -261,7 +265,7 @@ func Test_requestContext_Delete(t *testing.T) {
 		fields                                       fields
 		args                                         args
 		s3clManagerClientForTargetMockInput          string
-		responseHandlerNoContentMockResultTimes      int
+		responseHandlerDeleteMockResultTimes         responseHandlerDeleteMockResult
 		responseHandlerInternalServerErrorMockResult responseHandlerInternalServerErrorMockResult
 		s3ClientDeleteObjectMockResult               s3ClientDeleteObjectMockResult
 		webhookManagerManageDeleteHooksMockResult    webhookManagerManageDeleteHooksMockResult
@@ -347,7 +351,10 @@ func Test_requestContext_Delete(t *testing.T) {
 				},
 				times: 1,
 			},
-			responseHandlerNoContentMockResultTimes: 1,
+			responseHandlerDeleteMockResultTimes: responseHandlerDeleteMockResult{
+				input: &responsehandler.DeleteInput{Key: "/file"},
+				times: 1,
+			},
 		},
 		{
 			name: "Delete succeed with rewrite key",
@@ -385,7 +392,10 @@ func Test_requestContext_Delete(t *testing.T) {
 				},
 				times: 1,
 			},
-			responseHandlerNoContentMockResultTimes: 1,
+			responseHandlerDeleteMockResultTimes: responseHandlerDeleteMockResult{
+				input: &responsehandler.DeleteInput{Key: "/fake/file2"},
+				times: 1,
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -411,7 +421,10 @@ func Test_requestContext_Delete(t *testing.T) {
 			resHandlerMock.EXPECT().
 				InternalServerError(gomock.Any(), tt.responseHandlerInternalServerErrorMockResult.input2).
 				Times(tt.responseHandlerInternalServerErrorMockResult.times)
-			resHandlerMock.EXPECT().NoContent().Times(tt.responseHandlerNoContentMockResultTimes)
+			resHandlerMock.EXPECT().Delete(
+				gomock.Any(),
+				tt.responseHandlerDeleteMockResultTimes.input,
+			).Times(tt.responseHandlerDeleteMockResultTimes.times)
 
 			s3ClientMock.EXPECT().
 				DeleteObject(ctx, tt.s3ClientDeleteObjectMockResult.input2).
@@ -447,6 +460,10 @@ func Test_requestContext_Delete(t *testing.T) {
 }
 
 func Test_requestContext_Put(t *testing.T) {
+	type responseHandlerPutMockResult struct {
+		input *responsehandler.PutInput
+		times int
+	}
 	type responseHandlerErrorsMockResult struct {
 		input2 error
 		times  int
@@ -483,7 +500,7 @@ func Test_requestContext_Put(t *testing.T) {
 		args                                         args
 		responseHandlerInternalServerErrorMockResult responseHandlerErrorsMockResult
 		responseHandlerForbiddenErrorMockResult      responseHandlerErrorsMockResult
-		responseHandlerNoContentMockResultTimes      int
+		responseHandlerPutMockResultTimes            responseHandlerPutMockResult
 		s3clManagerClientForTargetMockInput          string
 		s3ClientHeadObjectMockResult                 s3ClientHeadObjectMockResult
 		s3ClientPutObjectMockResult                  s3ClientPutObjectMockResult
@@ -626,8 +643,18 @@ func Test_requestContext_Put(t *testing.T) {
 				},
 				times: 1,
 			},
-			s3clManagerClientForTargetMockInput:     "name",
-			responseHandlerNoContentMockResultTimes: 1,
+			s3clManagerClientForTargetMockInput: "name",
+			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
+				input: &responsehandler.PutInput{
+					Key:          "/test/file",
+					Filename:     "file",
+					ContentType:  "content-type",
+					ContentSize:  1,
+					Metadata:     map[string]string{"testkey": "testvalue"},
+					StorageClass: "storage-class",
+				},
+				times: 1,
+			},
 		},
 		{
 			name: "should be failed when head object failed",
@@ -752,8 +779,15 @@ func Test_requestContext_Put(t *testing.T) {
 				},
 				times: 1,
 			},
-			s3clManagerClientForTargetMockInput:     "name",
-			responseHandlerNoContentMockResultTimes: 1,
+			s3clManagerClientForTargetMockInput: "name",
+			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
+				input: &responsehandler.PutInput{
+					Key:         "/test/file",
+					Filename:    "file",
+					ContentType: "content-type",
+				},
+				times: 1,
+			},
 		},
 		{
 			name: "should be ok with allow override and key rewrite",
@@ -822,8 +856,17 @@ func Test_requestContext_Put(t *testing.T) {
 				},
 				times: 1,
 			},
-			s3clManagerClientForTargetMockInput:     "name",
-			responseHandlerNoContentMockResultTimes: 1,
+			s3clManagerClientForTargetMockInput: "name",
+			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
+				input: &responsehandler.PutInput{
+					Key:          "/test1/test2/file",
+					Filename:     "file",
+					ContentType:  "content-type",
+					Metadata:     map[string]string{"testkey": "testvalue"},
+					StorageClass: "storage-class",
+				},
+				times: 1,
+			},
 		},
 		{
 			name: "should be ok to do templating on metadata",
@@ -892,8 +935,21 @@ func Test_requestContext_Put(t *testing.T) {
 				},
 				times: 1,
 			},
-			s3clManagerClientForTargetMockInput:     "name",
-			responseHandlerNoContentMockResultTimes: 1,
+			s3clManagerClientForTargetMockInput: "name",
+			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
+				input: &responsehandler.PutInput{
+					Key:         "/test/file",
+					Filename:    "file",
+					ContentType: "content-type",
+					Metadata: map[string]string{
+						"fixed":   "fixed",
+						"testkey": "/test/file",
+						"tpl":     "/test/file - content-type",
+					},
+					StorageClass: "storage-class",
+				},
+				times: 1,
+			},
 		},
 		{
 			name: "should be ok to flush empty metadata",
@@ -959,8 +1015,19 @@ func Test_requestContext_Put(t *testing.T) {
 				},
 				times: 1,
 			},
-			s3clManagerClientForTargetMockInput:     "name",
-			responseHandlerNoContentMockResultTimes: 1,
+			s3clManagerClientForTargetMockInput: "name",
+			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
+				input: &responsehandler.PutInput{
+					Key:         "/test/file",
+					Filename:    "file",
+					ContentType: "content-type",
+					Metadata: map[string]string{
+						"fixed": "fixed",
+					},
+					StorageClass: "storage-class",
+				},
+				times: 1,
+			},
 		},
 		{
 			name: "should be ok to do templating on metadata and remove new lines",
@@ -1031,8 +1098,21 @@ func Test_requestContext_Put(t *testing.T) {
 				},
 				times: 1,
 			},
-			s3clManagerClientForTargetMockInput:     "name",
-			responseHandlerNoContentMockResultTimes: 1,
+			s3clManagerClientForTargetMockInput: "name",
+			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
+				input: &responsehandler.PutInput{
+					Key:         "/test/file",
+					Filename:    "file",
+					ContentType: "content-type",
+					Metadata: map[string]string{
+						"fixed":   "fixed",
+						"testkey": "/test/file",
+						"tpl":     "/test/file - content-type",
+					},
+					StorageClass: "storage-class",
+				},
+				times: 1,
+			},
 		},
 		{
 			name: "should be ok to do templating on storage class",
@@ -1097,8 +1177,19 @@ func Test_requestContext_Put(t *testing.T) {
 				},
 				times: 1,
 			},
-			s3clManagerClientForTargetMockInput:     "name",
-			responseHandlerNoContentMockResultTimes: 1,
+			s3clManagerClientForTargetMockInput: "name",
+			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
+				input: &responsehandler.PutInput{
+					Key:         "/test/file",
+					Filename:    "file",
+					ContentType: "content-type",
+					Metadata: map[string]string{
+						"fixed": "fixed",
+					},
+					StorageClass: "/test/file - content-type",
+				},
+				times: 1,
+			},
 		},
 		{
 			name: "should be ok to flush storage class",
@@ -1163,8 +1254,18 @@ func Test_requestContext_Put(t *testing.T) {
 				},
 				times: 1,
 			},
-			s3clManagerClientForTargetMockInput:     "name",
-			responseHandlerNoContentMockResultTimes: 1,
+			s3clManagerClientForTargetMockInput: "name",
+			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
+				input: &responsehandler.PutInput{
+					Key:         "/test/file",
+					Filename:    "file",
+					ContentType: "content-type",
+					Metadata: map[string]string{
+						"fixed": "fixed",
+					},
+				},
+				times: 1,
+			},
 		},
 		{
 			name: "should be ok to do templating on storage class and remove new lines",
@@ -1231,8 +1332,19 @@ func Test_requestContext_Put(t *testing.T) {
 				},
 				times: 1,
 			},
-			s3clManagerClientForTargetMockInput:     "name",
-			responseHandlerNoContentMockResultTimes: 1,
+			s3clManagerClientForTargetMockInput: "name",
+			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
+				input: &responsehandler.PutInput{
+					Key:         "/test/file",
+					Filename:    "file",
+					ContentType: "content-type",
+					Metadata: map[string]string{
+						"fixed": "fixed",
+					},
+					StorageClass: "/test/file - content-type",
+				},
+				times: 1,
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -1261,7 +1373,10 @@ func Test_requestContext_Put(t *testing.T) {
 			resHandlerMock.EXPECT().
 				ForbiddenError(gomock.Any(), tt.responseHandlerForbiddenErrorMockResult.input2).
 				Times(tt.responseHandlerForbiddenErrorMockResult.times)
-			resHandlerMock.EXPECT().NoContent().Times(tt.responseHandlerNoContentMockResultTimes)
+			resHandlerMock.EXPECT().Put(
+				gomock.Any(),
+				tt.responseHandlerPutMockResultTimes.input,
+			).Times(tt.responseHandlerPutMockResultTimes.times)
 
 			s3ClientMock.EXPECT().
 				HeadObject(ctx, tt.s3ClientHeadObjectMockResult.input2).

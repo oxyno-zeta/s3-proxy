@@ -74,30 +74,45 @@ log:
 #     path: templates/target-list.tpl
 #     headers:
 #       Content-Type: '{{ template "main.headers.contentType" . }}'
+#     status: "200"
 #   folderList:
 #     path: templates/folder-list.tpl
 #     headers:
 #       Content-Type: '{{ template "main.headers.contentType" . }}'
+#     status: "200"
 #   badRequestError:
 #     path: templates/bad-request-error.tpl
 #     headers:
 #       Content-Type: '{{ template "main.headers.contentType" . }}'
+#     status: "400"
 #   forbiddenError:
 #     path: templates/forbidden-error.tpl
 #     headers:
 #       Content-Type: '{{ template "main.headers.contentType" . }}'
+#     status: "403"
 #   internalServerError:
 #     path: templates/internal-server-error.tpl
 #     headers:
 #       Content-Type: '{{ template "main.headers.contentType" . }}'
+#     status: "500"
 #   notFoundError:
 #     path: templates/not-found-error.tpl
 #     headers:
 #       Content-Type: '{{ template "main.headers.contentType" . }}'
+#     status: "404"
 #   unauthorizedError:
 #     path: templates/unauthorized-error.tpl
 #     headers:
 #       Content-Type: '{{ template "main.headers.contentType" . }}'
+#     status: "401"
+#   put:
+#     path: templates/put.tpl
+#     headers: {}
+#     status: "204"
+#   delete:
+#     path: templates/delete.tpl
+#     headers: {}
+#     status: "204"
 
 # Authentication Providers
 # authProviders:
@@ -274,31 +289,49 @@ targets:
     #     inBucket: false
     #     path: ""
     #     headers: {}
+    #     status: "200"
     #   # Not found error template
     #   notFoundError:
     #     inBucket: false
     #     path: ""
     #     headers: {}
+    #     status: "404"
     #   # Internal server error template
     #   internalServerError:
     #     inBucket: false
     #     path: ""
     #     headers: {}
+    #     status: "500"
     #   # Forbidden error template
     #   forbiddenError:
     #     inBucket: false
     #     path: ""
     #     headers: {}
+    #     status: "403"
     #   # Unauthorized error template
     #   unauthorizedError:
     #     inBucket: false
     #     path: ""
     #     headers: {}
+    #     status: "401"
     #   # Bad Request error template
     #   badRequestError:
     #     inBucket: false
     #     path: ""
     #     headers: {}
+    #     status: "400"
+    #   # PUT template
+    #   put:
+    #     inBucket: false
+    #     path: ""
+    #     headers: {}
+    #     status: "204"
+    #   # DELETE template
+    #   delete:
+    #     inBucket: false
+    #     path: ""
+    #     headers: {}
+    #     status: "204"
     ## Bucket configuration
     bucket:
       name: super-bucket
