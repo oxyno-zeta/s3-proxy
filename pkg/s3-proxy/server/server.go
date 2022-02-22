@@ -26,8 +26,6 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-const certValidityDuration = 10 * 365 * 24 * time.Hour // 10 years
-
 type Server struct {
 	logger          log.Logger
 	cfgManager      config.Manager

@@ -33,6 +33,9 @@ const certSerialBits = 128
 // The number of bits to use in a generated RSA private key.
 const rsaKeySize = 2048
 
+// How long generated self-signed certificates should be valid for (10 years).
+const certValidityDuration = 10 * 365 * 24 * time.Hour
+
 // generateTLSConfig creates a crypto/tls.Config configuration for a net/http.Server from an s3-proxy
 // ServerSSLConfig.
 func generateTLSConfig(sslConfig *config.ServerSSLConfig, logger log.Logger) (*tls.Config, error) {
