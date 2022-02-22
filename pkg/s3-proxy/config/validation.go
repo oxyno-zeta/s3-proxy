@@ -1,12 +1,14 @@
 package config
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
 
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
 	"github.com/pkg/errors"
 
 	"github.com/thoas/go-funk"
@@ -131,6 +133,20 @@ func validateBusinessConfig(out *Config) error {
 		}
 	}
 
+	if out.Server != nil && out.Server.SSL != nil {
+		err := validateSSLConfig(out.Server.SSL, "server")
+		if err != nil {
+			return err
+		}
+	}
+
+	if out.InternalServer != nil && out.InternalServer.SSL != nil {
+		err := validateSSLConfig(out.InternalServer.SSL, "internalServer")
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -214,5 +230,66 @@ func validatePath(beginErrorMessage string, path string) error {
 		return errors.New(beginErrorMessage + " must ends with /")
 	}
 	// Return no error
+	return nil
+}
+
+func validateSSLConfig(serverSSL *ServerSSLConfig, section string) error {
+	if serverSSL.Enabled != nil && *serverSSL.Enabled {
+		if len(serverSSL.Certificates) == 0 && len(serverSSL.SelfSignedHostnames) == 0 {
+			return fmt.Errorf("at least one of %s.ssl.certificates or %s.ssl.selfSignedHostnames must have values", section, section)
+		}
+	}
+
+	if serverSSL.MinTLSVersion != nil && utils.ParseTLSVersion(*serverSSL.MinTLSVersion) == 0 {
+		return fmt.Errorf(
+			"%s.ssl.minTLSVersion %#v must be a valid TLS version: expected \"TLSv1.0\", \"TLSv1.1\", \"TLSv1.2\", or \"TLSv1.3\"",
+			section, *serverSSL.MinTLSVersion)
+	}
+
+	if serverSSL.MaxTLSVersion != nil && utils.ParseTLSVersion(*serverSSL.MaxTLSVersion) == 0 {
+		return fmt.Errorf(
+			"%s.ssl.maxTLSVersion %#v must be a valid TLS version: expected \"TLSv1.0\", \"TLSv1.1\", \"TLSv1.2\", or \"TLSv1.3\"",
+			section, *serverSSL.MaxTLSVersion)
+	}
+
+	for _, cipherSuiteName := range serverSSL.CipherSuites {
+		if utils.ParseCipherSuite(cipherSuiteName) == 0 {
+			var cipherSuiteNames []string
+
+			for _, cipherSuite := range tls.CipherSuites() {
+				cipherSuiteNames = append(cipherSuiteNames, fmt.Sprintf(`"%s"`, cipherSuite.Name))
+			}
+
+			return fmt.Errorf(
+				"invalid cipher suite %#v in %s.ssl.cipherSuites; expected one of %s", cipherSuiteName, section,
+				strings.Join(cipherSuiteNames, ", "))
+		}
+	}
+
+	for i := range serverSSL.Certificates {
+		cert := &serverSSL.Certificates[i]
+		if cert.Certificate == nil {
+			if cert.CertificateURL == nil {
+				return fmt.Errorf(
+					"%s.ssl.certificates[%d] must have either certificate or certificateUrl set", section,
+					i)
+			}
+		} else if cert.CertificateURL != nil {
+			return fmt.Errorf(
+				"%s.ssl.certificates[%d] cannot have both certificate and certificateUrl set", section, i)
+		}
+
+		if cert.PrivateKey == nil {
+			if cert.PrivateKeyURL == nil {
+				return fmt.Errorf(
+					"%s.ssl.certificates[%d] must have either privateKey or privateKeyUrl set", section,
+					i)
+			}
+		} else if cert.PrivateKeyURL != nil {
+			return fmt.Errorf(
+				"%s.ssl.certificates[%d] cannot have both privateKey and privateKeyUrl set", section, i)
+		}
+	}
+
 	return nil
 }

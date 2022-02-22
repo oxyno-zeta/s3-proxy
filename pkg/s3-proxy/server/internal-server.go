@@ -54,6 +54,15 @@ func (svr *InternalServer) GenerateServer() {
 		Addr:    addr,
 		Handler: r,
 	}
+
+	// Get the TLS configuration (if necessary)
+	tlsConfig, err := generateTLSConfig(cfg.InternalServer.SSL, svr.logger)
+	if err != nil {
+		svr.logger.Fatal(err)
+	}
+
+	server.TLSConfig = tlsConfig
+
 	// Store server
 	svr.server = server
 }

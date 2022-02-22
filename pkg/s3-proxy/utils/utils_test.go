@@ -3,6 +3,8 @@
 package utils
 
 import (
+	"crypto/tls"
+	"fmt"
 	"net/http"
 	"testing"
 )
@@ -150,5 +152,62 @@ func TestGetRequestScheme(t *testing.T) {
 				t.Errorf("GetRequestScheme() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestParseTLSVersion(t *testing.T) {
+	var tlsString string
+	var tlsVersion uint16
+
+	for _, prefix := range []string{"1", "TLS1", "TLSv1", "TLS-1", "TLS_1", "TLS 1", "tls1", "tlsv1", "tls-1", "tls_1"} {
+		for _, separator := range []string{".", "-", "_"} {
+			tlsString = fmt.Sprintf("%s%s0", prefix, separator)
+			tlsVersion = ParseTLSVersion(tlsString)
+
+			if tlsVersion != tls.VersionTLS10 {
+				t.Errorf("ParseTLSVersion(%#v) = %v, want %v", tlsString, tlsVersion, tls.VersionTLS10)
+			}
+
+			tlsString = fmt.Sprintf("%s%s1", prefix, separator)
+			tlsVersion = ParseTLSVersion(tlsString)
+
+			if tlsVersion != tls.VersionTLS11 {
+				t.Errorf("ParseTLSVersion(%#v) = %v, want %v", tlsString, tlsVersion, tls.VersionTLS11)
+			}
+
+			tlsString = fmt.Sprintf("%s%s2", prefix, separator)
+			tlsVersion = ParseTLSVersion(tlsString)
+
+			if tlsVersion != tls.VersionTLS12 {
+				t.Errorf("ParseTLSVersion(%#v) = %v, want %v", tlsString, tlsVersion, tls.VersionTLS12)
+			}
+
+			tlsString = fmt.Sprintf("%s%s3", prefix, separator)
+			tlsVersion = ParseTLSVersion(tlsString)
+
+			if tlsVersion != tls.VersionTLS13 {
+				t.Errorf("ParseTLSVersion(%#v) = %v, want %v", tlsString, tlsVersion, tls.VersionTLS13)
+			}
+		}
+	}
+
+	if ParseTLSVersion("") != 0 {
+		t.Errorf("Expected ParseTLSVersion(\"\") to return 0")
+	}
+
+	if ParseTLSVersion("TLS") != 0 {
+		t.Errorf("Expected ParseTLSVersion(\"TLS\") to return 0")
+	}
+
+	if ParseTLSVersion("TLS&1.1") != 0 {
+		t.Errorf("Expected ParseTLSVersion(\"TLS&1.1\") to return 0")
+	}
+
+	if ParseTLSVersion("TLS-1+1") != 0 {
+		t.Errorf("Expected ParseTLSVersion(\"TLS-1+1\") to return 0")
+	}
+
+	if ParseTLSVersion("TLSv1.9") != 0 {
+		t.Errorf("Expected ParseTLSVersion(\"TLSv1.9\") to return 0")
 	}
 }

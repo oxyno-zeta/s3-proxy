@@ -30,12 +30,13 @@ You can see a full example in the [Example section](./example.md)
 
 ## ServerConfiguration
 
-| Key        | Type                                    | Required | Default | Description         |
-| ---------- | --------------------------------------- | -------- | ------- | ------------------- |
-| listenAddr | String                                  | No       | `""`    | Listen Address      |
-| port       | Integer                                 | No       | `8080`  | Listening Port      |
-| cors       | [ServerCorsConfig](#servercorsconfig)   | No       | None    | CORS configuration  |
-| cache      | [ServerCacheConfig](#servercacheconfig) | No       | None    | Cache configuration |
+| Key        | Type                                    | Required | Default | Description           |
+| ---------- | --------------------------------------- | -------- | ------- | --------------------- |
+| listenAddr | String                                  | No       | `""`    | Listen Address        |
+| port       | Integer                                 | No       | `8080`  | Listening Port        |
+| cors       | [ServerCorsConfig](#servercorsconfig)   | No       | None    | CORS configuration    |
+| cache      | [ServerCacheConfig](#servercacheconfig) | No       | None    | Cache configuration   |
+| ssl        | [ServerSSLConfig](#serversslconfig)    | No       | None    | SSL/TLS configuration |
 
 ## ServerCompressConfig
 
@@ -73,6 +74,49 @@ This feature is powered by [go-chi/cors](https://github.com/go-chi/cors). You ca
 | allowCredentials   | Boolean  | No       | Allow credentials                                                              |
 | debug              | Boolean  | No       | Debug mode for [go-chi/cors](https://github.com/go-chi/cors)                   |
 | optionsPassthrough | Boolean  | No       | OPTIONS method Passthrough                                                     |
+
+## ServerSSLCertificate
+
+| Key            | Type   | Required | Default | Description                                       |
+| -------------- | ------ | -------- | ------- | ------------------------------------------------- |
+| certificate    | String | Yes\[1\] | None    | The PEM encoded certificate.                      |
+| certificateUrl | String | Yes\[1\] | None    | The URL of a resource containing the certificate. |
+| privateKey     | String | Yes\[2\] | None    | The PEM encoded private key.                      |
+| privateKeyUrl  | String | Yes\[2\] | None    | The URL of a resource containing the private key. |
+
+Notes:
+
+*  \[1\] Exactly one of `certificate` or `certificateUrl` must be specified.
+*  \[2\] Exactly one of `privateKey` or `privateKeyUrl` msut be specified.
+
+Allowed URL types are:
+
+* Local files, in <code>file:///<i>absolute</i>/<i>path</i>/<i>filename</i></code>, <code>file://<i>relative</i>/<i>path</i>/<i>filename</i></code>, <code>/<i>absolute</i>/<i>path</i>/<i>filename</i></code>, or <code><i>relative</i>/<i>path</i>/<i>filename</i></code> form.
+* HTTP/HTTPS URLs in <code>https://<i>host</i>[:<i>port</i>]/<i>path</i></code> form.
+* AWS S3 URLs in either <code>s3://<i>bucket</i>/<i>key</i></code> or <code>arn:<i>partition</i>:s3:::<i>bucket</i>/<i>key</i></code> form.
+* AWS Secrets Manager ARNs in <code>arn:<i>partition</i>:secretsmanager:<i>region</i>:<i>account-id</i>:secret/<i>secret-name</i></code> form.
+* AWS Systems Manager parameter ARNs in <code>arn:<i>partition</i>:ssm:<i>region</i>:<i>account-id</i>:parameter/<i>path</i>/<i>name</i></code> form.
+
+## ServerSSLConfig
+
+| Key                 | Type                     | Required | Default     | Description                                                 |
+| ------------------- | ------------------------ | -------- | ----------- | ----------------------------------------------------------- |
+| enabled             | Boolean                  | No       | Detected    | Whether SSL support should be enabled.                      |
+| certificates        | \[[ServerSSLCertificate](#serversslcertificate)\] | No       | \[\]        | Certificates to serve when connected.                       |
+| selfSignedHostnames | \[String\]               | No       | \[\]        | List of hostnames to generate self-signed certificates for. |
+| minTLSVersion       | String                   | No       | `"TLSv1.2"` | The minimum TLS version to allow when a client connects.    |
+| maxTLSVersion       | String                   | No       | None        | The maximum TLS version to allow when a client connects.    |
+| cipherSuites        | \[String\]               | No       | See below   | The TLS ciphers to enable.                                  |
+
+The values for `cipherSuites` are the constant names in the Go [crypto/tls](https://pkg.go.dev/crypto/tls#pkg-constants) package,
+starting with `TLS_`. The default ciphers are the recommended cipher suites from [ciphersuite.info](https://ciphersuite.info/cs/?security=recommended) supported by Go:
+
+* `TLS_AES_128_GCM_SHA256`
+* `TLS_AES_256_GCM_SHA384`
+* `TLS_CHACHA20_POLY1305_SHA256`
+* `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`
+* `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`
+* `TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256`
 
 ## TemplateConfiguration
 
