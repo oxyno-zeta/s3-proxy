@@ -240,7 +240,7 @@ type ServerCompressConfig struct {
 
 // ServerSSLConfig Server SSL configuration.
 type ServerSSLConfig struct {
-	Enabled             *bool                  `mapstructure:"enabled"`
+	Enabled             bool                   `mapstructure:"enabled"`
 	Certificates        []ServerSSLCertificate `mapstructure:"certificates"`
 	SelfSignedHostnames []string               `mapstructure:"selfSignedHostnames"`
 	MinTLSVersion       *string                `mapstructure:"minTLSVersion"`

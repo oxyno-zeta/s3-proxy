@@ -20,7 +20,6 @@ import (
 )
 
 func TestTLSServer(t *testing.T) {
-	trueValue := true
 	accessKey := "YOUR-ACCESSKEYID"
 	secretAccessKey := "YOUR-SECRETACCESSKEY"
 	region := "eu-central-1"
@@ -72,7 +71,7 @@ func TestTLSServer(t *testing.T) {
 		{
 			name: "Self-signed certificates only",
 			config: makeConfig(8081, &config.ServerSSLConfig{
-				Enabled:             &trueValue,
+				Enabled:             true,
 				SelfSignedHostnames: []string{"localhost", "localhost.localdomain"},
 			}),
 			inputMethod:  "GET",
@@ -83,7 +82,7 @@ func TestTLSServer(t *testing.T) {
 		{
 			name: "Test supplied certificate",
 			config: makeConfig(8082, &config.ServerSSLConfig{
-				Enabled: &trueValue,
+				Enabled: true,
 				Certificates: []config.ServerSSLCertificate{
 					{
 						Certificate: &testCertificate,
@@ -99,7 +98,7 @@ func TestTLSServer(t *testing.T) {
 		{
 			name: "Test both supplied and generated certificates",
 			config: makeConfig(8083, &config.ServerSSLConfig{
-				Enabled: &trueValue,
+				Enabled: true,
 				Certificates: []config.ServerSSLCertificate{
 					{
 						Certificate: &testCertificate,

@@ -41,17 +41,8 @@ func generateTLSConfig(sslConfig *config.ServerSSLConfig, logger log.Logger) (*t
 		CipherSuites: defaultCipherSuites,
 	}
 
-	if sslConfig == nil {
-		return nil, nil //nolint:nilnil // We do not want a TLS config in this case
-	}
-
-	if sslConfig.Enabled == nil {
-		// Don't enable SSL if no certificates were set or requested.
-		if len(sslConfig.Certificates) == 0 && len(sslConfig.SelfSignedHostnames) == 0 {
-			return nil, nil //nolint:nilnil // We do not want a TLS config in this case
-		}
-	} else if !*sslConfig.Enabled {
-		return nil, nil //nolint:nilnil // We do not want a TLS config in this case
+	if sslConfig == nil || !sslConfig.Enabled {
+		return nil, nil //nolint:nilnil // We do not want a TLS config in these cases
 	}
 
 	if len(sslConfig.SelfSignedHostnames) == 0 && len(sslConfig.Certificates) == 0 {

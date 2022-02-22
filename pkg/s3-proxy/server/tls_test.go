@@ -1,13 +1,17 @@
+//go:build unit
+
 package server
 
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -64,163 +68,207 @@ csZ8PbpqNkbcznkfy8BDRhwanNsvzsXWyX/0LxU+CdZGQ9jDOZwItyY=
 )
 
 func TestGenerateTLSConfig(t *testing.T) {
-	logger := log.NewLogger()
-	var tlsConfig *tls.Config
-	var err error
+	type resultType int
+	const (
+		expectNil resultType = iota
+		expectStruct
+		expectErr
+	)
 
-	// Nil config should result in a nil result.
-	tlsConfig, err = generateTLSConfig(nil, logger)
-
-	if err != nil {
-		t.Errorf("generateTLSConfig(nil) should not return an error")
-	} else if tlsConfig != nil {
-		t.Errorf("generateTLSConfig(nil) should return a nil result")
-	}
-
-	// Enabled: false should result in a nil result.
-	tlsConfig, err = generateTLSConfig(&config.ServerSSLConfig{Enabled: aws.Bool(false)}, logger)
-
-	if err != nil {
-		t.Errorf("generateTLSConfig({Enabled: false}) should not return an error")
-	} else if tlsConfig != nil {
-		t.Errorf("generateTLSConfig({Enabled: false}) should return a nil result")
-	}
-
-	// Enabled: nil with no certificates should result in a nil result.
-	tlsConfig, err = generateTLSConfig(&config.ServerSSLConfig{}, logger)
-
-	if err != nil {
-		t.Errorf("generateTLSConfig({}) should not return an error")
-	} else if tlsConfig != nil {
-		t.Errorf("generateTLSConfig({}) should return a nil result")
-	}
-
-	// Enabled: true with no certificates should result in an error.
-	_, err = generateTLSConfig(&config.ServerSSLConfig{Enabled: aws.Bool(true)}, logger)
-
-	if err == nil {
-		t.Errorf("generateTLSConfig({Enabled: true}) with no certificates should return an error")
-	}
-
-	// Check that the default cipher suites and min version are set.
-	tlsConfig, err = generateTLSConfig(&config.ServerSSLConfig{
-		Certificates: []config.ServerSSLCertificate{
-			{
-				Certificate: aws.String(testCertificate),
-				PrivateKey:  aws.String(testPrivateKey),
-			},
+	tests := []struct {
+		name         string
+		config       *config.ServerSSLConfig
+		expect       resultType
+		errorString  string
+		minVersion   *uint16
+		maxVersion   *uint16
+		cipherSuites []uint16
+		certCount    *int
+		certDNS      [][]string
+	}{
+		{
+			name:   "nil config results in nil tls.Config",
+			config: nil,
+			expect: expectNil,
 		},
-	}, logger)
-
-	if err != nil {
-		t.Errorf("generateTLSConfig with certs should not return an error")
-	} else if tlsConfig == nil {
-		t.Errorf("generateTLSConfig with certs should return a valid tls.Config")
-	} else {
-		if tlsConfig.MinVersion != tls.VersionTLS12 {
-			t.Errorf("generateTLSConfig with certs should set MinVersion to TLS 1.2")
-		}
-
-		if len(tlsConfig.CipherSuites) == 0 {
-			t.Errorf("generateTLSConfig should set CipherSuites to the default value")
-		} else {
-			notSeen := make(map[uint16]bool)
-
-			for _, cipher := range defaultCipherSuites {
-				notSeen[cipher] = true
-			}
-
-			for _, cipher := range tlsConfig.CipherSuites {
-				_, present := notSeen[cipher]
-
-				if !present {
-					t.Errorf("generateTLSConfig default cipher suites included unexpected cipher 0x%04x", cipher)
-				} else {
-					delete(notSeen, cipher)
-				}
-			}
-
-			for cipher := range notSeen {
-				t.Errorf("generateTLSConfig default cipher suites missing expected cipher suite 0x%04x", cipher)
-			}
-		}
+		{
+			name:   "enabled=false results in nil tls.Config",
+			config: &config.ServerSSLConfig{Enabled: false},
+			expect: expectNil,
+		},
+		{
+			name:   "enabled=true with no certificates should result in an error",
+			config: &config.ServerSSLConfig{Enabled: true},
+			expect: expectErr,
+		},
+		{
+			name: "default ciper suites and min version set",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						Certificate: aws.String(testCertificate),
+						PrivateKey:  aws.String(testPrivateKey),
+					},
+				},
+			},
+			expect:       expectStruct,
+			minVersion:   aws.Uint16(tls.VersionTLS12),
+			cipherSuites: defaultCipherSuites,
+		},
+		{
+			name: "versions, cipher suites, certificates respected and generated",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						Certificate: aws.String(testCertificate),
+						PrivateKey:  aws.String(testPrivateKey),
+					},
+				},
+				SelfSignedHostnames: []string{"localhost", "localhost.localdomain"},
+				MinTLSVersion:       aws.String("TLSv1.1"),
+				MaxTLSVersion:       aws.String("TLSv1.2"),
+				CipherSuites:        []string{"TLS_RSA_WITH_AES_128_GCM_SHA256"},
+			},
+			expect:       expectStruct,
+			minVersion:   aws.Uint16(tls.VersionTLS11),
+			maxVersion:   aws.Uint16(tls.VersionTLS12),
+			cipherSuites: []uint16{tls.TLS_RSA_WITH_AES_128_GCM_SHA256},
+			certDNS:      [][]string{{"localhost", "localhost.localdomain"}, {"testhost.example.com"}},
+		},
 	}
 
-	// Check that versions are set, cipher suites are respected, and self-signed certificates are generated.
-	tlsConfig, err = generateTLSConfig(&config.ServerSSLConfig{
-		Enabled: aws.Bool(true),
-		Certificates: []config.ServerSSLCertificate{
-			{
-				Certificate: aws.String(testCertificate),
-				PrivateKey:  aws.String(testPrivateKey),
-			},
-		},
-		SelfSignedHostnames: []string{"localhost", "localhost.localdomain"},
-		MinTLSVersion:       aws.String("TLSv1.1"),
-		MaxTLSVersion:       aws.String("TLSv1.2"),
-		CipherSuites:        []string{"TLS_RSA_WITH_AES_128_GCM_SHA256"},
-	}, logger)
+	for _, currentTest := range tests {
+		// Capture the current test for parallel processing. Otherwise currentTest will be modified during our test run.
+		tt := currentTest
 
-	if err != nil {
-		t.Errorf("generateTLSConfig with certs, min field, cipher should not return an error")
-	} else if tlsConfig == nil {
-		t.Errorf("generateTLSConfig with certs, min field, cipher should return a tls.Config")
-	} else {
-		if tlsConfig.MinVersion != tls.VersionTLS11 {
-			t.Errorf("expected min version to be TLS 1.1 (%x), got %x", tls.VersionTLS11, tlsConfig.MinVersion)
-		}
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			logger := log.NewLogger()
+			tlsConfig, err := generateTLSConfig(tt.config, logger)
 
-		if tlsConfig.MaxVersion != tls.VersionTLS12 {
-			t.Errorf("expected max version to be TLS 1.2 (%x), got %x", tls.VersionTLS12, tlsConfig.MinVersion)
-		}
-
-		if len(tlsConfig.CipherSuites) != 1 {
-			t.Errorf("expected 1 cipher suite, got %d", len(tlsConfig.CipherSuites))
-		} else if tlsConfig.CipherSuites[0] != tls.TLS_RSA_WITH_AES_128_GCM_SHA256 {
-			t.Errorf("expected cipher suite to be 0x%04x, got 0x%04x", tls.TLS_RSA_WITH_AES_128_GCM_SHA256, tlsConfig.CipherSuites[0])
-		}
-
-		if len(tlsConfig.Certificates) != 2 {
-			t.Errorf("expected 2 certificates, got %d", len(tlsConfig.Certificates))
-		} else {
-			if len(tlsConfig.Certificates[0].Certificate) < 1 {
-				t.Errorf("expected self-signed certificate to be non-empty: %#v", tlsConfig.Certificates[1])
-			} else {
-				// Self-signed is the first certificate
-				selfSignedBytes := tlsConfig.Certificates[0].Certificate[0]
-				selfSigned, err := x509.ParseCertificate(selfSignedBytes)
-
+			switch tt.expect {
+			case expectNil:
 				if err != nil {
-					t.Errorf("error parsing self-signed certificate: %v", err)
-				} else if len(selfSigned.DNSNames) != 2 {
-					t.Errorf("expected 2 DNS names in self-signed certificate, got %d", len(selfSigned.DNSNames))
-				} else {
-					localhostSeen := false
-					localhostLocalDomainSeen := false
+					t.Errorf("expected nil result but got error %v", err)
+				} else if tlsConfig != nil {
+					t.Errorf("expected nil result but got tls.Config %#v", *tlsConfig)
+				}
+			case expectStruct:
+				if err != nil {
+					t.Errorf("expected successful result but got error %v", err)
+					break
+				}
 
-					for _, dnsName := range selfSigned.DNSNames {
-						if dnsName == "localhost" {
-							localhostSeen = true
-						} else if dnsName == "localhost.localdomain" {
-							localhostLocalDomainSeen = true
+				if tlsConfig == nil {
+					t.Errorf("expected successful result but got nil")
+					break
+				}
+
+				// If minVersion/maxVersion were set in the test config, check these results.
+				if tt.minVersion != nil {
+					if *tt.minVersion != tlsConfig.MinVersion {
+						t.Errorf("expected MinVersion set to 0x%04x; got 0x%04x", *tt.minVersion, tlsConfig.MinVersion)
+					}
+				}
+
+				if tt.maxVersion != nil {
+					if *tt.maxVersion != tlsConfig.MaxVersion {
+						t.Errorf("expected MaxVersion set to 0x%04x; got 0x%04x", *tt.maxVersion, tlsConfig.MaxVersion)
+					}
+				}
+
+				// If we expected certain cipher suites, check that the result includes exactly this set.
+				if len(tt.cipherSuites) > 0 {
+					ciphersSeen := make(map[uint16]bool)
+
+					for _, cipher := range tt.cipherSuites {
+						ciphersSeen[cipher] = false
+					}
+
+					for _, cipher := range tlsConfig.CipherSuites {
+						_, present := ciphersSeen[cipher]
+
+						if !present {
+							t.Errorf("unexpected cipher suite 0x%04x included", cipher)
 						} else {
-							t.Errorf("expected self-signed certificate to have DNS name 'localhost' or 'localhost.localdomain', got '%s'", dnsName)
+							ciphersSeen[cipher] = true
 						}
 					}
 
-					if !localhostSeen {
-						t.Errorf("expected self-signed certificate to have DNS name 'localhost'")
-					}
-
-					if !localhostLocalDomainSeen {
-						t.Errorf("expected self-signed certificate to have DNS name 'localhost.localdomain'")
+					for cipher, seen := range ciphersSeen {
+						if !seen {
+							t.Errorf("missing cipher suite 0x%04x", cipher)
+						}
 					}
 				}
-			}
 
-			if len(tlsConfig.Certificates[1].Certificate) < 1 {
-				t.Errorf("expected provided certificate to be non-empty: %#v", tlsConfig.Certificates[1])
+				// If we expected a certificate count, check it.
+				if tt.certCount != nil {
+					if *tt.certCount != len(tlsConfig.Certificates) {
+						t.Errorf("expected %d certificates; got %d", *tt.certCount, len(tlsConfig.Certificates))
+					}
+				}
+
+				// If we specified names in tt.certDNS, check those certs for the supplied names.
+				// Ignore any certificates beyond those specified.
+				limit := len(tlsConfig.Certificates)
+				if limit > len(tt.certDNS) {
+					limit = len(tt.certDNS)
+				}
+
+				assert.LessOrEqual(t, limit, len(tt.certDNS))
+
+				for certIdx := 0; certIdx < limit; certIdx++ {
+					namesSeen := make(map[string]bool)
+
+					assert.Less(t, certIdx, len(tt.certDNS))
+					for _, dnsName := range tt.certDNS[certIdx] {
+						namesSeen[dnsName] = false
+					}
+
+					// We look *only* at the first certificate (the leaf); others are intermediates.
+					certBytes := tlsConfig.Certificates[certIdx].Certificate[0]
+					cert, err := x509.ParseCertificate(certBytes)
+
+					if err != nil {
+						t.Errorf("error parsing certificates[%d].certificate[0]: %v", certIdx, err)
+						continue
+					}
+
+					// We need to gather the common name (CN) as well as the subject alternate names (SANs).
+					// Some certs don't include the CN in the SANs.
+					allDNSNames := make([]string, 0, 1+len(cert.DNSNames))
+					allDNSNames = append(allDNSNames, cert.Subject.CommonName)
+					allDNSNames = append(allDNSNames, cert.DNSNames...)
+
+					for _, dnsName := range allDNSNames {
+						_, present := namesSeen[dnsName]
+						if !present {
+							// DNS name found wasn't included on our list.
+							t.Errorf("certificates[%d] has unexpected DNS name %#v", certIdx, dnsName)
+						} else {
+							// It's ok if the name is present more than once (e.g. CN and SAN)
+							namesSeen[dnsName] = true
+						}
+					}
+
+					for dnsName, seen := range namesSeen {
+						if !seen {
+							// DNS name on our list was not present in the certificates.
+							t.Errorf("certificates[%d] did not include DNS name %#v", certIdx, dnsName)
+						}
+					}
+				}
+
+			case expectErr:
+				if err == nil {
+					t.Errorf("expected error but got nil")
+				} else if !strings.HasPrefix(err.Error(), tt.errorString) {
+					t.Errorf("expected error message %#v; got %#v", tt.errorString, err.Error())
+				}
 			}
-		}
+		})
 	}
 }

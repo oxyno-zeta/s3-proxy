@@ -766,8 +766,6 @@ func Test_validateBusinessConfig(t *testing.T) {
 }
 
 func Test_validateSSL(t *testing.T) {
-	trueVal := true
-
 	tests := []struct {
 		name                 string
 		serverConfig         *ServerConfig
@@ -779,7 +777,7 @@ func Test_validateSSL(t *testing.T) {
 			name: "Valid server config with generated certificate",
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled:             &trueVal,
+					Enabled:             true,
 					SelfSignedHostnames: []string{"localhost", "localhost.localdomain"},
 				},
 			},
@@ -788,7 +786,7 @@ func Test_validateSSL(t *testing.T) {
 			name: "Valid server config with supplied certificate",
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled: &trueVal,
+					Enabled: true,
 					Certificates: []ServerSSLCertificate{
 						{
 							Certificate: &testCertificate,
@@ -803,7 +801,7 @@ func Test_validateSSL(t *testing.T) {
 			name: "Valid server config with supplied and generated certificates",
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled: &trueVal,
+					Enabled: true,
 					Certificates: []ServerSSLCertificate{
 						{
 							Certificate: &testCertificate,
@@ -819,7 +817,7 @@ func Test_validateSSL(t *testing.T) {
 			name: "Invalid server config with no certificates",
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled:             &trueVal,
+					Enabled:             true,
 					Certificates:        nil,
 					SelfSignedHostnames: nil,
 				},
@@ -831,7 +829,7 @@ func Test_validateSSL(t *testing.T) {
 			name: "Invalid minTLSVersion",
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled: &trueVal,
+					Enabled: true,
 					Certificates: []ServerSSLCertificate{
 						{
 							Certificate: &testCertificate,
@@ -848,7 +846,7 @@ func Test_validateSSL(t *testing.T) {
 			name: "Invalid maxTLSVersion",
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled: &trueVal,
+					Enabled: true,
 					Certificates: []ServerSSLCertificate{
 						{
 							Certificate: &testCertificate,
@@ -866,7 +864,7 @@ func Test_validateSSL(t *testing.T) {
 			name: "Invalid cipherSuites",
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled: &trueVal,
+					Enabled: true,
 					Certificates: []ServerSSLCertificate{
 						{
 							Certificate: &testCertificate,
@@ -885,13 +883,13 @@ func Test_validateSSL(t *testing.T) {
 			name: "Invalid internalServer config with no certificates",
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled:             &trueVal,
+					Enabled:             true,
 					SelfSignedHostnames: []string{"localhost", "localhost.localdomain"},
 				},
 			},
 			internalServerConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled: &trueVal,
+					Enabled: true,
 				},
 			},
 			wantErr:     true,
@@ -901,7 +899,7 @@ func Test_validateSSL(t *testing.T) {
 			name: "Missing certificate/certificateUrl",
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled: &trueVal,
+					Enabled: true,
 					Certificates: []ServerSSLCertificate{
 						{
 							PrivateKey: &testPrivateKey,
@@ -916,7 +914,7 @@ func Test_validateSSL(t *testing.T) {
 			name: "Missing privateKey/privateKeyUrl",
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled: &trueVal,
+					Enabled: true,
 					Certificates: []ServerSSLCertificate{
 						{
 							Certificate: &testCertificate,
@@ -931,7 +929,7 @@ func Test_validateSSL(t *testing.T) {
 			name: "Both certificate and certificateUrl set",
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled: &trueVal,
+					Enabled: true,
 					Certificates: []ServerSSLCertificate{
 						{
 							Certificate:    &testCertificate,
@@ -948,7 +946,7 @@ func Test_validateSSL(t *testing.T) {
 			name: "Both privateKey and privateKeyUrl set",
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled: &trueVal,
+					Enabled: true,
 					Certificates: []ServerSSLCertificate{
 						{
 							Certificate:   &testCertificate,
@@ -966,7 +964,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{},
 			internalServerConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled: &trueVal,
+					Enabled: true,
 					Certificates: []ServerSSLCertificate{
 						{
 							PrivateKey: &testPrivateKey,
@@ -982,7 +980,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{},
 			internalServerConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
-					Enabled: &trueVal,
+					Enabled: true,
 					Certificates: []ServerSSLCertificate{
 						{
 							Certificate: &testCertificate,

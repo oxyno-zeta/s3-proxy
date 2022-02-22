@@ -101,8 +101,8 @@ Allowed URL types are:
 
 | Key                 | Type                     | Required | Default     | Description                                                 |
 | ------------------- | ------------------------ | -------- | ----------- | ----------------------------------------------------------- |
-| enabled             | Boolean                  | No       | Detected    | Whether SSL support should be enabled.                      |
-| certificates        | \[[ServerSSLCertificate](#serversslcertificate)\] | No       | \[\]        | Certificates to serve when connected.                       |
+| enabled             | Boolean                  | Yes      | `false`     | Whether SSL support should be enabled.                      |
+| certificates        | \[[ServerSSLCertificate](#serversslcertificate)\] | No | \[\] | Certificates to serve when connected.           |
 | selfSignedHostnames | \[String\]               | No       | \[\]        | List of hostnames to generate self-signed certificates for. |
 | minTLSVersion       | String                   | No       | `"TLSv1.2"` | The minimum TLS version to allow when a client connects.    |
 | maxTLSVersion       | String                   | No       | None        | The maximum TLS version to allow when a client connects.    |

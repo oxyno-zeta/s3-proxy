@@ -234,7 +234,7 @@ func validatePath(beginErrorMessage string, path string) error {
 }
 
 func validateSSLConfig(serverSSL *ServerSSLConfig, section string) error {
-	if serverSSL.Enabled != nil && *serverSSL.Enabled {
+	if serverSSL.Enabled {
 		if len(serverSSL.Certificates) == 0 && len(serverSSL.SelfSignedHostnames) == 0 {
 			return fmt.Errorf("at least one of %s.ssl.certificates or %s.ssl.selfSignedHostnames must have values", section, section)
 		}
