@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"errors"
 	"fmt"
 	"math/big"
 	"time"
@@ -14,6 +13,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
+	"github.com/pkg/errors"
 )
 
 // The intersection of the recommended cipher suites from https://ciphersuite.info/cs/?security=recommended
@@ -152,7 +152,7 @@ func getCertificateFromConfig(certConfig *config.ServerSSLCertificate, logger lo
 	cert, err := tls.X509KeyPair(certificate, privateKey)
 
 	if err != nil {
-		return tls.Certificate{}, fmt.Errorf("failed to create certificate: %w", err)
+		return tls.Certificate{}, errors.Wrap(err, fmt.Sprintf("failed to create certificate: %v", err))
 	}
 
 	if len(cert.Certificate) == 0 {
@@ -174,7 +174,7 @@ func generateSelfSignedCertificate(hostnames []string) (tls.Certificate, error) 
 	privateKey, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
 
 	if err != nil {
-		return tls.Certificate{}, fmt.Errorf("failed to generate RSA key: %w", err)
+		return tls.Certificate{}, errors.Wrap(err, fmt.Sprintf("failed to generate RSA key: %v", err))
 	}
 
 	now := time.Now().UTC()
@@ -192,7 +192,7 @@ func generateSelfSignedCertificate(hostnames []string) (tls.Certificate, error) 
 	serialNumber, err := rand.Int(rand.Reader, maxSerialNumber)
 
 	if err != nil {
-		return tls.Certificate{}, fmt.Errorf("failed to generate serial number: %w", err)
+		return tls.Certificate{}, errors.Wrap(err, fmt.Sprintf("failed to generate serial number: %v", err))
 	}
 
 	template := x509.Certificate{
@@ -208,7 +208,7 @@ func generateSelfSignedCertificate(hostnames []string) (tls.Certificate, error) 
 	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, privateKey.Public(), privateKey)
 
 	if err != nil {
-		return tls.Certificate{}, fmt.Errorf("failed to create self-signed certificate: %w", err)
+		return tls.Certificate{}, errors.Wrap(err, fmt.Sprintf("failed to create self-signed certificate: %v", err))
 	}
 
 	if len(certDER) == 0 {
