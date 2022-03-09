@@ -65,6 +65,12 @@ iCJF/To3k+edgVsGIR4ZjqPIwBNItjVIYRNmO/KxCMjSt8i6xcsO1jOKHjnwuZwb
 So0HeYWx9ixaRgxZ8yxGmB/CVOka/M5w06i0cwofTMWsiFYzPd6uPe2Mz6hcIPuE
 csZ8PbpqNkbcznkfy8BDRhwanNsvzsXWyX/0LxU+CdZGQ9jDOZwItyY=
 -----END RSA PRIVATE KEY-----`
+
+	emptyCertificate = `-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----`
+
+	emptyPrivateKey = `-----BEGIN RSA PRIVATE KEY-----
+-----END RSA PRIVATE KEY-----`
 )
 
 func TestGenerateTLSConfig(t *testing.T) {
@@ -136,6 +142,266 @@ func TestGenerateTLSConfig(t *testing.T) {
 			maxVersion:   aws.Uint16(tls.VersionTLS12),
 			cipherSuites: []uint16{tls.TLS_RSA_WITH_AES_128_GCM_SHA256},
 			certDNS:      [][]string{{"localhost", "localhost.localdomain"}, {"testhost.example.com"}},
+		},
+		{
+			name: "invalid min TLS version",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						Certificate: aws.String(testCertificate),
+						PrivateKey:  aws.String(testPrivateKey),
+					},
+				},
+				SelfSignedHostnames: []string{"localhost", "localhost.localdomain"},
+				MinTLSVersion:       aws.String("5.0"),
+				MaxTLSVersion:       aws.String("TLSv1.2"),
+				CipherSuites:        []string{"TLS_RSA_WITH_AES_128_GCM_SHA256"},
+			},
+			expect:      expectErr,
+			errorString: "invalid TLS version: 5.0",
+		},
+		{
+			name: "invalid max TLS version",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						Certificate: aws.String(testCertificate),
+						PrivateKey:  aws.String(testPrivateKey),
+					},
+				},
+				SelfSignedHostnames: []string{"localhost", "localhost.localdomain"},
+				MinTLSVersion:       aws.String("tls1.1"),
+				MaxTLSVersion:       aws.String("6.0"),
+				CipherSuites:        []string{"TLS_RSA_WITH_AES_128_GCM_SHA256"},
+			},
+			expect:      expectErr,
+			errorString: "invalid TLS version: 6.0",
+		},
+		{
+			name: "invalid cipher suite",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						Certificate: aws.String(testCertificate),
+						PrivateKey:  aws.String(testPrivateKey),
+					},
+				},
+				SelfSignedHostnames: []string{"localhost", "localhost.localdomain"},
+				MinTLSVersion:       aws.String("TLSv1.1"),
+				MaxTLSVersion:       aws.String("TLSv1.2"),
+				CipherSuites:        []string{"TLS_RSA_WITH_AES_128_GCM_SHA256", "TLS_NULL"},
+			},
+			expect:      expectErr,
+			errorString: "invalid cipher suite: TLS_NULL",
+		},
+		{
+			name: "neither certificate nor certificateUrl set",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						PrivateKey: aws.String(testPrivateKey),
+					},
+				},
+				SelfSignedHostnames: []string{"localhost", "localhost.localdomain"},
+				MinTLSVersion:       aws.String("TLSv1.1"),
+				MaxTLSVersion:       aws.String("TLSv1.2"),
+				CipherSuites:        []string{"TLS_RSA_WITH_AES_128_GCM_SHA256"},
+			},
+			expect:      expectErr,
+			errorString: "unable to load certificate: expected either certificate or certificateUrl to be set",
+		},
+		{
+			name: "neither privateKey nor privateKeyUrl set",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						Certificate: aws.String(testCertificate),
+					},
+				},
+				SelfSignedHostnames: []string{"localhost", "localhost.localdomain"},
+				MinTLSVersion:       aws.String("TLSv1.1"),
+				MaxTLSVersion:       aws.String("TLSv1.2"),
+				CipherSuites:        []string{"TLS_RSA_WITH_AES_128_GCM_SHA256"},
+			},
+			expect:      expectErr,
+			errorString: "unable to load certificate: expected either privateKey or privateKeyUrl to be set",
+		},
+		{
+			name: "invalid certificate URL should result in an error",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						CertificateURL: aws.String(":r&qwer+asdf"),
+						PrivateKey:     aws.String(testPrivateKey),
+					},
+				},
+			},
+			expect: expectErr,
+		},
+		{
+			name: "unsupported certificate URL scheme should result in an error",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						CertificateURL: aws.String("ftp://ftp.example.com"),
+						PrivateKey:     aws.String(testPrivateKey),
+					},
+				},
+			},
+			expect:      expectErr,
+			errorString: "unable to load certificate: failed to get certificate from URL: ftp://ftp.example.com: unsupported URL scheme: ftp",
+		},
+		{
+			name: "unsupported private key URL scheme should result in an error",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						Certificate:   aws.String(testCertificate),
+						PrivateKeyURL: aws.String("ftp://ftp.example.com"),
+					},
+				},
+			},
+			expect:      expectErr,
+			errorString: "unable to load certificate: failed to get private key from URL: ftp://ftp.example.com: unsupported URL scheme: ftp",
+		},
+		{
+			name: "invalid HTTP timeout duration",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						CertificateURL: aws.String("http://example.com/certificate.pem"),
+						CertificateURLConfig: &config.SSLURLConfig{
+							HTTPTimeout: "foobar",
+						},
+						PrivateKey: aws.String(testPrivateKey),
+					},
+				},
+			},
+			expect:      expectErr,
+			errorString: "unable to load certificate: invalid certificateUrlConfig: invalid httpTimeout: time: invalid duration \"foobar\"",
+		},
+		{
+			name: "access key without secret key",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						CertificateURL: aws.String("http://example.com/certificate.pem"),
+						CertificateURLConfig: &config.SSLURLConfig{
+							AWSCredentials: &config.BucketCredentialConfig{
+								AccessKey: &config.CredentialConfig{
+									Value: "TestAccessKey",
+								},
+							},
+						},
+						PrivateKey: aws.String(testPrivateKey),
+					},
+				},
+			},
+			expect:      expectErr,
+			errorString: "unable to load certificate: invalid certificateUrlConfig: secretKey must be set if accessKey is set",
+		},
+		{
+			name: "secret key without access key",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						CertificateURL: aws.String("http://example.com/certificate.pem"),
+						CertificateURLConfig: &config.SSLURLConfig{
+							AWSCredentials: &config.BucketCredentialConfig{
+								SecretKey: &config.CredentialConfig{
+									Value: "TestSecretKey",
+								},
+							},
+						},
+						PrivateKey: aws.String(testPrivateKey),
+					},
+				},
+			},
+			expect:      expectErr,
+			errorString: "unable to load certificate: invalid certificateUrlConfig: accessKey must be set if secretKey is set",
+		},
+		{
+			name: "unresolved access key",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						Certificate:   aws.String(testCertificate),
+						PrivateKeyURL: aws.String("http://example.com/privateKey.pem"),
+						PrivateKeyURLConfig: &config.SSLURLConfig{
+							AWSCredentials: &config.BucketCredentialConfig{
+								AccessKey: &config.CredentialConfig{},
+								SecretKey: &config.CredentialConfig{
+									Value: "TestSecretKey",
+								},
+							},
+						},
+					},
+				},
+			},
+			expect:      expectErr,
+			errorString: "unable to load certificate: invalid privateKeyUrlConfig: accessKey is not resolved",
+		},
+		{
+			name: "unresolved secret key",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						CertificateURL: aws.String("http://example.com/certificate.pem"),
+						CertificateURLConfig: &config.SSLURLConfig{
+							AWSCredentials: &config.BucketCredentialConfig{
+								AccessKey: &config.CredentialConfig{
+									Value: "TestAccessKey",
+								},
+								SecretKey: &config.CredentialConfig{},
+							},
+						},
+						PrivateKey: aws.String(testPrivateKey),
+					},
+				},
+			},
+			expect:      expectErr,
+			errorString: "unable to load certificate: invalid certificateUrlConfig: secretKey is not resolved",
+		},
+		{
+			name: "empty certificate",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						Certificate: aws.String(emptyCertificate),
+						PrivateKey:  aws.String(testPrivateKey),
+					},
+				},
+			},
+			expect:      expectErr,
+			errorString: "unable to load certificate: failed to create certificate:",
+		},
+		{
+			name: "empty private key",
+			config: &config.ServerSSLConfig{
+				Enabled: true,
+				Certificates: []config.ServerSSLCertificate{
+					{
+						Certificate: aws.String(testCertificate),
+						PrivateKey:  aws.String(emptyPrivateKey),
+					},
+				},
+			},
+			expect:      expectErr,
+			errorString: "unable to load certificate: failed to create certificate:",
 		},
 	}
 

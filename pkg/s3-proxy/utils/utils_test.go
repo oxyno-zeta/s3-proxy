@@ -7,6 +7,10 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetRequestURI(t *testing.T) {
@@ -209,5 +213,65 @@ func TestParseTLSVersion(t *testing.T) {
 
 	if ParseTLSVersion("TLSv1.9") != 0 {
 		t.Errorf("Expected ParseTLSVersion(\"TLSv1.9\") to return 0")
+	}
+}
+
+func TestGetDocumentURLOption(t *testing.T) {
+	options := []GetDocumentFromURLOption{
+		WithAWSEndpoint("host.endpoint"),
+		WithAWSRegion("region-1"),
+		WithAWSDisableSSL(true),
+		WithAWSStaticCredentials("TestAccessKey", "TestSecretKey", "TestToken"),
+		WithHTTPTimeout(time.Duration(30 * time.Second)),
+	}
+
+	for _, setAWSConfig := range []bool{false, true} {
+		for _, setHTTPClient := range []bool{false, true} {
+			var awsConfig *aws.Config
+			var httpClient *http.Client
+
+			if setAWSConfig {
+				awsConfig = aws.NewConfig()
+			}
+
+			if setHTTPClient {
+				httpClient = &http.Client{}
+			}
+
+			for _, option := range options {
+				option(awsConfig, httpClient)
+			}
+
+			if awsConfig != nil {
+				if assert.NotNil(t, awsConfig.Endpoint, "endpoint should be set") {
+					assert.Equal(t, "host.endpoint", *awsConfig.Endpoint, "endpoint should be host.endpoint")
+				}
+
+				if assert.NotNil(t, awsConfig.Region, "region should be set") {
+					assert.Equal(t, "region-1", *awsConfig.Region, "region should be region-1")
+				}
+
+				if assert.NotNil(t, awsConfig.DisableSSL, "disablessl should be set") {
+					assert.Equal(t, true, *awsConfig.DisableSSL, "disablessl should be true")
+				}
+
+				if assert.NotNil(t, awsConfig.Credentials, "credentials should be set") {
+					credValue, err := awsConfig.Credentials.Get()
+					if assert.Nil(t, err, "credentials.Get should return nil") {
+						assert.Equal(t, "TestAccessKey", credValue.AccessKeyID, "accesskey should be TestAccessKey")
+						assert.Equal(t, "TestSecretKey", credValue.SecretAccessKey, "secretkey should be TestSecretKey")
+						assert.Equal(t, "TestToken", credValue.SessionToken, "token should be TestToken")
+					}
+				}
+
+				if assert.NotNil(t, awsConfig.HTTPClient, "httpclient should be set") {
+					assert.Equal(t, time.Duration(30*time.Second), awsConfig.HTTPClient.Timeout, "awsclient HTTP timeout should be 30 seconds")
+				}
+			}
+
+			if httpClient != nil {
+				assert.Equal(t, time.Duration(30*time.Second), httpClient.Timeout, "httpclient timeout should be 30 seconds")
+			}
+		}
 	}
 }

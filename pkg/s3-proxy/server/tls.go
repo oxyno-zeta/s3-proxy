@@ -56,7 +56,7 @@ func generateTLSConfig(sslConfig *config.ServerSSLConfig, logger log.Logger) (*t
 	if len(sslConfig.SelfSignedHostnames) > 0 {
 		selfSignedCert, err := generateSelfSignedCertificate(sslConfig.SelfSignedHostnames)
 		if err != nil {
-			logger.Errorf("Failed to generate self-signed certificate: %v", err)
+			logger.Errorf("failed to generate self-signed certificate: %v", err)
 
 			return nil, err
 		}
@@ -68,14 +68,18 @@ func generateTLSConfig(sslConfig *config.ServerSSLConfig, logger log.Logger) (*t
 	if sslConfig.MinTLSVersion != nil {
 		result.MinVersion = utils.ParseTLSVersion(*sslConfig.MinTLSVersion)
 		if result.MinVersion == 0 {
-			logger.Fatalf("Invalid TLS version: %v", *sslConfig.MinTLSVersion)
+			logger.Errorf("invalid TLS version: %v", *sslConfig.MinTLSVersion)
+
+			return nil, errors.Errorf("invalid TLS version: %v", *sslConfig.MinTLSVersion)
 		}
 	}
 
 	if sslConfig.MaxTLSVersion != nil {
 		result.MaxVersion = utils.ParseTLSVersion(*sslConfig.MaxTLSVersion)
 		if result.MaxVersion == 0 {
-			logger.Fatalf("Invalid TLS version: %v", *sslConfig.MaxTLSVersion)
+			logger.Errorf("invalid TLS version: %v", *sslConfig.MaxTLSVersion)
+
+			return nil, errors.Errorf("invalid TLS version: %v", *sslConfig.MaxTLSVersion)
 		}
 	}
 
@@ -86,7 +90,9 @@ func generateTLSConfig(sslConfig *config.ServerSSLConfig, logger log.Logger) (*t
 		for _, cipherSuiteName := range sslConfig.CipherSuites {
 			suiteID := utils.ParseCipherSuite(cipherSuiteName)
 			if suiteID == 0 {
-				logger.Fatalf("Invalid cipher suite: %v", cipherSuiteName)
+				logger.Errorf("invalid cipher suite: %v", cipherSuiteName)
+
+				return nil, errors.Errorf("invalid cipher suite: %v", cipherSuiteName)
 			}
 
 			result.CipherSuites = append(result.CipherSuites, suiteID)
@@ -99,10 +105,12 @@ func generateTLSConfig(sslConfig *config.ServerSSLConfig, logger log.Logger) (*t
 		cert, err := getCertificateFromConfig(certConfig, logger)
 
 		if err != nil {
-			logger.Fatalf("Unable to load certificate: %v", err)
+			logger.Errorf("unable to load certificate: %v", err)
+
+			return nil, errors.Wrap(err, "unable to load certificate")
 		}
 
-		result.Certificates = append(result.Certificates, cert)
+		result.Certificates = append(result.Certificates, *cert)
 	}
 
 	return &result, nil
@@ -110,8 +118,18 @@ func generateTLSConfig(sslConfig *config.ServerSSLConfig, logger log.Logger) (*t
 
 // getCertificateFromConfig creates a crypto/tls.Certificate from a certificate configuration, performing any
 // network accesses (S3, SSM, Secrets Manager) necessary.
-func getCertificateFromConfig(certConfig *config.ServerSSLCertificate, logger log.Logger) (tls.Certificate, error) {
+func getCertificateFromConfig(certConfig *config.ServerSSLCertificate, logger log.Logger) (*tls.Certificate, error) {
 	var certificate, privateKey []byte
+
+	certificateURLOptions, err := getURLOptions(certConfig.CertificateURLConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid certificateUrlConfig")
+	}
+
+	privateKeyURLOptions, err := getURLOptions(certConfig.PrivateKeyURLConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid privateKeyUrlConfig")
+	}
 
 	switch {
 	// Certificate supplied directly; just copy it.
@@ -120,15 +138,19 @@ func getCertificateFromConfig(certConfig *config.ServerSSLCertificate, logger lo
 
 	// Certificate supplied as a URL.
 	case certConfig.CertificateURL != nil:
-		var err error
-		certificate, err = utils.GetDocumentFromURL(*certConfig.CertificateURL)
+		certificate, err = utils.GetDocumentFromURL(*certConfig.CertificateURL, certificateURLOptions...)
 
 		if err != nil {
-			logger.Fatalf("Failed to get certificate from URL %s: %v", *certConfig.CertificateURL, err)
+			logger.Errorf("Failed to get certificate from URL %s: %v", *certConfig.CertificateURL, err)
+
+			return nil, errors.Wrap(err, fmt.Sprintf(
+				"failed to get certificate from URL: %s", *certConfig.CertificateURL))
 		}
 
 	default:
-		logger.Fatal("Expected either certificate or certificateUrl to be set")
+		logger.Error("Expected either certificate or certificateUrl to be set")
+
+		return nil, errors.New("expected either certificate or certificateUrl to be set")
 	}
 
 	switch {
@@ -138,34 +160,38 @@ func getCertificateFromConfig(certConfig *config.ServerSSLCertificate, logger lo
 
 	// Private key supplied as a URL.
 	case certConfig.PrivateKeyURL != nil:
-		var err error
-		privateKey, err = utils.GetDocumentFromURL(*certConfig.PrivateKeyURL)
+		privateKey, err = utils.GetDocumentFromURL(*certConfig.PrivateKeyURL, privateKeyURLOptions...)
 
 		if err != nil {
-			logger.Fatalf("Failed to get certificate private key from URL %s: %v", *certConfig.PrivateKeyURL, err)
+			logger.Errorf("Failed to get private key from URL %s: %v", *certConfig.PrivateKeyURL, err)
+
+			return nil, errors.Wrap(err, fmt.Sprintf(
+				"failed to get private key from URL: %s", *certConfig.PrivateKeyURL))
 		}
 
 	default:
-		logger.Fatal("Expected either privateKey or privateKeyUrl to be set")
+		logger.Error("Expected either privateKey or privateKeyUrl to be set")
+
+		return nil, errors.New("expected either privateKey or privateKeyUrl to be set")
 	}
 
 	cert, err := tls.X509KeyPair(certificate, privateKey)
 
 	if err != nil {
-		return tls.Certificate{}, errors.Wrap(err, fmt.Sprintf("failed to create certificate: %v", err))
+		return nil, errors.Wrap(err, "failed to create certificate")
 	}
 
 	if len(cert.Certificate) == 0 {
-		return tls.Certificate{}, errors.New("no certificates loaded")
+		return nil, errors.New("no certificates loaded")
 	}
 
 	for _, cert := range cert.Certificate {
 		if len(cert) == 0 {
-			return tls.Certificate{}, errors.New("empty certificate loaded")
+			return nil, errors.New("empty certificate loaded")
 		}
 	}
 
-	return cert, nil
+	return &cert, nil
 }
 
 // generateSelfSignedCertificate returns a single crypto/tls.Certificate containing a self-signed certficate for
@@ -174,7 +200,7 @@ func generateSelfSignedCertificate(hostnames []string) (tls.Certificate, error) 
 	privateKey, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
 
 	if err != nil {
-		return tls.Certificate{}, errors.Wrap(err, fmt.Sprintf("failed to generate RSA key: %v", err))
+		return tls.Certificate{}, errors.Wrap(err, "failed to generate private key")
 	}
 
 	now := time.Now().UTC()
@@ -192,7 +218,7 @@ func generateSelfSignedCertificate(hostnames []string) (tls.Certificate, error) 
 	serialNumber, err := rand.Int(rand.Reader, maxSerialNumber)
 
 	if err != nil {
-		return tls.Certificate{}, errors.Wrap(err, fmt.Sprintf("failed to generate serial number: %v", err))
+		return tls.Certificate{}, errors.Wrap(err, "failed to generate serial number")
 	}
 
 	template := x509.Certificate{
@@ -208,7 +234,7 @@ func generateSelfSignedCertificate(hostnames []string) (tls.Certificate, error) 
 	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, privateKey.Public(), privateKey)
 
 	if err != nil {
-		return tls.Certificate{}, errors.Wrap(err, fmt.Sprintf("failed to create self-signed certificate: %v", err))
+		return tls.Certificate{}, errors.Wrap(err, "failed to create self-signed certificate")
 	}
 
 	if len(certDER) == 0 {
@@ -219,4 +245,55 @@ func generateSelfSignedCertificate(hostnames []string) (tls.Certificate, error) 
 		Certificate: [][]byte{certDER},
 		PrivateKey:  privateKey,
 	}, nil
+}
+
+func getURLOptions(urlConfig *config.SSLURLConfig) ([]utils.GetDocumentFromURLOption, error) {
+	if urlConfig == nil {
+		return nil, nil
+	}
+
+	var result []utils.GetDocumentFromURLOption
+
+	if urlConfig.HTTPTimeout != "" {
+		timeout, err := time.ParseDuration(urlConfig.HTTPTimeout)
+		if err != nil {
+			return nil, errors.Wrap(err, "invalid httpTimeout")
+		}
+
+		result = append(result, utils.WithHTTPTimeout(timeout))
+	}
+
+	if urlConfig.AWSRegion != "" {
+		result = append(result, utils.WithAWSRegion(urlConfig.AWSRegion))
+	}
+
+	if urlConfig.AWSEndpoint != "" {
+		result = append(result, utils.WithAWSEndpoint(urlConfig.AWSEndpoint))
+	}
+
+	if urlConfig.AWSDisableSSL {
+		result = append(result, utils.WithAWSDisableSSL(urlConfig.AWSDisableSSL))
+	}
+
+	if s3Creds := urlConfig.AWSCredentials; s3Creds != nil {
+		if s3Creds.AccessKey != nil {
+			if s3Creds.AccessKey.Value == "" {
+				return nil, errors.New("accessKey is not resolved")
+			}
+
+			if s3Creds.SecretKey == nil {
+				return nil, errors.New("secretKey must be set if accessKey is set")
+			}
+
+			if s3Creds.SecretKey.Value == "" {
+				return nil, errors.New("secretKey is not resolved")
+			}
+
+			result = append(result, utils.WithAWSStaticCredentials(s3Creds.AccessKey.Value, s3Creds.SecretKey.Value, ""))
+		} else if s3Creds.SecretKey != nil {
+			return nil, errors.New("accessKey must be set if secretKey is set")
+		}
+	}
+
+	return result, nil
 }

@@ -77,12 +77,14 @@ This feature is powered by [go-chi/cors](https://github.com/go-chi/cors). You ca
 
 ## ServerSSLCertificate
 
-| Key            | Type   | Required | Default | Description                                       |
-| -------------- | ------ | -------- | ------- | ------------------------------------------------- |
-| certificate    | String | Yes\[1\] | None    | The PEM encoded certificate.                      |
-| certificateUrl | String | Yes\[1\] | None    | The URL of a resource containing the certificate. |
-| privateKey     | String | Yes\[2\] | None    | The PEM encoded private key.                      |
-| privateKeyUrl  | String | Yes\[2\] | None    | The URL of a resource containing the private key. |
+| Key                 | Type                          | Required | Default | Description                                                   |
+| ------------------- | ----------------------------- | -------- | ------- | ------------------------------------------------------------- |
+| certificate         | String                        | Yes\[1\] | None    | The PEM encoded certificate.                                  |
+| certificateUrl      | String                        | Yes\[1\] | None    | The URL of a resource containing the certificate.             |
+| certificateS3Config | [SSLURLConfig](#sslurlconfig) | No       | None    | Addditional URL configuration if certificateUrl is an S3 URL. |
+| privateKey          | String                        | Yes\[2\] | None    | The PEM encoded private key.                                  |
+| privateKeyUrl       | String                        | Yes\[2\] | None    | The URL of a resource containing the private key.             |
+| privateKeyS3Config  | [SSLURLConfig](#sslurlconfig) | No       | None    | Additional URL configuration if privateKeyUrl is an S3 URL.   |
 
 Notes:
 
@@ -117,6 +119,18 @@ starting with `TLS_`. The default ciphers are the recommended cipher suites from
 * `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`
 * `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`
 * `TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256`
+
+## SSLURLConfig
+
+This is a subset/modification of the configuration available from [BucketConfiguration](#bucketconfiguration).
+
+| Key            | Type                                                            | Required | Default     | Description                                                                     |
+| -------------- | --------------------------------------------------------------- | -------- | ----------- | ------------------------------------------------------------------------------- |
+| httpTimeout    | String (duration)                                               | No       | None        | Timeout for HTTP connections (including AWS calls) to get SSL certificate/keys. | 
+| awsRegion      | String                                                          | No       | `us-east-1` | AWS region for S3/SSM/Secrets Manager-stored documents.                         |
+| awsEndpoint    | String                                                          | No       | None        | Custom endpoint for S3/SSM/Secrets Manager API calls.                           |
+| awsCredentials | [BucketCredentialConfiguration](#bucketcredentialconfiguration) | No       | None        | Credentials to access AWS-based documents                                       |
+| awsDisableSSL  | Boolean                                                         | No       | `false`     | Disable SSL for AWS API calls. This does not affect `https` URLs.               |
 
 ## TemplateConfiguration
 

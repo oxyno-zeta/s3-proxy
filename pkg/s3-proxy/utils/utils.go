@@ -5,15 +5,18 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/Masterminds/sprig/v3"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
@@ -217,89 +220,135 @@ func ParseTLSVersion(tlsVersionString string) uint16 {
 	return 0
 }
 
+// GetDocumentFromURLOption is a type alias for a function that can set various options to GetDocumentFromURL.
+type GetDocumentFromURLOption func(awsCfg *aws.Config, httpClient *http.Client)
+
+// WithAWSEndpoint is an option for GetDocumentFromURL to set the AWS service endpoint.
+func WithAWSEndpoint(endpoint string) GetDocumentFromURLOption {
+	return func(awsCfg *aws.Config, httpClient *http.Client) {
+		if awsCfg != nil {
+			awsCfg.Endpoint = aws.String(endpoint)
+		}
+	}
+}
+
+// WithAWSRegion is an option for GetDocumentFromURL to set the AWS region.
+func WithAWSRegion(region string) GetDocumentFromURLOption {
+	return func(awsCfg *aws.Config, httpClient *http.Client) {
+		if awsCfg != nil {
+			awsCfg.Region = aws.String(region)
+		}
+	}
+}
+
+// WithAWSDisableSSL is an option for GetDocumentFromURL to optionally disable SSL for requests.
+func WithAWSDisableSSL(disableSSL bool) GetDocumentFromURLOption {
+	return func(awsCfg *aws.Config, httpClient *http.Client) {
+		if awsCfg != nil {
+			awsCfg.DisableSSL = aws.Bool(disableSSL)
+		}
+	}
+}
+
+// WithAWSStaticCredentials is an option for GetDocumentFromURL to set AWS credentials.
+func WithAWSStaticCredentials(accessKey, secretKey, token string) GetDocumentFromURLOption {
+	return func(awsCfg *aws.Config, httpClient *http.Client) {
+		if awsCfg != nil {
+			awsCfg.Credentials = credentials.NewStaticCredentials(accessKey, secretKey, token)
+		}
+	}
+}
+
+// WithHTTPTimeout is an option for GetDocumentFromURL to set the HTTP timeout.
+func WithHTTPTimeout(timeout time.Duration) GetDocumentFromURLOption {
+	return func(awsCfg *aws.Config, httpClient *http.Client) {
+		if awsCfg != nil {
+			if awsCfg.HTTPClient == nil {
+				awsCfg.HTTPClient = &http.Client{}
+			}
+
+			awsCfg.HTTPClient.Timeout = timeout
+		}
+
+		if httpClient != nil {
+			httpClient.Timeout = timeout
+		}
+	}
+}
+
 // GetDocumentFromURL retrieves a textual document from a URL, which may be an AWS ARN for an S3 object,
 // Secrets Manager secret, or  Systems Manager parameter (arn:...); an HTTP or HTTPS URL; an S3 URL in
 // the form s3://bucket/key; or a file in URL or regular path form.
-func GetDocumentFromURL(rawURL string) ([]byte, error) {
+func GetDocumentFromURL(rawURL string, opts ...GetDocumentFromURLOption) ([]byte, error) {
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, err
 	}
 
 	switch parsedURL.Scheme {
+	case "":
+		return getDocumentFromFile(rawURL)
 	case schemeARN:
-		return getDocumentFromARN(rawURL)
-	case schemeFile, "":
+		return getDocumentFromARN(rawURL, opts...)
+	case schemeFile:
+		if parsedURL.RawQuery != "" {
+			return nil, errors.New("file URL cannot contain query")
+		}
+
+		if parsedURL.Fragment != "" {
+			return nil, errors.New("file URL cannot contain fragment")
+		}
+
 		return getDocumentFromFile(parsedURL.Path)
 	case schemeHTTP, schemeHTTPS:
-		return getDocumentFromHTTP(rawURL)
+		if parsedURL.Fragment != "" {
+			return nil, errors.Errorf("%s URL cannot contain fragment", parsedURL.Scheme)
+		}
+
+		return getDocumentFromHTTP(rawURL, opts...)
 	case schemeS3:
-		return getDocumentFromS3(parsedURL.Host, parsedURL.Path)
+		if !strings.Contains(parsedURL.Path, "/") {
+			return nil, errors.New("missing S3 key")
+		}
+
+		return getDocumentFromS3(parsedURL.Host, parsedURL.Path, opts...)
 	}
 
-	return nil, fmt.Errorf("unsupported URL scheme: %s", parsedURL.Scheme)
+	return nil, errors.Errorf("unsupported URL scheme: %s", parsedURL.Scheme)
 }
 
-// getDocumentFroARN retrieves a textual document from an AWS ARN for an S3 object, Secrets Manager secret, or
+// getDocumentFromARN retrieves a textual document from an AWS ARN for an S3 object, Secrets Manager secret, or
 // Systems Manager parameter.
 //
 // Note that S3 objects are usually supplied in S3 URL form (s3://bucket/key) instead, which is handled by
 // GetDocumentByURL directly.
-func getDocumentFromARN(rawURL string) ([]byte, error) {
-	docARN, err := arn.Parse(rawURL)
+func getDocumentFromARN(rawURL string, opts ...GetDocumentFromURLOption) ([]byte, error) {
+	docARN, err := validateDocumentARN(rawURL)
 	if err != nil {
 		return nil, err
 	}
 
+	// Service and resource has already been validated here.
 	switch docARN.Service {
 	case serviceS3:
-		if docARN.Region != "" {
-			return nil, fmt.Errorf("invalid S3 ARN: region cannot be set: %s", rawURL)
-		}
-
-		if docARN.AccountID != "" {
-			return nil, fmt.Errorf("invalid S3 ARN: account ID cannot be set: %s", rawURL)
-		}
-
 		parts := strings.SplitN(docARN.Resource, "/", 2) //nolint:gomnd // Splitting once
 		if len(parts) != 2 {                             //nolint:gomnd // Splitting once
-			return nil, fmt.Errorf("invalid S3 resource in ARN: %s", rawURL)
+			// Should not get here; covered by validateDocumentARN.
+			return nil, errors.New("missing S3 key")
 		}
 
-		return getDocumentFromS3(parts[0], parts[1])
+		return getDocumentFromS3(parts[0], parts[1], opts...)
 
 	case serviceSecretsManager:
-		if docARN.Region == "" {
-			return nil, fmt.Errorf("invalid Secrets Manager ARN: region must be set: %s", rawURL)
-		}
-
-		if docARN.AccountID == "" {
-			return nil, fmt.Errorf("invalid Secrets Manager ARN: account ID must be set: %s", rawURL)
-		}
-
-		if !strings.HasPrefix(docARN.Resource, "secret:") {
-			return nil, fmt.Errorf("unsupported Secrets Manager resource in ARN: %s", rawURL)
-		}
-
-		return getDocumentFromSecretsManager(&docARN)
+		return getDocumentFromSecretsManager(docARN, opts...)
 
 	case serviceSSM:
-		if docARN.Region == "" {
-			return nil, fmt.Errorf("invalid SSM ARN: region must be set: %s", rawURL)
-		}
+		return getDocumentFromSSM(docARN, opts...)
 
-		if docARN.AccountID == "" {
-			return nil, fmt.Errorf("invalid SSM ARN: account ID must be set: %s", rawURL)
-		}
-
-		if !strings.HasPrefix(docARN.Resource, "parameter/") {
-			return nil, fmt.Errorf("unsupported SSM resource in ARN: %s", rawURL)
-		}
-
-		return getDocumentFromSSM(&docARN)
+	default:
+		// Should not get here; covered by validateDocumentARN.
+		return nil, errors.Errorf("unsupported AWS service %#v in ARN", docARN.Service)
 	}
-
-	return nil, fmt.Errorf("unsupported AWS service %#v in ARN: %s", docARN.Service, rawURL)
 }
 
 // getDocumentFromFile retrieves a textual document from a file.
@@ -308,8 +357,14 @@ func getDocumentFromFile(filename string) ([]byte, error) {
 }
 
 // getDocumentFromHTTP retrieves a textual document from an HTTP or HTTPS URL.
-func getDocumentFromHTTP(rawURL string) ([]byte, error) {
-	response, err := http.Get(rawURL) //nolint:gosec,noctx // We're getting HTTP data from an admin-specified URL.
+func getDocumentFromHTTP(rawURL string, opts ...GetDocumentFromURLOption) ([]byte, error) {
+	httpClient := &http.Client{}
+
+	for _, opt := range opts {
+		opt(nil, httpClient)
+	}
+
+	response, err := httpClient.Get(rawURL) //nolint:noctx // No context available.
 	if err != nil {
 		return nil, err
 	}
@@ -317,19 +372,39 @@ func getDocumentFromHTTP(rawURL string) ([]byte, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("request to %s failed with status code %d", rawURL, response.StatusCode)
+		return nil, errors.Errorf("request to %s failed with status code %d", rawURL, response.StatusCode)
 	}
 
 	return io.ReadAll(response.Body)
 }
 
-// getDocumentFromS3 retrieves a textual document from the specified S3 bucket and key.
+// getDocumentFromS3 retrieves a textual document from the specified S3 bucket and key. Optional AWS session
+// configuration may be provided to override the endpoint and TLS settings.
 //
 // If the object is server-side encrypted, S3 will automatically decrypt this for us before returning it. Client-side
 // decryption is not supported.
-func getDocumentFromS3(bucket, key string) ([]byte, error) {
+func getDocumentFromS3(bucket, key string, opts ...GetDocumentFromURLOption) ([]byte, error) {
+	cfg := aws.NewConfig()
+	for _, opt := range opts {
+		opt(cfg, nil)
+	}
+
+	if cfg.Endpoint != nil {
+		// If the endpoint is a URL with an IP address, force path style addressing.
+		// Otherwise, we end up with URLs like https://bucketname.127.0.0.1/
+		endpointURL, err := url.Parse(*cfg.Endpoint)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("invalid S3 endpoint URL: %s", *cfg.Endpoint))
+		}
+
+		hostIP := net.ParseIP(endpointURL.Hostname())
+		if hostIP != nil {
+			cfg.S3ForcePathStyle = aws.Bool(true)
+		}
+	}
+
 	// We don't use the s3-proxy S3 client here to avoid polluting our metrics.
-	sess, err := session.NewSession()
+	sess, err := session.NewSession(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -353,10 +428,18 @@ func getDocumentFromS3(bucket, key string) ([]byte, error) {
 }
 
 // getDocumentFromSecretsManager retrieves a textual document from the specified Secrets Manager secret.
-func getDocumentFromSecretsManager(docARN *arn.ARN) ([]byte, error) {
-	awsConfig := aws.Config{Region: aws.String(docARN.Region)}
-	sess, err := session.NewSession(&awsConfig)
+//
+// TODO: To support testing, this needs to take a context argument so an STS/Secrets Manager client can be injected for testing.
+// This requires changes in the server.
+func getDocumentFromSecretsManager(docARN *arn.ARN, opts ...GetDocumentFromURLOption) ([]byte, error) {
+	cfg := aws.NewConfig()
+	cfg.Region = aws.String(docARN.Region)
 
+	for _, opt := range opts {
+		opt(cfg, nil)
+	}
+
+	sess, err := session.NewSession(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -366,11 +449,11 @@ func getDocumentFromSecretsManager(docARN *arn.ARN) ([]byte, error) {
 	gcio, err := stsClient.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to determine current account ID: %w", err)
+		return nil, errors.Wrap(err, "unable to determine current account ID")
 	}
 
 	if aws.StringValue(gcio.Account) != docARN.AccountID {
-		return nil, fmt.Errorf("account ID in ARN: %s (current account is %s)", docARN.String(), aws.StringValue(gcio.Account))
+		return nil, errors.Errorf("account ID in ARN: %s (current account is %s)", docARN.String(), aws.StringValue(gcio.Account))
 	}
 
 	secretsManagerClient := secretsmanager.New(sess)
@@ -391,15 +474,23 @@ func getDocumentFromSecretsManager(docARN *arn.ARN) ([]byte, error) {
 		return []byte(*gsvo.SecretString), nil
 	}
 
-	return nil, fmt.Errorf("unexpected empty secret value")
+	return nil, errors.Errorf("unexpected empty secret value")
 }
 
 // getDocumentFromSSM retrieves a textual document from the specified AWS Systems Manager parameter, decrypting it
 // if necessary.
-func getDocumentFromSSM(docARN *arn.ARN) ([]byte, error) {
-	awsConfig := aws.Config{Region: aws.String(docARN.Region)}
-	sess, err := session.NewSession(&awsConfig)
+//
+// TODO: To support testing, this needs to take a context argument so an STS/SSM client can be injected for testing.
+// This requires changes in the server.
+func getDocumentFromSSM(docARN *arn.ARN, opts ...GetDocumentFromURLOption) ([]byte, error) {
+	cfg := aws.NewConfig()
+	cfg.Region = aws.String(docARN.Region)
 
+	for _, opt := range opts {
+		opt(cfg, nil)
+	}
+
+	sess, err := session.NewSession(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -409,11 +500,11 @@ func getDocumentFromSSM(docARN *arn.ARN) ([]byte, error) {
 	gcio, err := stsClient.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to determine current account ID: %w", err)
+		return nil, errors.Wrap(err, "unable to determine current account ID")
 	}
 
 	if aws.StringValue(gcio.Account) != docARN.AccountID {
-		return nil, fmt.Errorf("account ID in ARN: %s (current account is %s)", docARN.String(), aws.StringValue(gcio.Account))
+		return nil, errors.Errorf("account ID in ARN does not match current acccount: %s (current account is %s)", docARN.String(), aws.StringValue(gcio.Account))
 	}
 
 	ssmClient := ssm.New(sess)
@@ -434,5 +525,115 @@ func getDocumentFromSSM(docARN *arn.ARN) ([]byte, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("unexpected empty parameter")
+	return nil, errors.Errorf("unexpected empty parameter")
+}
+
+// ValidateDocumentURL verifies the document URL is supported.
+//
+// If the URL is malformed, contains an unsupported scheme, or uses unsupported features (e.g. query arguments or
+// fragments for AWS URLs), an error is returned.
+func ValidateDocumentURL(rawURL string) error {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	switch parsedURL.Scheme {
+	case schemeARN:
+		_, err := validateDocumentARN(rawURL)
+
+		return err
+
+	case "":
+		// File -- always ok.
+		return nil
+
+	case schemeFile:
+		if parsedURL.RawQuery != "" {
+			return errors.New("file URL cannot contain query")
+		}
+
+		if parsedURL.Fragment != "" {
+			return errors.New("file URL cannot contain fragment")
+		}
+
+		return nil
+
+	case schemeHTTP, schemeHTTPS:
+		if parsedURL.Fragment != "" {
+			return errors.Errorf("%s URL cannot contain fragment", parsedURL.Scheme)
+		}
+
+		return nil
+
+	case schemeS3:
+		if parsedURL.RawQuery != "" {
+			return errors.New("s3 URL cannot contain query")
+		}
+
+		if parsedURL.Fragment != "" {
+			return errors.New("s3 URL cannot contain fragment")
+		}
+
+		return nil
+	}
+
+	return errors.Errorf("unsupported URL scheme %s", parsedURL.Scheme)
+}
+
+func validateDocumentARN(rawURL string) (*arn.ARN, error) {
+	docARN, err := arn.Parse(rawURL)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	switch docARN.Service {
+	case serviceS3:
+		if docARN.Region != "" {
+			return nil, errors.New("invalid S3 ARN: region cannot be set")
+		}
+
+		if docARN.AccountID != "" {
+			return nil, errors.New("invalid S3 ARN: account ID cannot be set")
+		}
+
+		parts := strings.SplitN(docARN.Resource, "/", 2) //nolint:gomnd // Splitting once
+		if len(parts) != 2 {                             //nolint:gomnd // Splitting once
+			return nil, errors.New("missing S3 key")
+		}
+
+		return &docARN, nil
+
+	case serviceSecretsManager:
+		if docARN.Region == "" {
+			return nil, errors.New("invalid Secrets Manager ARN: region must be set")
+		}
+
+		if docARN.AccountID == "" {
+			return nil, errors.New("invalid Secrets Manager ARN: account ID must be set")
+		}
+
+		if !strings.HasPrefix(docARN.Resource, "secret:") {
+			return nil, errors.New("unsupported Secrets Manager resource in ARN: %s")
+		}
+
+		return &docARN, nil
+
+	case serviceSSM:
+		if docARN.Region == "" {
+			return nil, errors.New("invalid SSM ARN: region must be set")
+		}
+
+		if docARN.AccountID == "" {
+			return nil, errors.New("invalid SSM ARN: account ID must be set")
+		}
+
+		if !strings.HasPrefix(docARN.Resource, "parameter/") {
+			return nil, errors.New("unsupported SSM resource in ARN")
+		}
+
+		return &docARN, nil
+	}
+
+	return nil, errors.Errorf("unsupported AWS service in ARN: %v", docARN.Service)
 }

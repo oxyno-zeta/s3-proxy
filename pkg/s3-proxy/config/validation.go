@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
 	"github.com/pkg/errors"
@@ -268,26 +269,75 @@ func validateSSLConfig(serverSSL *ServerSSLConfig, section string) error {
 
 	for i := range serverSSL.Certificates {
 		cert := &serverSSL.Certificates[i]
-		if cert.Certificate == nil {
-			if cert.CertificateURL == nil {
-				return fmt.Errorf(
-					"%s.ssl.certificates[%d] must have either certificate or certificateUrl set", section,
-					i)
-			}
-		} else if cert.CertificateURL != nil {
-			return fmt.Errorf(
-				"%s.ssl.certificates[%d] cannot have both certificate and certificateUrl set", section, i)
+		err := validateSSLCertificateComponentConfig(
+			cert.Certificate, cert.CertificateURL, cert.CertificateURLConfig,
+			fmt.Sprintf("%s.ssl.certificates[%d].certificate", section, i))
+
+		if err != nil {
+			return err
 		}
 
-		if cert.PrivateKey == nil {
-			if cert.PrivateKeyURL == nil {
-				return fmt.Errorf(
-					"%s.ssl.certificates[%d] must have either privateKey or privateKeyUrl set", section,
-					i)
+		err = validateSSLCertificateComponentConfig(
+			cert.PrivateKey, cert.PrivateKeyURL, cert.PrivateKeyURLConfig,
+			fmt.Sprintf("%s.ssl.certificates[%d].privateKey", section, i))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateSSLCertificateComponentConfig(
+	component *string, componentURL *string, componentURLConfig *SSLURLConfig, componentName string) error {
+	if component == nil {
+		if componentURL == nil {
+			return fmt.Errorf("either %s or %sUrl must be set", componentName, componentName)
+		}
+
+		err := utils.ValidateDocumentURL(*componentURL)
+		if err != nil {
+			return fmt.Errorf("%sUrl is a malformed/unsupported URL: %w: %s", componentName, err, *componentURL)
+		}
+
+		if componentURLConfig != nil {
+			err = validateSSLURLConfig(componentURLConfig, fmt.Sprintf("%sUrlConfig", componentName))
+			if err != nil {
+				return err
 			}
-		} else if cert.PrivateKeyURL != nil {
-			return fmt.Errorf(
-				"%s.ssl.certificates[%d] cannot have both privateKey and privateKeyUrl set", section, i)
+		}
+	} else if componentURL != nil {
+		return fmt.Errorf("%s and %sUrl cannot both be set", componentName, componentName)
+	}
+
+	return nil
+}
+
+func validateSSLURLConfig(urlConfig *SSLURLConfig, component string) error {
+	if urlConfig.HTTPTimeout != "" {
+		duration, err := time.ParseDuration(urlConfig.HTTPTimeout)
+		if err != nil {
+			return fmt.Errorf("%s.httpTimeout is invalid: %w", component, err)
+		}
+
+		if duration < time.Duration(0) {
+			return fmt.Errorf("%s.httpTimeout cannot be negative", component)
+		}
+	}
+
+	if urlConfig.AWSEndpoint != "" {
+		if urlConfig.AWSRegion == "" {
+			return fmt.Errorf("%s.awsRegion must be set when %s.awsEndpoint is set", component, component)
+		}
+	}
+
+	if s3Creds := urlConfig.AWSCredentials; s3Creds != nil {
+		if s3Creds.AccessKey != nil {
+			if s3Creds.SecretKey == nil {
+				return fmt.Errorf("%s.secretKey must be set when %s.accessKey is set", component, component)
+			}
+		} else if s3Creds.SecretKey != nil {
+			return fmt.Errorf("%s.accessKey must be set when %s.secretKey is set", component, component)
 		}
 	}
 

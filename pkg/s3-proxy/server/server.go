@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -96,7 +95,7 @@ func (svr *Server) GenerateServer() error {
 	// Get the TLS configuration (if necessary).
 	tlsConfig, err := generateTLSConfig(cfg.Server.SSL, svr.logger)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Failed to create TLS configuration for server: %v", err))
+		return errors.Wrap(err, "failed to create TLS configuration for server")
 	}
 
 	server.TLSConfig = tlsConfig

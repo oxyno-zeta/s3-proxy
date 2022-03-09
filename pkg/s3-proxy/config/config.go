@@ -250,10 +250,21 @@ type ServerSSLConfig struct {
 
 // ServerSSLCertificate Server SSL certificate.
 type ServerSSLCertificate struct {
-	Certificate    *string `mapstructure:"certificate"`
-	CertificateURL *string `mapstructure:"certificateUrl"`
-	PrivateKey     *string `mapstructure:"privateKey"`
-	PrivateKeyURL  *string `mapstructure:"privateKeyUrl"`
+	Certificate          *string       `mapstructure:"certificate" validate:"required_with_"`
+	CertificateURL       *string       `mapstructure:"certificateUrl"`
+	CertificateURLConfig *SSLURLConfig `mapstructure:"certificateUrlConfig"`
+	PrivateKey           *string       `mapstructure:"privateKey"`
+	PrivateKeyURL        *string       `mapstructure:"privateKeyUrl"`
+	PrivateKeyURLConfig  *SSLURLConfig `mapstructure:"privaetKeyUrlConfig"`
+}
+
+// SSLURLConfig SSL certificate/private key configuration for URLs.
+type SSLURLConfig struct {
+	HTTPTimeout    string                  `mapstructure:"httpTimeout"`
+	AWSRegion      string                  `mapstructure:"awsRegion"`
+	AWSEndpoint    string                  `mapstructure:"awsEndpoint"`
+	AWSCredentials *BucketCredentialConfig `mapstructure:"awsCredentials" validate:"omitempty,dive"`
+	AWSDisableSSL  bool                    `mapstructure:"awsDisableSSL"`
 }
 
 // CacheConfig Cache configuration.
