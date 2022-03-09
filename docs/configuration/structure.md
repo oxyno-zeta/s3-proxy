@@ -77,14 +77,14 @@ This feature is powered by [go-chi/cors](https://github.com/go-chi/cors). You ca
 
 ## ServerSSLCertificate
 
-| Key                 | Type                          | Required | Default | Description                                                   |
-| ------------------- | ----------------------------- | -------- | ------- | ------------------------------------------------------------- |
-| certificate         | String                        | Yes\[1\] | None    | The PEM encoded certificate.                                  |
-| certificateUrl      | String                        | Yes\[1\] | None    | The URL of a resource containing the certificate.             |
-| certificateS3Config | [SSLURLConfig](#sslurlconfig) | No       | None    | Addditional URL configuration if certificateUrl is an S3 URL. |
-| privateKey          | String                        | Yes\[2\] | None    | The PEM encoded private key.                                  |
-| privateKeyUrl       | String                        | Yes\[2\] | None    | The URL of a resource containing the private key.             |
-| privateKeyS3Config  | [SSLURLConfig](#sslurlconfig) | No       | None    | Additional URL configuration if privateKeyUrl is an S3 URL.   |
+| Key                  | Type                          | Required | Default | Description                                                   |
+| -------------------- | ----------------------------- | -------- | ------- | ------------------------------------------------------------- |
+| certificate          | String                        | Yes\[1\] | None    | The PEM encoded certificate.                                  |
+| certificateUrl       | String                        | Yes\[1\] | None    | The URL of a resource containing the certificate.             |
+| certificateUrlConfig | [SSLURLConfig](#sslurlconfig) | No       | None    | Addditional URL configuration if certificateUrl is an S3 URL. |
+| privateKey           | String                        | Yes\[2\] | None    | The PEM encoded private key.                                  |
+| privateKeyUrl        | String                        | Yes\[2\] | None    | The URL of a resource containing the private key.             |
+| privateKeyUrlConfig  | [SSLURLConfig](#sslurlconfig) | No       | None    | Additional URL configuration if privateKeyUrl is an S3 URL.   |
 
 Notes:
 
