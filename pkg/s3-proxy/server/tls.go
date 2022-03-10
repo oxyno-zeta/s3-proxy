@@ -100,8 +100,7 @@ func generateTLSConfig(sslConfig *config.ServerSSLConfig, logger log.Logger) (*t
 	}
 
 	// Add each supplied certificate to the TLS config.
-	for i := range sslConfig.Certificates {
-		certConfig := &sslConfig.Certificates[i]
+	for _, certConfig := range sslConfig.Certificates {
 		cert, err := getCertificateFromConfig(certConfig, logger)
 
 		if err != nil {

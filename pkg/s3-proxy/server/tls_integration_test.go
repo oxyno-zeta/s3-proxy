@@ -132,7 +132,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Test supplied certificate",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						Certificate: &testCertificate,
 						PrivateKey:  &testPrivateKey,
@@ -144,7 +144,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Test both supplied and generated certificates",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						Certificate: &testCertificate,
 						PrivateKey:  &testPrivateKey,
@@ -157,7 +157,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Certificate/PrivateKey stored in S3",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("s3://test-bucket/ssl/certificate.pem"),
 						CertificateURLConfig: &config.SSLURLConfig{
@@ -197,7 +197,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Certificate/PrivateKey stored in S3 (ARN)",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("arn:aws:s3:::test-bucket/ssl/certificate.pem"),
 						CertificateURLConfig: &config.SSLURLConfig{
@@ -237,7 +237,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Certificate/PrivateKey stored in HTTP",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("HTTP_TEST"),
 						CertificateURLConfig: &config.SSLURLConfig{
@@ -252,7 +252,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Certificate stored in HTTP invalid host",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("http://169.254.0.30:80/certificate.pem"),
 						CertificateURLConfig: &config.SSLURLConfig{
@@ -268,7 +268,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Certificate stored in HTTP not found",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("HTTP_NOT_FOUND"),
 						PrivateKeyURL:  aws.String("HTTP_TEST"),
@@ -281,7 +281,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Certificate stored in file",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: &certFilename,
 						PrivateKeyURL:  &privKeyFilename,
@@ -293,7 +293,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Certificate stored in file (URL)",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String(filePathAsURL(certFilename)),
 						PrivateKeyURL:  aws.String(filePathAsURL(privKeyFilename)),
@@ -305,7 +305,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Invalid HTTP URL with fragment",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("http://example.com/certificate.pem#fragment"),
 						PrivateKeyURL:  aws.String("http://example.com/privateKey.pem"),
@@ -319,7 +319,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Invalid file URL with fragment",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("file:///tmp/certificate.pem#fragment"),
 						PrivateKeyURL:  aws.String("http://example.com/privateKey.pem"),
@@ -333,7 +333,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Invalid file URL with query",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("file:///tmp/certificate.pem?query"),
 						PrivateKeyURL:  aws.String("http://example.com/privateKey.pem"),
@@ -347,7 +347,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Invalid S3 custom endpoint",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("s3://bucket/key"),
 						PrivateKeyURL:  aws.String("http://example.com/privateKey.pem"),
@@ -365,7 +365,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Invalid S3 URL (wrong key)",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("s3://test-bucket/ssl/not_found.pem"),
 						CertificateURLConfig: &config.SSLURLConfig{
@@ -393,7 +393,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Invalid S3 URL (no key)",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("s3://test-bucket"),
 						CertificateURLConfig: &config.SSLURLConfig{
@@ -421,7 +421,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Invalid S3 ARN with account",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("arn:aws:s3::123456789012:bucket/certificate.pem"),
 						PrivateKeyURL:  aws.String("http://example.com/privateKey.pem"),
@@ -435,7 +435,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Invalid S3 ARN with region",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("arn:aws:s3:us-east-7::bucket/certificate.pem"),
 						PrivateKeyURL:  aws.String("http://example.com/privateKey.pem"),
@@ -449,7 +449,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Invalid S3 ARN without key",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("arn:aws:s3:::bucket"),
 						PrivateKeyURL:  aws.String("http://example.com/privateKey.pem"),
@@ -463,7 +463,7 @@ func TestTLSServer(t *testing.T) {
 			name: "Invalid AWS service in ARN",
 			config: makeConfig(&config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("arn:aws:iam::123456789012:role/myrole"),
 						PrivateKeyURL:  aws.String("http://example.com/privateKey.pem"),
@@ -491,8 +491,7 @@ func TestTLSServer(t *testing.T) {
 			}
 
 			if tt.config.Server.SSL != nil {
-				for i := range tt.config.Server.SSL.Certificates {
-					cert := &tt.config.Server.SSL.Certificates[i]
+				for _, cert := range tt.config.Server.SSL.Certificates {
 					if cert.CertificateURL != nil && (*cert.CertificateURL == "HTTP_TEST" || *cert.CertificateURL == "HTTP_NOT_FOUND") {
 						if httpServer == nil {
 							httpServer = httptest.NewServer(http.HandlerFunc(serveTestCertificate))

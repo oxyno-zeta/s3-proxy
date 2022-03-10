@@ -787,7 +787,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							Certificate: &testCertificate,
 							PrivateKey:  &testPrivateKey,
@@ -802,7 +802,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							Certificate: &testCertificate,
 							PrivateKey:  &testPrivateKey,
@@ -818,7 +818,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("s3://bucket/cert.pem"),
 							PrivateKeyURL:  aws.String("arn:aws:s3:::bucket/privkey.pem"),
@@ -833,7 +833,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("s3://bucket/cert.pem"),
 							PrivateKeyURL:  aws.String("arn:aws:s3:::bucket/privkey.pem"),
@@ -857,7 +857,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("arn:aws:ssm:us-west-2:123456789012:parameter/certificate"),
 							PrivateKeyURL:  aws.String("arn:aws:secretsmanager:us-east-1:123456789012:secret:privateKey"),
@@ -872,7 +872,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("/etc/cert.pem"),
 							PrivateKeyURL:  aws.String("file:///etc/pki/privatekey.pem"),
@@ -887,7 +887,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("http://example.com/certservice.cgi?certid=123"),
 							PrivateKeyURL:  aws.String("https://example.com:1234/path/to/%23privkey.pem"),
@@ -917,7 +917,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							Certificate: &testCertificate,
 							PrivateKey:  &testPrivateKey,
@@ -934,7 +934,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							Certificate: &testCertificate,
 							PrivateKey:  &testPrivateKey,
@@ -952,7 +952,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							Certificate: &testCertificate,
 							PrivateKey:  &testPrivateKey,
@@ -987,7 +987,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							PrivateKey: &testPrivateKey,
 						},
@@ -1002,7 +1002,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							Certificate: &testCertificate,
 						},
@@ -1017,7 +1017,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							Certificate:    &testCertificate,
 							CertificateURL: aws.String("s3://test/test.crt"),
@@ -1034,7 +1034,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							Certificate:   &testCertificate,
 							PrivateKey:    &testPrivateKey,
@@ -1052,7 +1052,7 @@ func Test_validateSSL(t *testing.T) {
 			internalServerConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							PrivateKey: &testPrivateKey,
 						},
@@ -1068,7 +1068,7 @@ func Test_validateSSL(t *testing.T) {
 			internalServerConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							Certificate: &testCertificate,
 						},
@@ -1083,7 +1083,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("ftp://ftp.example.com"),
 							PrivateKey:     &testPrivateKey,
@@ -1099,7 +1099,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String(":r&qwer+asdf"),
 							PrivateKey:     &testPrivateKey,
@@ -1115,7 +1115,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("arn:aws:iam::123456789012:role/testRole"),
 							PrivateKey:     &testPrivateKey,
@@ -1131,7 +1131,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("s3://bucket/cert.pem"),
 							PrivateKeyURL:  aws.String("arn:aws:s3:us-east-7::bucket/privkey.pem"),
@@ -1147,7 +1147,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("s3://bucket/cert.pem"),
 							PrivateKeyURL:  aws.String("arn:aws:s3::123456789012:bucket/privkey.pem"),
@@ -1163,7 +1163,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("s3://bucket/cert.pem"),
 							PrivateKeyURL:  aws.String("arn:aws:s3:::bucket"),
@@ -1179,7 +1179,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("arn:aws:ssm::123456789012:parameter/certificate"),
 							PrivateKey:     &testPrivateKey,
@@ -1195,7 +1195,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("arn:aws:ssm:eu-central-1::parameter/certificate"),
 							PrivateKey:     &testPrivateKey,
@@ -1211,7 +1211,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("arn:aws:ssm:eu-central-1:123456789012:document/certificate"),
 							PrivateKey:     &testPrivateKey,
@@ -1227,7 +1227,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("arn:aws:secretsmanager::123456789012:secret/certificate"),
 							PrivateKey:     &testPrivateKey,
@@ -1243,7 +1243,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("arn:aws:secretsmanager:eu-central-1::secret/certificate"),
 							PrivateKey:     &testPrivateKey,
@@ -1259,7 +1259,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("arn:aws:secretsmanager:eu-central-1:123456789012:parameter/certificate"),
 							PrivateKey:     &testPrivateKey,
@@ -1275,7 +1275,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("s3://bucket/key?startToken=foo"),
 							PrivateKey:     &testPrivateKey,
@@ -1291,7 +1291,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("s3://bucket/key#foo"),
 							PrivateKey:     &testPrivateKey,
@@ -1307,7 +1307,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("file:///tmp/filename?query"),
 							PrivateKey:     &testPrivateKey,
@@ -1323,7 +1323,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("file:///tmp/filename#fragment"),
 							PrivateKey:     &testPrivateKey,
@@ -1339,7 +1339,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("/tmp/a_weird?#looking_filename"),
 							PrivateKey:     &testPrivateKey,
@@ -1353,7 +1353,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("http://example.com/certificate.pem"),
 							PrivateKeyURL:  aws.String("http://exmaple.com/privateKey.pem"),
@@ -1372,7 +1372,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("http://example.com/certificate.pem"),
 							PrivateKeyURL:  aws.String("http://exmaple.com/privateKey.pem"),
@@ -1391,7 +1391,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("http://example.com/certificate.pem"),
 							PrivateKeyURL:  aws.String("http://exmaple.com/privateKey.pem"),
@@ -1410,7 +1410,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("http://example.com/certificate.pem"),
 							PrivateKeyURL:  aws.String("http://exmaple.com/privateKey.pem"),
@@ -1433,7 +1433,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("http://example.com/certificate.pem"),
 							PrivateKeyURL:  aws.String("http://exmaple.com/privateKey.pem"),
@@ -1456,7 +1456,7 @@ func Test_validateSSL(t *testing.T) {
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
 					Enabled: true,
-					Certificates: []ServerSSLCertificate{
+					Certificates: []*ServerSSLCertificate{
 						{
 							CertificateURL: aws.String("arn:aws:the-end"),
 							PrivateKey:     &testPrivateKey,

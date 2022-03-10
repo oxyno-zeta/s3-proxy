@@ -267,8 +267,7 @@ func validateSSLConfig(serverSSL *ServerSSLConfig, section string) error {
 		}
 	}
 
-	for i := range serverSSL.Certificates {
-		cert := &serverSSL.Certificates[i]
+	for i, cert := range serverSSL.Certificates {
 		err := validateSSLCertificateComponentConfig(
 			cert.Certificate, cert.CertificateURL, cert.CertificateURLConfig,
 			fmt.Sprintf("%s.ssl.certificates[%d].certificate", section, i))

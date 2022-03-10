@@ -111,7 +111,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "default ciper suites and min version set",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						Certificate: aws.String(testCertificate),
 						PrivateKey:  aws.String(testPrivateKey),
@@ -126,7 +126,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "versions, cipher suites, certificates respected and generated",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						Certificate: aws.String(testCertificate),
 						PrivateKey:  aws.String(testPrivateKey),
@@ -147,7 +147,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "invalid min TLS version",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						Certificate: aws.String(testCertificate),
 						PrivateKey:  aws.String(testPrivateKey),
@@ -165,7 +165,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "invalid max TLS version",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						Certificate: aws.String(testCertificate),
 						PrivateKey:  aws.String(testPrivateKey),
@@ -183,7 +183,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "invalid cipher suite",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						Certificate: aws.String(testCertificate),
 						PrivateKey:  aws.String(testPrivateKey),
@@ -201,7 +201,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "neither certificate nor certificateUrl set",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						PrivateKey: aws.String(testPrivateKey),
 					},
@@ -218,7 +218,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "neither privateKey nor privateKeyUrl set",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						Certificate: aws.String(testCertificate),
 					},
@@ -235,7 +235,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "invalid certificate URL should result in an error",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String(":r&qwer+asdf"),
 						PrivateKey:     aws.String(testPrivateKey),
@@ -248,7 +248,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "unsupported certificate URL scheme should result in an error",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("ftp://ftp.example.com"),
 						PrivateKey:     aws.String(testPrivateKey),
@@ -262,7 +262,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "unsupported private key URL scheme should result in an error",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						Certificate:   aws.String(testCertificate),
 						PrivateKeyURL: aws.String("ftp://ftp.example.com"),
@@ -276,7 +276,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "invalid HTTP timeout duration",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("http://example.com/certificate.pem"),
 						CertificateURLConfig: &config.SSLURLConfig{
@@ -293,7 +293,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "access key without secret key",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("http://example.com/certificate.pem"),
 						CertificateURLConfig: &config.SSLURLConfig{
@@ -314,7 +314,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "secret key without access key",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("http://example.com/certificate.pem"),
 						CertificateURLConfig: &config.SSLURLConfig{
@@ -335,7 +335,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "unresolved access key",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						Certificate:   aws.String(testCertificate),
 						PrivateKeyURL: aws.String("http://example.com/privateKey.pem"),
@@ -357,7 +357,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "unresolved secret key",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						CertificateURL: aws.String("http://example.com/certificate.pem"),
 						CertificateURLConfig: &config.SSLURLConfig{
@@ -379,7 +379,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "empty certificate",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						Certificate: aws.String(emptyCertificate),
 						PrivateKey:  aws.String(testPrivateKey),
@@ -393,7 +393,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 			name: "empty private key",
 			config: &config.ServerSSLConfig{
 				Enabled: true,
-				Certificates: []config.ServerSSLCertificate{
+				Certificates: []*config.ServerSSLCertificate{
 					{
 						Certificate: aws.String(testCertificate),
 						PrivateKey:  aws.String(emptyPrivateKey),

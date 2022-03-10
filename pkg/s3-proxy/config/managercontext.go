@@ -461,9 +461,7 @@ func loadServerSSLCredentials(serverConfig *ServerConfig) ([]*CredentialConfig, 
 
 	res := make([]*CredentialConfig, 0)
 
-	for i := range serverConfig.SSL.Certificates {
-		cert := &serverConfig.SSL.Certificates[i]
-
+	for _, cert := range serverConfig.SSL.Certificates {
 		if cert.CertificateURLConfig != nil && cert.CertificateURLConfig.AWSCredentials != nil {
 			s3Creds := cert.CertificateURLConfig.AWSCredentials
 

@@ -240,17 +240,17 @@ type ServerCompressConfig struct {
 
 // ServerSSLConfig Server SSL configuration.
 type ServerSSLConfig struct {
-	Enabled             bool                   `mapstructure:"enabled"`
-	Certificates        []ServerSSLCertificate `mapstructure:"certificates"`
-	SelfSignedHostnames []string               `mapstructure:"selfSignedHostnames"`
-	MinTLSVersion       *string                `mapstructure:"minTLSVersion"`
-	MaxTLSVersion       *string                `mapstructure:"maxTLSVersion"`
-	CipherSuites        []string               `mapstructure:"cipherSuites"`
+	Enabled             bool                    `mapstructure:"enabled"`
+	Certificates        []*ServerSSLCertificate `mapstructure:"certificates"`
+	SelfSignedHostnames []string                `mapstructure:"selfSignedHostnames"`
+	MinTLSVersion       *string                 `mapstructure:"minTLSVersion"`
+	MaxTLSVersion       *string                 `mapstructure:"maxTLSVersion"`
+	CipherSuites        []string                `mapstructure:"cipherSuites"`
 }
 
 // ServerSSLCertificate Server SSL certificate.
 type ServerSSLCertificate struct {
-	Certificate          *string       `mapstructure:"certificate" validate:"required_with_"`
+	Certificate          *string       `mapstructure:"certificate"`
 	CertificateURL       *string       `mapstructure:"certificateUrl"`
 	CertificateURLConfig *SSLURLConfig `mapstructure:"certificateUrlConfig"`
 	PrivateKey           *string       `mapstructure:"privateKey"`
