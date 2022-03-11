@@ -43,7 +43,7 @@ func TestTLSServer(t *testing.T) {
 	// Don't use defer -- it is called before the tests complete.
 	t.Cleanup(func() { s3server.Close() })
 
-	nextPort := 8081
+	nextPort := 20000
 
 	// Write the test certificate/private key to a file. We use a directory that is
 	certDir, err := os.MkdirTemp("", "test#?tls_*")
