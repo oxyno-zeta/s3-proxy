@@ -333,7 +333,7 @@ func TestGenerateTLSConfig(t *testing.T) {
 				if err != nil {
 					t.Errorf("expected nil result but got error %v", err)
 				} else if tlsConfig != nil {
-					t.Errorf("expected nil result but got tls.Config %#v", *tlsConfig)
+					t.Errorf("expected nil result but got tls.Config")
 				}
 			case expectStruct:
 				if err != nil {
