@@ -42,7 +42,7 @@ func validateBusinessConfig(out *Config) error {
 		}
 		// Check actions
 		if target.Actions.GET == nil && target.Actions.PUT == nil && target.Actions.DELETE == nil {
-			return fmt.Errorf("at least one action must be declared in target %s", key)
+			return errors.Errorf("at least one action must be declared in target %s", key)
 		}
 		// This part will check that at least one action is enabled
 		oneMustBeEnabled := false
@@ -60,9 +60,7 @@ func validateBusinessConfig(out *Config) error {
 		}
 
 		if !oneMustBeEnabled {
-			err := fmt.Errorf("at least one action must be enabled in target %s", key)
-
-			return errors.WithStack(err)
+			return errors.Errorf("at least one action must be enabled in target %s", key)
 		}
 	}
 
@@ -95,9 +93,7 @@ func validateBusinessConfig(out *Config) error {
 		for prov, authProviderCfg := range out.AuthProviders.OIDC {
 			// Check that state doesn't contain ":"
 			if strings.Contains(authProviderCfg.State, ":") {
-				err := fmt.Errorf("provider %s state can't contain ':' character", prov)
-
-				return errors.WithStack(err)
+				return errors.Errorf("provider %s state can't contain ':' character", prov)
 			}
 
 			// Build redirect url
@@ -113,23 +109,17 @@ func validateBusinessConfig(out *Config) error {
 
 			// Check if new path is "/"
 			if u.Path == "/" {
-				err := fmt.Errorf("provider %s can't have a callback path equal to / (to avoid redirect loop)", prov)
-
-				return errors.WithStack(err)
+				return errors.Errorf("provider %s can't have a callback path equal to / (to avoid redirect loop)", prov)
 			}
 
 			// Check login path
 			if authProviderCfg.LoginPath == "/" {
-				err := fmt.Errorf("provider %s can't have a login path equal to / (to avoid redirect loop)", prov)
-
-				return errors.WithStack(err)
+				return errors.Errorf("provider %s can't have a login path equal to / (to avoid redirect loop)", prov)
 			}
 
 			// Check that they are different
 			if authProviderCfg.LoginPath == u.Path {
-				err := fmt.Errorf("provider %s can't have same login and callback path (to avoid redirect loop)", prov)
-
-				return errors.WithStack(err)
+				return errors.Errorf("provider %s can't have same login and callback path (to avoid redirect loop)", prov)
 			}
 		}
 	}
@@ -237,18 +227,18 @@ func validatePath(beginErrorMessage string, path string) error {
 func validateSSLConfig(serverSSL *ServerSSLConfig, section string) error {
 	if serverSSL.Enabled {
 		if len(serverSSL.Certificates) == 0 && len(serverSSL.SelfSignedHostnames) == 0 {
-			return fmt.Errorf("at least one of %s.ssl.certificates or %s.ssl.selfSignedHostnames must have values", section, section)
+			return errors.Errorf("at least one of %s.ssl.certificates or %s.ssl.selfSignedHostnames must have values", section, section)
 		}
 	}
 
 	if serverSSL.MinTLSVersion != nil && utils.ParseTLSVersion(*serverSSL.MinTLSVersion) == 0 {
-		return fmt.Errorf(
+		return errors.Errorf(
 			"%s.ssl.minTLSVersion %#v must be a valid TLS version: expected \"TLSv1.0\", \"TLSv1.1\", \"TLSv1.2\", or \"TLSv1.3\"",
 			section, *serverSSL.MinTLSVersion)
 	}
 
 	if serverSSL.MaxTLSVersion != nil && utils.ParseTLSVersion(*serverSSL.MaxTLSVersion) == 0 {
-		return fmt.Errorf(
+		return errors.Errorf(
 			"%s.ssl.maxTLSVersion %#v must be a valid TLS version: expected \"TLSv1.0\", \"TLSv1.1\", \"TLSv1.2\", or \"TLSv1.3\"",
 			section, *serverSSL.MaxTLSVersion)
 	}
@@ -261,7 +251,7 @@ func validateSSLConfig(serverSSL *ServerSSLConfig, section string) error {
 				cipherSuiteNames = append(cipherSuiteNames, fmt.Sprintf(`"%s"`, cipherSuite.Name))
 			}
 
-			return fmt.Errorf(
+			return errors.Errorf(
 				"invalid cipher suite %#v in %s.ssl.cipherSuites; expected one of %s", cipherSuiteName, section,
 				strings.Join(cipherSuiteNames, ", "))
 		}
@@ -291,12 +281,12 @@ func validateSSLCertificateComponentConfig(
 	component *string, componentURL *string, componentURLConfig *SSLURLConfig, componentName string) error {
 	if component == nil {
 		if componentURL == nil {
-			return fmt.Errorf("either %s or %sUrl must be set", componentName, componentName)
+			return errors.Errorf("either %s or %sUrl must be set", componentName, componentName)
 		}
 
 		err := utils.ValidateDocumentURL(*componentURL)
 		if err != nil {
-			return fmt.Errorf("%sUrl is a malformed/unsupported URL: %w: %s", componentName, err, *componentURL)
+			return errors.Wrap(err, fmt.Sprintf("%sUrl is a malformed/unsupported URL: %s", componentName, *componentURL))
 		}
 
 		if componentURLConfig != nil {
@@ -306,7 +296,7 @@ func validateSSLCertificateComponentConfig(
 			}
 		}
 	} else if componentURL != nil {
-		return fmt.Errorf("%s and %sUrl cannot both be set", componentName, componentName)
+		return errors.Errorf("%s and %sUrl cannot both be set", componentName, componentName)
 	}
 
 	return nil
@@ -316,27 +306,17 @@ func validateSSLURLConfig(urlConfig *SSLURLConfig, component string) error {
 	if urlConfig.HTTPTimeout != "" {
 		duration, err := time.ParseDuration(urlConfig.HTTPTimeout)
 		if err != nil {
-			return fmt.Errorf("%s.httpTimeout is invalid: %w", component, err)
+			return errors.Wrap(err, fmt.Sprintf("%s.httpTimeout is invalid", component))
 		}
 
 		if duration < time.Duration(0) {
-			return fmt.Errorf("%s.httpTimeout cannot be negative", component)
+			return errors.Errorf("%s.httpTimeout cannot be negative", component)
 		}
 	}
 
 	if urlConfig.AWSEndpoint != "" {
 		if urlConfig.AWSRegion == "" {
-			return fmt.Errorf("%s.awsRegion must be set when %s.awsEndpoint is set", component, component)
-		}
-	}
-
-	if s3Creds := urlConfig.AWSCredentials; s3Creds != nil {
-		if s3Creds.AccessKey != nil {
-			if s3Creds.SecretKey == nil {
-				return fmt.Errorf("%s.secretKey must be set when %s.accessKey is set", component, component)
-			}
-		} else if s3Creds.SecretKey != nil {
-			return fmt.Errorf("%s.accessKey must be set when %s.secretKey is set", component, component)
+			return errors.Errorf("%s.awsRegion must be set when %s.awsEndpoint is set", component, component)
 		}
 	}
 

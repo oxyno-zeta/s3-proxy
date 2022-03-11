@@ -275,22 +275,8 @@ func getURLOptions(urlConfig *config.SSLURLConfig) ([]utils.GetDocumentFromURLOp
 	}
 
 	if s3Creds := urlConfig.AWSCredentials; s3Creds != nil {
-		if s3Creds.AccessKey != nil {
-			if s3Creds.AccessKey.Value == "" {
-				return nil, errors.New("accessKey is not resolved")
-			}
-
-			if s3Creds.SecretKey == nil {
-				return nil, errors.New("secretKey must be set if accessKey is set")
-			}
-
-			if s3Creds.SecretKey.Value == "" {
-				return nil, errors.New("secretKey is not resolved")
-			}
-
+		if s3Creds.AccessKey != nil && s3Creds.SecretKey != nil && s3Creds.AccessKey.Value != "" && s3Creds.SecretKey.Value != "" {
 			result = append(result, utils.WithAWSStaticCredentials(s3Creds.AccessKey.Value, s3Creds.SecretKey.Value, ""))
-		} else if s3Creds.SecretKey != nil {
-			return nil, errors.New("accessKey must be set if secretKey is set")
 		}
 	}
 

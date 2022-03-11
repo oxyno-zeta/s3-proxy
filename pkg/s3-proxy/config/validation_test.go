@@ -1092,7 +1092,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: unsupported URL scheme ftp: ftp://ftp.example.com",
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: ftp://ftp.example.com: unsupported URL scheme ftp",
 		},
 		{
 			name: "Invalid certificateUrl scheme",
@@ -1108,7 +1108,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: parse \":r&qwer+asdf\": missing protocol scheme",
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: :r&qwer+asdf: parse \":r&qwer+asdf\": missing protocol scheme",
 		},
 		{
 			name: "Invalid AWS service",
@@ -1124,7 +1124,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: unsupported AWS service in ARN: iam: arn:aws:iam::123456789012:role/testRole",
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:iam::123456789012:role/testRole: unsupported AWS service in ARN: iam",
 		},
 		{
 			name: "Invalid S3 ARN with region",
@@ -1140,7 +1140,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].privateKeyUrl is a malformed/unsupported URL: invalid S3 ARN: region cannot be set: arn:aws:s3:us-east-7::bucket/privkey.pem",
+			errorString: "server.ssl.certificates[0].privateKeyUrl is a malformed/unsupported URL: arn:aws:s3:us-east-7::bucket/privkey.pem: invalid S3 ARN: region cannot be set",
 		},
 		{
 			name: "Invalid S3 ARN with account ID",
@@ -1156,7 +1156,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].privateKeyUrl is a malformed/unsupported URL: invalid S3 ARN: account ID cannot be set: arn:aws:s3::123456789012:bucket/privkey.pem",
+			errorString: "server.ssl.certificates[0].privateKeyUrl is a malformed/unsupported URL: arn:aws:s3::123456789012:bucket/privkey.pem: invalid S3 ARN: account ID cannot be set",
 		},
 		{
 			name: "Invalid S3 ARN without key",
@@ -1172,7 +1172,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].privateKeyUrl is a malformed/unsupported URL: missing S3 key: arn:aws:s3:::bucket",
+			errorString: "server.ssl.certificates[0].privateKeyUrl is a malformed/unsupported URL: arn:aws:s3:::bucket: missing S3 key",
 		},
 		{
 			name: "SSM missing region",
@@ -1188,7 +1188,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: invalid SSM ARN: region must be set:",
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:ssm::123456789012:parameter/certificate: invalid SSM ARN: region must be set",
 		},
 		{
 			name: "SSM missing account",
@@ -1204,7 +1204,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: invalid SSM ARN: account ID must be set:",
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:ssm:eu-central-1::parameter/certificate: invalid SSM ARN: account ID must be set",
 		},
 		{
 			name: "SSM wrong resource",
@@ -1220,7 +1220,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: unsupported SSM resource in ARN:",
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:ssm:eu-central-1:123456789012:document/certificate: unsupported SSM resource in ARN",
 		},
 		{
 			name: "Secrets Manager missing region",
@@ -1236,7 +1236,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: invalid Secrets Manager ARN: region must be set:",
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:secretsmanager::123456789012:secret/certificate: invalid Secrets Manager ARN: region must be set",
 		},
 		{
 			name: "Secrets Manager missing account",
@@ -1252,7 +1252,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: invalid Secrets Manager ARN: account ID must be set:",
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:secretsmanager:eu-central-1::secret/certificate: invalid Secrets Manager ARN: account ID must be set",
 		},
 		{
 			name: "Secrets Manager wrong resource",
@@ -1268,7 +1268,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: unsupported Secrets Manager resource in ARN:",
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:secretsmanager:eu-central-1:123456789012:parameter/certificate: unsupported Secrets Manager resource in ARN",
 		},
 		{
 			name: "S3 URL with query",
@@ -1284,7 +1284,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: s3 URL cannot contain query: s3://bucket/key?startToken=foo",
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: s3://bucket/key?startToken=foo: s3 URL cannot contain query",
 		},
 		{
 			name: "S3 URL with fragment",
@@ -1300,7 +1300,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: s3 URL cannot contain fragment: s3://bucket/key#foo",
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: s3://bucket/key#foo: s3 URL cannot contain fragment",
 		},
 		{
 			name: "File URL with query",
@@ -1316,7 +1316,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: file URL cannot contain query: file:///tmp/filename?query",
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: file:///tmp/filename?query: file URL cannot contain query",
 		},
 		{
 			name: "File URL with fragment",
@@ -1332,7 +1332,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: file URL cannot contain fragment: file:///tmp/filename#fragment",
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: file:///tmp/filename#fragment: file URL cannot contain fragment",
 		},
 		{
 			name: "Bare file with query/fragment-like characters",
@@ -1406,52 +1406,6 @@ func Test_validateSSL(t *testing.T) {
 			errorString: "server.ssl.certificates[0].certificateUrlConfig.awsRegion must be set when server.ssl.certificates[0].certificateUrlConfig.awsEndpoint is set",
 		},
 		{
-			name: "URL config with access key but no secret key",
-			serverConfig: &ServerConfig{
-				SSL: &ServerSSLConfig{
-					Enabled: true,
-					Certificates: []*ServerSSLCertificate{
-						{
-							CertificateURL: aws.String("http://example.com/certificate.pem"),
-							PrivateKeyURL:  aws.String("http://exmaple.com/privateKey.pem"),
-							CertificateURLConfig: &SSLURLConfig{
-								AWSCredentials: &BucketCredentialConfig{
-									AccessKey: &CredentialConfig{
-										Value: "TestAccessKey",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrlConfig.secretKey must be set when server.ssl.certificates[0].certificateUrlConfig.accessKey is set",
-		},
-		{
-			name: "URL config with secret key but no access key",
-			serverConfig: &ServerConfig{
-				SSL: &ServerSSLConfig{
-					Enabled: true,
-					Certificates: []*ServerSSLCertificate{
-						{
-							CertificateURL: aws.String("http://example.com/certificate.pem"),
-							PrivateKeyURL:  aws.String("http://exmaple.com/privateKey.pem"),
-							CertificateURLConfig: &SSLURLConfig{
-								AWSCredentials: &BucketCredentialConfig{
-									SecretKey: &CredentialConfig{
-										Value: "TestSecretKey",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrlConfig.accessKey must be set when server.ssl.certificates[0].certificateUrlConfig.secretKey is set",
-		},
-		{
 			name: "Invalid ARN format",
 			serverConfig: &ServerConfig{
 				SSL: &ServerSSLConfig{
@@ -1465,7 +1419,7 @@ func Test_validateSSL(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn: not enough sections:",
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:the-end: arn: not enough sections",
 		},
 	}
 
