@@ -3,7 +3,10 @@
 package config
 
 import (
+	"strings"
 	"testing"
+
+	"github.com/aws/aws-sdk-go/aws"
 )
 
 func Test_validatePath(t *testing.T) {
@@ -761,3 +764,735 @@ func Test_validateBusinessConfig(t *testing.T) {
 		})
 	}
 }
+
+func Test_validateSSL(t *testing.T) {
+	tests := []struct {
+		name                 string
+		serverConfig         *ServerConfig
+		internalServerConfig *ServerConfig
+		wantErr              bool
+		errorString          string
+	}{
+		{
+			name: "Valid server config with generated certificate",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled:             true,
+					SelfSignedHostnames: []string{"localhost", "localhost.localdomain"},
+				},
+			},
+		},
+		{
+			name: "Valid server config with supplied certificate",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							Certificate: &testCertificate,
+							PrivateKey:  &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Valid server config with supplied and generated certificates",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							Certificate: &testCertificate,
+							PrivateKey:  &testPrivateKey,
+						},
+					},
+					SelfSignedHostnames: []string{"localhost", "localhost.localdomain"},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Valid server config with S3",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("s3://bucket/cert.pem"),
+							PrivateKeyURL:  aws.String("arn:aws:s3:::bucket/privkey.pem"),
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Valid server config with S3 customized endpoints",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("s3://bucket/cert.pem"),
+							PrivateKeyURL:  aws.String("arn:aws:s3:::bucket/privkey.pem"),
+							CertificateURLConfig: &SSLURLConfig{
+								HTTPTimeout: "30s",
+								AWSEndpoint: "https://example.com",
+								AWSRegion:   "us-east-7",
+								AWSCredentials: &BucketCredentialConfig{
+									AccessKey: &CredentialConfig{Value: "TestAccessKey"},
+									SecretKey: &CredentialConfig{Value: "TestSecretKey"},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Valid server config with SSM and Secrets Manager",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("arn:aws:ssm:us-west-2:123456789012:parameter/certificate"),
+							PrivateKeyURL:  aws.String("arn:aws:secretsmanager:us-east-1:123456789012:secret:privateKey"),
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Valid server config with file URLs",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("/etc/cert.pem"),
+							PrivateKeyURL:  aws.String("file:///etc/pki/privatekey.pem"),
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Valid server config with HTTP/S URLs",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("http://example.com/certservice.cgi?certid=123"),
+							PrivateKeyURL:  aws.String("https://example.com:1234/path/to/%23privkey.pem"),
+							PrivateKeyURLConfig: &SSLURLConfig{
+								HTTPTimeout: "10s",
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Invalid server config with no certificates",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled:             true,
+					Certificates:        nil,
+					SelfSignedHostnames: nil,
+				},
+			},
+			wantErr:     true,
+			errorString: "at least one of server.ssl.certificates or server.ssl.selfSignedHostnames must have values",
+		},
+		{
+			name: "Invalid minTLSVersion",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							Certificate: &testCertificate,
+							PrivateKey:  &testPrivateKey,
+						},
+					},
+					MinTLSVersion: aws.String("ssl3.0"),
+				},
+			},
+			wantErr:     true,
+			errorString: `server.ssl.minTLSVersion "ssl3.0" must be a valid TLS version: expected "TLSv1.0", "TLSv1.1", "TLSv1.2", or "TLSv1.3"`,
+		},
+		{
+			name: "Invalid maxTLSVersion",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							Certificate: &testCertificate,
+							PrivateKey:  &testPrivateKey,
+						},
+					},
+					MinTLSVersion: aws.String("tls1.2"),
+					MaxTLSVersion: aws.String("ssl3.0"),
+				},
+			},
+			wantErr:     true,
+			errorString: `server.ssl.maxTLSVersion "ssl3.0" must be a valid TLS version: expected "TLSv1.0", "TLSv1.1", "TLSv1.2", or "TLSv1.3"`,
+		},
+		{
+			name: "Invalid cipherSuites",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							Certificate: &testCertificate,
+							PrivateKey:  &testPrivateKey,
+						},
+					},
+					MinTLSVersion: aws.String("tls1.2"),
+					MaxTLSVersion: aws.String("tls1.3"),
+					CipherSuites:  []string{"TLS_NOT_A_VALID_CIPHER"},
+				},
+			},
+			wantErr:     true,
+			errorString: `invalid cipher suite "TLS_NOT_A_VALID_CIPHER" in server.ssl.cipherSuites; expected one of `,
+		},
+		{
+			name: "Invalid internalServer config with no certificates",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled:             true,
+					SelfSignedHostnames: []string{"localhost", "localhost.localdomain"},
+				},
+			},
+			internalServerConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+				},
+			},
+			wantErr:     true,
+			errorString: "at least one of internalServer.ssl.certificates or internalServer.ssl.selfSignedHostnames must have values",
+		},
+		{
+			name: "Missing certificate/certificateUrl",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							PrivateKey: &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "either server.ssl.certificates[0].certificate or server.ssl.certificates[0].certificateUrl must be set",
+		},
+		{
+			name: "Missing privateKey/privateKeyUrl",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							Certificate: &testCertificate,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "either server.ssl.certificates[0].privateKey or server.ssl.certificates[0].privateKeyUrl must be set",
+		},
+		{
+			name: "Both certificate and certificateUrl set",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							Certificate:    &testCertificate,
+							CertificateURL: aws.String("s3://test/test.crt"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificate and server.ssl.certificates[0].certificateUrl cannot both be set",
+		},
+		{
+			name: "Both privateKey and privateKeyUrl set",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							Certificate:   &testCertificate,
+							PrivateKey:    &testPrivateKey,
+							PrivateKeyURL: aws.String("s3://test/test.crt"),
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].privateKey and server.ssl.certificates[0].privateKeyUrl cannot both be set",
+		},
+		{
+			name:         "InternalServer missing certificate/certificateUrl",
+			serverConfig: &ServerConfig{},
+			internalServerConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							PrivateKey: &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "either internalServer.ssl.certificates[0].certificate or internalServer.ssl.certificates[0].certificateUrl must be set",
+		},
+		{
+			name:         "InternalServer missing privateKey/privateKeyUrl",
+			serverConfig: &ServerConfig{},
+			internalServerConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							Certificate: &testCertificate,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "either internalServer.ssl.certificates[0].privateKey or internalServer.ssl.certificates[0].privateKeyUrl must be set",
+		},
+		{
+			name: "Invalid certificateUrl",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("ftp://ftp.example.com"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: ftp://ftp.example.com: unsupported URL scheme ftp",
+		},
+		{
+			name: "Invalid certificateUrl scheme",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String(":r&qwer+asdf"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: :r&qwer+asdf: parse \":r&qwer+asdf\": missing protocol scheme",
+		},
+		{
+			name: "Invalid AWS service",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("arn:aws:iam::123456789012:role/testRole"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:iam::123456789012:role/testRole: unsupported AWS service in ARN: iam",
+		},
+		{
+			name: "Invalid S3 ARN with region",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("s3://bucket/cert.pem"),
+							PrivateKeyURL:  aws.String("arn:aws:s3:us-east-7::bucket/privkey.pem"),
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].privateKeyUrl is a malformed/unsupported URL: arn:aws:s3:us-east-7::bucket/privkey.pem: invalid S3 ARN: region cannot be set",
+		},
+		{
+			name: "Invalid S3 ARN with account ID",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("s3://bucket/cert.pem"),
+							PrivateKeyURL:  aws.String("arn:aws:s3::123456789012:bucket/privkey.pem"),
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].privateKeyUrl is a malformed/unsupported URL: arn:aws:s3::123456789012:bucket/privkey.pem: invalid S3 ARN: account ID cannot be set",
+		},
+		{
+			name: "Invalid S3 ARN without key",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("s3://bucket/cert.pem"),
+							PrivateKeyURL:  aws.String("arn:aws:s3:::bucket"),
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].privateKeyUrl is a malformed/unsupported URL: arn:aws:s3:::bucket: missing S3 key",
+		},
+		{
+			name: "SSM missing region",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("arn:aws:ssm::123456789012:parameter/certificate"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:ssm::123456789012:parameter/certificate: invalid SSM ARN: region must be set",
+		},
+		{
+			name: "SSM missing account",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("arn:aws:ssm:eu-central-1::parameter/certificate"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:ssm:eu-central-1::parameter/certificate: invalid SSM ARN: account ID must be set",
+		},
+		{
+			name: "SSM wrong resource",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("arn:aws:ssm:eu-central-1:123456789012:document/certificate"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:ssm:eu-central-1:123456789012:document/certificate: unsupported SSM resource in ARN",
+		},
+		{
+			name: "Secrets Manager missing region",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("arn:aws:secretsmanager::123456789012:secret/certificate"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:secretsmanager::123456789012:secret/certificate: invalid Secrets Manager ARN: region must be set",
+		},
+		{
+			name: "Secrets Manager missing account",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("arn:aws:secretsmanager:eu-central-1::secret/certificate"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:secretsmanager:eu-central-1::secret/certificate: invalid Secrets Manager ARN: account ID must be set",
+		},
+		{
+			name: "Secrets Manager wrong resource",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("arn:aws:secretsmanager:eu-central-1:123456789012:parameter/certificate"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:secretsmanager:eu-central-1:123456789012:parameter/certificate: unsupported Secrets Manager resource in ARN",
+		},
+		{
+			name: "S3 URL with query",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("s3://bucket/key?startToken=foo"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: s3://bucket/key?startToken=foo: s3 URL cannot contain query",
+		},
+		{
+			name: "S3 URL with fragment",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("s3://bucket/key#foo"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: s3://bucket/key#foo: s3 URL cannot contain fragment",
+		},
+		{
+			name: "File URL with query",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("file:///tmp/filename?query"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: file:///tmp/filename?query: file URL cannot contain query",
+		},
+		{
+			name: "File URL with fragment",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("file:///tmp/filename#fragment"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: file:///tmp/filename#fragment: file URL cannot contain fragment",
+		},
+		{
+			name: "Bare file with query/fragment-like characters",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("/tmp/a_weird?#looking_filename"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "URL config with non-duration timeout",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("http://example.com/certificate.pem"),
+							PrivateKeyURL:  aws.String("http://exmaple.com/privateKey.pem"),
+							CertificateURLConfig: &SSLURLConfig{
+								HTTPTimeout: "qwerty",
+							},
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrlConfig.httpTimeout is invalid:",
+		},
+		{
+			name: "URL config with negative timeout",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("http://example.com/certificate.pem"),
+							PrivateKeyURL:  aws.String("http://exmaple.com/privateKey.pem"),
+							CertificateURLConfig: &SSLURLConfig{
+								HTTPTimeout: "-1s",
+							},
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrlConfig.httpTimeout cannot be negative",
+		},
+		{
+			name: "URL config with endpoint but no region",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("http://example.com/certificate.pem"),
+							PrivateKeyURL:  aws.String("http://exmaple.com/privateKey.pem"),
+							CertificateURLConfig: &SSLURLConfig{
+								AWSEndpoint: "https://example.com/",
+							},
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrlConfig.awsRegion must be set when server.ssl.certificates[0].certificateUrlConfig.awsEndpoint is set",
+		},
+		{
+			name: "Invalid ARN format",
+			serverConfig: &ServerConfig{
+				SSL: &ServerSSLConfig{
+					Enabled: true,
+					Certificates: []*ServerSSLCertificate{
+						{
+							CertificateURL: aws.String("arn:aws:the-end"),
+							PrivateKey:     &testPrivateKey,
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "server.ssl.certificates[0].certificateUrl is a malformed/unsupported URL: arn:aws:the-end: arn: not enough sections",
+		},
+	}
+
+	for _, currentTest := range tests {
+		// Capture the current test for parallel processing. Otherwise currentTest will be modified during our test run.
+		tt := currentTest
+
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cfg := &Config{
+				Server:         tt.serverConfig,
+				InternalServer: tt.internalServerConfig,
+			}
+			err := validateBusinessConfig(cfg)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("%s validateBusinessConfig() error = %v, wantErr %v", tt.name, err, tt.wantErr)
+			}
+			if err != nil && !strings.HasPrefix(err.Error(), tt.errorString) {
+				t.Errorf("validateBusinessConfig() error = %v, wantErr %v", err.Error(), tt.errorString)
+			}
+		})
+	}
+}
+
+var (
+	// Test certificate, self-signed, for testhost.example.com
+	testCertificate = `-----BEGIN CERTIFICATE-----
+MIIDeDCCAmACCQDbKC6SZoxWRTANBgkqhkiG9w0BAQUFADB9MQswCQYDVQQGEwJV
+UzETMBEGA1UECAwKV2FzaGluZ3RvbjEQMA4GA1UEBwwHU2VhdHRsZTEdMBsGA1UE
+AwwUdGVzdGhvc3QuZXhhbXBsZS5jb20xKDAmBgkqhkiG9w0BCQEWGXRlc3RAdGVz
+dGhvc3QuZXhhbXBsZS5jb20wIBcNMjIwMjE2MTYzNjU0WhgPMjEyMjAxMjMxNjM2
+NTRaMH0xCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApXYXNoaW5ndG9uMRAwDgYDVQQH
+DAdTZWF0dGxlMR0wGwYDVQQDDBR0ZXN0aG9zdC5leGFtcGxlLmNvbTEoMCYGCSqG
+SIb3DQEJARYZdGVzdEB0ZXN0aG9zdC5leGFtcGxlLmNvbTCCASIwDQYJKoZIhvcN
+AQEBBQADggEPADCCAQoCggEBAL/yQZn2ZDxvtos+CDScWS7YKqlNgV0L2dAF/9SZ
+WkhM6+vwrl0AP25+Xf6U50va8Ux2RUC7MCnhsmMq3dp8t1fUxs/WpViX30BE4tLJ
+47OuvhSY05aDsUf902dQuTg0HaKxXYjuW8FvaaF9GaR3eu4eVU8ahm09D5YFtz5D
+i/wsKkVqikzOsKvBi0dVHZ+fxBmf/1t4Mqualq4YqjWU2DGf7lfsdv6cCDKCmkgg
+AWJ3yDA70fiUGq5nigBLE+5bPSTFE/PZOFK+WtQZV2//ykwkE/bk+UOTRkdZPZP0
+TqgfkuQub2m3F8JhkzGPtfnQ5S9C+fsndCOd4OBfzcPCldkCAwEAATANBgkqhkiG
+9w0BAQUFAAOCAQEAncN7syI1+HcuCEKxS7EArp9fA+bOQX6EIJhSuOeyNXKhHdlm
+RFToPkoMRwsCnonmD44lNXjQ2LbTRE0ySCqIm6H9Ha9C7sLZAWnbOB2Iz65YbqyD
+zJq0pnhb6TN9jiVO7kXIvcPWrrA1TwBo6Y7dx6Svy3WLlKbQWGwQx9q2Hr209s0L
+GO9TXExY6u0fNFJDyh7KFeTablSIH+oDLAytZrjzBOyPqe8aZI2SXAcJjz3Hp9hv
+V6sfsRW0PfYOsUxvMglI5LXHGflkM4tRC/WzNUhei6TJKxLhyk8FkSpkRvbsLVQn
+JYwisSNsLosVijV7XU2AlvuoWQlNEkY8bPJx3Q==
+-----END CERTIFICATE-----`
+
+	testPrivateKey = `-----BEGIN RSA PRIVATE KEY-----
+MIIEpQIBAAKCAQEAv/JBmfZkPG+2iz4INJxZLtgqqU2BXQvZ0AX/1JlaSEzr6/Cu
+XQA/bn5d/pTnS9rxTHZFQLswKeGyYyrd2ny3V9TGz9alWJffQETi0snjs66+FJjT
+loOxR/3TZ1C5ODQdorFdiO5bwW9poX0ZpHd67h5VTxqGbT0PlgW3PkOL/CwqRWqK
+TM6wq8GLR1Udn5/EGZ//W3gyq5qWrhiqNZTYMZ/uV+x2/pwIMoKaSCABYnfIMDvR
++JQarmeKAEsT7ls9JMUT89k4Ur5a1BlXb//KTCQT9uT5Q5NGR1k9k/ROqB+S5C5v
+abcXwmGTMY+1+dDlL0L5+yd0I53g4F/Nw8KV2QIDAQABAoIBAQCGkJbPEj55ZDQM
+cCOehpG7Vo6p/I0Zpyo/PUV6TTxO/aZT1XrX9kmB9BN/W/K/ajHKUgwA8no0kmbW
+QQIhn1eFusTahneKoYZA70o5TpJUsMfPdsi3d4G8n8UqZBxFu7ufCEszqS8ocCwU
+q7hjZeQHtbpG56igQrN/kGhDvWURFsmAhi9763/wEgpDYWdLmw2hc7wPmuqg68r7
+1Lk1CmcS7ZoQpx/QdhYtyG281f8lWOWQa/SL3VUQQl/J3U9GyCzSjHRy+ESSloYm
+uzORowvexWB23324pAca6QYJPf5HqhzkLrfG3xTXI2xJPgoGiBMJqY84zxPaHJlm
+mp8Laa4VAoGBAPBzskgH6t274P4slBML78M+E8zKM0amcEtWN+JgT7a1YKM3+3Wo
+vwb/Y3RmHBN9Tget4shv2Gifm1zi4HmWgymt6ZTLnV9VfIrQXkC5PblDVCoAaxCL
+ytWuLO5q+acq5iiVv5bB6mN0qm7GUl/dfClrHQ0bGb1V1l5BeRQnEdxnAoGBAMxb
+oCHwwp3KDL7Xoxa08x7y0cEHAjyEnTFL/UIdZ+Bb/78HkxVAaYBq5fuw7bbcG8oT
+Bjpn9FnOnNZXuy1ULNwl8OdkvYqOA5N8XwXcIA+yvIRTIwX/VTb8Rhie/FymStuT
+UgA8HNoRjHy2eCP3VUmYI1t4KgmvOejB+HZZIJO/AoGAV7xPe/rvlvKb2QKZEQ4U
+8S+wd9P7u7a1WLff8kjkLS2nUkb2COuGsF31gx5S9kWNeD3ZdvtggmRigxUBhTwH
+JekgRru483U02U3IZmNxAy1vA1hduI7Zdvhzypbb+0Qq8PobCz48cQe7vGm+2t3t
+FQvRcNvHm487he7r6A+Nc9cCgYEAtgwRlOqzlHj/7aqPYJUF19YcQUaLGXpRxi6Z
+iCJF/To3k+edgVsGIR4ZjqPIwBNItjVIYRNmO/KxCMjSt8i6xcsO1jOKHjnwuZwb
+0k6MSS/CfGbLVnZlZTxK/Xfz/F0vZnfQnuDuGt1zN04drHyS/6KGLN/ZIxN0FQNm
+4Zb4TGUCgYEAl6eGVe+cZ5cIdwvNV49+X800BuZjSDSKNYBTaeIJWXeI9H+7b0qL
+So0HeYWx9ixaRgxZ8yxGmB/CVOka/M5w06i0cwofTMWsiFYzPd6uPe2Mz6hcIPuE
+csZ8PbpqNkbcznkfy8BDRhwanNsvzsXWyX/0LxU+CdZGQ9jDOZwItyY=
+-----END RSA PRIVATE KEY-----`
+)

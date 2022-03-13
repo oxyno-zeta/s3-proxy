@@ -228,6 +228,7 @@ type ServerConfig struct {
 	CORS       *ServerCorsConfig     `mapstructure:"cors" validate:"omitempty"`
 	Cache      *CacheConfig          `mapstructure:"cache" validate:"omitempty"`
 	Compress   *ServerCompressConfig `mapstructure:"compress" validate:"omitempty"`
+	SSL        *ServerSSLConfig      `mapstructure:"ssl" validate:"omitempty"`
 }
 
 // ServerCompressConfig Server compress configuration.
@@ -235,6 +236,35 @@ type ServerCompressConfig struct {
 	Enabled *bool    `mapstructure:"enabled"`
 	Level   int      `mapstructure:"level" validate:"required,min=1"`
 	Types   []string `mapstructure:"types" validate:"required,min=1"`
+}
+
+// ServerSSLConfig Server SSL configuration.
+type ServerSSLConfig struct {
+	Enabled             bool                    `mapstructure:"enabled"`
+	Certificates        []*ServerSSLCertificate `mapstructure:"certificates"`
+	SelfSignedHostnames []string                `mapstructure:"selfSignedHostnames"`
+	MinTLSVersion       *string                 `mapstructure:"minTLSVersion"`
+	MaxTLSVersion       *string                 `mapstructure:"maxTLSVersion"`
+	CipherSuites        []string                `mapstructure:"cipherSuites"`
+}
+
+// ServerSSLCertificate Server SSL certificate.
+type ServerSSLCertificate struct {
+	Certificate          *string       `mapstructure:"certificate"`
+	CertificateURL       *string       `mapstructure:"certificateUrl"`
+	CertificateURLConfig *SSLURLConfig `mapstructure:"certificateUrlConfig"`
+	PrivateKey           *string       `mapstructure:"privateKey"`
+	PrivateKeyURL        *string       `mapstructure:"privateKeyUrl"`
+	PrivateKeyURLConfig  *SSLURLConfig `mapstructure:"privaetKeyUrlConfig"`
+}
+
+// SSLURLConfig SSL certificate/private key configuration for URLs.
+type SSLURLConfig struct {
+	HTTPTimeout    string                  `mapstructure:"httpTimeout"`
+	AWSRegion      string                  `mapstructure:"awsRegion"`
+	AWSEndpoint    string                  `mapstructure:"awsEndpoint"`
+	AWSCredentials *BucketCredentialConfig `mapstructure:"awsCredentials" validate:"omitempty,dive"`
+	AWSDisableSSL  bool                    `mapstructure:"awsDisableSSL"`
 }
 
 // CacheConfig Cache configuration.

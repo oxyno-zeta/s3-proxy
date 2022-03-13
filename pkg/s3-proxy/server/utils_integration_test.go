@@ -143,6 +143,8 @@ func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*httptest.S
 		"folder4/sub1/test.txt":                       "Hello folder4!",
 		"folder4/sub2/test.txt":                       "Hello folder4!",
 		"templates/folder-list.tpl":                   "fake template !",
+		"ssl/certificate.pem":                         testCertificate,
+		"ssl/privateKey.pem":                          testPrivateKey,
 	}
 
 	// Inject large number of elements

@@ -430,7 +430,76 @@ func loadAllCredentials(out *Config) ([]*CredentialConfig, error) {
 		}
 	}
 
+	// Load SSL S3 credentials from server/internal server
+	if out.Server != nil {
+		serverCreds, err := loadServerSSLCredentials(out.Server)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, serverCreds...)
+	}
+
+	if out.InternalServer != nil {
+		serverCreds, err := loadServerSSLCredentials(out.InternalServer)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, serverCreds...)
+	}
+
 	return result, nil
+}
+
+// loadServerSSLCredentials is used for any bucket-specific credentials under the
+// {server/internalServer}.ssl.certificates[*].certificateUrlConfig / privateKeyUrlConfig branches.
+func loadServerSSLCredentials(serverConfig *ServerConfig) ([]*CredentialConfig, error) {
+	if serverConfig.SSL == nil {
+		return nil, nil
+	}
+
+	res := make([]*CredentialConfig, 0)
+
+	for _, cert := range serverConfig.SSL.Certificates {
+		if cert.CertificateURLConfig != nil && cert.CertificateURLConfig.AWSCredentials != nil {
+			s3Creds := cert.CertificateURLConfig.AWSCredentials
+
+			if s3Creds.AccessKey != nil {
+				err := loadCredential(s3Creds.AccessKey)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			if s3Creds.SecretKey != nil {
+				err := loadCredential(s3Creds.SecretKey)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+
+		if cert.PrivateKeyURLConfig != nil && cert.PrivateKeyURLConfig.AWSCredentials != nil {
+			s3Creds := cert.PrivateKeyURLConfig.AWSCredentials
+
+			if s3Creds.AccessKey != nil {
+				err := loadCredential(s3Creds.AccessKey)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			if s3Creds.SecretKey != nil {
+				err := loadCredential(s3Creds.SecretKey)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+
+	return res, nil
 }
 
 func loadWebhookCfgCredentials(cfgList []*WebhookConfig) ([]*CredentialConfig, error) {

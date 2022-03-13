@@ -56,8 +56,16 @@ func NewServer(
 
 func (svr *Server) Listen() error {
 	svr.logger.Infof("Server listening on %s", svr.server.Addr)
-	// Listen
-	err := svr.server.ListenAndServe()
+
+	var err error
+
+	// Listen (either HTTPS or HTTP)
+	if svr.server.TLSConfig != nil {
+		err = svr.server.ListenAndServeTLS("", "")
+	} else {
+		err = svr.server.ListenAndServe()
+	}
+
 	// Check error
 	if err != nil {
 		return errors.WithStack(err)
@@ -70,6 +78,7 @@ func (svr *Server) Listen() error {
 func (svr *Server) GenerateServer() error {
 	// Get configuration
 	cfg := svr.cfgManager.GetConfig()
+
 	// Generate router
 	r, err := svr.generateRouter()
 	if err != nil {
@@ -82,6 +91,14 @@ func (svr *Server) GenerateServer() error {
 		Addr:    addr,
 		Handler: r,
 	}
+
+	// Get the TLS configuration (if necessary).
+	tlsConfig, err := generateTLSConfig(cfg.Server.SSL, svr.logger)
+	if err != nil {
+		return errors.Wrap(err, "failed to create TLS configuration for server")
+	}
+
+	server.TLSConfig = tlsConfig
 
 	// Prepare for configuration onChange
 	svr.cfgManager.AddOnChangeHook(func() {
@@ -112,7 +129,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	r := chi.NewRouter()
 
 	// Check if we need to enabled the compress middleware
-	if *cfg.Server.Compress.Enabled {
+	if cfg.Server.Compress != nil && *cfg.Server.Compress.Enabled {
 		r.Use(middleware.Compress(
 			cfg.Server.Compress.Level,
 			cfg.Server.Compress.Types...,

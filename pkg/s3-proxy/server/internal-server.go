@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -32,8 +33,16 @@ func NewInternalServer(logger log.Logger, cfgManager config.Manager, metricsCl m
 
 func (svr *InternalServer) Listen() error {
 	svr.logger.Infof("Internal server listening on %s", svr.server.Addr)
-	// Listen
-	err := svr.server.ListenAndServe()
+
+	var err error
+
+	// Listen (either HTTPS or HTTP)
+	if svr.server.TLSConfig != nil {
+		err = svr.server.ListenAndServeTLS("", "")
+	} else {
+		err = svr.server.ListenAndServe()
+	}
+
 	// Check error
 	if err != nil {
 		return errors.WithStack(err)
@@ -43,7 +52,7 @@ func (svr *InternalServer) Listen() error {
 	return nil
 }
 
-func (svr *InternalServer) GenerateServer() {
+func (svr *InternalServer) GenerateServer() error {
 	// Get configuration
 	cfg := svr.cfgManager.GetConfig()
 	// Generate internal router
@@ -54,8 +63,19 @@ func (svr *InternalServer) GenerateServer() {
 		Addr:    addr,
 		Handler: r,
 	}
+
+	// Get the TLS configuration (if necessary)
+	tlsConfig, err := generateTLSConfig(cfg.InternalServer.SSL, svr.logger)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Failed to create TLS configuration for internal server: %v", err))
+	}
+
+	server.TLSConfig = tlsConfig
+
 	// Store server
 	svr.server = server
+
+	return nil
 }
 
 func (svr *InternalServer) generateInternalRouter() http.Handler {

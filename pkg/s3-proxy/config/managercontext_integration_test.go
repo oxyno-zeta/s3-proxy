@@ -86,6 +86,8 @@ func Test_managercontext_Load(t *testing.T) {
 	}
 	falseValue := false
 
+	secret1Filename := path.Join(os.TempDir(), "secret1")
+
 	tests := []struct {
 		name           string
 		configs        map[string]string
@@ -835,7 +837,7 @@ targets:
     region: us-east-1
     credentials:
       accessKey:
-        path: ` + os.TempDir() + `/secret1
+        path: ` + secret1Filename + `
       secretKey:
         value: VALUE2`,
 			},
@@ -854,12 +856,12 @@ targets:
     region: us-east-1
     credentials:
       accessKey:
-        path: ` + os.TempDir() + `/secret1
+        path: ` + secret1Filename + `
       secretKey:
         value: VALUE2`,
 			},
 			secretFiles: map[string]string{
-				os.TempDir() + "/secret1": "VALUE1",
+				secret1Filename: "VALUE1",
 			},
 			wantErr: false,
 			expectedResult: &Config{
@@ -892,7 +894,7 @@ targets:
 							S3ListMaxKeys: 1000,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
-									Path:  os.TempDir() + "/secret1",
+									Path:  secret1Filename,
 									Value: "VALUE1",
 								},
 								SecretKey: &CredentialConfig{
@@ -1232,6 +1234,8 @@ func Test_Load_reload_config(t *testing.T) {
 	dir, err := ioutil.TempDir("", "s3-proxy-config-reload")
 	assert.NoError(t, err)
 
+	secret1Filename := path.Join(os.TempDir(), "secret1")
+
 	configs := map[string]string{
 		"log.yaml": `
 log:
@@ -1247,7 +1251,7 @@ targets:
     region: us-east-1
     credentials:
       accessKey:
-        path: ` + os.TempDir() + `/secret1
+        path: ` + secret1Filename + `
       secretKey:
         value: value2`,
 	}
@@ -1260,7 +1264,7 @@ targets:
 	}
 
 	secretFiles := map[string]string{
-		os.TempDir() + "/secret1": "VALUE1",
+		secret1Filename: "VALUE1",
 	}
 	// Create secret files
 	for k, v := range secretFiles {
@@ -1320,7 +1324,7 @@ targets:
 					Credentials: &BucketCredentialConfig{
 						AccessKey: &CredentialConfig{
 							Value: "VALUE1",
-							Path:  path.Join(os.TempDir(), "/secret1"),
+							Path:  secret1Filename,
 						},
 						SecretKey: &CredentialConfig{
 							Value: "value2",
@@ -1386,7 +1390,7 @@ log:
 						Credentials: &BucketCredentialConfig{
 							AccessKey: &CredentialConfig{
 								Value: "VALUE1",
-								Path:  path.Join(os.TempDir(), "/secret1"),
+								Path:  secret1Filename,
 							},
 							SecretKey: &CredentialConfig{
 								Value: "value2",
@@ -1419,6 +1423,8 @@ func Test_Load_reload_secret(t *testing.T) {
 	dir, err := ioutil.TempDir("", "s3-proxy-config-reload-secret")
 	assert.NoError(t, err)
 
+	secret1Filename := path.Join(os.TempDir(), "secret1")
+
 	configs := map[string]string{
 		"log.yaml": `
 log:
@@ -1435,7 +1441,7 @@ targets:
     region: us-east-1
     credentials:
       accessKey:
-        path: ` + os.TempDir() + `/secret1
+        path: ` + secret1Filename + `
       secretKey:
         value: value2`,
 	}
@@ -1448,7 +1454,7 @@ targets:
 	}
 
 	secretFiles := map[string]string{
-		os.TempDir() + "/secret1": "VALUE1",
+		secret1Filename: "VALUE1",
 	}
 	// Create secret files
 	for k, v := range secretFiles {
@@ -1508,7 +1514,7 @@ targets:
 					Credentials: &BucketCredentialConfig{
 						AccessKey: &CredentialConfig{
 							Value: "VALUE1",
-							Path:  path.Join(os.TempDir(), "/secret1"),
+							Path:  secret1Filename,
 						},
 						SecretKey: &CredentialConfig{
 							Value: "value2",
@@ -1523,9 +1529,8 @@ targets:
 		},
 	}, res)
 
-	secretFiles = map[string]string{
-		os.TempDir() + "/secret1": "SECRET1",
-	}
+	secretFiles = make(map[string]string)
+	secretFiles[secret1Filename] = "SECRET1"
 	// Create secret files
 	for k, v := range secretFiles {
 		dirToCr := filepath.Dir(k)
@@ -1572,7 +1577,7 @@ targets:
 						Credentials: &BucketCredentialConfig{
 							AccessKey: &CredentialConfig{
 								Value: "SECRET1",
-								Path:  path.Join(os.TempDir(), "/secret1"),
+								Path:  secret1Filename,
 							},
 							SecretKey: &CredentialConfig{
 								Value: "value2",
@@ -1605,6 +1610,8 @@ func Test_Load_reload_config_with_wrong_config(t *testing.T) {
 	dir, err := ioutil.TempDir("", "s3-proxy-config-reload-wrong-config")
 	assert.NoError(t, err)
 
+	secret1Filename := path.Join(os.TempDir(), "secret1")
+
 	configs := map[string]string{
 		"log.yaml": `
 log:
@@ -1621,7 +1628,7 @@ targets:
     region: us-east-1
     credentials:
       accessKey:
-        path: ` + os.TempDir() + `/secret1
+        path: ` + secret1Filename + `
       secretKey:
         value: value2`,
 	}
@@ -1634,7 +1641,7 @@ targets:
 	}
 
 	secretFiles := map[string]string{
-		os.TempDir() + "/secret1": "VALUE1",
+		secret1Filename: "VALUE1",
 	}
 	// Create secret files
 	for k, v := range secretFiles {
@@ -1709,11 +1716,10 @@ targets:
 		},
 	}, res)
 
-	configs = map[string]string{
-		"log.yaml": `
+	configs = make(map[string]string)
+	configs["log.yaml"] = `
 configuration with error
-`,
-	}
+`
 
 	defer os.RemoveAll(dir) // clean up
 	for k, v := range configs {
@@ -1761,7 +1767,7 @@ configuration with error
 						Credentials: &BucketCredentialConfig{
 							AccessKey: &CredentialConfig{
 								Value: "VALUE1",
-								Path:  path.Join(os.TempDir(), "/secret1"),
+								Path:  secret1Filename,
 							},
 							SecretKey: &CredentialConfig{
 								Value: "value2",
@@ -1791,6 +1797,8 @@ func Test_Load_reload_config_map_structure(t *testing.T) {
 	dir, err := ioutil.TempDir("", "s3-proxy-config-reload-map-structure")
 	assert.NoError(t, err)
 
+	secret1Filename := path.Join(os.TempDir(), "secret1")
+
 	configs := map[string]string{
 		"log.yaml": `
 log:
@@ -1814,7 +1822,7 @@ targets:
     region: us-east-1
     credentials:
       accessKey:
-        path: ` + os.TempDir() + `/secret1
+        path: ` + secret1Filename + `
       secretKey:
         value: value2`,
 	}
@@ -1827,7 +1835,7 @@ targets:
 	}
 
 	secretFiles := map[string]string{
-		os.TempDir() + "/secret1": "VALUE1",
+		secret1Filename: "VALUE1",
 	}
 	// Create secret files
 	for k, v := range secretFiles {
@@ -1893,7 +1901,7 @@ targets:
 					Credentials: &BucketCredentialConfig{
 						AccessKey: &CredentialConfig{
 							Value: "VALUE1",
-							Path:  path.Join(os.TempDir(), "/secret1"),
+							Path:  secret1Filename,
 						},
 						SecretKey: &CredentialConfig{
 							Value: "value2",
@@ -1965,7 +1973,7 @@ authProviders:
 						Credentials: &BucketCredentialConfig{
 							AccessKey: &CredentialConfig{
 								Value: "VALUE1",
-								Path:  path.Join(os.TempDir(), "/secret1"),
+								Path:  secret1Filename,
 							},
 							SecretKey: &CredentialConfig{
 								Value: "value2",
@@ -2000,6 +2008,8 @@ func Test_Load_reload_config_ignore_hidden_file_and_directory(t *testing.T) {
 	err = os.MkdirAll(path.Join(dir, "dir1"), os.ModePerm)
 	assert.NoError(t, err)
 
+	secret1Filename := path.Join(os.TempDir(), "secret1")
+
 	configs := map[string]string{
 		"..log.yaml": `
 log:
@@ -2031,7 +2041,7 @@ targets:
     region: us-east-1
     credentials:
       accessKey:
-        path: ` + os.TempDir() + `/secret1
+        path: ` + secret1Filename + `
       secretKey:
         value: value2`,
 	}
@@ -2044,7 +2054,7 @@ targets:
 	}
 
 	secretFiles := map[string]string{
-		os.TempDir() + "/secret1": "VALUE1",
+		secret1Filename: "VALUE1",
 	}
 	// Create secret files
 	for k, v := range secretFiles {
@@ -2110,7 +2120,7 @@ targets:
 					Credentials: &BucketCredentialConfig{
 						AccessKey: &CredentialConfig{
 							Value: "VALUE1",
-							Path:  path.Join(os.TempDir(), "/secret1"),
+							Path:  secret1Filename,
 						},
 						SecretKey: &CredentialConfig{
 							Value: "value2",

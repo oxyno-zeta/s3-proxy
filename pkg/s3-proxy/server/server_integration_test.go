@@ -3473,7 +3473,7 @@ func TestOIDCAuthentication(t *testing.T) {
 
 				// Check response
 				if resp.StatusCode != 200 {
-					t.Errorf("%d - %s", resp.StatusCode, body)
+					t.Errorf("Auth to %s failed: %d - %s", authentUrlStr, resp.StatusCode, body)
 					return
 				}
 

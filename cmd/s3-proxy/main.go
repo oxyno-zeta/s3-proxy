@@ -112,7 +112,10 @@ func main() {
 	// Create internal server
 	intSvr := server.NewInternalServer(logger, cfgManager, metricsCtx)
 	// Generate server
-	intSvr.GenerateServer()
+	err = intSvr.GenerateServer()
+	if err != nil {
+		logger.Fatal(err)
+	}
 	// Create server
 	svr := server.NewServer(logger, cfgManager, metricsCtx, tracingSvc, s3clientManager, webhookManager)
 	// Generate server
