@@ -5,6 +5,6 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - name: size-label
-        uses: "pascalgn/size-label-action@df7ad4303b35cbeb20937dbb12d5a050520e469e"
+        uses: pascalgn/size-label-action@a4655c448bb838e8d73b81e97fd0831bb4cbda1e
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
