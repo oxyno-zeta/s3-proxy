@@ -12,7 +12,7 @@ jobs:
       config: ${{ steps.filter.outputs.config }}
       docker: ${{ steps.filter.outputs.docker }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -37,7 +37,7 @@ jobs:
     needs:
       - changes
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
           go-version: "^1.17.8"
@@ -72,7 +72,7 @@ jobs:
       - changes
       - lint
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
           go-version: "^1.17.8"
@@ -90,7 +90,7 @@ jobs:
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
           go-version: "^1.17.0"
@@ -105,7 +105,7 @@ jobs:
       - changes
       - lint
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
           go-version: "^1.17.0"
