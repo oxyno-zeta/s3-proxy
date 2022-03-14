@@ -13,8 +13,8 @@ You can see a full example in the [Example section](./example.md)
 | Key            | Type                                                      | Required | Default | Description                                                                                                         |
 | -------------- | --------------------------------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
 | log            | [LogConfiguration](#logconfiguration)                     | No       | None    | Log configurations                                                                                                  |
-| server         | [ServerConfiguration](#serverconfiguration)               | No       | None    | Server configurations (Important: Cannot be hot reloaded)                                                           |
-| internalServer | [ServerConfiguration](#serverconfiguration)               | No       | None    | Internal Server configurations (Important: Cannot be hot reloaded)                                                  |
+| server         | [ServerConfiguration](#serverconfiguration)               | No       | None    | Server configurations                                                                                               |
+| internalServer | [ServerConfiguration](#serverconfiguration)               | No       | None    | Internal Server configurations                                                                                      |
 | template       | [TemplateConfiguration](#templateconfiguration)           | No       | None    | Template configurations                                                                                             |
 | targets        | Map[String][targetconfiguration](#targetconfiguration)    | No       | None    | Targets configuration. Map key will be considered as the target name. (This will used in urls and list of targets.) |
 | authProviders  | [AuthProvidersConfiguration](#authProvidersconfiguration) | No       | None    | Authentication providers configuration                                                                              |
@@ -30,13 +30,13 @@ You can see a full example in the [Example section](./example.md)
 
 ## ServerConfiguration
 
-| Key        | Type                                    | Required | Default | Description           |
-| ---------- | --------------------------------------- | -------- | ------- | --------------------- |
-| listenAddr | String                                  | No       | `""`    | Listen Address        |
-| port       | Integer                                 | No       | `8080`  | Listening Port        |
-| cors       | [ServerCorsConfig](#servercorsconfig)   | No       | None    | CORS configuration    |
-| cache      | [ServerCacheConfig](#servercacheconfig) | No       | None    | Cache configuration   |
-| ssl        | [ServerSSLConfig](#serversslconfig)     | No       | None    | SSL/TLS configuration |
+| Key        | Type                                    | Required | Default | Description                                               |
+| ---------- | --------------------------------------- | -------- | ------- | --------------------------------------------------------- |
+| listenAddr | String                                  | No       | `""`    | Listen Address (Important: Cannot be hot reloaded)        |
+| port       | Integer                                 | No       | `8080`  | Listening Port (Important: Cannot be hot reloaded)        |
+| cors       | [ServerCorsConfig](#servercorsconfig)   | No       | None    | CORS configuration                                        |
+| cache      | [ServerCacheConfig](#servercacheconfig) | No       | None    | Cache configuration                                       |
+| ssl        | [ServerSSLConfig](#serversslconfig)     | No       | None    | SSL/TLS configuration (Important: Cannot be hot reloaded) |
 
 ## ServerCompressConfig
 
