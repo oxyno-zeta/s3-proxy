@@ -36,7 +36,7 @@ You can see a full example in the [Example section](./example.md)
 | port       | Integer                                 | No       | `8080`  | Listening Port        |
 | cors       | [ServerCorsConfig](#servercorsconfig)   | No       | None    | CORS configuration    |
 | cache      | [ServerCacheConfig](#servercacheconfig) | No       | None    | Cache configuration   |
-| ssl        | [ServerSSLConfig](#serversslconfig)    | No       | None    | SSL/TLS configuration |
+| ssl        | [ServerSSLConfig](#serversslconfig)     | No       | None    | SSL/TLS configuration |
 
 ## ServerCompressConfig
 
@@ -77,48 +77,48 @@ This feature is powered by [go-chi/cors](https://github.com/go-chi/cors). You ca
 
 ## ServerSSLCertificate
 
-| Key                  | Type                          | Required | Default | Description                                                   |
-| -------------------- | ----------------------------- | -------- | ------- | ------------------------------------------------------------- |
-| certificate          | String                        | Yes\[1\] | None    | The PEM encoded certificate.                                  |
-| certificateUrl       | String                        | Yes\[1\] | None    | The URL of a resource containing the certificate.             |
-| certificateUrlConfig | [SSLURLConfig](#sslurlconfig) | No       | None    | Addditional URL configuration if certificateUrl is an S3 URL. |
-| privateKey           | String                        | Yes\[2\] | None    | The PEM encoded private key.                                  |
-| privateKeyUrl        | String                        | Yes\[2\] | None    | The URL of a resource containing the private key.             |
-| privateKeyUrlConfig  | [SSLURLConfig](#sslurlconfig) | No       | None    | Additional URL configuration if privateKeyUrl is an S3 URL.   |
+| Key                  | Type                          | Required | Default | Description                                                  |
+| -------------------- | ----------------------------- | -------- | ------- | ------------------------------------------------------------ |
+| certificate          | String                        | Yes\[1\] | None    | The PEM encoded certificate.                                 |
+| certificateUrl       | String                        | Yes\[1\] | None    | The URL of a resource containing the certificate.            |
+| certificateUrlConfig | [SSLURLConfig](#sslurlconfig) | No       | None    | Additional URL configuration if certificateUrl is an S3 URL. |
+| privateKey           | String                        | Yes\[2\] | None    | The PEM encoded private key.                                 |
+| privateKeyUrl        | String                        | Yes\[2\] | None    | The URL of a resource containing the private key.            |
+| privateKeyUrlConfig  | [SSLURLConfig](#sslurlconfig) | No       | None    | Additional URL configuration if privateKeyUrl is an S3 URL.  |
 
 Notes:
 
-*  \[1\] Exactly one of `certificate` or `certificateUrl` must be specified.
-*  \[2\] Exactly one of `privateKey` or `privateKeyUrl` msut be specified.
+- \[1\] Exactly one of `certificate` or `certificateUrl` must be specified.
+- \[2\] Exactly one of `privateKey` or `privateKeyUrl` must be specified.
 
 Allowed URL types are:
 
-* Local files, in <code>file:///<i>absolute</i>/<i>path</i>/<i>filename</i></code>, <code>file://<i>relative</i>/<i>path</i>/<i>filename</i></code>, <code>/<i>absolute</i>/<i>path</i>/<i>filename</i></code>, or <code><i>relative</i>/<i>path</i>/<i>filename</i></code> form.
-* HTTP/HTTPS URLs in <code>https://<i>host</i>[:<i>port</i>]/<i>path</i></code> form.
-* AWS S3 URLs in either <code>s3://<i>bucket</i>/<i>key</i></code> or <code>arn:<i>partition</i>:s3:::<i>bucket</i>/<i>key</i></code> form.
-* AWS Secrets Manager ARNs in <code>arn:<i>partition</i>:secretsmanager:<i>region</i>:<i>account-id</i>:secret/<i>secret-name</i></code> form.
-* AWS Systems Manager parameter ARNs in <code>arn:<i>partition</i>:ssm:<i>region</i>:<i>account-id</i>:parameter/<i>path</i>/<i>name</i></code> form.
+- Local files, in <code>file:///<i>absolute</i>/<i>path</i>/<i>filename</i></code>, <code>file://<i>relative</i>/<i>path</i>/<i>filename</i></code>, <code>/<i>absolute</i>/<i>path</i>/<i>filename</i></code>, or <code><i>relative</i>/<i>path</i>/<i>filename</i></code> form.
+- HTTP/HTTPS URLs in <code>https://<i>host</i>[:<i>port</i>]/<i>path</i></code> form.
+- AWS S3 URLs in either <code>s3://<i>bucket</i>/<i>key</i></code> or <code>arn:<i>partition</i>:s3:::<i>bucket</i>/<i>key</i></code> form.
+- AWS Secrets Manager ARNs in <code>arn:<i>partition</i>:secretsmanager:<i>region</i>:<i>account-id</i>:secret/<i>secret-name</i></code> form.
+- AWS Systems Manager parameter ARNs in <code>arn:<i>partition</i>:ssm:<i>region</i>:<i>account-id</i>:parameter/<i>path</i>/<i>name</i></code> form.
 
 ## ServerSSLConfig
 
-| Key                 | Type                     | Required | Default     | Description                                                 |
-| ------------------- | ------------------------ | -------- | ----------- | ----------------------------------------------------------- |
-| enabled             | Boolean                  | Yes      | `false`     | Whether SSL support should be enabled.                      |
-| certificates        | \[[ServerSSLCertificate](#serversslcertificate)\] | No | \[\] | Certificates to serve when connected.           |
-| selfSignedHostnames | \[String\]               | No       | \[\]        | List of hostnames to generate self-signed certificates for. |
-| minTLSVersion       | String                   | No       | `"TLSv1.2"` | The minimum TLS version to allow when a client connects.    |
-| maxTLSVersion       | String                   | No       | None        | The maximum TLS version to allow when a client connects.    |
-| cipherSuites        | \[String\]               | No       | See below   | The TLS ciphers to enable.                                  |
+| Key                 | Type                                              | Required | Default     | Description                                                 |
+| ------------------- | ------------------------------------------------- | -------- | ----------- | ----------------------------------------------------------- |
+| enabled             | Boolean                                           | No       | `false`     | Whether SSL support should be enabled.                      |
+| certificates        | \[[ServerSSLCertificate](#serversslcertificate)\] | No       | \[\]        | Certificates to serve when connected.                       |
+| selfSignedHostnames | \[String\]                                        | No       | \[\]        | List of hostnames to generate self-signed certificates for. |
+| minTLSVersion       | String                                            | No       | `"TLSv1.2"` | The minimum TLS version to allow when a client connects.    |
+| maxTLSVersion       | String                                            | No       | None        | The maximum TLS version to allow when a client connects.    |
+| cipherSuites        | \[String\]                                        | No       | See below   | The TLS ciphers to enable.                                  |
 
 The values for `cipherSuites` are the constant names in the Go [crypto/tls](https://pkg.go.dev/crypto/tls#pkg-constants) package,
 starting with `TLS_`. The default ciphers are the recommended cipher suites from [ciphersuite.info](https://ciphersuite.info/cs/?security=recommended) supported by Go:
 
-* `TLS_AES_128_GCM_SHA256`
-* `TLS_AES_256_GCM_SHA384`
-* `TLS_CHACHA20_POLY1305_SHA256`
-* `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`
-* `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`
-* `TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256`
+- `TLS_AES_128_GCM_SHA256`
+- `TLS_AES_256_GCM_SHA384`
+- `TLS_CHACHA20_POLY1305_SHA256`
+- `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`
+- `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`
+- `TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256`
 
 ## SSLURLConfig
 
@@ -126,7 +126,7 @@ This is a subset/modification of the configuration available from [BucketConfigu
 
 | Key            | Type                                                            | Required | Default     | Description                                                                     |
 | -------------- | --------------------------------------------------------------- | -------- | ----------- | ------------------------------------------------------------------------------- |
-| httpTimeout    | String (duration)                                               | No       | None        | Timeout for HTTP connections (including AWS calls) to get SSL certificate/keys. | 
+| httpTimeout    | String (duration)                                               | No       | None        | Timeout for HTTP connections (including AWS calls) to get SSL certificate/keys. |
 | awsRegion      | String                                                          | No       | `us-east-1` | AWS region for S3/SSM/Secrets Manager-stored documents.                         |
 | awsEndpoint    | String                                                          | No       | None        | Custom endpoint for S3/SSM/Secrets Manager API calls.                           |
 | awsCredentials | [BucketCredentialConfiguration](#bucketcredentialconfiguration) | No       | None        | Credentials to access AWS-based documents                                       |

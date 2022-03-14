@@ -75,6 +75,76 @@ log:
 #     pragma:
 #     # X-Accel-Expires header value
 #     xAccelExpires:
+#   # SSL/TLS configuration
+#   ssl:
+#     # Is SSL/TLS configuration enabled ?
+#     enabled: true
+#     # Certificates to serve when connected
+#     certificates:
+#       - # Note: Exactly one of certificate/certificateUrl and privateKey/privateKeyUrl must be specified.
+#         # The PEM encoded certificate
+#         certificate: |
+#           -----BEGIN CERTIFICATE-----
+#           ....
+#           -----END CERTIFICATE-----
+#         # The URL of a resource containing the certificate
+#         # Check other URL types in documentation
+#         certificateUrl: arn:aws:ssm:region:accountId:parameter/name
+#         # Additional URL configuration if certificateUrl is an S3 URL
+#         certificateUrlConfig:
+#           # Timeout for HTTP connections (including AWS calls) to get SSL certificate/keys
+#           httpTimeout:
+#           # AWS region for S3/SSM/Secrets Manager-stored documents
+#           awsRegion: us-east-1
+#           # Custom endpoint for S3/SSM/Secrets Manager API calls
+#           awsEndpoint:
+#           # Credentials to access AWS-based documents
+#           awsCredentials:
+#             accessKey:
+#               env: AWS_ACCESS_KEY_ID
+#             secretKey:
+#               path: secret_key_file
+#           # Disable SSL for AWS API calls. This does not affect `https` URLs
+#           awsDisableSSL: false
+#         # The PEM encoded private key
+#         privateKey: |
+#           -----BEGIN RSA PRIVATE KEY-----
+#           -----END RSA PRIVATE KEY-----
+#         # Additional URL configuration if privateKeyUrl is an S3 URL
+#         # Check other URL types in documentation
+#         privateKeyUrl: arn:aws:secretsmanager:region:accountId:secret/name
+#         # Additional URL configuration if privateKeyUrl is an S3 URL
+#         privateKeyUrlConfig:
+#           # Timeout for HTTP connections (including AWS calls) to get SSL certificate/keys
+#           httpTimeout:
+#           # AWS region for S3/SSM/Secrets Manager-stored documents
+#           awsRegion: us-east-1
+#           # Custom endpoint for S3/SSM/Secrets Manager API calls
+#           awsEndpoint:
+#           # Credentials to access AWS-based documents
+#           awsCredentials:
+#             accessKey:
+#               env: AWS_ACCESS_KEY_ID
+#             secretKey:
+#               path: secret_key_file
+#           # Disable SSL for AWS API calls. This does not affect `https` URLs
+#           awsDisableSSL: false
+#     # List of hostnames to generate self-signed certificates for
+#     selfSignedHostnames:
+#       - localhost
+#       - localhost.localdomain
+#     # The minimum TLS version to allow when a client connects
+#     minTLSVersion: TLSv1.2
+#     # The maximum TLS version to allow when a client connects
+#     maxTLSVersion: TLSv1.3
+#     # The TLS ciphers to enable
+#     cipherSuites: # See https://pkg.go.dev/crypto/tls#pkg-constants for valid names; the current default is shown below.
+#       - TLS_AES_128_GCM_SHA256
+#       - TLS_AES_256_GCM_SHA384
+#       - TLS_CHACHA20_POLY1305_SHA256
+#       - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+#       - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+#       - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
 
 # Template configurations
 # templates:
