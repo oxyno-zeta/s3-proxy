@@ -47,7 +47,7 @@ Available data:
 | ------- | ---------------------------------------------------------------------- | ------------------------------------------------- |
 | User    | [GenericUser](#genericuser)                                            | Authenticated user if present in incoming request |
 | Request | [http.Request](https://golang.org/pkg/net/http/#Request)               | HTTP Request object from golang                   |
-| Targets | Map[String][target](../configuration/structure.md#targetconfiguration) | The target map as coming from the configuration   |
+| Targets | Map[String][target](../../configuration/structure#targetconfiguration) | The target map as coming from the configuration   |
 
 Available for:
 
@@ -316,3 +316,12 @@ These are the properties available:
 | Name | Type   | Description               |
 | ---- | ------ | ------------------------- |
 | Key  | String | Full key from S3 response |
+
+### TargetKeyRewriteData
+
+| Name    | Type                                                        | Description                                       |
+| ------- | ----------------------------------------------------------- | ------------------------------------------------- |
+| User    | [GenericUser](#genericuser)                                 | Authenticated user if present in incoming request |
+| Request | [http.Request](https://golang.org/pkg/net/http/#Request)    | HTTP Request object from golang                   |
+| Target  | [Target](../../configuration/structure#targetconfiguration) | The current target configuration                  |
+| Key     | String                                                      | Full key from S3 response                         |

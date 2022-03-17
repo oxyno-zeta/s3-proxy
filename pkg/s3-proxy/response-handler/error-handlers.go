@@ -9,7 +9,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/templateutils"
 	"github.com/pkg/errors"
 )
 
@@ -296,7 +296,8 @@ func (h *handler) InternalServerError(
 	}
 
 	// Get helpers template content
-	helpersContent, err2 := h.loadAllHelpersContent(
+	helpersContent, err2 := templateutils.LoadAllHelpersContent(
+		h.req.Context(),
 		loadFileContent,
 		helpersCfgItems,
 		cfg.Templates.Helpers,
@@ -337,7 +338,8 @@ func (h *handler) InternalServerError(
 		// Check if target config and template exists
 		if tplCfgItem != nil {
 			// Load template content
-			tpl, err3 := h.loadTemplateContent(
+			tpl, err3 := templateutils.LoadTemplateContent(
+				h.req.Context(),
 				loadFileContent,
 				tplCfgItem,
 			)
@@ -347,7 +349,7 @@ func (h *handler) InternalServerError(
 			err2 = err3
 		} else {
 			// Get template from general configuration
-			tpl, err3 := loadLocalFileContent(cfg.Templates.InternalServerError.Path)
+			tpl, err3 := templateutils.LoadLocalFileContent(cfg.Templates.InternalServerError.Path)
 			// Concat
 			tplContent = tplContent + "\n" + tpl
 			// Save error
@@ -361,7 +363,7 @@ func (h *handler) InternalServerError(
 	// Check if error 2 doesn't exist
 	if err2 == nil {
 		// Execute template
-		bodyBuf, err2 = utils.ExecuteTemplate(tplContent, data)
+		bodyBuf, err2 = templateutils.ExecuteTemplate(tplContent, data)
 	}
 
 	// Check if error 2 doesn't exist

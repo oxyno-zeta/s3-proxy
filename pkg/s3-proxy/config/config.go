@@ -113,6 +113,12 @@ const DefaultOIDCGroupClaim = "groups"
 // DefaultOIDCCookieName Default OIDC Cookie name.
 const DefaultOIDCCookieName = "oidc"
 
+// RegexTargetKeyRewriteTargetType Regex target key rewrite Target type.
+const RegexTargetKeyRewriteTargetType = "REGEX"
+
+// TemplateTargetKeyRewriteTargetType Template Target key rewrite Target type.
+const TemplateTargetKeyRewriteTargetType = "TEMPLATE"
+
 // ErrMainBucketPathSupportNotValid Error thrown when main bucket path support option isn't valid.
 var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support option can be enabled only when only one bucket is configured")
 
@@ -306,6 +312,7 @@ type TargetKeyRewriteConfig struct {
 	Source      string `mapstructure:"source" validate:"required,min=1"`
 	SourceRegex *regexp.Regexp
 	Target      string `mapstructure:"target" validate:"required,min=1"`
+	TargetType  string `mapstructure:"targetType" validate:"required,oneof=REGEX TEMPLATE"`
 }
 
 // TargetTemplateConfig Target templates configuration to override default ones.

@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gobwas/glob"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
+	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 	"github.com/pkg/errors"
 )
 

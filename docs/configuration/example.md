@@ -356,6 +356,10 @@ targets:
     # keyRewriteList:
     #   - # Source represents a Regexp (golang format with group naming support)
     #     source: ^/(?P<one>\w+)/(?P<two>\w+)/(?P<three>\w+)?$
+    #     # Target type: Regex or Template
+    #     # Regex will allow to do a simple regex replace/update, like in the example
+    #     # Template will allow to do golang template replace, like this example as "target" value: {{ regexReplaceAll "/input1(/.*)" .Key (printf "/input1/%s${1}" .User.Username) }}
+    #     # targetType: REGEX # TEMPLATE
     #     # Target represents the template of the new key that will be used
     #     target: /$two/$one/$three/$one/
     ## Target custom templates

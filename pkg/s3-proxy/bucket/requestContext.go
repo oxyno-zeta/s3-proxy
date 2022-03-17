@@ -13,7 +13,8 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
+	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/templateutils"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
 )
 
@@ -22,6 +23,7 @@ type requestContext struct {
 	s3ClientManager s3client.Manager
 	webhookManager  webhook.Manager
 	targetCfg       *config.TargetConfig
+	generalHelpers  []string
 	mountPath       string
 }
 
@@ -36,7 +38,7 @@ func (rctx *requestContext) generateStartKey(requestPath string) string {
 	return key
 }
 
-func (rctx *requestContext) manageKeyRewrite(key string) string {
+func (rctx *requestContext) manageKeyRewrite(ctx context.Context, key string) (string, error) {
 	// Check if key rewrite list exists
 	if rctx.targetCfg.KeyRewriteList != nil {
 		// Loop over key rewrite list
@@ -46,23 +48,77 @@ func (rctx *requestContext) manageKeyRewrite(key string) string {
 				// Find submatches
 				submatches := kr.SourceRegex.FindStringSubmatchIndex(key)
 
-				// Check if there is a submatch
+				// Check if there isn't any submatch
 				if len(submatches) == 0 {
-					return kr.Target
+					return kr.Target, nil
 				}
 
-				// Create result
-				result := []byte{}
-				// Replace matches in target
-				result = kr.SourceRegex.ExpandString(result, kr.Target, key, submatches)
-				// Return result
-				return string(result)
+				// Check if target key rewrite is type REGEX
+				if kr.TargetType == config.RegexTargetKeyRewriteTargetType {
+					// Create result
+					result := []byte{}
+					// Replace matches in target
+					result = kr.SourceRegex.ExpandString(result, kr.Target, key, submatches)
+					// Return result
+					return string(result), nil
+				}
+
+				// Template case
+
+				// Initialize variable
+				targetTplHelpers := make([]*config.TargetHelperConfigItem, 0)
+				// Check if helpers have been declared in target configuration
+				if rctx.targetCfg.Templates != nil && rctx.targetCfg.Templates.Helpers != nil {
+					// Save target template helpers
+					targetTplHelpers = rctx.targetCfg.Templates.Helpers
+				}
+
+				// Load all helpers
+				helpersString, err := templateutils.LoadAllHelpersContent(
+					ctx,
+					rctx.LoadFileContent,
+					targetTplHelpers,
+					rctx.generalHelpers,
+				)
+				// Check error
+				if err != nil {
+					return "", err
+				}
+
+				// Create template
+				tpl := helpersString + "\n" + kr.Target
+
+				// Get user from context
+				user := models.GetAuthenticatedUserFromContext(ctx)
+				// Get response handler
+				resHan := responsehandler.GetResponseHandlerFromContext(ctx)
+
+				// Execute template
+				buf, err := templateutils.ExecuteTemplate(tpl, &targetKeyRewriteData{
+					Request: resHan.GetRequest(),
+					User:    user,
+					Target:  rctx.targetCfg,
+					Key:     key,
+				})
+				// Check error
+				if err != nil {
+					return "", err
+				}
+
+				// Get string from buffer
+				str := buf.String()
+				// Remove all new lines
+				str = utils.NewLineMatcherRegex.ReplaceAllString(str, "")
+				// Trim spaces
+				str = strings.TrimSpace(str)
+
+				return str, nil
 			}
 		}
 	}
 
 	// Default case is returning the input key
-	return key
+	return key, nil
 }
 
 // Get proxy GET requests.
@@ -73,7 +129,14 @@ func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
 	// Generate start key
 	key := rctx.generateStartKey(input.RequestPath)
 	// Manage key rewrite
-	key = rctx.manageKeyRewrite(key)
+	key, err := rctx.manageKeyRewrite(ctx, key)
+	// Check error
+	if err != nil {
+		resHan.InternalServerError(rctx.LoadFileContent, err)
+		// Stop
+		return
+	}
+
 	// Check that the path ends with a / for a directory listing or the main path special case (empty path)
 	if strings.HasSuffix(input.RequestPath, "/") || input.RequestPath == "" {
 		rctx.manageGetFolder(ctx, key, input)
@@ -82,7 +145,8 @@ func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
 	}
 
 	// Get object case
-	err := rctx.streamFileForResponse(ctx, key, input)
+	err = rctx.streamFileForResponse(ctx, key, input)
+	// Check error
 	if err != nil {
 		// Check if error is a not found error
 		// nolint: gocritic // Don't want a switch
@@ -178,6 +242,7 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 	s3Entries, info, err := rctx.s3ClientManager.
 		GetClientForTarget(rctx.targetCfg.Name).
 		ListFilesAndDirectories(ctx, key)
+	// Check error
 	if err != nil {
 		resHan.InternalServerError(rctx.LoadFileContent, err)
 		// Stop
@@ -229,7 +294,14 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 	// Add filename at the end of key
 	key += inp.Filename
 	// Manage key rewrite
-	key = rctx.manageKeyRewrite(key)
+	key, err := rctx.manageKeyRewrite(ctx, key)
+	// Check error
+	if err != nil {
+		resHan.InternalServerError(rctx.LoadFileContent, err)
+		// Stop
+		return
+	}
+
 	// Create input
 	input := &s3client.PutInput{
 		Key:         key,
@@ -249,14 +321,14 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 			// Render templates
 			for k, v := range rctx.targetCfg.Actions.PUT.Config.Metadata {
 				// Execute template
-				buf, err := utils.ExecuteTemplate(v, &PutData{
+				buf, err2 := templateutils.ExecuteTemplate(v, &PutData{
 					User:  models.GetAuthenticatedUserFromContext(ctx),
 					Input: inp,
 					Key:   key,
 				})
 				// Check error
-				if err != nil {
-					resHan.InternalServerError(rctx.LoadFileContent, err)
+				if err2 != nil {
+					resHan.InternalServerError(rctx.LoadFileContent, err2)
 
 					return
 				}
@@ -279,15 +351,15 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 		// Check if storage class is present in target configuration
 		if rctx.targetCfg.Actions.PUT.Config.StorageClass != "" {
 			// Execute template
-			buf, err := utils.ExecuteTemplate(rctx.targetCfg.Actions.PUT.Config.StorageClass, &PutData{
+			buf, err2 := templateutils.ExecuteTemplate(rctx.targetCfg.Actions.PUT.Config.StorageClass, &PutData{
 				User:  models.GetAuthenticatedUserFromContext(ctx),
 				Input: inp,
 				Key:   key,
 			})
 
 			// Check error
-			if err != nil {
-				resHan.InternalServerError(rctx.LoadFileContent, err)
+			if err2 != nil {
+				resHan.InternalServerError(rctx.LoadFileContent, err2)
 
 				return
 			}
@@ -306,21 +378,21 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 		// Check if allow override is enabled
 		if !rctx.targetCfg.Actions.PUT.Config.AllowOverride {
 			// Need to check if file already exists
-			headOutput, err := rctx.s3ClientManager.
+			headOutput, err2 := rctx.s3ClientManager.
 				GetClientForTarget(rctx.targetCfg.Name).
 				HeadObject(ctx, key)
 			// Check if error is not found if exists
-			if err != nil && !errors.Is(err, s3client.ErrNotFound) {
-				resHan.InternalServerError(rctx.LoadFileContent, err)
+			if err2 != nil && !errors.Is(err2, s3client.ErrNotFound) {
+				resHan.InternalServerError(rctx.LoadFileContent, err2)
 				// Stop
 				return
 			}
 			// Check if file exists
 			if headOutput != nil {
 				// Create error
-				err := fmt.Errorf("file detected on path %s for PUT request and override isn't allowed", key)
+				err2 := fmt.Errorf("file detected on path %s for PUT request and override isn't allowed", key)
 				// Response
-				resHan.ForbiddenError(rctx.LoadFileContent, err)
+				resHan.ForbiddenError(rctx.LoadFileContent, err2)
 				// Stop
 				return
 			}
@@ -378,7 +450,14 @@ func (rctx *requestContext) Delete(ctx context.Context, requestPath string) {
 	// Generate start key
 	key := rctx.generateStartKey(requestPath)
 	// Manage key rewrite
-	key = rctx.manageKeyRewrite(key)
+	key, err := rctx.manageKeyRewrite(ctx, key)
+	// Check error
+	if err != nil {
+		resHan.InternalServerError(rctx.LoadFileContent, err)
+		// Stop
+		return
+	}
+
 	// Check that the path ends with a / for a directory or the main path special case (empty path)
 	if strings.HasSuffix(requestPath, "/") || requestPath == "" {
 		resHan.InternalServerError(rctx.LoadFileContent, ErrRemovalFolder)

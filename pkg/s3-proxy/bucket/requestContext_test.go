@@ -5,11 +5,14 @@ package bucket
 import (
 	"context"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"regexp"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
@@ -365,6 +368,7 @@ func Test_requestContext_Delete(t *testing.T) {
 					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
 						SourceRegex: regexp.MustCompile("^/file$"),
 						Target:      "/fake/file2",
+						TargetType:  config.RegexTargetKeyRewriteTargetType,
 					}},
 				},
 				mountPath: "/mount",
@@ -798,6 +802,7 @@ func Test_requestContext_Put(t *testing.T) {
 					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
 						SourceRegex: regexp.MustCompile("/test/file"),
 						Target:      "/test1/test2/file",
+						TargetType:  config.RegexTargetKeyRewriteTargetType,
 					}},
 					Actions: &config.ActionsConfig{
 						PUT: &config.PutActionConfig{
@@ -2084,6 +2089,7 @@ func Test_requestContext_Get(t *testing.T) {
 					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
 						SourceRegex: regexp.MustCompile(`^/folder/index\.html$`),
 						Target:      "/fake/fake.html",
+						TargetType:  config.RegexTargetKeyRewriteTargetType,
 					}},
 					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{}},
 				},
@@ -2226,17 +2232,27 @@ func Test_requestContext_Get(t *testing.T) {
 }
 
 func Test_requestContext_manageKeyRewrite(t *testing.T) {
+	reqMock := httptest.NewRequest("GET", "http://fake.com", nil)
+	userMock := &models.BasicAuthUser{Username: "fake"}
 	type fields struct {
-		targetCfg *config.TargetConfig
+		targetCfg      *config.TargetConfig
+		generalHelpers []string
+	}
+	type responseHandlerGetRequestMockResult struct {
+		times int
+		res   *http.Request
 	}
 	type args struct {
 		key string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   string
+		name                                string
+		fields                              fields
+		args                                args
+		want                                string
+		wantErr                             bool
+		responseHandlerGetRequestMockResult responseHandlerGetRequestMockResult
+		userMockResult                      models.GenericUser
 	}{
 		{
 			name: "no key rewrite list",
@@ -2265,6 +2281,7 @@ func Test_requestContext_manageKeyRewrite(t *testing.T) {
 					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
 						SourceRegex: regexp.MustCompile("^/fake$"),
 						Target:      "/fake2",
+						TargetType:  config.RegexTargetKeyRewriteTargetType,
 					}},
 				},
 			},
@@ -2278,6 +2295,7 @@ func Test_requestContext_manageKeyRewrite(t *testing.T) {
 					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
 						SourceRegex: regexp.MustCompile("^/input$"),
 						Target:      "/fake2",
+						TargetType:  config.RegexTargetKeyRewriteTargetType,
 					}},
 				},
 			},
@@ -2291,6 +2309,7 @@ func Test_requestContext_manageKeyRewrite(t *testing.T) {
 					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
 						SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)$`),
 						Target:      "/fake2",
+						TargetType:  config.RegexTargetKeyRewriteTargetType,
 					}},
 				},
 			},
@@ -2304,6 +2323,7 @@ func Test_requestContext_manageKeyRewrite(t *testing.T) {
 					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
 						SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)$`),
 						Target:      "/$one/",
+						TargetType:  config.RegexTargetKeyRewriteTargetType,
 					}},
 				},
 			},
@@ -2317,6 +2337,7 @@ func Test_requestContext_manageKeyRewrite(t *testing.T) {
 					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
 						SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)/(?P<two>\w+)/(?P<three>\w+)$`),
 						Target:      "/$two/$one/$three/$one/",
+						TargetType:  config.RegexTargetKeyRewriteTargetType,
 					}},
 				},
 			},
@@ -2330,6 +2351,7 @@ func Test_requestContext_manageKeyRewrite(t *testing.T) {
 					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
 						SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)/(?P<two>\w+)/(?P<three>\w+)?$`),
 						Target:      "/$two/$one/$three/$one/",
+						TargetType:  config.RegexTargetKeyRewriteTargetType,
 					}},
 				},
 			},
@@ -2343,6 +2365,7 @@ func Test_requestContext_manageKeyRewrite(t *testing.T) {
 					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
 						SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)/(?P<two>\w+)/(?P<three>\w+)?$`),
 						Target:      "/$two/$one/$three/$one/",
+						TargetType:  config.RegexTargetKeyRewriteTargetType,
 					}},
 				},
 			},
@@ -2357,10 +2380,12 @@ func Test_requestContext_manageKeyRewrite(t *testing.T) {
 						{
 							SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)/$`),
 							Target:      "/$one",
+							TargetType:  config.RegexTargetKeyRewriteTargetType,
 						},
 						{
 							SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)/(?P<two>\w+)/(?P<three>\w+)?$`),
 							Target:      "/$two/$one/$three/$one/",
+							TargetType:  config.RegexTargetKeyRewriteTargetType,
 						},
 					},
 				},
@@ -2368,13 +2393,115 @@ func Test_requestContext_manageKeyRewrite(t *testing.T) {
 			args: args{key: "/input1/input2/input3"},
 			want: "/input2/input1/input3/input1/",
 		},
+		{
+			name: "matching with template as target",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile("^/input.*$"),
+						Target:      `{{ regexReplaceAll "/input1(/.*)" .Key (printf "/input1/%s${1}" .User.Username) }}`,
+						TargetType:  config.TemplateTargetKeyRewriteTargetType,
+					}},
+				},
+			},
+			responseHandlerGetRequestMockResult: responseHandlerGetRequestMockResult{
+				times: 1,
+				res:   reqMock,
+			},
+			userMockResult: userMock,
+			args:           args{key: "/input1/input2/input3"},
+			want:           "/input1/fake/input2/input3",
+		},
+		{
+			name: "matching with template as target (trim new line and spaces)",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile("^/input.*$"),
+						Target: `
+						{{ regexReplaceAll "/input1(/.*)" .Key (printf "/input1/%s${1}" .User.Username) }}`,
+						TargetType: config.TemplateTargetKeyRewriteTargetType,
+					}},
+				},
+			},
+			responseHandlerGetRequestMockResult: responseHandlerGetRequestMockResult{
+				times: 1,
+				res:   reqMock,
+			},
+			userMockResult: userMock,
+			args:           args{key: "/input1/input2/input3"},
+			want:           "/input1/fake/input2/input3",
+		},
+		{
+			name: "matching with template as target and general helpers",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile("^/input.*$"),
+						Target:      `{{ template "main.userIdentifier" . }}`,
+						TargetType:  config.TemplateTargetKeyRewriteTargetType,
+					}},
+				},
+				generalHelpers: []string{"../../../templates/_helpers.tpl"},
+			},
+			responseHandlerGetRequestMockResult: responseHandlerGetRequestMockResult{
+				times: 1,
+				res:   reqMock,
+			},
+			userMockResult: userMock,
+			args:           args{key: "/input1/input2/input3"},
+			want:           "fake",
+		},
+		{
+			name: "matching with template as target and target helpers",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile("^/input.*$"),
+						Target:      `{{ template "main.userIdentifier" . }}`,
+						TargetType:  config.TemplateTargetKeyRewriteTargetType,
+					}},
+					Templates: &config.TargetTemplateConfig{
+						Helpers: []*config.TargetHelperConfigItem{{Path: "../../../templates/_helpers.tpl"}},
+					},
+				},
+			},
+			responseHandlerGetRequestMockResult: responseHandlerGetRequestMockResult{
+				times: 1,
+				res:   reqMock,
+			},
+			userMockResult: userMock,
+			args:           args{key: "/input1/input2/input3"},
+			want:           "fake",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Create go mock controller
+			ctrl := gomock.NewController(t)
+
+			// Create mocks
+			resHandlerMock := responsehandlermocks.NewMockResponseHandler(ctrl)
+
+			resHandlerMock.EXPECT().GetRequest().
+				Times(tt.responseHandlerGetRequestMockResult.times).
+				Return(tt.responseHandlerGetRequestMockResult.res)
+
+			ctx := context.TODO()
+			ctx = responsehandler.SetResponseHandlerInContext(ctx, resHandlerMock)
+			ctx = models.SetAuthenticatedUserInContext(ctx, tt.userMockResult)
+
 			rctx := &requestContext{
-				targetCfg: tt.fields.targetCfg,
+				targetCfg:      tt.fields.targetCfg,
+				generalHelpers: tt.fields.generalHelpers,
 			}
-			if got := rctx.manageKeyRewrite(tt.args.key); got != tt.want {
+
+			got, err := rctx.manageKeyRewrite(ctx, tt.args.key)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("requestContext.manageKeyRewrite() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
 				t.Errorf("requestContext.manageKeyRewrite() = %v, want %v", got, tt.want)
 			}
 		})

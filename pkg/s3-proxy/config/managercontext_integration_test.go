@@ -1135,6 +1135,7 @@ targets:
 							Source:      `^/(?P<one>\w+)/file.html$`,
 							SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)/file.html$`),
 							Target:      "/$one/fake/$one/file.html",
+							TargetType:  RegexTargetKeyRewriteTargetType,
 						}},
 						Bucket: &BucketConfig{
 							Name:          "bucket1",

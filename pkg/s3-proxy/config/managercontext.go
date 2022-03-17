@@ -708,6 +708,11 @@ func loadBusinessDefaultValues(out *Config) error {
 }
 
 func loadKeyRewriteValues(item *TargetKeyRewriteConfig) error {
+	// Check if target type is set, if not, put REGEX type as default
+	if item.TargetType == "" {
+		item.TargetType = RegexTargetKeyRewriteTargetType
+	}
+
 	// Parse source regex
 	rs, err := regexp.Compile(item.Source)
 	// Check error
