@@ -3,7 +3,9 @@ package templateutils
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io/ioutil"
+	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
@@ -12,6 +14,8 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 	"github.com/pkg/errors"
 )
+
+const recursionMaxNums = 1000
 
 func LoadAllHelpersContent(
 	ctx context.Context,
@@ -100,11 +104,13 @@ func LoadLocalFileContent(path string) (string, error) {
 }
 
 func ExecuteTemplate(tplString string, data interface{}) (*bytes.Buffer, error) {
+	// Create template
+	tmpl := template.New("template-string-loaded")
+
 	// Load template from string
-	tmpl, err := template.
-		New("template-string-loaded").
+	tmpl, err := tmpl.
 		Funcs(sprig.TxtFuncMap()).
-		Funcs(s3ProxyFuncMap()).
+		Funcs(s3ProxyFuncMap(tmpl)).
 		Parse(tplString)
 	// Check if error exists
 	if err != nil {
@@ -122,9 +128,14 @@ func ExecuteTemplate(tplString string, data interface{}) (*bytes.Buffer, error) 
 	return buf, nil
 }
 
-func s3ProxyFuncMap() template.FuncMap {
+func s3ProxyFuncMap(t *template.Template) template.FuncMap {
+	// Initialize includedNames
+	// That will help detect nested loop references
+	includedNames := make(map[string]int)
+
 	// Result
 	funcMap := map[string]interface{}{}
+
 	// Add human size function
 	funcMap["humanSize"] = func(fmt int64) string {
 		return humanize.Bytes(uint64(fmt))
@@ -135,6 +146,26 @@ func s3ProxyFuncMap() template.FuncMap {
 	funcMap["requestScheme"] = generalutils.GetRequestScheme
 	// Add request host function
 	funcMap["requestHost"] = generalutils.GetRequestHost
+	// Add the 'include' function here so we can close over t.
+	// Copied from Helm: https://github.com/helm/helm/blob/3d1bc72827e4edef273fb3d8d8ded2a25fa6f39d/pkg/engine/engine.go#L112
+	funcMap["include"] = func(name string, data interface{}) (string, error) {
+		// Initialize buffer
+		var buf strings.Builder
+
+		if v, ok := includedNames[name]; ok {
+			if v > recursionMaxNums {
+				return "", errors.Wrapf(fmt.Errorf("unable to execute template"), "rendering template has a nested reference name: %s", name)
+			}
+			includedNames[name]++
+		} else {
+			includedNames[name] = 1
+		}
+
+		err := t.ExecuteTemplate(&buf, name, data)
+		includedNames[name]--
+
+		return buf.String(), err
+	}
 
 	// Return result
 	return template.FuncMap(funcMap)

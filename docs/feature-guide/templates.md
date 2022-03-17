@@ -26,6 +26,7 @@ In all these templates, S3-Proxy specific functions are available:
 - `requestURI` with `http.Request` input in order to get the full request URI from incoming request
 - `requestScheme` with `http.Request` input in order to get the scheme from incoming request
 - `requestHost` with `http.Request` input in order to get the hostname from incoming request
+- `include` with template name defined in helpers and context in order to execute a template with the ability to save result in a variable, use it pipelines, ... (Imported from [Helm](https://helm.sh/docs/howto/charts_tips_and_tricks/#using-the-include-function)). Example: `{{ $var := include "defined-name" . }}`
 
 ## Helpers
 

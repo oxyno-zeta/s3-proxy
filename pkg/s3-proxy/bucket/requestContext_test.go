@@ -2474,6 +2474,27 @@ func Test_requestContext_manageKeyRewrite(t *testing.T) {
 			args:           args{key: "/input1/input2/input3"},
 			want:           "fake",
 		},
+		{
+			name: "matching with template as target and general helpers with template affectation",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile("^/input.*$"),
+						Target: `{{ $main := include "main.userIdentifier" . }}
+{{ regexReplaceAll "/input1(/.*)" .Key (printf "/input1/%s${1}" $main) }}`,
+						TargetType: config.TemplateTargetKeyRewriteTargetType,
+					}},
+				},
+				generalHelpers: []string{"../../../templates/_helpers.tpl"},
+			},
+			responseHandlerGetRequestMockResult: responseHandlerGetRequestMockResult{
+				times: 1,
+				res:   reqMock,
+			},
+			userMockResult: userMock,
+			args:           args{key: "/input1/input2/input3"},
+			want:           "/input1/fake/input2/input3",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
