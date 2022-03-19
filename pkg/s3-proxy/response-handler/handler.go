@@ -132,11 +132,17 @@ func (h *handler) TargetList() {
 	// Get configuration
 	cfg := h.cfgManager.GetConfig()
 
+	// Create targets map[string]interface{}
+	targets := map[string]interface{}{}
+	for key, value := range cfg.Targets {
+		targets[key] = value
+	}
+
 	// Create data structure
 	data := targetListData{
 		Request: h.req,
 		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
-		Targets: cfg.Targets,
+		Targets: targets,
 	}
 
 	h.handleGenericAnswer(

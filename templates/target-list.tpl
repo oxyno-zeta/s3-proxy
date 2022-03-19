@@ -4,8 +4,8 @@
   {{- $mapKeys := keys .Targets -}}
   {{- $lastMapKey := last $mapKeys -}}
   {{- range $index, $key := $mapKeys -}}
-  {{ $target := get $root.Targets $key }}
-  {"name": "{{ js $key }}", "links": [
+  {{- $target := get $root.Targets $key -}}
+  {"name":{{ $key | toJson }},"links":[
     {{- $pathLen := len $target.Mount.Path -}}
     {{- range $index2, $value2 := $target.Mount.Path -}}
       {{- if eq $target.Mount.Host "" -}}
