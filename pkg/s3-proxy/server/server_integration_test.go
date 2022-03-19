@@ -74,6 +74,7 @@ func TestPublicRouter(t *testing.T) {
 		inputHeaders       map[string]string
 		expectedCode       int
 		expectedBody       string
+		expectedBodyRegex  string
 		expectedHeaders    map[string]string
 		notExpectedBody    string
 		wantErr            bool
@@ -156,6 +157,49 @@ func TestPublicRouter(t *testing.T) {
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/html; charset=utf-8",
 			},
+		},
+		{
+			name: "GET a folder without index document enabled (json)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/mount/folder1/",
+			inputHeaders: map[string]string{
+				"Accept": "application/json",
+			},
+			expectedCode: 200,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "application/json; charset=utf-8",
+			},
+			expectedBodyRegex: `[{"name": "index.html","etag": "\"e60d45d7337fb4367910a8fd09115c03\"","type": "FILE","size": 64,"path": "/mount/folder1/index.html","lastModified": "\s+"},{"name": "test.txt","etag": "\"c3e030a544fde7d10ea1aa8929354661\"","type": "FILE","size": 14,"path": "/mount/folder1/test.txt","lastModified": "\s+"}]`,
 		},
 		{
 			name: "GET a folder without index document enabled and custom folder list template override",
@@ -2615,15 +2659,16 @@ func TestPublicRouter(t *testing.T) {
 				}
 			}
 
-			if tt.name == "DELETE a path with success" {
-				fmt.Println("toto")
-			}
-
 			got.ServeHTTP(w, req)
 
 			if tt.expectedBody != "" {
 				body := w.Body.String()
 				assert.Equal(t, tt.expectedBody, body)
+			}
+
+			if tt.expectedBodyRegex != "" {
+				body := w.Body.String()
+				assert.Regexp(t, tt.expectedBodyRegex, body)
 			}
 
 			if tt.notExpectedBody != "" {
