@@ -9,9 +9,9 @@
     {{- $pathLen := len $target.Mount.Path -}}
     {{- range $index2, $value2 := $target.Mount.Path -}}
       {{- if eq $target.Mount.Host "" -}}
-      "{{ requestScheme $root.Request }}://{{ requestHost $root.Request }}{{ $value2 }}"
+      {{ printf "%s://%s%s" (requestScheme $root.Request) (requestHost $root.Request) $value2 | toJson }}
       {{- else -}}
-      "{{ requestScheme $root.Request }}://{{ $target.Mount.Host }}{{ $value2 }}"
+      {{ printf "%s://%s%s" (requestScheme $root.Request) ($target.Mount.Host) $value2 | toJson }}
       {{- end -}}{{- if ne $index2 (sub $pathLen 1) -}},{{- end -}}
     {{- end -}}
   ]}{{- if ne $lastMapKey $key -}},{{- end -}}
