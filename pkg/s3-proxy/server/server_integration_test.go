@@ -199,7 +199,7 @@ func TestPublicRouter(t *testing.T) {
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "application/json; charset=utf-8",
 			},
-			expectedBodyRegex: `[{"name": "index.html","etag": "\"e60d45d7337fb4367910a8fd09115c03\"","type": "FILE","size": 64,"path": "/mount/folder1/index.html","lastModified": "\s+"},{"name": "test.txt","etag": "\"c3e030a544fde7d10ea1aa8929354661\"","type": "FILE","size": 14,"path": "/mount/folder1/test.txt","lastModified": "\s+"}]`,
+			expectedBodyRegex: `[{"name": "index.html","etag": "\"e60d45d7337fb4367910a8fd09115c03\"","type": "FILE","size": 64,"path": "/mount/folder1/index.html","lastModified": "\S+"},{"name": "test.txt","etag": "\"c3e030a544fde7d10ea1aa8929354661\"","type": "FILE","size": 14,"path": "/mount/folder1/test.txt","lastModified": "\S+"}]`,
 		},
 		{
 			name: "GET a folder without index document enabled and custom folder list template override",
