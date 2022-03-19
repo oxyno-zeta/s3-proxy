@@ -1283,6 +1283,77 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
+			name: "GET target list protected with basic authentication and without any password (json)",
+			args: args{
+				cfg: &config.Config{
+					Server: svrCfg,
+					ListTargets: &config.ListTargetsConfig{
+						Enabled: true,
+						Mount: &config.MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &config.Resource{
+							Path:     "/*",
+							Methods:  []string{"GET"},
+							Provider: "provider1",
+							Basic: &config.ResourceBasic{
+								Credentials: []*config.BasicAuthUserConfig{
+									{
+										User: "user1",
+										Password: &config.CredentialConfig{
+											Value: "pass1",
+										},
+									},
+								},
+							},
+						},
+					},
+					Tracing: tracingConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Basic: map[string]*config.BasicAuthConfig{
+							"provider1": {
+								Realm: "realm1",
+							},
+						},
+					},
+					Templates: testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/",
+			inputHeaders: map[string]string{
+				"Accept": "application/json",
+			},
+			expectedCode: 401,
+			expectedBody: `{"error": "no basic auth detected in request"}`,
+			expectedHeaders: map[string]string{
+				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":     "application/json; charset=utf-8",
+				"Www-Authenticate": "Basic realm=\"realm1\"",
+			},
+		},
+		{
 			name: "GET target list protected with basic authentication and with wrong user",
 			args: args{
 				cfg: &config.Config{

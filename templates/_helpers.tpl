@@ -18,5 +18,5 @@ text/html; charset=utf-8
 
 {{- /* This will forge the json output of an error */ -}}
 {{- define "main.body.errorJsonBody" -}}
-{"error": "{{ js .Error }}"}
+{"error": {{ .Error.Error | toJson }}}
 {{- end -}}
