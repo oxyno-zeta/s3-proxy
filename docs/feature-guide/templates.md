@@ -29,6 +29,7 @@ In all these templates, S3-Proxy specific functions are available:
 - `include` with template name defined in helpers and context in order to execute a template with the ability to save result in a variable, use it pipelines, ... (Imported from [Helm](https://helm.sh/docs/howto/charts_tips_and_tricks/#using-the-include-function)). Example: `{{ $var := include "defined-name" . }}`
 - `toJson` will allow to transform a string to a JSON compatible one
 - `toYaml` will allow to transform a string to a YAML compatible one
+- `tpl` is inspired from the Helm one. It allows to render a template in a template rendering session. The first parameter is the template and the second, variables to use in
 
 ## Helpers
 
