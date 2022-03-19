@@ -166,6 +166,9 @@ func s3ProxyFuncMap(t *template.Template) template.FuncMap {
 
 		return buf.String(), err
 	}
+	// Copied from Helm
+	funcMap["toYaml"] = toYAML
+	funcMap["toJson"] = toJSON
 
 	// Return result
 	return template.FuncMap(funcMap)
