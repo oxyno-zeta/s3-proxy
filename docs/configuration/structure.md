@@ -299,11 +299,11 @@ You can found more information [here](../feature-guide/webhooks.md) about webhoo
 
 ## CredentialConfiguration
 
-| Key   | Type   | Required                           | Default | Description                                         |
-| ----- | ------ | ---------------------------------- | ------- | --------------------------------------------------- |
-| path  | String | Only if env and value are not set  | None    | File path contains credential in                    |
-| env   | String | Only if path and value are not set | None    | Environment variable name to use to load credential |
-| value | String | Only if path and env are not set   | None    | Credential value directly (Not recommended)         |
+| Key   | Type   | Required                           | Default | Description                                                                     |
+| ----- | ------ | ---------------------------------- | ------- | ------------------------------------------------------------------------------- |
+| path  | String | Only if env and value are not set  | None    | File path contains credential in (Values loaded will be cleaned from new lines) |
+| env   | String | Only if path and value are not set | None    | Environment variable name to use to load credential                             |
+| value | String | Only if path and env are not set   | None    | Credential value directly (Not recommended)                                     |
 
 ## AuthProvidersConfiguration
 
