@@ -373,6 +373,10 @@ linters:
     - contextcheck
     - nilnil
     - tenv
+    - containedctx
+    - errchkjson
+    - decorder
+    - grouper
   disable:
     - prealloc
     - gochecknoglobals
@@ -387,6 +391,7 @@ linters:
     - scopelint
     - ireturn
     - varnamelen
+    - maintidx
   disable-all: false
   presets:
     - bugs

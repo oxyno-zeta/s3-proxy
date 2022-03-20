@@ -151,14 +151,14 @@ ifndef HAS_GOLANGCI_LINT
 ifndef HAS_CURL
 	$(error You must install curl)
 endif
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.43.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.45.0
 endif
 ifndef HAS_GIT
 	$(error You must install Git)
 endif
 ifndef HAS_MOCKGEN
 	@echo "=> Installing mockgen tool"
-	go get -u github.com/golang/mock/mockgen@v1.6.0
+	go install github.com/golang/mock/mockgen@v1.6.0
 endif
 	go mod download all
 	go mod tidy

@@ -311,7 +311,9 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 			groups := make([]string, 0)
 			// Check if groups interface exists
 			if groupsInterface != nil {
+				// nolint: forcetypeassert // Ignore this
 				for _, item := range groupsInterface.([]interface{}) {
+					// nolint: forcetypeassert // Ignore this
 					groups = append(groups, item.(string))
 				}
 			}
