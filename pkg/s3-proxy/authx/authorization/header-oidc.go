@@ -5,7 +5,7 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func isOIDCAuthorizedBasic(groups []string, email string, authorizationAccesses []*config.OIDCAuthorizationAccess) bool {
+func isHeaderOIDCAuthorizedBasic(groups []string, email string, authorizationAccesses []*config.HeaderOIDCAuthorizationAccess) bool {
 	// Check if there is a list of groups or email
 	if len(authorizationAccesses) == 0 {
 		// No group or email => consider this as authentication only required => ok

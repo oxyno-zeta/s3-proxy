@@ -1631,6 +1631,694 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
+			name: "GET target list protected with header authentication with no email",
+			args: args{
+				cfg: &config.Config{
+					Server: svrCfg,
+					ListTargets: &config.ListTargetsConfig{
+						Enabled: true,
+						Mount: &config.MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &config.Resource{
+							Path:     "/*",
+							Methods:  []string{"GET"},
+							Provider: "provider1",
+							Header: &config.ResourceHeaderOIDC{
+								AuthorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{{
+									Email: "fake@fake.com",
+								}},
+							},
+						},
+					},
+					Tracing: tracingConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Header: map[string]*config.HeaderAuthConfig{
+							"provider1": {
+								UsernameHeader: "X-Username",
+								EmailHeader:    "X-Email",
+								GroupsHeader:   "X-Groups",
+							},
+						},
+					},
+					Templates: testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/",
+			inputHeaders: map[string]string{},
+			expectedCode: http.StatusInternalServerError,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Internal Server Error</h1>
+    <p>cannot find email value from header</p>
+  </body>
+</html>`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "GET target list protected with header authentication with no username",
+			args: args{
+				cfg: &config.Config{
+					Server: svrCfg,
+					ListTargets: &config.ListTargetsConfig{
+						Enabled: true,
+						Mount: &config.MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &config.Resource{
+							Path:     "/*",
+							Methods:  []string{"GET"},
+							Provider: "provider1",
+							Header: &config.ResourceHeaderOIDC{
+								AuthorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{{
+									Email: "fake@fake.com",
+								}},
+							},
+						},
+					},
+					Tracing: tracingConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Header: map[string]*config.HeaderAuthConfig{
+							"provider1": {
+								UsernameHeader: "X-Username",
+								EmailHeader:    "X-Email",
+								GroupsHeader:   "X-Groups",
+							},
+						},
+					},
+					Templates: testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/",
+			inputHeaders: map[string]string{
+				"X-Email": "fake@fake.com",
+			},
+			expectedCode: http.StatusInternalServerError,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Internal Server Error</h1>
+    <p>cannot find username value from header</p>
+  </body>
+</html>`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "GET target list protected with header authentication with success without any authorizations",
+			args: args{
+				cfg: &config.Config{
+					Server: svrCfg,
+					ListTargets: &config.ListTargetsConfig{
+						Enabled: true,
+						Mount: &config.MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &config.Resource{
+							Path:     "/*",
+							Methods:  []string{"GET"},
+							Provider: "provider1",
+							Header: &config.ResourceHeaderOIDC{
+								AuthorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{},
+							},
+						},
+					},
+					Tracing: tracingConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Header: map[string]*config.HeaderAuthConfig{
+							"provider1": {
+								UsernameHeader: "X-Username",
+								EmailHeader:    "X-Email",
+								GroupsHeader:   "X-Groups",
+							},
+						},
+					},
+					Templates: testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/",
+			inputHeaders: map[string]string{
+				"X-Email":    "fake@fake.com",
+				"X-Username": "fake-username",
+			},
+			expectedCode: http.StatusOK,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Target buckets list</h1>
+    <ul>
+        <li>target1:
+          <ul>
+            <li><a href="http://localhost/mount/">http://localhost/mount/</a></li>
+          </ul>
+        </li>
+    </ul>
+  </body>
+</html>`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "GET target list protected with header authentication with success with email authorization",
+			args: args{
+				cfg: &config.Config{
+					Server: svrCfg,
+					ListTargets: &config.ListTargetsConfig{
+						Enabled: true,
+						Mount: &config.MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &config.Resource{
+							Path:     "/*",
+							Methods:  []string{"GET"},
+							Provider: "provider1",
+							Header: &config.ResourceHeaderOIDC{
+								AuthorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{{
+									Email: "fake@fake.com",
+								}},
+							},
+						},
+					},
+					Tracing: tracingConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Header: map[string]*config.HeaderAuthConfig{
+							"provider1": {
+								UsernameHeader: "X-Username",
+								EmailHeader:    "X-Email",
+								GroupsHeader:   "X-Groups",
+							},
+						},
+					},
+					Templates: testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/",
+			inputHeaders: map[string]string{
+				"X-Email":    "fake@fake.com",
+				"X-Username": "fake-username",
+			},
+			expectedCode: http.StatusOK,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Target buckets list</h1>
+    <ul>
+        <li>target1:
+          <ul>
+            <li><a href="http://localhost/mount/">http://localhost/mount/</a></li>
+          </ul>
+        </li>
+    </ul>
+  </body>
+</html>`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "GET target list protected with header authentication with forbidden with email authorization",
+			args: args{
+				cfg: &config.Config{
+					Server: svrCfg,
+					ListTargets: &config.ListTargetsConfig{
+						Enabled: true,
+						Mount: &config.MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &config.Resource{
+							Path:     "/*",
+							Methods:  []string{"GET"},
+							Provider: "provider1",
+							Header: &config.ResourceHeaderOIDC{
+								AuthorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{{
+									Email: "fake@fake.com",
+								}},
+							},
+						},
+					},
+					Tracing: tracingConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Header: map[string]*config.HeaderAuthConfig{
+							"provider1": {
+								UsernameHeader: "X-Username",
+								EmailHeader:    "X-Email",
+								GroupsHeader:   "X-Groups",
+							},
+						},
+					},
+					Templates: testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/",
+			inputHeaders: map[string]string{
+				"X-Email":    "fake@fake.com2",
+				"X-Username": "fake-username",
+			},
+			expectedCode: http.StatusForbidden,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Forbidden</h1>
+    <p>forbidden user fake-username</p>
+  </body>
+</html>`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "GET target list protected with header authentication with forbidden with groups authorization",
+			args: args{
+				cfg: &config.Config{
+					Server: svrCfg,
+					ListTargets: &config.ListTargetsConfig{
+						Enabled: true,
+						Mount: &config.MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &config.Resource{
+							Path:     "/*",
+							Methods:  []string{"GET"},
+							Provider: "provider1",
+							Header: &config.ResourceHeaderOIDC{
+								AuthorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{{
+									Group: "group1",
+								}},
+							},
+						},
+					},
+					Tracing: tracingConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Header: map[string]*config.HeaderAuthConfig{
+							"provider1": {
+								UsernameHeader: "X-Username",
+								EmailHeader:    "X-Email",
+								GroupsHeader:   "X-Groups",
+							},
+						},
+					},
+					Templates: testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/",
+			inputHeaders: map[string]string{
+				"X-Email":    "fake@fake.com2",
+				"X-Username": "fake-username",
+				"X-Groups":   "group1,group2",
+			},
+			expectedCode: http.StatusOK,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Target buckets list</h1>
+    <ul>
+        <li>target1:
+          <ul>
+            <li><a href="http://localhost/mount/">http://localhost/mount/</a></li>
+          </ul>
+        </li>
+    </ul>
+  </body>
+</html>`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "GET target list protected with header authentication with forbidden with groups authorization",
+			args: args{
+				cfg: &config.Config{
+					Server: svrCfg,
+					ListTargets: &config.ListTargetsConfig{
+						Enabled: true,
+						Mount: &config.MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &config.Resource{
+							Path:     "/*",
+							Methods:  []string{"GET"},
+							Provider: "provider1",
+							Header: &config.ResourceHeaderOIDC{
+								AuthorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{{
+									Group: "group1",
+								}},
+							},
+						},
+					},
+					Tracing: tracingConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Header: map[string]*config.HeaderAuthConfig{
+							"provider1": {
+								UsernameHeader: "X-Username",
+								EmailHeader:    "X-Email",
+								GroupsHeader:   "X-Groups",
+							},
+						},
+					},
+					Templates: testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/",
+			inputHeaders: map[string]string{
+				"X-Email":    "fake@fake.com2",
+				"X-Username": "fake-username",
+				"X-Groups":   "group,group2",
+			},
+			expectedCode: http.StatusForbidden,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Forbidden</h1>
+    <p>forbidden user fake-username</p>
+  </body>
+</html>`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "GET target list protected with header authentication with forbidden with opa authorization",
+			args: args{
+				cfg: &config.Config{
+					Server: svrCfg,
+					ListTargets: &config.ListTargetsConfig{
+						Enabled: true,
+						Mount: &config.MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &config.Resource{
+							Path:     "/*",
+							Methods:  []string{"GET"},
+							Provider: "provider1",
+							Header: &config.ResourceHeaderOIDC{
+								AuthorizationOPAServer: &config.OPAServerAuthorization{
+									URL: "http://localhost:8181/v1/data/example/authz/allowed",
+								},
+							},
+						},
+					},
+					Tracing: tracingConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Header: map[string]*config.HeaderAuthConfig{
+							"provider1": {
+								UsernameHeader: "X-Username",
+								EmailHeader:    "X-Email",
+								GroupsHeader:   "X-Groups",
+							},
+						},
+					},
+					Templates: testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/",
+			inputHeaders: map[string]string{
+				"X-Email":    "fake@fake.com2",
+				"X-Username": "fake-username",
+				"X-Groups":   "group,group2",
+			},
+			expectedCode: http.StatusForbidden,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Forbidden</h1>
+    <p>forbidden user fake-username</p>
+  </body>
+</html>`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "GET target list protected with header authentication with success with opa authorization",
+			args: args{
+				cfg: &config.Config{
+					Server: svrCfg,
+					ListTargets: &config.ListTargetsConfig{
+						Enabled: true,
+						Mount: &config.MountConfig{
+							Path: []string{"/"},
+						},
+						Resource: &config.Resource{
+							Path:     "/*",
+							Methods:  []string{"GET"},
+							Provider: "provider1",
+							Header: &config.ResourceHeaderOIDC{
+								AuthorizationOPAServer: &config.OPAServerAuthorization{
+									URL: "http://localhost:8181/v1/data/example/authz/allowed",
+								},
+							},
+						},
+					},
+					Tracing: tracingConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Header: map[string]*config.HeaderAuthConfig{
+							"provider1": {
+								UsernameHeader: "X-Username",
+								EmailHeader:    "X-Email",
+								GroupsHeader:   "X-Groups",
+							},
+						},
+					},
+					Templates: testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "GET",
+			inputURL:    "http://localhost/",
+			inputHeaders: map[string]string{
+				"X-Email":    "fake@fake.com2",
+				"X-Username": "fake-username",
+				"X-Groups":   "group1,group2",
+			},
+			expectedCode: http.StatusOK,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Target buckets list</h1>
+    <ul>
+        <li>target1:
+          <ul>
+            <li><a href="http://localhost/mount/">http://localhost/mount/</a></li>
+          </ul>
+        </li>
+    </ul>
+  </body>
+</html>`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
 			name: "GET index document with index document enabled with success",
 			args: args{
 				cfg: &config.Config{
@@ -2945,8 +3633,8 @@ func TestOIDCAuthentication(t *testing.T) {
 					Path:     "/mount/folder1/*",
 					Methods:  []string{"GET"},
 					Provider: "provider1",
-					OIDC: &config.ResourceOIDC{
-						AuthorizationAccesses: []*config.OIDCAuthorizationAccess{},
+					OIDC: &config.ResourceHeaderOIDC{
+						AuthorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{},
 					},
 				},
 			},
@@ -2974,8 +3662,8 @@ func TestOIDCAuthentication(t *testing.T) {
 					Path:     "/mount-multiple-provider/folder1/*",
 					Methods:  []string{"GET"},
 					Provider: "provider2",
-					OIDC: &config.ResourceOIDC{
-						AuthorizationAccesses: []*config.OIDCAuthorizationAccess{},
+					OIDC: &config.ResourceHeaderOIDC{
+						AuthorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{},
 					},
 				},
 			},
@@ -3003,7 +3691,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Path:     "/mount-opa-server/folder1/*",
 					Methods:  []string{"GET"},
 					Provider: "provider1",
-					OIDC: &config.ResourceOIDC{
+					OIDC: &config.ResourceHeaderOIDC{
 						AuthorizationOPAServer: &config.OPAServerAuthorization{
 							URL: "http://localhost:8181/v1/data/example/authz/allowed",
 						},
@@ -3034,7 +3722,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					Path:     "/mount-wrong-opa-server-url/folder1/*",
 					Methods:  []string{"GET"},
 					Provider: "provider1",
-					OIDC: &config.ResourceOIDC{
+					OIDC: &config.ResourceHeaderOIDC{
 						AuthorizationOPAServer: &config.OPAServerAuthorization{
 							URL: "http://fake.fake",
 						},
@@ -3065,8 +3753,8 @@ func TestOIDCAuthentication(t *testing.T) {
 					Path:     "/mount-with-group/folder1/*",
 					Methods:  []string{"GET"},
 					Provider: "provider1",
-					OIDC: &config.ResourceOIDC{
-						AuthorizationAccesses: []*config.OIDCAuthorizationAccess{
+					OIDC: &config.ResourceHeaderOIDC{
+						AuthorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{
 							{
 								Group: "group1",
 							},

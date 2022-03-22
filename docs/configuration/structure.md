@@ -17,7 +17,7 @@ You can see a full example in the [Example section](./example.md)
 | internalServer | [ServerConfiguration](#serverconfiguration)               | No       | None    | Internal Server configurations                                                                                      |
 | template       | [TemplateConfiguration](#templateconfiguration)           | No       | None    | Template configurations                                                                                             |
 | targets        | Map[String][targetconfiguration](#targetconfiguration)    | No       | None    | Targets configuration. Map key will be considered as the target name. (This will used in urls and list of targets.) |
-| authProviders  | [AuthProvidersConfiguration](#authProvidersconfiguration) | No       | None    | Authentication providers configuration                                                                              |
+| authProviders  | [AuthProvidersConfiguration](#authprovidersconfiguration) | No       | None    | Authentication providers configuration                                                                              |
 | listTargets    | [ListTargetsConfiguration](#listtargetsconfiguration)     | No       | None    | List targets feature configuration                                                                                  |
 
 ## LogConfiguration
@@ -307,10 +307,26 @@ You can found more information [here](../feature-guide/webhooks.md) about webhoo
 
 ## AuthProvidersConfiguration
 
-| Key   | Type                                                         | Required | Default | Description                                       |
-| ----- | ------------------------------------------------------------ | -------- | ------- | ------------------------------------------------- |
-| basic | [map[string]BasicAuthConfiguration](#basicauthconfiguration) | No       | None    | Basic Auth configuration and key as provider name |
-| oidc  | [map[string]OIDCAuthConfiguration](#oidcauthconfiguration)   | No       | None    | OIDC Auth configuration and key as provider name  |
+| Key    | Type                                                           | Required | Default | Description                                        |
+| ------ | -------------------------------------------------------------- | -------- | ------- | -------------------------------------------------- |
+| basic  | [map[string]BasicAuthConfiguration](#basicauthconfiguration)   | No       | None    | Basic Auth configuration and key as provider name  |
+| oidc   | [map[string]OIDCAuthConfiguration](#oidcauthconfiguration)     | No       | None    | OIDC Auth configuration and key as provider name   |
+| header | [map[string]HeaderAuthConfiguration](#headerauthconfiguration) | No       | None    | Header Auth configuration and key as provider name |
+
+## HeaderAuthConfiguration
+
+This authentication method should be used only with a software like [Oauth2-proxy](https://github.com/oauth2-proxy/oauth2-proxy) or an authentication gateway that put headers with user information inside.
+
+<!-- prettier-ignore-start -->
+!!! Warning
+    S3-proxy won't validate headers value or anything else. It will take values as they are coming.
+<!-- prettier-ignore-end -->
+
+| Key            | Type     | Required | Default | Description                                                                  |
+| -------------- | -------- | -------- | ------- | ---------------------------------------------------------------------------- |
+| usernameHeader | String   | Yes      | None    | Username header                                                              |
+| emailHeader    | String   | Yes      | None    | Email header                                                                 |
+| groupsHeader   | [String] | No       | `""`    | Groups header. Note: Value must be a list of groups separated by comas (`,`) |
 
 ## OIDCAuthConfiguration
 
@@ -338,20 +354,21 @@ You can found more information [here](../feature-guide/webhooks.md) about webhoo
 
 ## Resource
 
-| Key       | Type                            | Required                            | Default | Description                                                  |
-| --------- | ------------------------------- | ----------------------------------- | ------- | ------------------------------------------------------------ |
-| path      | String                          | Yes                                 | None    | Path or matching path (e.g.: `/*`)                           |
-| methods   | [String]                        | No                                  | `[GET]` | HTTP methods allowed (Allowed values `GET`, `PUT`, `DELETE`) |
-| whiteList | Boolean                         | Required without oidc or basic      | None    | Is this path in white list ? E.g.: No authentication         |
-| oidc      | [ResourceOIDC](#resourceoidc)   | Required without whitelist or oidc  | None    | OIDC configuration authorization                             |
-| basic     | [ResourceBasic](#resourcebasic) | Required without whitelist or basic | None    | Basic auth configuration                                     |
+| Key       | Type                                      | Required                                    | Default | Description                                                  |
+| --------- | ----------------------------------------- | ------------------------------------------- | ------- | ------------------------------------------------------------ |
+| path      | String                                    | Yes                                         | None    | Path or matching path (e.g.: `/*`)                           |
+| methods   | [String]                                  | No                                          | `[GET]` | HTTP methods allowed (Allowed values `GET`, `PUT`, `DELETE`) |
+| whiteList | Boolean                                   | Required without oidc or basic              | None    | Is this path in white list ? E.g.: No authentication         |
+| basic     | [ResourceBasic](#resourcebasic)           | Required without whitelist, oidc or header  | None    | Basic auth configuration                                     |
+| oidc      | [ResourceHeaderOIDC](#resourceheaderoidc) | Required without whitelist, basic or header | None    | OIDC configuration authorization                             |
+| header    | [ResourceHeaderOIDC](#resourceheaderoidc) | Required without whitelist, oidc or basic   | None    | Header configuration authorization                           |
 
-## ResourceOIDC
+## ResourceHeaderOIDC
 
-| Key                    | Type                                                      | Required | Default | Description                                                                                                                                                                               |
-| ---------------------- | --------------------------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| authorizationAccesses  | [[OIDCAuthorizationAccesses]](#oidcauthorizationaccesses) | No       | None    | Authorization accesses matrix by group or email. If not set, authenticated users will be authorized (no group or email validation will be performed if authorizationOPAServer isn't set). |
-| authorizationOPAServer | [OPAServerAuthorization](#opaserverauthorization)         | No       | None    | Authorization through an OPA (Open Policy Agent) server                                                                                                                                   |
+| Key                    | Type                                                                  | Required | Default | Description                                                                                                                                                                               |
+| ---------------------- | --------------------------------------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| authorizationAccesses  | [[HeaderOIDCAuthorizationAccesses]](#headeroidcauthorizationaccesses) | No       | None    | Authorization accesses matrix by group or email. If not set, authenticated users will be authorized (no group or email validation will be performed if authorizationOPAServer isn't set). |
+| authorizationOPAServer | [OPAServerAuthorization](#opaserverauthorization)                     | No       | None    | Authorization through an OPA (Open Policy Agent) server                                                                                                                                   |
 
 ## OPAServerAuthorization
 
@@ -360,7 +377,7 @@ You can found more information [here](../feature-guide/webhooks.md) about webhoo
 | url  | String            | Yes      | None    | URL of the OPA server including the data path (see the dedicated section for [OPA](../feature-guide/opa.md))         |
 | tags | Map[String]String | No       | `{}`    | Data that will be added as tags in the OPA input data (see the dedicated section for [OPA](../feature-guide/opa.md)) |
 
-## OIDCAuthorizationAccesses
+## HeaderOIDCAuthorizationAccesses
 
 | Key    | Type    | Required               | Default | Description                                    |
 | ------ | ------- | ---------------------- | ------- | ---------------------------------------------- |

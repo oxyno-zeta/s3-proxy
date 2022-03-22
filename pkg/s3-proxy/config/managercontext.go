@@ -732,7 +732,7 @@ func loadKeyRewriteValues(item *TargetKeyRewriteConfig) error {
 }
 
 // Load Regex in OIDC Authorization access objects.
-func loadRegexOIDCAuthorizationAccess(item *OIDCAuthorizationAccess) error {
+func loadRegexOIDCAuthorizationAccess(item *HeaderOIDCAuthorizationAccess) error {
 	if item.Regexp {
 		// Try to compile regex for group or email
 		// Group case

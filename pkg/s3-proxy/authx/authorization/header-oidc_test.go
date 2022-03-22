@@ -7,11 +7,11 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 )
 
-func Test_isOIDCAuthorizedBasic(t *testing.T) {
+func Test_isHeaderOIDCAuthorizedBasic(t *testing.T) {
 	type args struct {
 		groups                []string
 		email                 string
-		authorizationAccesses []*config.OIDCAuthorizationAccess
+		authorizationAccesses []*config.HeaderOIDCAuthorizationAccess
 	}
 	tests := []struct {
 		name string
@@ -23,7 +23,7 @@ func Test_isOIDCAuthorizedBasic(t *testing.T) {
 			args: args{
 				groups:                make([]string, 0),
 				email:                 "",
-				authorizationAccesses: make([]*config.OIDCAuthorizationAccess, 0),
+				authorizationAccesses: make([]*config.HeaderOIDCAuthorizationAccess, 0),
 			},
 			want: true,
 		},
@@ -32,7 +32,7 @@ func Test_isOIDCAuthorizedBasic(t *testing.T) {
 			args: args{
 				groups:                []string{"group1"},
 				email:                 "",
-				authorizationAccesses: make([]*config.OIDCAuthorizationAccess, 0),
+				authorizationAccesses: make([]*config.HeaderOIDCAuthorizationAccess, 0),
 			},
 			want: true,
 		},
@@ -41,7 +41,7 @@ func Test_isOIDCAuthorizedBasic(t *testing.T) {
 			args: args{
 				groups:                make([]string, 0),
 				email:                 "email@test.test",
-				authorizationAccesses: make([]*config.OIDCAuthorizationAccess, 0),
+				authorizationAccesses: make([]*config.HeaderOIDCAuthorizationAccess, 0),
 			},
 			want: true,
 		},
@@ -50,7 +50,7 @@ func Test_isOIDCAuthorizedBasic(t *testing.T) {
 			args: args{
 				groups: []string{"test"},
 				email:  "email@test.test",
-				authorizationAccesses: []*config.OIDCAuthorizationAccess{
+				authorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{
 					{Group: "valid1"},
 				},
 			},
@@ -61,7 +61,7 @@ func Test_isOIDCAuthorizedBasic(t *testing.T) {
 			args: args{
 				groups: []string{"valid2"},
 				email:  "email@test.test",
-				authorizationAccesses: []*config.OIDCAuthorizationAccess{
+				authorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{
 					{Group: "valid1"},
 					{Group: "valid2"},
 				},
@@ -73,7 +73,7 @@ func Test_isOIDCAuthorizedBasic(t *testing.T) {
 			args: args{
 				groups: []string{"valid2"},
 				email:  "email@test.test",
-				authorizationAccesses: []*config.OIDCAuthorizationAccess{
+				authorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{
 					{Email: "valid@test.test"},
 					{Group: "valid1"},
 					{Group: "valid2"},
@@ -86,7 +86,7 @@ func Test_isOIDCAuthorizedBasic(t *testing.T) {
 			args: args{
 				groups: make([]string, 0),
 				email:  "email@test.test",
-				authorizationAccesses: []*config.OIDCAuthorizationAccess{
+				authorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{
 					{Email: "valid@test.test"},
 				},
 			},
@@ -97,7 +97,7 @@ func Test_isOIDCAuthorizedBasic(t *testing.T) {
 			args: args{
 				groups: []string{"valid2"},
 				email:  "email@test.test",
-				authorizationAccesses: []*config.OIDCAuthorizationAccess{
+				authorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{
 					{Email: "email@test.test"},
 				},
 			},
@@ -108,7 +108,7 @@ func Test_isOIDCAuthorizedBasic(t *testing.T) {
 			args: args{
 				groups: []string{"valid2"},
 				email:  "email@test.test",
-				authorizationAccesses: []*config.OIDCAuthorizationAccess{
+				authorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{
 					{Email: "email@test.test"},
 					{Group: "valid1"},
 					{Group: "valid2"},
@@ -121,7 +121,7 @@ func Test_isOIDCAuthorizedBasic(t *testing.T) {
 			args: args{
 				groups: []string{"test"},
 				email:  "email@test.test",
-				authorizationAccesses: []*config.OIDCAuthorizationAccess{
+				authorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{
 					{
 						Regexp:      true,
 						Group:       "valid.*",
@@ -136,7 +136,7 @@ func Test_isOIDCAuthorizedBasic(t *testing.T) {
 			args: args{
 				groups: []string{"test", "valid2"},
 				email:  "email@test.test",
-				authorizationAccesses: []*config.OIDCAuthorizationAccess{
+				authorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{
 					{
 						Regexp:      true,
 						Group:       "valid.*",
@@ -151,7 +151,7 @@ func Test_isOIDCAuthorizedBasic(t *testing.T) {
 			args: args{
 				groups: make([]string, 0),
 				email:  "email@test.test",
-				authorizationAccesses: []*config.OIDCAuthorizationAccess{
+				authorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{
 					{
 						Regexp:      true,
 						Email:       ".*@valid.test",
@@ -166,7 +166,7 @@ func Test_isOIDCAuthorizedBasic(t *testing.T) {
 			args: args{
 				groups: make([]string, 0),
 				email:  "email@valid.test",
-				authorizationAccesses: []*config.OIDCAuthorizationAccess{
+				authorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{
 					{
 						Regexp:      true,
 						Email:       ".*@valid.test",
@@ -179,8 +179,8 @@ func Test_isOIDCAuthorizedBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := isOIDCAuthorizedBasic(tt.args.groups, tt.args.email, tt.args.authorizationAccesses); got != tt.want {
-				t.Errorf("isOIDCAuthorizedBasic() = %v, want %v", got, tt.want)
+			if got := isHeaderOIDCAuthorizedBasic(tt.args.groups, tt.args.email, tt.args.authorizationAccesses); got != tt.want {
+				t.Errorf("isHeaderOIDCAuthorizedBasic() = %v, want %v", got, tt.want)
 			}
 		})
 	}

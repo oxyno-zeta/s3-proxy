@@ -180,8 +180,8 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					ListTargets: &ListTargetsConfig{
 						Enabled: true,
 						Resource: &Resource{
-							OIDC: &ResourceOIDC{
-								AuthorizationAccesses: []*OIDCAuthorizationAccess{
+							OIDC: &ResourceHeaderOIDC{
+								AuthorizationAccesses: []*HeaderOIDCAuthorizationAccess{
 									{
 										Group:  ".*",
 										Regexp: true,
@@ -198,8 +198,8 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					Enabled: true,
 					Resource: &Resource{
 						Methods: []string{"GET"},
-						OIDC: &ResourceOIDC{
-							AuthorizationAccesses: []*OIDCAuthorizationAccess{
+						OIDC: &ResourceHeaderOIDC{
+							AuthorizationAccesses: []*HeaderOIDCAuthorizationAccess{
 								{
 									Group:       ".*",
 									Regexp:      true,
@@ -219,8 +219,8 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					ListTargets: &ListTargetsConfig{
 						Enabled: true,
 						Resource: &Resource{
-							OIDC: &ResourceOIDC{
-								AuthorizationAccesses: []*OIDCAuthorizationAccess{
+							OIDC: &ResourceHeaderOIDC{
+								AuthorizationAccesses: []*HeaderOIDCAuthorizationAccess{
 									{
 										Email:  ".*",
 										Regexp: true,
@@ -237,8 +237,8 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					Enabled: true,
 					Resource: &Resource{
 						Methods: []string{"GET"},
-						OIDC: &ResourceOIDC{
-							AuthorizationAccesses: []*OIDCAuthorizationAccess{
+						OIDC: &ResourceHeaderOIDC{
+							AuthorizationAccesses: []*HeaderOIDCAuthorizationAccess{
 								{
 									Email:       ".*",
 									Regexp:      true,
@@ -310,8 +310,8 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 							Bucket:  &BucketConfig{Region: "test", S3ListMaxKeys: 100},
 							Resources: []*Resource{
 								{
-									OIDC: &ResourceOIDC{
-										AuthorizationAccesses: []*OIDCAuthorizationAccess{
+									OIDC: &ResourceHeaderOIDC{
+										AuthorizationAccesses: []*HeaderOIDCAuthorizationAccess{
 											{
 												Email:  ".*",
 												Regexp: true,
@@ -335,8 +335,8 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 						Resources: []*Resource{
 							{
 								Methods: []string{"GET"},
-								OIDC: &ResourceOIDC{
-									AuthorizationAccesses: []*OIDCAuthorizationAccess{
+								OIDC: &ResourceHeaderOIDC{
+									AuthorizationAccesses: []*HeaderOIDCAuthorizationAccess{
 										{
 											Email:       ".*",
 											Regexp:      true,
@@ -645,7 +645,7 @@ func Test_loadResourceValues(t *testing.T) {
 			name: "default OPA tags",
 			args: args{
 				res: &Resource{
-					OIDC: &ResourceOIDC{
+					OIDC: &ResourceHeaderOIDC{
 						AuthorizationOPAServer: &OPAServerAuthorization{
 							URL: "http://opa",
 						},
@@ -654,7 +654,7 @@ func Test_loadResourceValues(t *testing.T) {
 			},
 			out: &Resource{
 				Methods: []string{"GET"},
-				OIDC: &ResourceOIDC{
+				OIDC: &ResourceHeaderOIDC{
 					AuthorizationOPAServer: &OPAServerAuthorization{
 						URL:  "http://opa",
 						Tags: map[string]string{},

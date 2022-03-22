@@ -196,6 +196,15 @@ log:
 
 # Authentication Providers
 # authProviders:
+#   # Header providers
+#   # This authentication method should be used only with a software like [Oauth2-proxy](https://github.com/oauth2-proxy/oauth2-proxy) or an authentication gateway that put headers with user information inside.
+#   # Warning: S3-proxy won't validate headers value or anything else. It will take values as they are coming.
+#   header:
+#     oauth2-proxy:
+#       usernameHeader: x-forwarded-preferred-username
+#       emailHeader: x-forwarded-email
+#       groupsHeader: x-forwarded-groups
+#   # OIDC providers
 #   oidc:
 #     provider1:
 #       clientID: client-id
@@ -215,6 +224,7 @@ log:
 #       emailVerified: true # check email verified field from token
 #       # loginPath: /auth/provider1 # Override login path dynamically generated from provider key
 #       # callbackPath: /auth/provider1/callback # Override callback path dynamically generated from provider key
+#   # Basic auth providers
 #   basic:
 #     provider2:
 #       realm: My Basic Auth Realm
@@ -245,6 +255,11 @@ log:
 #     provider: provider1
 #     # OIDC section for access filter
 #     oidc:
+#       # NOTE: This list can be empty ([]) for authentication only and no group filter
+#       authorizationAccesses: # Authorization accesses : groups or email or regexp
+#         - group: devops_users
+#     # Header section for access filter
+#     header:
 #       # NOTE: This list can be empty ([]) for authentication only and no group filter
 #       authorizationAccesses: # Authorization accesses : groups or email or regexp
 #         - group: devops_users

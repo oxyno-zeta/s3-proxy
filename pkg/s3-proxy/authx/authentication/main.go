@@ -92,7 +92,15 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 			// Check if OIDC is enabled
 			if res.OIDC != nil {
 				logEntry.Debug("authentication with oidc detected")
-				s.oidcAuthorizationMiddleware(res)(next).ServeHTTP(w, r)
+				s.oidcAuthMiddleware(res)(next).ServeHTTP(w, r)
+
+				return
+			}
+
+			// Check if Header auth is enabled
+			if res.Header != nil {
+				logEntry.Debug("authentication with header detected")
+				s.headerAuthMiddleware(res)(next).ServeHTTP(w, r)
 
 				return
 			}

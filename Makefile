@@ -124,6 +124,10 @@ down/metrics-services:
 	docker rm -f prometheus || true
 	docker rm -f grafana || true
 
+.PHONY: down/oauth2-proxy-services
+down/oauth2-proxy-services:
+	docker rm -f oauth2-proxy || true
+
 .PHONY: setup/metrics-services
 setup/metrics-services:
 	docker run --rm -d --name prometheus -v $(CURRENT_DIR)/local-resources/prometheus/prometheus.yml:/prometheus/prometheus.yml --network=host prom/prometheus:v2.18.0 --web.listen-address=:9191
@@ -139,6 +143,16 @@ setup/services: down/services
 	tar czvf local-resources/opa/bundle.tar.gz --directory=local-resources/opa/bundle example/
 	docker run -d --rm --name opa -p 8181:8181 -v $(CURRENT_DIR)/local-resources/opa/bundle.tar.gz:/bundle.tar.gz openpolicyagent/opa run --server --log-level debug --log-format text --bundle /bundle.tar.gz
 	docker run -d --rm --name keycloak -p 8088:8080 -e KEYCLOAK_IMPORT=/tmp/realm-export.json -v $(CURRENT_DIR)/local-resources/keycloak/realm-export.json:/tmp/realm-export.json -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin quay.io/keycloak/keycloak:11.0.3
+
+.PHONY: setup/oauth2-proxy-services
+setup/oauth2-proxy-services: down/oauth2-proxy-services
+	# --skip-jwt-bearer-tokens enable the feature of accepting Authorization headers with Bearer TOKEN inside and not just only cookies
+	# See code: https://github.com/oauth2-proxy/oauth2-proxy/blob/f6ae15e8c37b15c7cc29332c1f070a06bc503dc7/oauthproxy.go#L260
+	docker run -d --rm --network=host --name oauth2-proxy quay.io/oauth2-proxy/oauth2-proxy:v7.2.1 \
+		--cookie-secret=SJ3QEg6Q0levwH5XAZjKKQ== --client-id=client-without-secret --email-domain="*" --provider=oidc \
+		--oidc-issuer-url="http://localhost:8088/auth/realms/integration" --client-secret="fake" --cookie-secure=false --cookie-name="oidc" \
+		--upstream="http://localhost:8080" --pass-authorization-header --pass-host-header --skip-provider-button --skip-jwt-bearer-tokens \
+		--skip-auth-preflight
 
 .PHONY: setup/docs
 setup/docs:

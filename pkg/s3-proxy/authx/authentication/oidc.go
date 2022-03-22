@@ -220,7 +220,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 	return nil
 }
 
-func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Handler) http.Handler {
+func (s *service) oidcAuthMiddleware(res *config.Resource) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Get oidc configuration
