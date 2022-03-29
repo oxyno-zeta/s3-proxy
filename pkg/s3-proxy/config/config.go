@@ -113,6 +113,12 @@ const DefaultOIDCGroupClaim = "groups"
 // DefaultOIDCCookieName Default OIDC Cookie name.
 const DefaultOIDCCookieName = "oidc"
 
+// RegexTargetKeyRewriteTargetType Regex target key rewrite Target type.
+const RegexTargetKeyRewriteTargetType = "REGEX"
+
+// TemplateTargetKeyRewriteTargetType Template Target key rewrite Target type.
+const TemplateTargetKeyRewriteTargetType = "TEMPLATE"
+
 // ErrMainBucketPathSupportNotValid Error thrown when main bucket path support option isn't valid.
 var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support option can be enabled only when only one bucket is configured")
 
@@ -159,8 +165,9 @@ type MountConfig struct {
 
 // AuthProviderConfig Authentication provider configurations.
 type AuthProviderConfig struct {
-	Basic map[string]*BasicAuthConfig `mapstructure:"basic" validate:"omitempty,dive"`
-	OIDC  map[string]*OIDCAuthConfig  `mapstructure:"oidc" validate:"omitempty,dive"`
+	Basic  map[string]*BasicAuthConfig  `mapstructure:"basic" validate:"omitempty,dive"`
+	OIDC   map[string]*OIDCAuthConfig   `mapstructure:"oidc" validate:"omitempty,dive"`
+	Header map[string]*HeaderAuthConfig `mapstructure:"header" validate:"omitempty,dive"`
 }
 
 // OIDCAuthConfig OpenID Connect authentication configurations.
@@ -180,8 +187,8 @@ type OIDCAuthConfig struct {
 	CallbackPath  string            `mapstructure:"callbackPath"`
 }
 
-// OIDCAuthorizationAccess OpenID Connect authorization accesses.
-type OIDCAuthorizationAccess struct {
+// HeaderOIDCAuthorizationAccess OpenID Connect or Header authorization accesses.
+type HeaderOIDCAuthorizationAccess struct {
 	Group       string `mapstructure:"group" validate:"required_without=Email"`
 	Email       string `mapstructure:"email" validate:"required_without=Group"`
 	Regexp      bool   `mapstructure:"regexp"`
@@ -192,6 +199,13 @@ type OIDCAuthorizationAccess struct {
 // BasicAuthConfig Basic auth configurations.
 type BasicAuthConfig struct {
 	Realm string `mapstructure:"realm" validate:"required"`
+}
+
+// HeaderAuthConfig Header auth configuration.
+type HeaderAuthConfig struct {
+	UsernameHeader string `mapstructure:"usernameHeader" validate:"required"`
+	EmailHeader    string `mapstructure:"emailHeader" validate:"required"`
+	GroupsHeader   string `mapstructure:"groupsHeader"`
 }
 
 // BasicAuthUserConfig Basic User auth configuration.
@@ -306,6 +320,7 @@ type TargetKeyRewriteConfig struct {
 	Source      string `mapstructure:"source" validate:"required,min=1"`
 	SourceRegex *regexp.Regexp
 	Target      string `mapstructure:"target" validate:"required,min=1"`
+	TargetType  string `mapstructure:"targetType" validate:"required,oneof=REGEX TEMPLATE"`
 }
 
 // TargetTemplateConfig Target templates configuration to override default ones.
@@ -394,12 +409,13 @@ type WebhookConfig struct {
 
 // Resource Resource.
 type Resource struct {
-	Path      string         `mapstructure:"path" validate:"required"`
-	Methods   []string       `mapstructure:"methods" validate:"required,dive,required"`
-	WhiteList *bool          `mapstructure:"whiteList"`
-	Provider  string         `mapstructure:"provider"`
-	Basic     *ResourceBasic `mapstructure:"basic" validate:"omitempty"`
-	OIDC      *ResourceOIDC  `mapstructure:"oidc" validate:"omitempty"`
+	Path      string              `mapstructure:"path" validate:"required"`
+	Methods   []string            `mapstructure:"methods" validate:"required,dive,required"`
+	WhiteList *bool               `mapstructure:"whiteList"`
+	Provider  string              `mapstructure:"provider"`
+	Basic     *ResourceBasic      `mapstructure:"basic" validate:"omitempty"`
+	OIDC      *ResourceHeaderOIDC `mapstructure:"oidc" validate:"omitempty"`
+	Header    *ResourceHeaderOIDC `mapstructure:"header" validate:"omitempty"`
 }
 
 // ResourceBasic Basic auth resource.
@@ -407,10 +423,10 @@ type ResourceBasic struct {
 	Credentials []*BasicAuthUserConfig `mapstructure:"credentials" validate:"omitempty,dive"`
 }
 
-// ResourceOIDC OIDC auth Resource.
-type ResourceOIDC struct {
-	AuthorizationAccesses  []*OIDCAuthorizationAccess `mapstructure:"authorizationAccesses" validate:"omitempty,dive"`
-	AuthorizationOPAServer *OPAServerAuthorization    `mapstructure:"authorizationOPAServer" validate:"omitempty,dive"`
+// ResourceHeaderOIDC OIDC or Header auth Resource.
+type ResourceHeaderOIDC struct {
+	AuthorizationAccesses  []*HeaderOIDCAuthorizationAccess `mapstructure:"authorizationAccesses" validate:"omitempty,dive"`
+	AuthorizationOPAServer *OPAServerAuthorization          `mapstructure:"authorizationOPAServer" validate:"omitempty,dive"`
 }
 
 // OPAServerAuthorization OPA Server authorization.

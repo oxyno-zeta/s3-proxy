@@ -27,6 +27,7 @@ There are some things that should be known about this feature:
 - The index document feature is called **after** the key rewrite feature. So the source key won't contains any `indexDocument` inside.
 - The `redirectWithTrailingSlashForNotFoundFile` feature is also called **after** the key rewrite feature.
 - For PUT and DELETE actions, the entire key is provided before calling the key rewrite feature. This means that the file name is included in the source key. This is done on purpose because DELETE and PUT actions are done on files, so it should be included in source key before calling the key rewrite feature.
+- Sometimes, simple Regexp aren't enough. There is a possibility to use Golang templates for target templates and have access to data of incoming requests.
 
 ## For which situations ?
 
@@ -126,3 +127,51 @@ targets:
 ```
 
 The S3 key result of this request will be : `/folder1/redirected/file.html`.
+
+### Simple target as Golang template
+
+This example will show a simple key rewrite without any group name or capture.
+
+In this example, we will consider this request `GET /file.html` with a User connected with username `myuser` and the following configuration:
+
+```yaml linenums="1"
+# ...
+targets:
+  - name: test
+    # ...
+    keyRewriteList:
+      - source: ^/file.html$
+        targetType: TEMPLATE
+        target: "/{{ .User.Username }}/redirected/file.html"
+    bucket:
+      # ...
+      prefix: ""
+```
+
+The S3 key result of this request will be : `/myuser/redirected/file.html`.
+
+See in [TargetKeyRewriteData](../templates#targetkeyrewritedata) available for templates.
+
+### Advanced target as Golang template
+
+This example will show a simple key rewrite without any group name or capture.
+
+In this example, we will consider this request `GET /input1/input2/file.html` with a User connected with username `myuser` and the following configuration:
+
+```yaml linenums="1"
+# ...
+targets:
+  - name: test
+    # ...
+    keyRewriteList:
+      - source: ^/input.*$
+        targetType: TEMPLATE
+        target: "{{ regexReplaceAll "/input1(/.*)" .Key (printf "/input1/%s${1}" .User.Username) }}"
+    bucket:
+      # ...
+      prefix: ""
+```
+
+The S3 key result of this request will be : `/input1/myuser/input2/file.html`.
+
+See in [TargetKeyRewriteData](../templates#targetkeyrewritedata) available for templates.

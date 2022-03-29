@@ -267,8 +267,15 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				// Add middleware in order to add response handler
 				rt2.Use(responsehandler.HTTPMiddleware(svr.cfgManager, targetKey))
 
+				// Store helpers
+				var generalHelpers []string
+				// Check if they are set
+				if cfg.Templates != nil && cfg.Templates.Helpers != nil {
+					generalHelpers = cfg.Templates.Helpers
+				}
+
 				// Add Bucket request context middleware to initialize it
-				rt2.Use(bucket.HTTPMiddleware(tgt, path, svr.s3clientManager, svr.webhookManager))
+				rt2.Use(bucket.HTTPMiddleware(tgt, generalHelpers, path, svr.s3clientManager, svr.webhookManager))
 
 				// Add authentication middleware to router
 				rt2.Use(authenticationSvc.Middleware(tgt.Resources))

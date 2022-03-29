@@ -87,6 +87,7 @@ func Test_managercontext_Load(t *testing.T) {
 	falseValue := false
 
 	secret1Filename := path.Join(os.TempDir(), "secret1")
+	secretWithNewLineFilename := path.Join(os.TempDir(), "secret-with-new-line")
 
 	tests := []struct {
 		name           string
@@ -911,6 +912,75 @@ targets:
 			},
 		},
 		{
+			name: "Test secrets from a file and direct value with new lines cleaned",
+			configs: map[string]string{
+				"config.yaml": `
+targets:
+ test:
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+    credentials:
+      accessKey:
+        path: ` + secretWithNewLineFilename + `
+      secretKey:
+        value: VALUE2`,
+			},
+			secretFiles: map[string]string{
+				secretWithNewLineFilename: `
+VALUE1
+`,
+			},
+			wantErr: false,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "info",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port:     8080,
+					Compress: svrCompressCfg,
+				},
+				InternalServer: &ServerConfig{
+					Port:     9090,
+					Compress: svrCompressCfg,
+				},
+				Templates: defaultTemplateCfg,
+				Tracing:   &TracingConfig{Enabled: false},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name: "test",
+						Mount: &MountConfig{
+							Path: []string{"/test/"},
+						},
+						Bucket: &BucketConfig{
+							Name:          "bucket1",
+							Region:        "us-east-1",
+							S3ListMaxKeys: 1000,
+							Credentials: &BucketCredentialConfig{
+								AccessKey: &CredentialConfig{
+									Path:  secretWithNewLineFilename,
+									Value: "VALUE1",
+								},
+								SecretKey: &CredentialConfig{
+									Value: "VALUE2",
+								},
+							},
+						},
+						Actions: &ActionsConfig{
+							GET: &GetActionConfig{Enabled: true},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+			},
+		},
+		{
 			name: "should fail when target templates configuration are invalid",
 			configs: map[string]string{
 				"config.yaml": `
@@ -1135,6 +1205,7 @@ targets:
 							Source:      `^/(?P<one>\w+)/file.html$`,
 							SourceRegex: regexp.MustCompile(`^/(?P<one>\w+)/file.html$`),
 							Target:      "/$one/fake/$one/file.html",
+							TargetType:  RegexTargetKeyRewriteTargetType,
 						}},
 						Bucket: &BucketConfig{
 							Name:          "bucket1",

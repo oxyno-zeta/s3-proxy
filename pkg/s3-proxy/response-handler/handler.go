@@ -8,7 +8,7 @@ import (
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/templateutils"
 	"github.com/pkg/errors"
 )
 
@@ -17,6 +17,10 @@ type handler struct {
 	res        http.ResponseWriter
 	cfgManager config.Manager
 	targetKey  string
+}
+
+func (h *handler) GetRequest() *http.Request {
+	return h.req
 }
 
 func (h *handler) UpdateRequestAndResponse(req *http.Request, res http.ResponseWriter) {
@@ -128,11 +132,17 @@ func (h *handler) TargetList() {
 	// Get configuration
 	cfg := h.cfgManager.GetConfig()
 
+	// Create targets map[string]interface{}
+	targets := map[string]interface{}{}
+	for key, value := range cfg.Targets {
+		targets[key] = value
+	}
+
 	// Create data structure
 	data := targetListData{
 		Request: h.req,
 		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
-		Targets: cfg.Targets,
+		Targets: targets,
 	}
 
 	h.handleGenericAnswer(
@@ -185,7 +195,8 @@ func (h *handler) StreamFile(
 		}
 
 		// Get template content
-		helpersTpl, err := h.loadAllHelpersContent(
+		helpersTpl, err := templateutils.LoadAllHelpersContent(
+			h.req.Context(),
 			loadFileContent,
 			tplHelpers,
 			cfg.Templates.Helpers,
@@ -272,7 +283,8 @@ func (h *handler) handleGenericAnswer(
 	helpersTplFilePathList []string,
 ) {
 	// Get helpers template content
-	helpersContent, err := h.loadAllHelpersContent(
+	helpersContent, err := templateutils.LoadAllHelpersContent(
+		h.req.Context(),
 		loadFileContent,
 		helpersTplCfgItems,
 		helpersTplFilePathList,
@@ -296,7 +308,8 @@ func (h *handler) handleGenericAnswer(
 	// and to avoid loops etc to save potential memory and cpu
 	if tplCfgItem != nil {
 		// Load template content
-		tpl, err2 := h.loadTemplateContent(
+		tpl, err2 := templateutils.LoadTemplateContent(
+			h.req.Context(),
 			loadFileContent,
 			tplCfgItem,
 		)
@@ -306,7 +319,7 @@ func (h *handler) handleGenericAnswer(
 		err = err2
 	} else {
 		// Get template from general configuration
-		tpl, err2 := loadLocalFileContent(baseTpl.Path)
+		tpl, err2 := templateutils.LoadLocalFileContent(baseTpl.Path)
 		// Concat
 		tplContent = tplContent + "\n" + tpl
 		// Save error
@@ -356,7 +369,7 @@ func (h *handler) handleGenericAnswer(
 	}
 
 	// Execute main template
-	bodyBuf, err := utils.ExecuteTemplate(tplContent, data)
+	bodyBuf, err := templateutils.ExecuteTemplate(tplContent, data)
 	// Check error
 	if err != nil {
 		h.InternalServerError(loadFileContent, err)

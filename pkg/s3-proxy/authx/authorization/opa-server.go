@@ -6,10 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
+	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 	"github.com/pkg/errors"
 )
 
@@ -18,7 +17,7 @@ type inputOPA struct {
 }
 
 type inputDataOPA struct {
-	User    *models.OIDCUser  `json:"user"`
+	User    interface{}       `json:"user"`
 	Request *requestDataOPA   `json:"request"`
 	Tags    map[string]string `json:"tags"`
 }
@@ -38,14 +37,14 @@ type opaAnswer struct {
 	Result bool `json:"result"`
 }
 
-func isOPAServerAuthorized(req *http.Request, oidcUser *models.OIDCUser, resource *config.Resource) (bool, error) {
+func isOPAServerAuthorized(req *http.Request, oidcUser interface{}, resource *config.ResourceHeaderOIDC) (bool, error) {
 	// Get trace from request
 	trace := tracing.GetTraceFromContext(req.Context())
 	// Generate child trace
 	childTrace := trace.GetChildTrace("opa-server.request")
 	defer childTrace.Finish()
 	// Add data
-	childTrace.SetTag("opa.uri", resource.OIDC.AuthorizationOPAServer.URL)
+	childTrace.SetTag("opa.uri", resource.AuthorizationOPAServer.URL)
 
 	// Transform headers into map
 	headers := make(map[string]string)
@@ -63,7 +62,7 @@ func isOPAServerAuthorized(req *http.Request, oidcUser *models.OIDCUser, resourc
 	input := &inputOPA{
 		Input: &inputDataOPA{
 			User: oidcUser,
-			Tags: resource.OIDC.AuthorizationOPAServer.Tags,
+			Tags: resource.AuthorizationOPAServer.Tags,
 			Request: &requestDataOPA{
 				Method:     req.Method,
 				Protocol:   req.Proto,
@@ -84,7 +83,13 @@ func isOPAServerAuthorized(req *http.Request, oidcUser *models.OIDCUser, resourc
 
 	// Making request to OPA server
 	// Change NewRequest to NewRequestWithContext and pass context it
-	request, err := http.NewRequestWithContext(req.Context(), http.MethodPost, resource.OIDC.AuthorizationOPAServer.URL, bytes.NewBuffer(bb))
+	request, err := http.NewRequestWithContext(
+		req.Context(),
+		http.MethodPost,
+		resource.AuthorizationOPAServer.URL,
+		bytes.NewBuffer(bb),
+	)
+	// Check error
 	if err != nil {
 		return false, errors.WithStack(err)
 	}

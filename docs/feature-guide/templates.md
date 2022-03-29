@@ -26,6 +26,10 @@ In all these templates, S3-Proxy specific functions are available:
 - `requestURI` with `http.Request` input in order to get the full request URI from incoming request
 - `requestScheme` with `http.Request` input in order to get the scheme from incoming request
 - `requestHost` with `http.Request` input in order to get the hostname from incoming request
+- `include` with template name defined in helpers and context in order to execute a template with the ability to save result in a variable, use it pipelines, ... (Imported from [Helm](https://helm.sh/docs/howto/charts_tips_and_tricks/#using-the-include-function)). Example: `{{ $var := include "defined-name" . }}`
+- `toJson` will allow to transform a string to a JSON compatible one
+- `toYaml` will allow to transform a string to a YAML compatible one
+- `tpl` is inspired from the Helm one. It allows to render a template in a template rendering session. The first parameter is the template and the second, variables to use in
 
 ## Helpers
 
@@ -47,7 +51,7 @@ Available data:
 | ------- | ---------------------------------------------------------------------- | ------------------------------------------------- |
 | User    | [GenericUser](#genericuser)                                            | Authenticated user if present in incoming request |
 | Request | [http.Request](https://golang.org/pkg/net/http/#Request)               | HTTP Request object from golang                   |
-| Targets | Map[String][target](../configuration/structure.md#targetconfiguration) | The target map as coming from the configuration   |
+| Targets | Map[String][target](../../configuration/structure#targetconfiguration) | The target map as coming from the configuration   |
 
 Available for:
 
@@ -316,3 +320,12 @@ These are the properties available:
 | Name | Type   | Description               |
 | ---- | ------ | ------------------------- |
 | Key  | String | Full key from S3 response |
+
+### TargetKeyRewriteData
+
+| Name    | Type                                                        | Description                                       |
+| ------- | ----------------------------------------------------------- | ------------------------------------------------- |
+| User    | [GenericUser](#genericuser)                                 | Authenticated user if present in incoming request |
+| Request | [http.Request](https://golang.org/pkg/net/http/#Request)    | HTTP Request object from golang                   |
+| Target  | [Target](../../configuration/structure#targetconfiguration) | The current target configuration                  |
+| Key     | String                                                      | Full key from S3 response                         |

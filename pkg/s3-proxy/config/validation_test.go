@@ -105,7 +105,7 @@ func Test_validateResource(t *testing.T) {
 				mountPathList: []string{"/"},
 			},
 			wantErr:     true,
-			errorString: "begin error must have whitelist, basic configuration or oidc configuration",
+			errorString: "begin error must have whitelist, basic, header or oidc configuration",
 		},
 		{
 			name: "Resource don't have any whitelist and no provider is set",
@@ -134,7 +134,7 @@ func Test_validateResource(t *testing.T) {
 				mountPathList: []string{"/"},
 			},
 			wantErr:     true,
-			errorString: "begin error must have authentication configuration declared (oidc or basic)",
+			errorString: "begin error must have authentication configuration declared (oidc, header or basic)",
 		},
 		{
 			name: "Resource declare a provider but authorization providers are nil",
@@ -176,7 +176,7 @@ func Test_validateResource(t *testing.T) {
 					Methods:   []string{"GET"},
 					WhiteList: &falseValue,
 					Provider:  "test",
-					OIDC:      &ResourceOIDC{},
+					OIDC:      &ResourceHeaderOIDC{},
 				},
 				authProviders: &AuthProviderConfig{},
 				mountPathList: []string{"/"},
@@ -212,7 +212,7 @@ func Test_validateResource(t *testing.T) {
 					Methods:   []string{"GET"},
 					WhiteList: &falseValue,
 					Provider:  "test",
-					OIDC:      &ResourceOIDC{},
+					OIDC:      &ResourceHeaderOIDC{},
 				},
 				authProviders: &AuthProviderConfig{
 					Basic: map[string]*BasicAuthConfig{
@@ -232,8 +232,8 @@ func Test_validateResource(t *testing.T) {
 					Methods:   []string{"GET"},
 					WhiteList: &falseValue,
 					Provider:  "test",
-					OIDC: &ResourceOIDC{
-						AuthorizationAccesses: []*OIDCAuthorizationAccess{
+					OIDC: &ResourceHeaderOIDC{
+						AuthorizationAccesses: []*HeaderOIDCAuthorizationAccess{
 							{Email: "fake@fake.com"},
 						},
 						AuthorizationOPAServer: &OPAServerAuthorization{
@@ -370,7 +370,7 @@ func Test_validateBusinessConfig(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "resource 0 from target test1 must have whitelist, basic configuration or oidc configuration",
+			errorString: "resource 0 from target test1 must have whitelist, basic, header or oidc configuration",
 		},
 		{
 			name: "No actions are present in target",
@@ -516,7 +516,7 @@ func Test_validateBusinessConfig(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			errorString: "resource from list targets must have whitelist, basic configuration or oidc configuration",
+			errorString: "resource from list targets must have whitelist, basic, header or oidc configuration",
 		},
 		{
 			name: "List targets path is invalid",

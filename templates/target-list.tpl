@@ -4,14 +4,14 @@
   {{- $mapKeys := keys .Targets -}}
   {{- $lastMapKey := last $mapKeys -}}
   {{- range $index, $key := $mapKeys -}}
-  {{ $target := get $root.Targets $key }}
-  {"name": "{{ js $key }}", "links": [
+  {{- $target := get $root.Targets $key -}}
+  {"name":{{ $key | toJson }},"links":[
     {{- $pathLen := len $target.Mount.Path -}}
     {{- range $index2, $value2 := $target.Mount.Path -}}
       {{- if eq $target.Mount.Host "" -}}
-      "{{ requestScheme $root.Request }}://{{ requestHost $root.Request }}{{ $value2 }}"
+      {{ printf "%s://%s%s" (requestScheme $root.Request) (requestHost $root.Request) $value2 | toJson }}
       {{- else -}}
-      "{{ requestScheme $root.Request }}://{{ $target.Mount.Host }}{{ $value2 }}"
+      {{ printf "%s://%s%s" (requestScheme $root.Request) ($target.Mount.Host) $value2 | toJson }}
       {{- end -}}{{- if ne $index2 (sub $pathLen 1) -}},{{- end -}}
     {{- end -}}
   ]}{{- if ne $lastMapKey $key -}},{{- end -}}

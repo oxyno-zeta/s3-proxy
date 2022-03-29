@@ -1,6 +1,6 @@
 //go:build unit
 
-package utils
+package generalutils
 
 import (
 	"crypto/tls"

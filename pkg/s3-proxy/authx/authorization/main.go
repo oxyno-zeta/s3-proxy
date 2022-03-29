@@ -70,20 +70,40 @@ func Middleware(
 			// Get response handler
 			resHan := responsehandler.GetResponseHandlerFromContext(r.Context())
 
-			// Check if resource is OIDC
-			if resource.OIDC != nil {
-				// Cast user in oidc user
-				ouser, _ := user.(*models.OIDCUser)
+			// Check if resource is OIDC or Header
+			if resource.OIDC != nil || resource.Header != nil {
+				// Initialize variables
+				var authorizationProvider string
+				var headerOIDCResource *config.ResourceHeaderOIDC
+
+				// Check if resource is OIDC
+				if resource.OIDC != nil {
+					// OIDC case
+					headerOIDCResource = resource.OIDC
+
+					if headerOIDCResource.AuthorizationOPAServer != nil {
+						authorizationProvider = "oidc-opa"
+					} else {
+						authorizationProvider = "oidc-basic"
+					}
+				} else {
+					// Header case
+					headerOIDCResource = resource.Header
+
+					if headerOIDCResource.AuthorizationOPAServer != nil {
+						authorizationProvider = "header-opa"
+					} else {
+						authorizationProvider = "header-basic"
+					}
+				}
 
 				// Authorization part
 
-				var authorizationProvider string
 				var authorized bool
 				// Check if case of opa server
-				if resource.OIDC.AuthorizationOPAServer != nil {
-					authorizationProvider = "oidc-opa"
+				if headerOIDCResource.AuthorizationOPAServer != nil {
 					var err error
-					authorized, err = isOPAServerAuthorized(r, ouser, resource)
+					authorized, err = isOPAServerAuthorized(r, user, headerOIDCResource)
 					if err != nil {
 						// Check if bucket request context doesn't exist to use local default files
 						if brctx == nil {
@@ -98,14 +118,17 @@ func Middleware(
 						return
 					}
 				} else {
-					authorizationProvider = "oidc-basic"
-					authorized = isOIDCAuthorizedBasic(ouser.Groups, ouser.Email, resource.OIDC.AuthorizationAccesses)
+					authorized = isHeaderOIDCAuthorizedBasic(
+						user.GetGroups(),
+						user.GetEmail(),
+						headerOIDCResource.AuthorizationAccesses,
+					)
 				}
 
 				// Check if not authorized
 				if !authorized {
 					// Create error
-					err := fmt.Errorf("forbidden user %s", ouser.GetIdentifier())
+					err := fmt.Errorf("forbidden user %s", user.GetIdentifier())
 					// Add stack trace
 					err = errors.WithStack(err)
 					// Check if bucket request context doesn't exist to use local default files
@@ -120,7 +143,7 @@ func Middleware(
 
 				// User is authorized
 
-				logger.Infof("OIDC user %s authorized", ouser.GetIdentifier())
+				logger.Infof("%s user %s authorized", user.GetType(), user.GetIdentifier())
 				metricsCl.IncAuthorized(authorizationProvider)
 				next.ServeHTTP(w, r)
 

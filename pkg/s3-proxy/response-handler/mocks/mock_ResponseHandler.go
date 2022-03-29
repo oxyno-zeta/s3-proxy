@@ -84,6 +84,20 @@ func (mr *MockResponseHandlerMockRecorder) ForbiddenError(arg0, arg1 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForbiddenError", reflect.TypeOf((*MockResponseHandler)(nil).ForbiddenError), arg0, arg1)
 }
 
+// GetRequest mocks base method.
+func (m *MockResponseHandler) GetRequest() *http.Request {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRequest")
+	ret0, _ := ret[0].(*http.Request)
+	return ret0
+}
+
+// GetRequest indicates an expected call of GetRequest.
+func (mr *MockResponseHandlerMockRecorder) GetRequest() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRequest", reflect.TypeOf((*MockResponseHandler)(nil).GetRequest))
+}
+
 // InternalServerError mocks base method.
 func (m *MockResponseHandler) InternalServerError(arg0 func(context.Context, string) (string, error), arg1 error) {
 	m.ctrl.T.Helper()

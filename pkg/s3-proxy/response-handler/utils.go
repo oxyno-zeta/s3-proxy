@@ -1,9 +1,7 @@
 package responsehandler
 
 import (
-	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -11,7 +9,8 @@ import (
 	"time"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
+	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/templateutils"
 	"github.com/pkg/errors"
 )
 
@@ -34,7 +33,7 @@ func (h *handler) manageStatus(
 	}
 
 	// Execute status main template
-	buf, err := utils.ExecuteTemplate(statusContent, data)
+	buf, err := templateutils.ExecuteTemplate(statusContent, data)
 	// Check error
 	if err != nil {
 		return 0, err
@@ -58,7 +57,7 @@ func (h *handler) manageHeaders(helpersContent string, headersTpl map[string]str
 		// Concat helpers to header template
 		tpl := helpersContent + "\n" + htpl
 		// Execute template
-		buf, err := utils.ExecuteTemplate(tpl, hData)
+		buf, err := templateutils.ExecuteTemplate(tpl, hData)
 		// Check error
 		if err != nil {
 			return nil, err
@@ -76,77 +75,6 @@ func (h *handler) manageHeaders(helpersContent string, headersTpl map[string]str
 
 	// Return
 	return res, nil
-}
-
-func (h *handler) loadAllHelpersContent(
-	loadS3FileContent func(ctx context.Context, path string) (string, error),
-	items []*config.TargetHelperConfigItem,
-	pathList []string,
-) (string, error) {
-	// Initialize template content
-	tplContent := ""
-
-	// Check if there is a list of config items
-	if len(items) != 0 {
-		// Loop over items
-		for _, item := range items {
-			// Load template content
-			tpl, err := h.loadHelperContent(
-				loadS3FileContent,
-				item,
-			)
-			// Check error
-			if err != nil {
-				return "", err
-			}
-			// Concat
-			tplContent = tplContent + "\n" + tpl
-		}
-	} else {
-		// Load from local files
-		// Loop over local path
-		for _, item := range pathList {
-			// Load template content
-			tpl, err := loadLocalFileContent(item)
-			// Check error
-			if err != nil {
-				return "", err
-			}
-			// Concat
-			tplContent = tplContent + "\n" + tpl
-		}
-	}
-
-	// Return
-	return tplContent, nil
-}
-
-func (h *handler) loadHelperContent(
-	loadS3FileContent func(ctx context.Context, path string) (string, error),
-	item *config.TargetHelperConfigItem,
-) (string, error) {
-	// Check if it is in bucket and if load from S3 function exists
-	if item.InBucket && loadS3FileContent != nil {
-		// Try to get file from bucket
-		return loadS3FileContent(h.req.Context(), item.Path)
-	}
-
-	// Not in bucket, need to load from FS
-	return loadLocalFileContent(item.Path)
-}
-
-func (h *handler) loadTemplateContent(
-	loadS3FileContent func(ctx context.Context, path string) (string, error),
-	item *config.TargetTemplateConfigItem,
-) (string, error) {
-	// Check if it is in bucket and if load from S3 function exists
-	if item.InBucket && loadS3FileContent != nil {
-		// Try to get file from bucket
-		return loadS3FileContent(h.req.Context(), item.Path)
-	}
-
-	// Not in bucket, need to load from FS
-	return loadLocalFileContent(item.Path)
 }
 
 // send will send the response.
@@ -168,17 +96,6 @@ func (h *handler) send(bodyBuf io.WriterTo, headers map[string]string, status in
 	}
 
 	return nil
-}
-
-func loadLocalFileContent(path string) (string, error) {
-	// Read file from file path
-	by, err := ioutil.ReadFile(path)
-	// Check if error exists
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-
-	return string(by), nil
 }
 
 func setHeadersFromObjectOutput(w http.ResponseWriter, obj *StreamInput) {

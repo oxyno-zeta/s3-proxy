@@ -14,6 +14,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-playground/validator/v10"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"github.com/thoas/go-funk"
@@ -532,8 +533,12 @@ func loadCredential(credCfg *CredentialConfig) error {
 		if err != nil {
 			return errors.WithStack(err)
 		}
-		// Store value
-		credCfg.Value = string(databytes)
+		// Store val
+		val := string(databytes)
+		// Clean new lines
+		val = generalutils.NewLineMatcherRegex.ReplaceAllString(val, "")
+
+		credCfg.Value = val
 	} else if credCfg.Env != "" {
 		// Environment variable
 		envValue := os.Getenv(credCfg.Env)
@@ -708,6 +713,11 @@ func loadBusinessDefaultValues(out *Config) error {
 }
 
 func loadKeyRewriteValues(item *TargetKeyRewriteConfig) error {
+	// Check if target type is set, if not, put REGEX type as default
+	if item.TargetType == "" {
+		item.TargetType = RegexTargetKeyRewriteTargetType
+	}
+
 	// Parse source regex
 	rs, err := regexp.Compile(item.Source)
 	// Check error
@@ -722,7 +732,7 @@ func loadKeyRewriteValues(item *TargetKeyRewriteConfig) error {
 }
 
 // Load Regex in OIDC Authorization access objects.
-func loadRegexOIDCAuthorizationAccess(item *OIDCAuthorizationAccess) error {
+func loadRegexOIDCAuthorizationAccess(item *HeaderOIDCAuthorizationAccess) error {
 	if item.Regexp {
 		// Try to compile regex for group or email
 		// Group case

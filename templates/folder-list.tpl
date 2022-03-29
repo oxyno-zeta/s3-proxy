@@ -3,13 +3,12 @@
 [
   {{- $maxLen := len $root.Entries -}}
   {{- range $index, $entry := $root.Entries -}}
-  {
-    "name": "{{ js $entry.Name }}",
-    "etag": "{{ js $entry.ETag }}",
-    "type": "{{ js $entry.Type }}",
-    "size": {{ $entry.Size }},
-    "path": "{{ js $entry.Path }}",
-    "lastModified": "{{ $entry.LastModified | date "2006-01-02T15:04:05Z07:00" }}"
+  {"name": {{ $entry.Name | toJson -}}
+    ,"etag": {{ $entry.ETag | toJson -}}
+    ,"type": {{ $entry.Type | toJson -}}
+    ,"size": {{ $entry.Size | toJson -}}
+    ,"path": {{ $entry.Path | toJson -}}
+    ,"lastModified": {{ $entry.LastModified | date "2006-01-02T15:04:05Z07:00" | toJson -}}
   }{{- if ne $index (sub $maxLen 1) -}},{{- end -}}
   {{- end -}}
 ]

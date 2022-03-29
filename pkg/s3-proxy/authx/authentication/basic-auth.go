@@ -78,6 +78,7 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 			}
 
 			// Check password
+			// nolint: forcetypeassert // Ignore this
 			if cred.(*config.BasicAuthUserConfig).Password.Value == "" || cred.(*config.BasicAuthUserConfig).Password.Value != password {
 				// Create error
 				err := fmt.Errorf("username %s not authorized", username)
@@ -95,7 +96,7 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 				return
 			}
 
-			logEntry.Info("Basic auth user %s authenticated", buser.GetIdentifier())
+			logEntry.Infof("Basic auth user %s authenticated", buser.GetIdentifier())
 			s.metricsCl.IncAuthenticated("basic-auth", res.Provider)
 
 			next.ServeHTTP(w, r)

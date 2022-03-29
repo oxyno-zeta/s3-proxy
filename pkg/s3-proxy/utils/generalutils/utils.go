@@ -1,7 +1,6 @@
-package utils
+package generalutils
 
 import (
-	"bytes"
 	"crypto/tls"
 	"fmt"
 	"io"
@@ -10,10 +9,8 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"text/template"
 	"time"
 
-	"github.com/Masterminds/sprig/v3"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -22,7 +19,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/dustin/go-humanize"
 	"github.com/pkg/errors"
 )
 
@@ -37,47 +33,6 @@ const (
 	serviceSecretsManager string = "secretsmanager"
 	serviceSSM            string = "ssm"
 )
-
-func ExecuteTemplate(tplString string, data interface{}) (*bytes.Buffer, error) {
-	// Load template from string
-	tmpl, err := template.
-		New("template-string-loaded").
-		Funcs(sprig.TxtFuncMap()).
-		Funcs(s3ProxyFuncMap()).
-		Parse(tplString)
-	// Check if error exists
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	// Generate template in buffer
-	buf := &bytes.Buffer{}
-	err = tmpl.Execute(buf, data)
-	// Check if error exists
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	return buf, nil
-}
-
-func s3ProxyFuncMap() template.FuncMap {
-	// Result
-	funcMap := map[string]interface{}{}
-	// Add human size function
-	funcMap["humanSize"] = func(fmt int64) string {
-		return humanize.Bytes(uint64(fmt))
-	}
-	// Add request URI function
-	funcMap["requestURI"] = GetRequestURI
-	// Add request scheme function
-	funcMap["requestScheme"] = GetRequestScheme
-	// Add request host function
-	funcMap["requestHost"] = GetRequestHost
-
-	// Return result
-	return template.FuncMap(funcMap)
-}
 
 // ClientIP will return client ip from request.
 func ClientIP(r *http.Request) string {

@@ -683,7 +683,10 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "secret": "565f78f2-a706-41cd-a1a0-431d7df29443",
-      "redirectUris": ["http://localhost:8080/auth/provider1/callback"],
+      "redirectUris": [
+        "http://localhost:8080/auth/provider1/callback",
+        "http://localhost:4180/*"
+      ],
       "webOrigins": ["http://localhost:8080"],
       "notBefore": 0,
       "bearerOnly": false,
@@ -785,7 +788,10 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "secret": "**********",
-      "redirectUris": ["http://localhost:8080/auth/provider2/callback"],
+      "redirectUris": [
+        "http://localhost:8080/auth/provider2/callback",
+        "http://localhost:4180/*"
+      ],
       "webOrigins": ["http://localhost:8080"],
       "notBefore": 0,
       "bearerOnly": false,

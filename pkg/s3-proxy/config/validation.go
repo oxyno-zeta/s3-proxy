@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
+	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 	"github.com/pkg/errors"
 
 	"github.com/thoas/go-funk"
@@ -152,16 +152,16 @@ func validateResource(beginErrorMessage string, res *Resource, authProviders *Au
 		return errors.New(beginErrorMessage + " must have a HTTP method in GET, PUT or DELETE")
 	}
 	// Check resource not valid
-	if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil {
-		return errors.New(beginErrorMessage + " must have whitelist, basic configuration or oidc configuration")
+	if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil && res.Header == nil {
+		return errors.New(beginErrorMessage + " must have whitelist, basic, header or oidc configuration")
 	}
 	// Check if provider exists
 	if res.WhiteList != nil && !*res.WhiteList && res.Provider == "" {
 		return errors.New(beginErrorMessage + " must have a provider")
 	}
 	// Check auth logins are provided in case of no whitelist
-	if res.WhiteList != nil && !*res.WhiteList && res.Basic == nil && res.OIDC == nil {
-		return errors.New(beginErrorMessage + " must have authentication configuration declared (oidc or basic)")
+	if res.WhiteList != nil && !*res.WhiteList && res.Basic == nil && res.OIDC == nil && res.Header == nil {
+		return errors.New(beginErrorMessage + " must have authentication configuration declared (oidc, header or basic)")
 	}
 	// Check that provider is declared is auth providers and correctly linked
 	if res.Provider != "" {
@@ -171,7 +171,8 @@ func validateResource(beginErrorMessage string, res *Resource, authProviders *Au
 		}
 		// Check that auth provider exists for target provider
 		exists := (authProviders.Basic != nil && authProviders.Basic[res.Provider] != nil) ||
-			(authProviders.OIDC != nil && authProviders.OIDC[res.Provider] != nil)
+			(authProviders.OIDC != nil && authProviders.OIDC[res.Provider] != nil) ||
+			(authProviders.Header != nil && authProviders.Header[res.Provider] != nil)
 		if !exists {
 			return errors.New(beginErrorMessage + " must have a valid provider declared in authentication providers")
 		}
@@ -188,6 +189,14 @@ func validateResource(beginErrorMessage string, res *Resource, authProviders *Au
 		// Check that oidc authorization is valid
 		if res.OIDC != nil && res.OIDC.AuthorizationOPAServer != nil && len(res.OIDC.AuthorizationAccesses) != 0 {
 			return errors.New(beginErrorMessage + " cannot contain oidc authorization accesses and OPA server together at the same time")
+		}
+		// Check header
+		if res.Header != nil && authProviders.Header[res.Provider] == nil {
+			return errors.New(beginErrorMessage + " must use a valid authentication configuration with selected authentication provider: header not allowed")
+		}
+		// Check that header authorization is valid
+		if res.Header != nil && res.Header.AuthorizationOPAServer != nil && len(res.Header.AuthorizationAccesses) != 0 {
+			return errors.New(beginErrorMessage + " cannot contain header authorization accesses and OPA server together at the same time")
 		}
 	}
 	// Check if resource path contains mount path item

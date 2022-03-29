@@ -16,7 +16,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils"
+	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -220,7 +220,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 	return nil
 }
 
-func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Handler) http.Handler {
+func (s *service) oidcAuthMiddleware(res *config.Resource) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Get oidc configuration
@@ -311,7 +311,9 @@ func (s *service) oidcAuthorizationMiddleware(res *config.Resource) func(http.Ha
 			groups := make([]string, 0)
 			// Check if groups interface exists
 			if groupsInterface != nil {
+				// nolint: forcetypeassert // Ignore this
 				for _, item := range groupsInterface.([]interface{}) {
+					// nolint: forcetypeassert // Ignore this
 					groups = append(groups, item.(string))
 				}
 			}

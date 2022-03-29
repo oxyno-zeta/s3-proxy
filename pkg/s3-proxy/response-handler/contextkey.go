@@ -13,6 +13,7 @@ var responseHandlerCtxKey = &contextKey{name: "ResponseHandlerCtxKey"}
 
 // GetResponseHandlerFromContext will return the response handler object from context.
 func GetResponseHandlerFromContext(ctx context.Context) ResponseHandler {
+	// nolint: forcetypeassert // Ignore this
 	return ctx.Value(responseHandlerCtxKey).(ResponseHandler)
 }
 
