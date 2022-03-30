@@ -276,7 +276,7 @@ targets:
     #   - path: /
     #     # Whitelist
     #     whiteList: true
-    #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
+    #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /specific_doc/*
     #     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
     #     methods:
@@ -290,7 +290,7 @@ targets:
     #       # NOTE: This list can be empty ([]) for authentication only and no group filter
     #       authorizationAccesses: # Authorization accesses : groups or email or regexp
     #         - group: specific_users
-    #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
+    #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /directory1/*
     #     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
     #     methods:
@@ -305,10 +305,32 @@ targets:
     #         - user: user1
     #           password:
     #             path: password1-in-file
-    #     # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
+    #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /opa-protected/*
     #     # OIDC section for access filter
     #     oidc:
+    #       # Authorization through OPA server configuration
+    #       authorizationOPAServer:
+    #         # OPA server url with data path
+    #         url: http://localhost:8181/v1/data/example/authz/allowed
+    #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
+    #   - path: /specific_doc/*
+    #     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
+    #     methods:
+    #       - GET
+    #       - PUT
+    #       - DELETE
+    #     # A authentication provider declared in section before, here is the key name
+    #     provider: provider1
+    #     # Header section for access filter
+    #     header:
+    #       # NOTE: This list can be empty ([]) for authentication only and no group filter
+    #       authorizationAccesses: # Authorization accesses : groups or email or regexp
+    #         - group: specific_users
+    #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
+    #   - path: /opa-protected/*
+    #     # Header section for access filter
+    #     header:
     #       # Authorization through OPA server configuration
     #       authorizationOPAServer:
     #         # OPA server url with data path
