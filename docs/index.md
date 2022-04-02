@@ -43,6 +43,12 @@ I've created this project because I couldn't find any other that allow to proxy 
 
 See more information on these features in the "Feature Guide".
 
+## Advanced interfaces
+
+Looking for more advanced interfaces. Take a look on this project: [s3-proxy-interfaces](https://github.com/oxyno-zeta/s3-proxy-interfaces).
+
+Provided interfaces in the project are really simple and based on NGinX template. Those are React based, with Material design and with customization.
+
 ## Want to contribute ?
 
 - Read the [CONTRIBUTING guide](./CONTRIBUTING.md)

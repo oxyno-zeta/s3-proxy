@@ -40,6 +40,10 @@ There is an online documentation generated for this project.
 
 You can find it here: [https://oxyno-zeta.github.io/s3-proxy/](https://oxyno-zeta.github.io/s3-proxy/)
 
+## Advanced interfaces
+
+Looking for more advanced interfaces. Take a look on this project: [s3-proxy-interfaces](https://github.com/oxyno-zeta/s3-proxy-interfaces).
+
 ## Want to contribute ?
 
 - Read the [CONTRIBUTING guide](./CONTRIBUTING.md)
