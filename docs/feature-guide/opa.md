@@ -1,6 +1,6 @@
 # Open Policy Agent (OPA)
 
-S3-proxy integrate [Open Policy Agent](https://www.openpolicyagent.org/) for authorization process after OpenID Connect logins.
+S3-proxy integrate [Open Policy Agent](https://www.openpolicyagent.org/) for authorization process after OpenID Connect or Header based logins.
 
 ## Integration
 
