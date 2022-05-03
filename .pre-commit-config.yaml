@@ -2,12 +2,12 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v2.23.0
+    rev: v2.24.0
     hooks:
       - id: commitizen
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.1.0
+    rev: v4.2.0
     hooks:
       - id: check-json
         stages: [commit]
@@ -29,7 +29,7 @@ repos:
         stages: [commit]
   - repo: https://github.com/pre-commit/mirrors-prettier
     # Use the sha or branch you want to point at
-    rev: v2.6.1
+    rev: v2.6.2
     hooks:
       - id: prettier
         stages: [commit]
