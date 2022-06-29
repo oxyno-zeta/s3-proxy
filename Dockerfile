@@ -13,7 +13,7 @@ WORKDIR /proxy
 COPY s3-proxy /proxy/s3-proxy
 COPY templates/ /proxy/templates/
 
-RUN chown -R 1000:1000 /proxy
+RUN chown -R $USER:$USER /proxy
 
 USER proxy
 
