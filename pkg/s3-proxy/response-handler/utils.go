@@ -115,18 +115,17 @@ func setHeadersFromObjectOutput(w http.ResponseWriter, obj *StreamInput) {
 }
 
 func determineHTTPStatus(obj *StreamInput) int {
-	// Set default http status to 200 OK
-	httpStatus := http.StatusOK
 	contentRangeIsGiven := len(obj.ContentRange) > 0
 	// Check if content will be partial
 	if contentRangeIsGiven {
-		httpStatus = http.StatusPartialContent
-		if totalFileSizeEqualToContentRange(obj) {
-			httpStatus = http.StatusOK
+		if !totalFileSizeEqualToContentRange(obj) {
+			// Return partial content
+			return http.StatusPartialContent
 		}
 	}
-	// Return status code
-	return httpStatus
+
+	// Return ok
+	return http.StatusOK
 }
 
 func totalFileSizeEqualToContentRange(obj *StreamInput) bool {
