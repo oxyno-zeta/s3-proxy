@@ -5,9 +5,11 @@ package bucket
 import (
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -1428,6 +1430,7 @@ func Test_requestContext_Put(t *testing.T) {
 
 func Test_requestContext_Get(t *testing.T) {
 	fakeDate := time.Date(1990, time.December, 25, 1, 1, 1, 1, time.UTC)
+	body := io.NopCloser(strings.NewReader("Hello"))
 
 	type responseHandlerErrorsMockResult struct {
 		input2 error
@@ -1627,6 +1630,7 @@ func Test_requestContext_Get(t *testing.T) {
 					Key: "/folder/index.html",
 				},
 				res: &s3client.GetOutput{
+					Body:        body,
 					ContentType: "text/html; charset=utf-8",
 				},
 				res2: &s3client.ResultInfo{
@@ -1651,6 +1655,7 @@ func Test_requestContext_Get(t *testing.T) {
 			},
 			responseHandlerStreamFileMockResult: responseHandlerStreamFileMockResult{
 				input: &responsehandler.StreamInput{
+					Body:        body,
 					ContentType: "text/html; charset=utf-8",
 				},
 				times: 1,
@@ -1938,6 +1943,7 @@ func Test_requestContext_Get(t *testing.T) {
 					Key: "/folder/index.html",
 				},
 				res: &s3client.GetOutput{
+					Body:               body,
 					ContentDisposition: "disposition",
 					ContentType:        "type",
 				},
@@ -1963,6 +1969,7 @@ func Test_requestContext_Get(t *testing.T) {
 			},
 			responseHandlerStreamFileMockResult: responseHandlerStreamFileMockResult{
 				input: &responsehandler.StreamInput{
+					Body:               body,
 					ContentDisposition: "disposition",
 					ContentType:        "type",
 				},
@@ -2104,6 +2111,7 @@ func Test_requestContext_Get(t *testing.T) {
 					Key: "/fake/fake.html",
 				},
 				res: &s3client.GetOutput{
+					Body:            body,
 					ContentType:     "type",
 					ContentEncoding: "encoding",
 				},
@@ -2129,6 +2137,7 @@ func Test_requestContext_Get(t *testing.T) {
 			},
 			responseHandlerStreamFileMockResult: responseHandlerStreamFileMockResult{
 				input: &responsehandler.StreamInput{
+					Body:            body,
 					ContentEncoding: "encoding",
 					ContentType:     "type",
 				},

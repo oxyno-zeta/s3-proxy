@@ -570,6 +570,9 @@ func (rctx *requestContext) streamFileForResponse(ctx context.Context, key strin
 		return err
 	}
 
+	// Defer body closing
+	defer objOutput.Body.Close()
+
 	// Transform input
 	inp := &responsehandler.StreamInput{
 		Body:               objOutput.Body,
