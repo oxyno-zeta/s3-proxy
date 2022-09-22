@@ -12,6 +12,7 @@ import (
 )
 
 // Manager S3 client manager.
+//
 //go:generate mockgen -destination=./mocks/mock_Manager.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client Manager
 type Manager interface {
 	// GetClientForTarget will return a S3 client for a target.
@@ -21,6 +22,7 @@ type Manager interface {
 }
 
 // Client S3 Context interface.
+//
 //go:generate mockgen -destination=./mocks/mock_Client.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client Client
 type Client interface {
 	// ListFilesAndDirectories will list files and directories in S3.

@@ -137,7 +137,7 @@ func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string)
 	}
 
 	// Concat folders and files
-	// nolint:gocritic // Ignoring this: appendAssign: append result not assigned to the same slice
+	//nolint:gocritic // Ignoring this: appendAssign: append result not assigned to the same slice
 	all := append(folders, files...)
 
 	// Create info
@@ -193,11 +193,11 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 	// Check if error exists
 	if err != nil {
 		// Try to cast error into an AWS Error if possible
-		// nolint: errorlint // Cast
+		//nolint: errorlint // Cast
 		aerr, ok := err.(awserr.Error)
 		if ok {
 			// Check if it is a not found case
-			// nolint: gocritic // Because don't want to write a switch for the moment
+			//nolint: gocritic // Because don't want to write a switch for the moment
 			if aerr.Code() == s3.ErrCodeNoSuchKey {
 				return nil, nil, ErrNotFound
 			} else if aerr.Code() == "NotModified" {
@@ -348,7 +348,7 @@ func (s3ctx *s3Context) HeadObject(ctx context.Context, key string) (*HeadOutput
 	// Test error
 	if err != nil {
 		// Try to cast error into an AWS Error if possible
-		// nolint: errorlint // Cast
+		//nolint: errorlint // Cast
 		aerr, ok := err.(awserr.Error)
 		if ok {
 			// Issue not fixed: https://github.com/aws/aws-sdk-go/issues/1208

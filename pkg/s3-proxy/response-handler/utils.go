@@ -131,7 +131,7 @@ func determineHTTPStatus(obj *StreamInput) int {
 func totalFileSizeEqualToContentRange(obj *StreamInput) bool {
 	totalSizeIsEqualToContentRange := false
 	// Calculate total file size
-	totalSize, err := strconv.ParseInt(getFileSizeAsString(obj), 10, 64) // nolint: gomnd // Ignoring because copied from other source
+	totalSize, err := strconv.ParseInt(getFileSizeAsString(obj), 10, 64) //nolint: gomnd // Ignoring because copied from other source
 	if err == nil {
 		if totalSize == (obj.ContentLength) {
 			totalSizeIsEqualToContentRange = true
@@ -141,7 +141,8 @@ func totalFileSizeEqualToContentRange(obj *StreamInput) bool {
 	return totalSizeIsEqualToContentRange
 }
 
-/**
+/*
+*
 See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range
 */
 func getFileSizeAsString(obj *StreamInput) string {
@@ -160,7 +161,7 @@ func setStrHeader(w http.ResponseWriter, key string, value string) {
 
 func setIntHeader(w http.ResponseWriter, key string, value int64) {
 	if value > 0 {
-		w.Header().Add(key, strconv.FormatInt(value, 10)) // nolint: gomnd // Ignoring because copied from other source
+		w.Header().Add(key, strconv.FormatInt(value, 10)) //nolint: gomnd // Ignoring because copied from other source
 	}
 }
 

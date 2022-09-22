@@ -4,7 +4,7 @@ package webhook
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"sort"
@@ -333,13 +333,13 @@ func Test_manager_Load(t *testing.T) {
 			}
 
 			storageKeys := make([]string, 0)
-			for k, _ := range tt.fields.storageMap {
+			for k := range tt.fields.storageMap {
 				storageKeys = append(storageKeys, k)
 			}
 			sort.Strings(storageKeys)
 
 			expectedStorageKeys := make([]string, 0)
-			for k, _ := range tt.storageContent {
+			for k := range tt.storageContent {
 				expectedStorageKeys = append(expectedStorageKeys, k)
 			}
 			sort.Strings(expectedStorageKeys)
@@ -929,7 +929,7 @@ func Test_manager_manageDELETEHooksInternal(t *testing.T) {
 						m := tt.responseMockList[i]
 
 						s := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-							by, err := ioutil.ReadAll(r.Body)
+							by, err := io.ReadAll(r.Body)
 							assert.NoError(t, err)
 
 							reqs = append(reqs, &struct {
@@ -1624,7 +1624,7 @@ func Test_manager_managePUTHooksInternal(t *testing.T) {
 						m := tt.responseMockList[i]
 
 						s := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-							by, err := ioutil.ReadAll(r.Body)
+							by, err := io.ReadAll(r.Body)
 							assert.NoError(t, err)
 
 							reqs = append(reqs, &struct {
@@ -2341,7 +2341,7 @@ func Test_manager_manageGETHooksInternal(t *testing.T) {
 						m := tt.responseMockList[i]
 
 						s := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-							by, err := ioutil.ReadAll(r.Body)
+							by, err := io.ReadAll(r.Body)
 							assert.NoError(t, err)
 
 							reqs = append(reqs, &struct {

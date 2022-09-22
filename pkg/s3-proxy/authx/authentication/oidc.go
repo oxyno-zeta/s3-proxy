@@ -85,8 +85,10 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 	})
 
 	mux.HandleFunc(mainRedirectURLCallbackPath, func(w http.ResponseWriter, r *http.Request) {
+		// Get context
+		ctx := r.Context()
 		// Get logger from request
-		logEntry := log.GetLoggerFromContext(r.Context())
+		logEntry := log.GetLoggerFromContext(ctx)
 
 		// ! In this particular case, no bucket request context because mounted in general and not per target
 
@@ -103,12 +105,12 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 		}
 
 		// Split request query state to get redirect url and original state
-		split := strings.SplitN(reqQueryState, stateRedirectSeparator, 2) // nolint: gomnd // Ignoring because create by app just before
+		split := strings.SplitN(reqQueryState, stateRedirectSeparator, 2) //nolint: gomnd // Ignoring because create by app just before
 		// Prepare and affect values
 		reqState := split[0]
 		rdVal := ""
 		// Check if length is ok to include a redirect url
-		if len(split) == 2 { // nolint: gomnd // No constant for that
+		if len(split) == 2 { //nolint: gomnd // No constant for that
 			rdVal = split[1]
 		}
 
@@ -225,12 +227,14 @@ func (s *service) oidcAuthMiddleware(res *config.Resource) func(http.Handler) ht
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Get oidc configuration
 			oidcAuthCfg := s.cfg.AuthProviders.OIDC[res.Provider]
+			// Get context
+			ctx := r.Context()
 			// Get logger from request
-			logEntry := log.GetLoggerFromContext(r.Context())
+			logEntry := log.GetLoggerFromContext(ctx)
 			// Get bucket request context from request
-			brctx := bucket.GetBucketRequestContextFromContext(r.Context())
+			brctx := bucket.GetBucketRequestContextFromContext(ctx)
 			// Get response handler
-			resHan := responsehandler.GetResponseHandlerFromContext(r.Context())
+			resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
 			// Get JWT Token from header or cookie
 			jwtContent, err := getJWTToken(logEntry, r, oidcAuthCfg.CookieName)
@@ -268,7 +272,7 @@ func (s *service) oidcAuthMiddleware(res *config.Resource) func(http.Handler) ht
 			}
 
 			// Parse JWT token
-			claims, err := parseAndValidateJWTToken(jwtContent, s.allVerifiers[res.Provider])
+			claims, err := parseAndValidateJWTToken(ctx, jwtContent, s.allVerifiers[res.Provider])
 			if err != nil {
 				logEntry.Error(err)
 				// Check if bucket request context doesn't exist to use local default files
@@ -311,9 +315,9 @@ func (s *service) oidcAuthMiddleware(res *config.Resource) func(http.Handler) ht
 			groups := make([]string, 0)
 			// Check if groups interface exists
 			if groupsInterface != nil {
-				// nolint: forcetypeassert // Ignore this
+				//nolint: forcetypeassert // Ignore this
 				for _, item := range groupsInterface.([]interface{}) {
-					// nolint: forcetypeassert // Ignore this
+					//nolint: forcetypeassert // Ignore this
 					groups = append(groups, item.(string))
 				}
 			}
@@ -336,7 +340,7 @@ func (s *service) oidcAuthMiddleware(res *config.Resource) func(http.Handler) ht
 			}
 
 			// Add user to request context by creating a new context
-			ctx := models.SetAuthenticatedUserInContext(r.Context(), ouser)
+			ctx = models.SetAuthenticatedUserInContext(ctx, ouser)
 			// Create new request with new context
 			r = r.WithContext(ctx)
 
@@ -366,8 +370,11 @@ func (s *service) oidcAuthMiddleware(res *config.Resource) func(http.Handler) ht
 	}
 }
 
-func parseAndValidateJWTToken(jwtContent string, verifier *oidc.IDTokenVerifier) (map[string]interface{}, error) {
-	ctx := context.Background()
+func parseAndValidateJWTToken(
+	ctx context.Context,
+	jwtContent string,
+	verifier *oidc.IDTokenVerifier,
+) (map[string]interface{}, error) {
 	// Create result map
 	var res map[string]interface{}
 

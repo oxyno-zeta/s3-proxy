@@ -155,5 +155,5 @@ func findResource(resL []*config.Resource, requestURI string, httpMethod string)
 	}
 
 	// Not found case
-	return nil, nil // nolint: nilnil // No need for a sentinel error in this case
+	return nil, nil //nolint: nilnil // No need for a sentinel error in this case
 }

@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -4316,7 +4315,7 @@ func TestOIDCAuthentication(t *testing.T) {
 					return
 				}
 
-				bodyBytes, err := ioutil.ReadAll(resp.Body)
+				bodyBytes, err := io.ReadAll(resp.Body)
 				if err != nil {
 					t.Error(err)
 					return
@@ -4356,7 +4355,7 @@ func TestOIDCAuthentication(t *testing.T) {
 			assert.Equal(t, tt.expectedResponsePath, resp.Request.URL.Path)
 
 			if tt.expectedBody != "" {
-				bodyBytes, _ := ioutil.ReadAll(resp.Body)
+				bodyBytes, _ := io.ReadAll(resp.Body)
 				body := string(bodyBytes)
 				assert.Equal(t, tt.expectedBody, body)
 			}

@@ -17,6 +17,7 @@ import (
 var ErrRemovalFolder = errors.New("can't remove folder")
 
 // Client represents a client in order to GET, PUT or DELETE file on a bucket with a html output.
+//
 //go:generate mockgen -destination=./mocks/mock_Client.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket Client
 type Client interface {
 	// Get allow to GET what's inside a request path

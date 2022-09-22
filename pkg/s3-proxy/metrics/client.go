@@ -3,6 +3,7 @@ package metrics
 import "net/http"
 
 // Client Client metrics interface.
+//
 //go:generate mockgen -destination=./mocks/mock_Client.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics Client
 type Client interface {
 	// Will return a middleware to instrument http routers.

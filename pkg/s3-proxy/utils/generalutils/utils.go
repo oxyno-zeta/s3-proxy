@@ -101,7 +101,7 @@ func parseForwarded(forwarded string) (proto, host string) {
 	}
 
 	for _, forwardedPair := range strings.Split(forwarded, ";") {
-		if tv := strings.SplitN(forwardedPair, "=", 2); len(tv) == 2 { // nolint: gomnd // No constant for that
+		if tv := strings.SplitN(forwardedPair, "=", 2); len(tv) == 2 { //nolint: gomnd // No constant for that
 			token, value := tv[0], tv[1]
 			token = strings.TrimSpace(token)
 			value = strings.TrimSpace(strings.Trim(value, `"`))

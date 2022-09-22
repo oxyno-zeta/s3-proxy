@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -39,7 +38,7 @@ func (ctx *managercontext) AddOnChangeHook(hook func()) {
 
 func (ctx *managercontext) Load() error {
 	// List files
-	files, err := ioutil.ReadDir(mainConfigFolderPath)
+	files, err := os.ReadDir(mainConfigFolderPath)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -192,10 +191,10 @@ func (ctx *managercontext) loadDefaultConfigurationValues(vip *viper.Viper) {
 	vip.SetDefault("templates.delete.status", DefaultTemplateStatusNoContent)
 }
 
-func generateViperInstances(files []os.FileInfo) []*viper.Viper {
+func generateViperInstances(files []os.DirEntry) []*viper.Viper {
 	list := make([]*viper.Viper, 0)
 	// Loop over static files to create viper instance for them
-	funk.ForEach(files, func(file os.FileInfo) {
+	funk.ForEach(files, func(file os.DirEntry) {
 		filename := file.Name()
 		// Create config file name
 		cfgFileName := strings.TrimSuffix(filename, path.Ext(filename))
@@ -529,7 +528,7 @@ func loadWebhookCfgCredentials(cfgList []*WebhookConfig) ([]*CredentialConfig, e
 func loadCredential(credCfg *CredentialConfig) error {
 	if credCfg.Path != "" {
 		// Secret file
-		databytes, err := ioutil.ReadFile(credCfg.Path)
+		databytes, err := os.ReadFile(credCfg.Path)
 		if err != nil {
 			return errors.WithStack(err)
 		}

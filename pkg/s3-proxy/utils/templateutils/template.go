@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"text/template"
 
@@ -94,7 +94,7 @@ func LoadTemplateContent(
 
 func LoadLocalFileContent(path string) (string, error) {
 	// Read file from file path
-	by, err := ioutil.ReadFile(path)
+	by, err := os.ReadFile(path)
 	// Check if error exists
 	if err != nil {
 		return "", errors.WithStack(err)

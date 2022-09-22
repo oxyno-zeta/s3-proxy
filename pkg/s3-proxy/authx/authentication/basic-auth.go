@@ -78,7 +78,7 @@ func (s *service) basicAuthMiddleware(res *config.Resource) func(http.Handler) h
 			}
 
 			// Check password
-			// nolint: forcetypeassert // Ignore this
+			//nolint: forcetypeassert // Ignore this
 			if cred.(*config.BasicAuthUserConfig).Password.Value == "" || cred.(*config.BasicAuthUserConfig).Password.Value != password {
 				// Create error
 				err := fmt.Errorf("username %s not authorized", username)

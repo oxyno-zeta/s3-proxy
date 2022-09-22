@@ -52,6 +52,7 @@ type DeleteInput struct {
 }
 
 // ResponseHandler will handle responses.
+//
 //go:generate mockgen -destination=./mocks/mock_ResponseHandler.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler ResponseHandler
 type ResponseHandler interface {
 	// TargetList will answer for the target list response.

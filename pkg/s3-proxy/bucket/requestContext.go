@@ -3,7 +3,7 @@ package bucket
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"path"
 	"strings"
 
@@ -149,7 +149,7 @@ func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
 	// Check error
 	if err != nil {
 		// Check if error is a not found error
-		// nolint: gocritic // Don't want a switch
+		//nolint: gocritic // Don't want a switch
 		if errors.Is(err, s3client.ErrNotFound) {
 			// Test that redirect with trailing slash isn't asked and possible on this request
 			if rctx.targetCfg.Actions != nil && rctx.targetCfg.Actions.GET != nil &&
@@ -211,7 +211,7 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 			// Check if error exists
 			if err != nil {
 				// Check if error is a not found error
-				// nolint: gocritic // Don't want a switch
+				//nolint: gocritic // Don't want a switch
 				if errors.Is(err, s3client.ErrNotFound) {
 					// Not found
 					resHan.NotFoundError(rctx.LoadFileContent)
@@ -540,7 +540,7 @@ func (rctx *requestContext) LoadFileContent(ctx context.Context, path string) (s
 	}
 
 	// Read all body
-	bb, err := ioutil.ReadAll(objOutput.Body)
+	bb, err := io.ReadAll(objOutput.Body)
 	// Check error
 	if err != nil {
 		return "", errors.WithStack(err)

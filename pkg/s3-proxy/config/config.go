@@ -123,7 +123,7 @@ const TemplateTargetKeyRewriteTargetType = "TEMPLATE"
 var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support option can be enabled only when only one bucket is configured")
 
 // TemplateErrLoadingEnvCredentialEmpty Template Error when Loading Environment variable Credentials.
-var TemplateErrLoadingEnvCredentialEmpty = "error loading credentials, environment variable %s is empty" // nolint: gosec // No credentials here, false positive
+var TemplateErrLoadingEnvCredentialEmpty = "error loading credentials, environment variable %s is empty" //nolint: gosec // No credentials here, false positive
 
 const oidcLoginPathTemplate = "/auth/%s"
 const oidcCallbackPathTemplate = "/auth/%s/callback"

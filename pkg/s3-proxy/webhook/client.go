@@ -33,6 +33,7 @@ type S3Metadata struct {
 }
 
 // Manager client manager.
+//
 //go:generate mockgen -destination=./mocks/mock_Manager.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook Manager
 type Manager interface {
 	// ManageGETHooks will manage GET hooks.
