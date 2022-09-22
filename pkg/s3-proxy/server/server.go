@@ -87,9 +87,16 @@ func (svr *Server) GenerateServer() error {
 
 	// Create server
 	addr := cfg.Server.ListenAddr + ":" + strconv.Itoa(cfg.Server.Port)
-	server := &http.Server{
+	server := &http.Server{ //nolint: gosec // Set after
 		Addr:    addr,
 		Handler: r,
+	}
+
+	// Inject timeouts
+	err = injectServerTimeout(server, cfg.Server.Timeouts)
+	// Check error
+	if err != nil {
+		return err
 	}
 
 	// Get the TLS configuration (if necessary).

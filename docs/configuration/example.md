@@ -21,6 +21,12 @@ log:
 # server:
 #   listenAddr: ""
 #   port: 8080
+#   # Server timeout options
+#   timeouts:
+#     readTimeout: ""
+#     readHeaderTimeout: ""
+#     writeTimeout: ""
+#     idleTimeout: ""
 #   # Compress options
 #   compress:
 #     enabled: true

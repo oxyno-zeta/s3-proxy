@@ -119,6 +119,9 @@ const RegexTargetKeyRewriteTargetType = "REGEX"
 // TemplateTargetKeyRewriteTargetType Template Target key rewrite Target type.
 const TemplateTargetKeyRewriteTargetType = "TEMPLATE"
 
+// DefaultServerTimeoutsReadHeaderTimeout Server timeouts ReadHeaderTimeout.
+const DefaultServerTimeoutsReadHeaderTimeout = "60s"
+
 // ErrMainBucketPathSupportNotValid Error thrown when main bucket path support option isn't valid.
 var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support option can be enabled only when only one bucket is configured")
 
@@ -239,10 +242,19 @@ type TemplateConfig struct {
 type ServerConfig struct {
 	ListenAddr string                `mapstructure:"listenAddr"`
 	Port       int                   `mapstructure:"port" validate:"required"`
+	Timeouts   *ServerTimeoutsConfig `mapstructure:"timeouts" validate:"required"`
 	CORS       *ServerCorsConfig     `mapstructure:"cors" validate:"omitempty"`
 	Cache      *CacheConfig          `mapstructure:"cache" validate:"omitempty"`
 	Compress   *ServerCompressConfig `mapstructure:"compress" validate:"omitempty"`
 	SSL        *ServerSSLConfig      `mapstructure:"ssl" validate:"omitempty"`
+}
+
+// ServerTimeoutsConfig Server timeouts configuration.
+type ServerTimeoutsConfig struct {
+	ReadTimeout       string `mapstructure:"readTimeout"`
+	ReadHeaderTimeout string `mapstructure:"readHeaderTimeout"`
+	WriteTimeout      string `mapstructure:"writeTimeout"`
+	IdleTimeout       string `mapstructure:"idleTimeout"`
 }
 
 // ServerCompressConfig Server compress configuration.

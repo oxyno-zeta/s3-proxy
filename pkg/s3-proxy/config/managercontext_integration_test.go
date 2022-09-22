@@ -84,6 +84,9 @@ func Test_managercontext_Load(t *testing.T) {
 		Level:   DefaultServerCompressLevel,
 		Types:   DefaultServerCompressTypes,
 	}
+	svrTimeoutsCfg := &ServerTimeoutsConfig{
+		ReadHeaderTimeout: DefaultServerTimeoutsReadHeaderTimeout,
+	}
 	falseValue := false
 
 	secret1Filename := path.Join(os.TempDir(), "secret1")
@@ -124,10 +127,12 @@ func Test_managercontext_Load(t *testing.T) {
 				Server: &ServerConfig{
 					Port:     8080,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				InternalServer: &ServerConfig{
 					Port:     9090,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
@@ -148,10 +153,12 @@ func Test_managercontext_Load(t *testing.T) {
 				Server: &ServerConfig{
 					Port:     8080,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				InternalServer: &ServerConfig{
 					Port:     9090,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
@@ -183,10 +190,12 @@ targets:
 				Server: &ServerConfig{
 					Port:     8080,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				InternalServer: &ServerConfig{
 					Port:     9090,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
@@ -243,10 +252,12 @@ targets:
 				Server: &ServerConfig{
 					Port:     8080,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				InternalServer: &ServerConfig{
 					Port:     9090,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
@@ -310,10 +321,12 @@ targets:
 				Server: &ServerConfig{
 					Port:     8080,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				InternalServer: &ServerConfig{
 					Port:     9090,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
@@ -383,10 +396,12 @@ targets:
 						Level:   DefaultServerCompressLevel,
 						Types:   DefaultServerCompressTypes,
 					},
+					Timeouts: svrTimeoutsCfg,
 				},
 				InternalServer: &ServerConfig{
 					Port:     9090,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
@@ -453,10 +468,12 @@ targets:
 				Server: &ServerConfig{
 					Port:     8080,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				InternalServer: &ServerConfig{
 					Port:     9090,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
@@ -568,10 +585,12 @@ targets:
 				Server: &ServerConfig{
 					Port:     8080,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				InternalServer: &ServerConfig{
 					Port:     9090,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				Templates: &TemplateConfig{
 					Helpers: []string{"templates/_helpers.tpl"},
@@ -764,10 +783,12 @@ targets:
 				Server: &ServerConfig{
 					Port:     8080,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				InternalServer: &ServerConfig{
 					Port:     9090,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
@@ -873,10 +894,12 @@ targets:
 				Server: &ServerConfig{
 					Port:     8080,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				InternalServer: &ServerConfig{
 					Port:     9090,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
@@ -942,10 +965,12 @@ VALUE1
 				Server: &ServerConfig{
 					Port:     8080,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				InternalServer: &ServerConfig{
 					Port:     9090,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
@@ -1039,10 +1064,12 @@ targets:
 				Server: &ServerConfig{
 					Port:     8080,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				InternalServer: &ServerConfig{
 					Port:     9090,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
@@ -1117,10 +1144,12 @@ targets:
 				Server: &ServerConfig{
 					Port:     8080,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				InternalServer: &ServerConfig{
 					Port:     9090,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
@@ -1185,10 +1214,12 @@ targets:
 				Server: &ServerConfig{
 					Port:     8080,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				InternalServer: &ServerConfig{
 					Port:     9090,
 					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
@@ -1298,6 +1329,9 @@ func Test_Load_reload_config(t *testing.T) {
 		Level:   DefaultServerCompressLevel,
 		Types:   DefaultServerCompressTypes,
 	}
+	svrTimeoutsCfg := &ServerTimeoutsConfig{
+		ReadHeaderTimeout: DefaultServerTimeoutsReadHeaderTimeout,
+	}
 
 	// Channel for wait watch
 	waitCh := make(chan bool)
@@ -1372,10 +1406,12 @@ targets:
 		Server: &ServerConfig{
 			Port:     8080,
 			Compress: svrCompressCfg,
+			Timeouts: svrTimeoutsCfg,
 		},
 		InternalServer: &ServerConfig{
 			Port:     9090,
 			Compress: svrCompressCfg,
+			Timeouts: svrTimeoutsCfg,
 		},
 		Templates: defaultTemplateCfg,
 		Tracing:   &TracingConfig{Enabled: false},
@@ -1438,10 +1474,12 @@ log:
 			Server: &ServerConfig{
 				Port:     8080,
 				Compress: svrCompressCfg,
+				Timeouts: svrTimeoutsCfg,
 			},
 			InternalServer: &ServerConfig{
 				Port:     9090,
 				Compress: svrCompressCfg,
+				Timeouts: svrTimeoutsCfg,
 			},
 			Templates: defaultTemplateCfg,
 			Tracing:   &TracingConfig{Enabled: false},
@@ -1486,6 +1524,9 @@ func Test_Load_reload_secret(t *testing.T) {
 		Enabled: &DefaultServerCompressEnabled,
 		Level:   DefaultServerCompressLevel,
 		Types:   DefaultServerCompressTypes,
+	}
+	svrTimeoutsCfg := &ServerTimeoutsConfig{
+		ReadHeaderTimeout: DefaultServerTimeoutsReadHeaderTimeout,
 	}
 
 	// Channel for wait watch
@@ -1562,10 +1603,12 @@ targets:
 		Server: &ServerConfig{
 			Port:     8080,
 			Compress: svrCompressCfg,
+			Timeouts: svrTimeoutsCfg,
 		},
 		InternalServer: &ServerConfig{
 			Port:     9090,
 			Compress: svrCompressCfg,
+			Timeouts: svrTimeoutsCfg,
 		},
 		Templates: defaultTemplateCfg,
 		Tracing:   &TracingConfig{Enabled: false},
@@ -1625,10 +1668,12 @@ targets:
 			Server: &ServerConfig{
 				Port:     8080,
 				Compress: svrCompressCfg,
+				Timeouts: svrTimeoutsCfg,
 			},
 			InternalServer: &ServerConfig{
 				Port:     9090,
 				Compress: svrCompressCfg,
+				Timeouts: svrTimeoutsCfg,
 			},
 			Templates: defaultTemplateCfg,
 			Tracing:   &TracingConfig{Enabled: false},
@@ -1673,6 +1718,9 @@ func Test_Load_reload_config_with_wrong_config(t *testing.T) {
 		Enabled: &DefaultServerCompressEnabled,
 		Level:   DefaultServerCompressLevel,
 		Types:   DefaultServerCompressTypes,
+	}
+	svrTimeoutsCfg := &ServerTimeoutsConfig{
+		ReadHeaderTimeout: DefaultServerTimeoutsReadHeaderTimeout,
 	}
 
 	// Channel for wait watch
@@ -1749,10 +1797,12 @@ targets:
 		Server: &ServerConfig{
 			Port:     8080,
 			Compress: svrCompressCfg,
+			Timeouts: svrTimeoutsCfg,
 		},
 		InternalServer: &ServerConfig{
 			Port:     9090,
 			Compress: svrCompressCfg,
+			Timeouts: svrTimeoutsCfg,
 		},
 		Templates: defaultTemplateCfg,
 		Tracing:   &TracingConfig{Enabled: false},
@@ -1815,10 +1865,12 @@ configuration with error
 			Server: &ServerConfig{
 				Port:     8080,
 				Compress: svrCompressCfg,
+				Timeouts: svrTimeoutsCfg,
 			},
 			InternalServer: &ServerConfig{
 				Port:     9090,
 				Compress: svrCompressCfg,
+				Timeouts: svrTimeoutsCfg,
 			},
 			Templates: defaultTemplateCfg,
 			Tracing:   &TracingConfig{Enabled: false},
@@ -1860,6 +1912,9 @@ func Test_Load_reload_config_map_structure(t *testing.T) {
 		Enabled: &DefaultServerCompressEnabled,
 		Level:   DefaultServerCompressLevel,
 		Types:   DefaultServerCompressTypes,
+	}
+	svrTimeoutsCfg := &ServerTimeoutsConfig{
+		ReadHeaderTimeout: DefaultServerTimeoutsReadHeaderTimeout,
 	}
 
 	// Channel for wait watch
@@ -1943,10 +1998,12 @@ targets:
 		Server: &ServerConfig{
 			Port:     8080,
 			Compress: svrCompressCfg,
+			Timeouts: svrTimeoutsCfg,
 		},
 		InternalServer: &ServerConfig{
 			Port:     9090,
 			Compress: svrCompressCfg,
+			Timeouts: svrTimeoutsCfg,
 		},
 		Templates: defaultTemplateCfg,
 		AuthProviders: &AuthProviderConfig{
@@ -2016,10 +2073,12 @@ authProviders:
 			Server: &ServerConfig{
 				Port:     8080,
 				Compress: svrCompressCfg,
+				Timeouts: svrTimeoutsCfg,
 			},
 			InternalServer: &ServerConfig{
 				Port:     9090,
 				Compress: svrCompressCfg,
+				Timeouts: svrTimeoutsCfg,
 			},
 			Templates: defaultTemplateCfg,
 			Tracing:   &TracingConfig{Enabled: false},
@@ -2069,6 +2128,9 @@ func Test_Load_reload_config_ignore_hidden_file_and_directory(t *testing.T) {
 		Enabled: &DefaultServerCompressEnabled,
 		Level:   DefaultServerCompressLevel,
 		Types:   DefaultServerCompressTypes,
+	}
+	svrTimeoutsCfg := &ServerTimeoutsConfig{
+		ReadHeaderTimeout: DefaultServerTimeoutsReadHeaderTimeout,
 	}
 
 	// Channel for wait watch
@@ -2162,10 +2224,12 @@ targets:
 		Server: &ServerConfig{
 			Port:     8080,
 			Compress: svrCompressCfg,
+			Timeouts: svrTimeoutsCfg,
 		},
 		InternalServer: &ServerConfig{
 			Port:     9090,
 			Compress: svrCompressCfg,
+			Timeouts: svrTimeoutsCfg,
 		},
 		Tracing:   &TracingConfig{Enabled: false},
 		Templates: defaultTemplateCfg,

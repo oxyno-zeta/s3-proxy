@@ -59,9 +59,16 @@ func (svr *InternalServer) GenerateServer() error {
 	r := svr.generateInternalRouter()
 	// Create server
 	addr := cfg.InternalServer.ListenAddr + ":" + strconv.Itoa(cfg.InternalServer.Port)
-	server := &http.Server{
+	server := &http.Server{ //nolint: gosec // Set after
 		Addr:    addr,
 		Handler: r,
+	}
+
+	// Inject timeouts
+	err := injectServerTimeout(server, cfg.InternalServer.Timeouts)
+	// Check error
+	if err != nil {
+		return err
 	}
 
 	// Get the TLS configuration (if necessary)

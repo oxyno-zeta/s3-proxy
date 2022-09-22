@@ -38,6 +38,15 @@ You can see a full example in the [Example section](./example.md)
 | cache      | [ServerCacheConfig](#servercacheconfig) | No       | None    | Cache configuration                                       |
 | ssl        | [ServerSSLConfig](#serversslconfig)     | No       | None    | SSL/TLS configuration (Important: Cannot be hot reloaded) |
 
+## ServerTimeoutsConfig
+
+| Key               | Type   | Required | Default                             | Description                |
+| ----------------- | ------ | -------- | ----------------------------------- | -------------------------- |
+| readTimeout       | string | No       | `""`                                | Server read timeout        |
+| readHeaderTimeout | string | No       | `"60s"` (to avoid Slowloris attack) | Server read header timeout |
+| writeTimeout      | string | No       | `""`                                | Server write timeout       |
+| idleTimeout       | string | No       | `""`                                | Server idle timeout        |
+
 ## ServerCompressConfig
 
 | Key     | Type     | Required | Default                                                                                                                                                                                       | Description                                |
