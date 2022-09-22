@@ -323,10 +323,7 @@ linters:
     - staticcheck
     - unused
     - gosimple
-    - structcheck
-    - varcheck
     - ineffassign
-    - deadcode
     - typecheck
     - bodyclose
     - noctx
@@ -377,7 +374,14 @@ linters:
     - errchkjson
     - decorder
     - grouper
+    - asasalint
+    - execinquery
+    - reassign
+    - usestdlibvars
   disable:
+    - deadcode
+    - varcheck
+    - structcheck
     - prealloc
     - gochecknoglobals
     - gocyclo
@@ -392,6 +396,9 @@ linters:
     - ireturn
     - varnamelen
     - maintidx
+    - exhaustruct
+    - nosnakecase
+    - interfacebloat
   disable-all: false
   presets:
     - bugs
