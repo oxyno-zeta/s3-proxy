@@ -8,11 +8,11 @@ import (
 	"strings"
 	"text/template"
 
+	"emperror.dev/errors"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/dustin/go-humanize"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
-	"github.com/pkg/errors"
 )
 
 const recursionMaxNums = 1000

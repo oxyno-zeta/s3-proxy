@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -22,7 +23,6 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 

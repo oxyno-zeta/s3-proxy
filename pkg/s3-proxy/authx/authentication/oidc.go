@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 
 	oidc "github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/chi/v5"

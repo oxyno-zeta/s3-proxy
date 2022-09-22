@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 )
 
 // DefaultPort Default port.

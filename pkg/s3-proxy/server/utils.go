@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
-	"github.com/pkg/errors"
 )
 
 func injectServerTimeout(svr *http.Server, cfg *config.ServerTimeoutsConfig) error {

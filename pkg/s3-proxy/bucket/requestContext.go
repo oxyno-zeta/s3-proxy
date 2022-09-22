@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"

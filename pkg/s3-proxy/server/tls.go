@@ -10,10 +10,10 @@ import (
 	"math/big"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
-	"github.com/pkg/errors"
 )
 
 // The intersection of the recommended cipher suites from https://ciphersuite.info/cs/?security=recommended

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/errors"
 	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
-	"github.com/pkg/errors"
 
 	"github.com/thoas/go-funk"
 )

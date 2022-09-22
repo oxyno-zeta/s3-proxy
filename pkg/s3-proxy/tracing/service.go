@@ -4,10 +4,10 @@ import (
 	"io"
 	"time"
 
+	"emperror.dev/errors"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
-	"github.com/pkg/errors"
 
 	"github.com/uber/jaeger-client-go"
 	jaegercfg "github.com/uber/jaeger-client-go/config"

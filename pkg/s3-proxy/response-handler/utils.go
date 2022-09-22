@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/templateutils"
-	"github.com/pkg/errors"
 )
 
 func (h *handler) manageStatus(

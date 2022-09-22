@@ -6,11 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	logrus "github.com/sirupsen/logrus"
 )
 
 const LogFileMode = 0666
+const LogTraceIDField = "trace_id"
 
 type loggerIns struct {
 	logrus.FieldLogger
@@ -36,8 +37,9 @@ func (ll *loggerIns) GetCorsLogger() CorsLogger {
 func (ll *loggerIns) Configure(level string, format string, filePath string) error {
 	// Parse log level
 	lvl, err := logrus.ParseLevel(level)
+	// Check error
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	// Get logrus logger
@@ -56,12 +58,14 @@ func (ll *loggerIns) Configure(level string, format string, filePath string) err
 	if filePath != "" {
 		// Create directory if necessary
 		err2 := os.MkdirAll(filepath.Dir(filePath), os.ModePerm)
+		// Check error
 		if err2 != nil {
 			return errors.WithStack(err2)
 		}
 
 		// Open file
 		f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, LogFileMode)
+		// Check error
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -125,16 +129,10 @@ func (ll *loggerIns) addPotentialWithError(elem interface{}) logrus.FieldLogger 
 			fieldL = fieldL.WithField("stack", strings.Join(stack, ","))
 		}
 
-		// Check if error is matching stack trace interface
-		//nolint: errorlint // Ignore this because the aim is to catch stack trace error at first level
-		if err2, ok := err.(stackTracer); ok {
-			addStackTrace(err2)
-		}
-
-		// Check if error cause is matching stack trace interface
-		//nolint: errorlint // Ignore this because the aim is to catch stack trace error at first level
-		if err2, ok := errors.Cause(err).(stackTracer); ok {
-			addStackTrace(err2)
+		// Check if error as an hidden stackTracer
+		var st stackTracer
+		if errors.As(err, &st) {
+			addStackTrace(st)
 		}
 
 		return fieldL

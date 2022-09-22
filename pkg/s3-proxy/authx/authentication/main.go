@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 
 	oidc "github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gobwas/glob"

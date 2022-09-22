@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strings"
 
+	"emperror.dev/errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/gobwas/glob"
 	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
-	"github.com/pkg/errors"
 )
 
 // Fork dead project https://github.com/go-chi/hostrouter/

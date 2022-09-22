@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"emperror.dev/errors"
 	"github.com/dimiro1/health"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -13,7 +14,6 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/server/middlewares"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
-	"github.com/pkg/errors"
 )
 
 type InternalServer struct {

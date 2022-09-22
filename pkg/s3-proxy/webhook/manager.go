@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/go-resty/resty/v2"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 

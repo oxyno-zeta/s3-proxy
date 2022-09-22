@@ -10,11 +10,11 @@ import (
 	"strings"
 	"sync"
 
+	"emperror.dev/errors"
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-playground/validator/v10"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
-	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"github.com/thoas/go-funk"
 )
