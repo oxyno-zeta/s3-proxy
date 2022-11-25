@@ -1,0 +1,10 @@
+.git
+s3-proxy
+vendor/
+bin/
+config.yaml
+dist/
+_dist/
+coverage.html
+bundle.tar.gz
+*.log
