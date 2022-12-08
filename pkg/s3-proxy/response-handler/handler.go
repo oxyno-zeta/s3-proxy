@@ -179,9 +179,6 @@ func (h *handler) StreamFile(
 	// Get target configuration (exists in this case)
 	targetCfg := cfg.Targets[h.targetKey]
 
-	// Set headers from object
-	setHeadersFromObjectOutput(h.res, input)
-
 	// Check if headers templates are defined in the GET configuration
 	if targetCfg.Actions != nil &&
 		targetCfg.Actions.GET != nil &&
@@ -225,6 +222,9 @@ func (h *handler) StreamFile(
 			h.res.Header().Set(k, v)
 		}
 	}
+
+	// Set headers from object
+	setHeadersFromObjectOutput(h.res, input)
 
 	// Copy data stream to output stream
 	_, err := io.Copy(h.res, input.Body)
