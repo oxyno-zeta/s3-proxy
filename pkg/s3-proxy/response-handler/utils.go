@@ -108,6 +108,7 @@ func setHeadersFromObjectOutput(w http.ResponseWriter, obj *StreamInput) {
 	setStrHeader(w, "Content-Range", obj.ContentRange)
 	setStrHeader(w, "Content-Type", obj.ContentType)
 	setStrHeader(w, "ETag", obj.ETag)
+	setStrHeader(w, "Accept-Ranges", "bytes")
 	setTimeHeader(w, "Last-Modified", obj.LastModified)
 
 	httpStatus := determineHTTPStatus(obj)

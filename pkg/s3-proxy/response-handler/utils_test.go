@@ -154,6 +154,8 @@ func Test_handler_manageHeaders(t *testing.T) {
 func Test_setHeadersFromObjectOutput(t *testing.T) {
 	// Tests data
 	now := time.Now()
+	headerEmpty := http.Header{}
+	headerEmpty.Add("Accept-Ranges", "bytes")
 	headerFullInput := http.Header{}
 	headerFullInput.Add("Cache-Control", "cachecontrol")
 	headerFullInput.Add("Expires", "expires")
@@ -164,6 +166,7 @@ func Test_setHeadersFromObjectOutput(t *testing.T) {
 	headerFullInput.Add("Content-Range", "bytes 200/200")
 	headerFullInput.Add("Content-Type", "contenttype")
 	headerFullInput.Add("ETag", "etag")
+	headerFullInput.Add("Accept-Ranges", "bytes")
 	headerFullInput.Add("Last-Modified", now.UTC().Format(http.TimeFormat))
 	headerPartialInput := http.Header{}
 	headerPartialInput.Add("Cache-Control", "cachecontrol")
@@ -174,6 +177,7 @@ func Test_setHeadersFromObjectOutput(t *testing.T) {
 	headerPartialInput.Add("Content-Length", "200")
 	headerPartialInput.Add("Content-Range", "bytes 200-1000/10000")
 	headerPartialInput.Add("Content-Type", "contenttype")
+	headerPartialInput.Add("Accept-Ranges", "bytes")
 	headerPartialInput.Add("ETag", "etag")
 	headerPartialInput.Add("Last-Modified", now.UTC().Format(http.TimeFormat))
 	// Structures
@@ -191,7 +195,7 @@ func Test_setHeadersFromObjectOutput(t *testing.T) {
 			args: args{
 				obj: &StreamInput{},
 			},
-			expectedHeaders: http.Header{},
+			expectedHeaders: headerEmpty,
 			expectedCode:    http.StatusOK,
 		},
 		{
