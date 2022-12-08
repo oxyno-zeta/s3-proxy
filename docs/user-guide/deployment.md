@@ -10,7 +10,7 @@ A helm chart have been created to deploy this in a Kubernetes cluster.
 
 You can find it here: [https://artifacthub.io/packages/helm/oxyno-zeta/s3-proxy](https://artifacthub.io/packages/helm/oxyno-zeta/s3-proxy)
 
-Or directly from source: [https://github.com/oxyno-zeta/helm-charts/tree/master/stable/s3-proxy](https://github.com/oxyno-zeta/helm-charts/tree/master/stable/s3-proxy)
+Or directly from source: [https://github.com/oxyno-zeta/helm-charts-v2/tree/master/charts/s3-proxy](https://github.com/oxyno-zeta/helm-charts-v2/tree/master/charts/s3-proxy)
 
 <!-- prettier-ignore-start -->
 !!! Note
