@@ -300,7 +300,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
 
 						// Get request path
-						requestPath := chi.URLParam(req, "*") //nolint: contextcheck // False positive
+						requestPath := chi.URLParam(req, "*")
 
 						// Unescape it
 						// Found a bug where sometimes the request path isn't unescaped
@@ -381,7 +381,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
 
 						// Get request path
-						requestPath := chi.URLParam(req, "*") //nolint: contextcheck // False positive
+						requestPath := chi.URLParam(req, "*")
 						// Unescape it
 						// Found a bug where sometimes the request path isn't unescaped
 						requestPath, err := url.PathUnescape(requestPath)
@@ -436,7 +436,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						// Get response handler
 						resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
 						// Get request path
-						requestPath := chi.URLParam(req, "*") //nolint: contextcheck // False positive
+						requestPath := chi.URLParam(req, "*")
 						// Unescape it
 						// Found a bug where sometimes the request path isn't unescaped
 						requestPath, err := url.PathUnescape(requestPath)

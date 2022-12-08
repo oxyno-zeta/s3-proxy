@@ -103,7 +103,7 @@ func Middleware(
 				// Check if case of opa server
 				if headerOIDCResource.AuthorizationOPAServer != nil {
 					var err error
-					authorized, err = isOPAServerAuthorized(r, user, headerOIDCResource) //nolint: contextcheck // False positive
+					authorized, err = isOPAServerAuthorized(r, user, headerOIDCResource)
 					if err != nil {
 						// Check if bucket request context doesn't exist to use local default files
 						if brctx == nil {
