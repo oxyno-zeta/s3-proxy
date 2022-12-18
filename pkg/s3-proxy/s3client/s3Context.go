@@ -5,19 +5,21 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
+	awsv2manager "github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	awsv2s3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 )
 
 type s3Context struct {
-	svcClient  s3iface.S3API
+	svcClient  *awsv2s3.Client
 	target     *config.TargetConfig
 	metricsCtx metrics.Client
+	dlManager  *awsv2manager.Downloader
 }
 
 // ListObjectsOperation List objects operation.
@@ -165,7 +167,7 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 
 	defer childTrace.Finish()
 
-	s3Input := &s3.GetObjectInput{
+	s3Input := &awsv2s3.GetObjectInput{
 		Bucket:            aws.String(s3ctx.target.Bucket.Name),
 		Key:               aws.String(input.Key),
 		IfModifiedSince:   input.IfModifiedSince,
@@ -187,7 +189,7 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 		s3Input.IfNoneMatch = aws.String(input.IfNoneMatch)
 	}
 
-	obj, err := s3ctx.svcClient.GetObjectWithContext(ctx, s3Input)
+	obj, err := s3ctx.svcClient.GetObject(ctx, s3Input)
 	// Metrics
 	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, GetObjectOperation)
 	// Check if error exists
@@ -216,7 +218,7 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 
 	// Metadata transformation
 	if obj.Metadata != nil {
-		output.Metadata = aws.StringValueMap(obj.Metadata)
+		output.Metadata = obj.Metadata
 	}
 
 	if obj.CacheControl != nil {
@@ -224,7 +226,7 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 	}
 
 	if obj.Expires != nil {
-		output.Expires = *obj.Expires
+		output.Expires = obj.Expires
 	}
 
 	if obj.ContentDisposition != nil {

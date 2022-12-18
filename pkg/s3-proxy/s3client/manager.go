@@ -1,11 +1,9 @@
 package s3client
 
 import (
-	"emperror.dev/errors"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	awsv2 "github.com/aws/aws-sdk-go-v2/aws"
+	awsv2credentials "github.com/aws/aws-sdk-go-v2/credentials"
+	awsv2s3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/thoas/go-funk"
@@ -63,33 +61,59 @@ func (m *manager) Load() error {
 }
 
 func newClient(tgt *config.TargetConfig, metricsCtx metrics.Client) (Client, error) {
-	sessionConfig := &aws.Config{
-		Region: aws.String(tgt.Bucket.Region),
+	// TODO Find a better way
+	// ctx := context.TODO()
+
+	// Using the SDK's default configuration, loading additional config
+	// and credentials values from the environment variables, shared
+	// credentials, and shared configuration files
+	// cfg, err := awsconfig.LoadDefaultConfig(
+	// 	ctx,
+	// 	awsconfig.WithRegion(tgt.Bucket.Region),
+	// 	awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKey, secretKey, sessionToken)),
+	// 	awsconfig.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+	// 		return aws.Endpoint{
+	// 			PartitionID:       "aws",
+	// 			URL:               "http://127.0.0.1:9000",
+	// 			SigningRegion:     region,
+	// 			HostnameImmutable: true,
+	// 		}, nil
+	// 	})),
+	// )
+	// if err != nil {
+	// 	return nil, errors.WithStack(err)
+	// }
+
+	cfg := awsv2.Config{
+		Region: tgt.Bucket.Region,
 	}
+
 	// Load credentials if they exists
 	if tgt.Bucket.Credentials != nil && tgt.Bucket.Credentials.AccessKey != nil && tgt.Bucket.Credentials.SecretKey != nil {
-		sessionConfig.Credentials = credentials.NewStaticCredentials(tgt.Bucket.Credentials.AccessKey.Value, tgt.Bucket.Credentials.SecretKey.Value, "")
+		cfg.Credentials = awsv2credentials.NewStaticCredentialsProvider(
+			tgt.Bucket.Credentials.AccessKey.Value,
+			tgt.Bucket.Credentials.SecretKey.Value,
+			"",
+		)
 	}
 	// Load custom endpoint if it exists
 	if tgt.Bucket.S3Endpoint != "" {
-		sessionConfig.Endpoint = aws.String(tgt.Bucket.S3Endpoint)
-		sessionConfig.S3ForcePathStyle = aws.Bool(true)
+		cfg.EndpointResolverWithOptions = awsv2.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (awsv2.Endpoint, error) {
+			return awsv2.Endpoint{
+				PartitionID:       "aws",
+				URL:               tgt.Bucket.S3Endpoint,
+				SigningRegion:     region,
+				HostnameImmutable: true,
+			}, nil
+		})
 	}
-	// Check if ssl needs to be disabled
-	if tgt.Bucket.DisableSSL {
-		sessionConfig.DisableSSL = aws.Bool(true)
-	}
-	// Create session
-	sess, err := session.NewSession(sessionConfig)
-	// Check error
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	// Create s3 client
-	svcClient := s3.New(sess)
+	// Create s3 aws configuration
+	s3cl := awsv2s3.NewFromConfig(cfg, func(o *awsv2s3.Options) {
+		o.UsePathStyle = tgt.Bucket.S3Endpoint != ""
+	})
 
 	return &s3Context{
-		svcClient:  svcClient,
+		svcClient:  s3cl,
 		target:     tgt,
 		metricsCtx: metricsCtx,
 	}, nil
