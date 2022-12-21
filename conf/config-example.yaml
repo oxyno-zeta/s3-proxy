@@ -355,6 +355,10 @@ targets:
     #       indexDocument: index.html
     #       # Allow to add headers to streamed files (can be templated)
     #       streamedFileHeaders: {}
+    #       # Redirect to a S3 signed URL
+    #       redirectToSignedUrl: true
+    #       # Signed URL expiration time
+    #       signedUrlExpiration: 15m
     #       # Webhooks
     #       webhooks: []
     #   # Action for PUT requests on target

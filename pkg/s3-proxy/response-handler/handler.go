@@ -155,6 +155,11 @@ func (h *handler) TargetList() {
 	)
 }
 
+func (h *handler) RedirectTo(url string) {
+	// Redirect
+	http.Redirect(h.res, h.req, url, http.StatusFound)
+}
+
 func (h *handler) RedirectWithTrailingSlash() {
 	//  Get path
 	p := h.req.URL.RequestURI()
@@ -167,7 +172,7 @@ func (h *handler) RedirectWithTrailingSlash() {
 		p += "/"
 	}
 	// Redirect
-	http.Redirect(h.res, h.req, p, http.StatusFound)
+	h.RedirectTo(p)
 }
 
 func (h *handler) StreamFile(

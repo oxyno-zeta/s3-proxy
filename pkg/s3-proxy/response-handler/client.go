@@ -73,6 +73,8 @@ type ResponseHandler interface {
 	PreconditionFailed()
 	// RedirectWithTrailingSlash will redirect with a trailing slash.
 	RedirectWithTrailingSlash()
+	// RedirectTo will redirect to an url.
+	RedirectTo(url string)
 	// StreamFile will stream file in output.
 	// Error will be managed outside of this function because of the workflow in the caller function.
 	StreamFile(

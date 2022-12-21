@@ -158,6 +158,18 @@ func (mr *MockResponseHandlerMockRecorder) Put(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockResponseHandler)(nil).Put), arg0, arg1)
 }
 
+// RedirectTo mocks base method.
+func (m *MockResponseHandler) RedirectTo(arg0 string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "RedirectTo", arg0)
+}
+
+// RedirectTo indicates an expected call of RedirectTo.
+func (mr *MockResponseHandlerMockRecorder) RedirectTo(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RedirectTo", reflect.TypeOf((*MockResponseHandler)(nil).RedirectTo), arg0)
+}
+
 // RedirectWithTrailingSlash mocks base method.
 func (m *MockResponseHandler) RedirectWithTrailingSlash() {
 	m.ctrl.T.Helper()

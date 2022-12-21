@@ -61,22 +61,23 @@ func TestPublicRouter(t *testing.T) {
 		cfg *config.Config
 	}
 	tests := []struct {
-		name               string
-		args               args
-		inputMethod        string
-		inputURL           string
-		inputBasicUser     string
-		inputBasicPassword string
-		inputBody          string
-		inputFileName      string
-		inputFileKey       string
-		inputHeaders       map[string]string
-		expectedCode       int
-		expectedBody       string
-		expectedBodyRegex  string
-		expectedHeaders    map[string]string
-		notExpectedBody    string
-		wantErr            bool
+		name                   string
+		args                   args
+		inputMethod            string
+		inputURL               string
+		inputBasicUser         string
+		inputBasicPassword     string
+		inputBody              string
+		inputFileName          string
+		inputFileKey           string
+		inputHeaders           map[string]string
+		expectedCode           int
+		expectedBody           string
+		expectedBodyRegex      string
+		expectedHeaders        map[string]string
+		expectedHeaderContains map[string][]string
+		notExpectedBody        string
+		wantErr                bool
 	}{
 		{
 			name: "GET a not found path",
@@ -523,6 +524,62 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
+			name: "GET a file with success (redirect to signed url enabled)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{
+									Enabled: true,
+									Config: &config.GetActionConfigConfig{
+										RedirectToSignedURL: true,
+										SignedURLExpiration: time.Minute,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder1/test.txt",
+			expectedCode: 302,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+			},
+			expectedHeaderContains: map[string][]string{
+				// Example: http://127.0.0.1:45677/test-bucket/folder1/test.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=YOUR-ACCESSKEYID%2F20221220%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20221220T181313Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host&X-Amz-Signature=d2fb2cd997791dacfa3c3b5a43e327dfb551a78927aad996cc6fde9172fa4114
+				"Location": {
+					s3server.URL,
+					"/folder1/test.txt",
+					"X-Amz-Algorithm=AWS4-HMAC-SHA256",
+					"X-Amz-Credential=" + accessKey,
+					region,
+					"X-Amz-Expires=60",
+					"X-Amz-SignedHeaders=host&X-Amz-Signature=",
+				},
+			},
+		},
+		{
 			name: "GET a file with a not found error",
 			args: args{
 				cfg: &config.Config{
@@ -565,6 +622,58 @@ func TestPublicRouter(t *testing.T) {
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "GET a file with a not found error (redirect to signed url enabled)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{
+									Enabled: true,
+									Config: &config.GetActionConfigConfig{
+										RedirectToSignedURL: true,
+										SignedURLExpiration: time.Minute,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder1/test.txt-not-existing",
+			expectedCode: 404,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /mount/folder1/test.txt-not-existing</h1>
+  </body>
+</html>`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+				"Location":      "",
 			},
 		},
 		{
@@ -2361,6 +2470,63 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
+			name: "GET index document with index document enabled with success",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{
+									Enabled: true,
+									Config: &config.GetActionConfigConfig{
+										IndexDocument:       "index.html",
+										RedirectToSignedURL: true,
+										SignedURLExpiration: time.Minute,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder1/",
+			expectedCode: 302,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+			},
+			expectedHeaderContains: map[string][]string{
+				// Example: http://127.0.0.1:45677/test-bucket/folder1/test.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=YOUR-ACCESSKEYID%2F20221220%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20221220T181313Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host&X-Amz-Signature=d2fb2cd997791dacfa3c3b5a43e327dfb551a78927aad996cc6fde9172fa4114
+				"Location": {
+					s3server.URL,
+					"/folder1/index.html",
+					"X-Amz-Algorithm=AWS4-HMAC-SHA256",
+					"X-Amz-Credential=" + accessKey,
+					region,
+					"X-Amz-Expires=60",
+					"X-Amz-SignedHeaders=host&X-Amz-Signature=",
+				},
+			},
+		},
+		{
 			name: "GET a folder path with index document enabled and index document not found with success",
 			args: args{
 				cfg: &config.Config{
@@ -3367,6 +3533,15 @@ func TestPublicRouter(t *testing.T) {
 				for key, val := range tt.expectedHeaders {
 					wheader := w.HeaderMap.Get(key)
 					assert.Equal(t, val, wheader, key)
+				}
+			}
+
+			if tt.expectedHeaderContains != nil {
+				for key, list := range tt.expectedHeaderContains {
+					wheader := w.HeaderMap.Get(key)
+					for _, val := range list {
+						assert.Contains(t, wheader, val, key)
+					}
 				}
 			}
 

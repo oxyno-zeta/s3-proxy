@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://github.com/avelino/awesome-go" rel="noopener noreferer" target="_blank"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" /></a>
   <a href="http://godoc.org/github.com/oxyno-zeta/s3-proxy" rel="noopener noreferer" target="_blank"><img src="https://img.shields.io/badge/godoc-reference-blue.svg" alt="Go Doc" /></a>
-  <a href="https://circleci.com/gh/oxyno-zeta/s3-proxy" rel="noopener noreferer" target="_blank"><img src="https://circleci.com/gh/oxyno-zeta/s3-proxy.svg?style=svg" alt="CircleCI" /></a>
+  <a href="https://github.com/oxyno-zeta/s3-proxy/actions/workflows/ci.yml" rel="noopener noreferer" target="_blank"><img src="https://github.com/oxyno-zeta/s3-proxy/actions/workflows/ci.yml/badge.svg" alt="Github Actions" /></a>
   <a href="https://goreportcard.com/report/github.com/oxyno-zeta/s3-proxy" rel="noopener noreferer" target="_blank"><img src="https://goreportcard.com/badge/github.com/oxyno-zeta/s3-proxy" alt="Go Report Card" /></a>
 </p>
 <p align="center">
