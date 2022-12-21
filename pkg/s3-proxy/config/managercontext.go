@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/fsnotify/fsnotify"
@@ -597,6 +598,23 @@ func loadBusinessDefaultValues(out *Config) error {
 		// Manage default configuration for target actions
 		if item.Actions == nil {
 			item.Actions = &ActionsConfig{GET: &GetActionConfig{Enabled: true}}
+		}
+		// Manage values for signed url
+		if item.Actions != nil && item.Actions.GET != nil && item.Actions.GET.Config != nil {
+			// Check if expiration is set
+			if item.Actions.GET.Config.SignedURLExpirationString != "" {
+				// Parse it
+				dur, err := time.ParseDuration(item.Actions.GET.Config.SignedURLExpirationString)
+				// Check error
+				if err != nil {
+					return err
+				}
+				// Save
+				item.Actions.GET.Config.SignedURLExpiration = dur
+			} else {
+				// Set default one
+				item.Actions.GET.Config.SignedURLExpiration = DefaultTargetActionsGETConfigSignedURLExpiration
+			}
 		}
 		// Manage default for target templates configurations
 		// Else put default headers for template override

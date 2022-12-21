@@ -145,7 +145,32 @@ func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
 	}
 
 	// Get object case
-	err = rctx.streamFileForResponse(ctx, key, input)
+
+	// Check if it is asked to redirect to signed url
+	if rctx.targetCfg.Actions != nil &&
+		rctx.targetCfg.Actions.GET != nil &&
+		rctx.targetCfg.Actions.GET.Config != nil &&
+		rctx.targetCfg.Actions.GET.Config.RedirectToSignedURL {
+		// Get S3 client
+		s3cl := rctx.s3ClientManager.
+			GetClientForTarget(rctx.targetCfg.Name)
+		// Head file in bucket
+		headOutput, err2 := s3cl.HeadObject(ctx, key)
+		// Check if there is an error
+		if err2 != nil {
+			// Save error
+			err = err2
+		} else if headOutput != nil {
+			// File found
+
+			// Redirect to signed url
+			err = rctx.redirectToSignedURL(ctx, key, input)
+		}
+	} else {
+		// Stream object
+		err = rctx.streamFileForResponse(ctx, key, input)
+	}
+
 	// Check error
 	if err != nil {
 		// Check if error is a not found error
@@ -206,8 +231,14 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 		}
 		// Check that we found the file
 		if headOutput != nil {
-			// Get data
-			err = rctx.streamFileForResponse(ctx, headOutput.Key, input)
+			// Check if it is asked to redirect to signed url
+			if rctx.targetCfg.Actions.GET.Config.RedirectToSignedURL {
+				// Redirect to signed url
+				err = rctx.redirectToSignedURL(ctx, indexKey, input)
+			} else {
+				// Get data
+				err = rctx.streamFileForResponse(ctx, headOutput.Key, input)
+			}
 			// Check if error exists
 			if err != nil {
 				// Check if error is a not found error
@@ -548,6 +579,34 @@ func (rctx *requestContext) LoadFileContent(ctx context.Context, path string) (s
 
 	// Transform it to string and return
 	return string(bb), nil
+}
+
+func (rctx *requestContext) redirectToSignedURL(ctx context.Context, key string, input *GetInput) error {
+	// Get response handler from context
+	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
+	// Get signed url
+	url, err := rctx.s3ClientManager.
+		GetClientForTarget(rctx.targetCfg.Name).
+		GetObjectSignedURL(
+			ctx,
+			&s3client.GetInput{
+				Key:               key,
+				IfModifiedSince:   input.IfModifiedSince,
+				IfMatch:           input.IfMatch,
+				IfNoneMatch:       input.IfNoneMatch,
+				IfUnmodifiedSince: input.IfUnmodifiedSince,
+				Range:             input.Range,
+			},
+			rctx.targetCfg.Actions.GET.Config.SignedURLExpiration,
+		)
+	// Check error
+	if err != nil {
+		return err
+	}
+	// Redirect
+	resHan.RedirectTo(url)
+
+	return nil
 }
 
 func (rctx *requestContext) streamFileForResponse(ctx context.Context, key string, input *GetInput) error {

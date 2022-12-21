@@ -3,6 +3,7 @@ package config
 import (
 	"regexp"
 	"strings"
+	"time"
 
 	"emperror.dev/errors"
 )
@@ -121,6 +122,9 @@ const TemplateTargetKeyRewriteTargetType = "TEMPLATE"
 
 // DefaultServerTimeoutsReadHeaderTimeout Server timeouts ReadHeaderTimeout.
 const DefaultServerTimeoutsReadHeaderTimeout = "60s"
+
+// DefaultTargetActionsGETConfigSignedURLExpiration default signed url expiration.
+const DefaultTargetActionsGETConfigSignedURLExpiration = 15 * time.Minute
 
 // ErrMainBucketPathSupportNotValid Error thrown when main bucket path support option isn't valid.
 var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support option can be enabled only when only one bucket is configured")
@@ -405,7 +409,10 @@ type GetActionConfigConfig struct {
 	RedirectWithTrailingSlashForNotFoundFile bool              `mapstructure:"redirectWithTrailingSlashForNotFoundFile"`
 	IndexDocument                            string            `mapstructure:"indexDocument"`
 	StreamedFileHeaders                      map[string]string `mapstructure:"streamedFileHeaders"`
-	Webhooks                                 []*WebhookConfig  `mapstructure:"webhooks" validate:"dive"`
+	RedirectToSignedURL                      bool              `mapstructure:"redirectToSignedUrl"`
+	SignedURLExpirationString                string            `mapstructure:"signedUrlExpiration"`
+	SignedURLExpiration                      time.Duration
+	Webhooks                                 []*WebhookConfig `mapstructure:"webhooks" validate:"dive"`
 }
 
 // WebhookConfig Webhook configuration.

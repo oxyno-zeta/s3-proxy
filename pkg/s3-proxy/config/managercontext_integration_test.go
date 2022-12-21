@@ -1259,6 +1259,164 @@ targets:
 				},
 			},
 		},
+		{
+			name: "Test redirect to signed url configurations",
+			configs: map[string]string{
+				"cfg.yaml": `
+log:
+  level: error
+targets:
+ test:
+  mount:
+    path: /test/
+  actions:
+    GET:
+      enabled: true
+      config:
+        redirectToSignedUrl: true
+        signedUrlExpiration: 5s
+  bucket:
+    name: bucket1
+    region: us-east-1
+    credentials:
+      accessKey:
+        value: value1
+      secretKey:
+        value: value2`,
+			},
+			wantErr: false,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "error",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port:     8080,
+					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
+				},
+				InternalServer: &ServerConfig{
+					Port:     9090,
+					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
+				},
+				Templates: defaultTemplateCfg,
+				Tracing:   &TracingConfig{Enabled: false},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name: "test",
+						Mount: &MountConfig{
+							Path: []string{"/test/"},
+						},
+						Bucket: &BucketConfig{
+							Name:          "bucket1",
+							Region:        "us-east-1",
+							S3ListMaxKeys: 1000,
+							Credentials: &BucketCredentialConfig{
+								AccessKey: &CredentialConfig{
+									Value: "value1",
+								},
+								SecretKey: &CredentialConfig{
+									Value: "value2",
+								},
+							},
+						},
+						Actions: &ActionsConfig{
+							GET: &GetActionConfig{
+								Enabled: true,
+								Config: &GetActionConfigConfig{
+									RedirectToSignedURL:       true,
+									SignedURLExpirationString: "5s",
+									SignedURLExpiration:       5 * time.Second,
+								},
+							},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+			},
+		},
+		{
+			name: "Test redirect to signed url configurations (default expiration)",
+			configs: map[string]string{
+				"cfg.yaml": `
+log:
+  level: error
+targets:
+ test:
+  mount:
+    path: /test/
+  actions:
+    GET:
+      enabled: true
+      config:
+        redirectToSignedUrl: true
+  bucket:
+    name: bucket1
+    region: us-east-1
+    credentials:
+      accessKey:
+        value: value1
+      secretKey:
+        value: value2`,
+			},
+			wantErr: false,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "error",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port:     8080,
+					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
+				},
+				InternalServer: &ServerConfig{
+					Port:     9090,
+					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
+				},
+				Templates: defaultTemplateCfg,
+				Tracing:   &TracingConfig{Enabled: false},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name: "test",
+						Mount: &MountConfig{
+							Path: []string{"/test/"},
+						},
+						Bucket: &BucketConfig{
+							Name:          "bucket1",
+							Region:        "us-east-1",
+							S3ListMaxKeys: 1000,
+							Credentials: &BucketCredentialConfig{
+								AccessKey: &CredentialConfig{
+									Value: "value1",
+								},
+								SecretKey: &CredentialConfig{
+									Value: "value2",
+								},
+							},
+						},
+						Actions: &ActionsConfig{
+							GET: &GetActionConfig{
+								Enabled: true,
+								Config: &GetActionConfigConfig{
+									RedirectToSignedURL: true,
+									SignedURLExpiration: DefaultTargetActionsGETConfigSignedURLExpiration,
+								},
+							},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

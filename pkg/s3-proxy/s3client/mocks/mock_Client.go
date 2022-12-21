@@ -7,6 +7,7 @@ package mocks
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 	s3client "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
@@ -64,6 +65,21 @@ func (m *MockClient) GetObject(arg0 context.Context, arg1 *s3client.GetInput) (*
 func (mr *MockClientMockRecorder) GetObject(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObject", reflect.TypeOf((*MockClient)(nil).GetObject), arg0, arg1)
+}
+
+// GetObjectSignedURL mocks base method.
+func (m *MockClient) GetObjectSignedURL(arg0 context.Context, arg1 *s3client.GetInput, arg2 time.Duration) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetObjectSignedURL", arg0, arg1, arg2)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetObjectSignedURL indicates an expected call of GetObjectSignedURL.
+func (mr *MockClientMockRecorder) GetObjectSignedURL(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObjectSignedURL", reflect.TypeOf((*MockClient)(nil).GetObjectSignedURL), arg0, arg1, arg2)
 }
 
 // HeadObject mocks base method.

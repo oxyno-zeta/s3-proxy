@@ -35,6 +35,8 @@ type Client interface {
 	PutObject(ctx context.Context, input *PutInput) (*ResultInfo, error)
 	// DeleteObject will delete an object.
 	DeleteObject(ctx context.Context, key string) (*ResultInfo, error)
+	// GetObjectSignedURL will return a signed url for a get object.
+	GetObjectSignedURL(ctx context.Context, input *GetInput, expiration time.Duration) (string, error)
 }
 
 // ResultInfo ResultInfo structure.

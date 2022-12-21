@@ -3,6 +3,7 @@ package s3client
 import (
 	"context"
 	"strings"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
@@ -36,6 +37,60 @@ const PutObjectOperation = "put-object"
 const DeleteObjectOperation = "delete-object"
 
 const s3MaxKeys int64 = 1000
+
+func (s3ctx *s3Context) buildGetObjectInputFromInput(input *GetInput) *s3.GetObjectInput {
+	s3Input := &s3.GetObjectInput{
+		Bucket:            aws.String(s3ctx.target.Bucket.Name),
+		Key:               aws.String(input.Key),
+		IfModifiedSince:   input.IfModifiedSince,
+		IfUnmodifiedSince: input.IfUnmodifiedSince,
+	}
+
+	// Add Range if not empty
+	if input.Range != "" {
+		s3Input.Range = aws.String(input.Range)
+	}
+
+	// Add If Match if not empty
+	if input.IfMatch != "" {
+		s3Input.IfMatch = aws.String(input.IfMatch)
+	}
+
+	// Add If None Match if not empty
+	if input.IfNoneMatch != "" {
+		s3Input.IfNoneMatch = aws.String(input.IfNoneMatch)
+	}
+
+	return s3Input
+}
+
+func (s3ctx *s3Context) GetObjectSignedURL(ctx context.Context, input *GetInput, expiration time.Duration) (string, error) {
+	// Build input
+	s3Input := s3ctx.buildGetObjectInputFromInput(input)
+
+	// Build object request
+	req, _ := s3ctx.svcClient.GetObjectRequest(s3Input)
+	// Build url
+	urlStr, err := req.Presign(expiration)
+	// Check error
+	if err != nil {
+		// Try to cast error into an AWS Error if possible
+		//nolint: errorlint // Cast
+		aerr, ok := err.(awserr.Error)
+		if ok {
+			// Check if it is a not found case
+			if aerr.Code() == s3.ErrCodeNoSuchKey {
+				return "", ErrNotFound
+			} else if aerr.Code() == "PreconditionFailed" {
+				return "", ErrPreconditionFailed
+			}
+		}
+
+		return "", errors.WithStack(err)
+	}
+
+	return urlStr, nil
+}
 
 // ListFilesAndDirectories List files and directories.
 func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string) ([]*ListElementOutput, *ResultInfo, error) {
@@ -165,27 +220,8 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 
 	defer childTrace.Finish()
 
-	s3Input := &s3.GetObjectInput{
-		Bucket:            aws.String(s3ctx.target.Bucket.Name),
-		Key:               aws.String(input.Key),
-		IfModifiedSince:   input.IfModifiedSince,
-		IfUnmodifiedSince: input.IfUnmodifiedSince,
-	}
-
-	// Add Range if not empty
-	if input.Range != "" {
-		s3Input.Range = aws.String(input.Range)
-	}
-
-	// Add If Match if not empty
-	if input.IfMatch != "" {
-		s3Input.IfMatch = aws.String(input.IfMatch)
-	}
-
-	// Add If None Match if not empty
-	if input.IfNoneMatch != "" {
-		s3Input.IfNoneMatch = aws.String(input.IfNoneMatch)
-	}
+	// Build input
+	s3Input := s3ctx.buildGetObjectInputFromInput(input)
 
 	obj, err := s3ctx.svcClient.GetObjectWithContext(ctx, s3Input)
 	// Metrics
