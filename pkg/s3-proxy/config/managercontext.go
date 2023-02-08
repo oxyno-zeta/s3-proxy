@@ -607,7 +607,7 @@ func loadBusinessDefaultValues(out *Config) error {
 				dur, err := time.ParseDuration(item.Actions.GET.Config.SignedURLExpirationString)
 				// Check error
 				if err != nil {
-					return err
+					return errors.WithStack(err)
 				}
 				// Save
 				item.Actions.GET.Config.SignedURLExpiration = dur
