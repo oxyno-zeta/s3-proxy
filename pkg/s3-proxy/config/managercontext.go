@@ -270,9 +270,7 @@ func (ctx *managercontext) loadConfiguration() error {
 	internalFileWatchChannels := make([]chan bool, 0)
 	ctx.internalFileWatchChannels = internalFileWatchChannels
 	// Loop over all credentials in order to watch file change
-	funk.ForEach(credentials, func(item interface{}) {
-		// Cast
-		cred, _ := item.(*CredentialConfig)
+	funk.ForEach(credentials, func(cred *CredentialConfig) {
 		// Check if credential is about a path
 		if cred.Path != "" {
 			// Create channel
