@@ -19,6 +19,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/golang/mock/gomock"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	cmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config/mocks"
@@ -36,7 +38,7 @@ func TestPublicRouter(t *testing.T) {
 	secretAccessKey := "YOUR-SECRETACCESSKEY"
 	region := "eu-central-1"
 	bucket := "test-bucket"
-	s3server, err := setupFakeS3(
+	s3serverClient, s3server, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
@@ -61,23 +63,32 @@ func TestPublicRouter(t *testing.T) {
 		cfg *config.Config
 	}
 	tests := []struct {
-		name                   string
-		args                   args
-		inputMethod            string
-		inputURL               string
-		inputBasicUser         string
-		inputBasicPassword     string
-		inputBody              string
-		inputFileName          string
-		inputFileKey           string
-		inputHeaders           map[string]string
-		expectedCode           int
-		expectedBody           string
-		expectedBodyRegex      string
-		expectedHeaders        map[string]string
-		expectedHeaderContains map[string][]string
-		notExpectedBody        string
-		wantErr                bool
+		name                               string
+		args                               args
+		inputMethod                        string
+		inputURL                           string
+		inputBasicUser                     string
+		inputBasicPassword                 string
+		inputBody                          string
+		inputFileName                      string
+		inputFileKey                       string
+		inputHeaders                       map[string]string
+		expectedCode                       int
+		expectedBody                       string
+		expectedBodyRegex                  string
+		expectedHeaders                    map[string]string
+		expectedHeaderContains             map[string][]string
+		validateS3Object                   bool
+		expectedS3ObjectKey                string
+		expectedS3ObjectMetadata           map[string]*string
+		expectedS3ObjectCacheControl       *string
+		expectedS3ObjectContentDisposition *string
+		expectedS3ObjectContentEncoding    *string
+		expectedS3ObjectContentLanguage    *string
+		expectedS3ObjectExpires            *string
+		expectedS3ObjectStorageClass       *string
+		notExpectedBody                    string
+		wantErr                            bool
 	}{
 		{
 			name: "GET a not found path",
@@ -2813,6 +2824,73 @@ func TestPublicRouter(t *testing.T) {
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 			},
+			validateS3Object:             true,
+			expectedS3ObjectKey:          "folder1/test2.txt",
+			expectedS3ObjectStorageClass: aws.String("Standard"),
+			expectedS3ObjectMetadata:     aws.StringMap(map[string]string{"Meta1": "meta1"}),
+		},
+		{
+			name: "PUT a file with system metadata",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+								PUT: &config.PutActionConfig{
+									Enabled: true,
+									Config: &config.PutActionConfigConfig{
+										StorageClass:  "Standard",
+										AllowOverride: trueValue,
+										SystemMetadata: &config.PutActionConfigSystemMetadataConfig{
+											ContentDisposition: "attachment",
+											CacheControl:       "cache-control",
+											ContentEncoding:    "content-encoding",
+											ContentLanguage:    "content-language",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:   "PUT",
+			inputURL:      "http://localhost/mount/folder1/",
+			inputFileName: "system-metadata.txt",
+			inputFileKey:  "file",
+			inputBody:     "Hello test2!",
+			expectedCode:  204,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+			},
+			validateS3Object:                   true,
+			expectedS3ObjectKey:                "folder1/system-metadata.txt",
+			expectedS3ObjectStorageClass:       aws.String("Standard"),
+			expectedS3ObjectContentDisposition: aws.String("attachment"),
+			// Cannot be testing due to limitation on library
+			// https://github.com/johannesboyne/gofakes3/blob/master/gofakes3.go#L1079
+			// expectedS3ObjectCacheControl:       aws.String("cache-control"),
+			// expectedS3ObjectContentEncoding:    aws.String("content-encoding"),
+			// expectedS3ObjectContentLanguage:    aws.String("content-language"),
 		},
 		{
 			name: "PUT in a path without allow override should failed",
@@ -2922,6 +3000,10 @@ func TestPublicRouter(t *testing.T) {
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 			},
+			validateS3Object:             true,
+			expectedS3ObjectKey:          "folder1/test.txt",
+			expectedS3ObjectStorageClass: aws.String("Standard"),
+			expectedS3ObjectMetadata:     aws.StringMap(map[string]string{"Meta1": "meta1", "M1-Key": "v1"}),
 		},
 		{
 			name: "PUT in a path should fail because no input",
@@ -3098,6 +3180,10 @@ func TestPublicRouter(t *testing.T) {
     </body>
 </html>
 `,
+			validateS3Object:             true,
+			expectedS3ObjectKey:          "folder1/test.txt",
+			expectedS3ObjectStorageClass: aws.String("Standard"),
+			expectedS3ObjectMetadata:     aws.StringMap(map[string]string{"Meta1": "meta1", "M1-Key": "v1"}),
 		},
 		{
 			name: "PUT with a custom target template and status code should be ok",
@@ -3165,6 +3251,10 @@ func TestPublicRouter(t *testing.T) {
     </body>
 </html>
 `,
+			validateS3Object:             true,
+			expectedS3ObjectKey:          "folder1/test.txt",
+			expectedS3ObjectStorageClass: aws.String("Standard"),
+			expectedS3ObjectMetadata:     aws.StringMap(map[string]string{"Meta1": "meta1", "M1-Key": "v1"}),
 		},
 		{
 			name: "GET a file with success with space in path",
@@ -3546,6 +3636,21 @@ func TestPublicRouter(t *testing.T) {
 			}
 
 			assert.Equal(t, tt.expectedCode, w.Code)
+
+			if tt.validateS3Object {
+				r, err := s3serverClient.HeadObject(&s3.HeadObjectInput{
+					Bucket: &bucket,
+					Key:    &tt.expectedS3ObjectKey,
+				})
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedS3ObjectMetadata, r.Metadata, "S3 object metadata")
+				assert.Equal(t, tt.expectedS3ObjectStorageClass, r.StorageClass, "S3 object storage class")
+				assert.Equal(t, tt.expectedS3ObjectCacheControl, r.CacheControl, "S3 object cache control")
+				assert.Equal(t, tt.expectedS3ObjectContentDisposition, r.ContentDisposition, "S3 object content disposition")
+				assert.Equal(t, tt.expectedS3ObjectContentEncoding, r.ContentEncoding, "S3 object content encoding")
+				assert.Equal(t, tt.expectedS3ObjectContentLanguage, r.ContentLanguage, "S3 object content language")
+				assert.Equal(t, tt.expectedS3ObjectExpires, r.Expires, "S3 object expires")
+			}
 		})
 	}
 }
@@ -3555,7 +3660,7 @@ func TestTracing(t *testing.T) {
 	secretAccessKey := "YOUR-SECRETACCESSKEY"
 	region := "eu-central-1"
 	bucket := "test-bucket"
-	s3server, err := setupFakeS3(
+	_, s3server, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
@@ -3773,7 +3878,7 @@ func TestOIDCAuthentication(t *testing.T) {
 	region := "eu-central-1"
 	bucket := "test-bucket"
 
-	s3server, err := setupFakeS3(
+	_, s3server, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
@@ -4655,7 +4760,7 @@ func TestCORS(t *testing.T) {
 	secretAccessKey := "YOUR-SECRETACCESSKEY"
 	region := "eu-central-1"
 	bucket := "test-bucket"
-	s3server, err := setupFakeS3(
+	_, s3server, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
@@ -5050,7 +5155,7 @@ func TestIndexLargeBucket(t *testing.T) {
 	secretAccessKey := "YOUR-SECRETACCESSKEY"
 	region := "eu-central-1"
 	bucket := "test-bucket"
-	s3server, err := setupFakeS3(
+	_, s3server, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
@@ -5161,7 +5266,7 @@ func TestListLargeBucketAndSmallMaxKeys(t *testing.T) {
 	region := "eu-central-1"
 	bucket := "test-bucket"
 	maxKeys := 500
-	s3server, err := setupFakeS3(
+	_, s3server, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
@@ -5265,7 +5370,7 @@ func TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys(t *testing.T) {
 	region := "eu-central-1"
 	bucket := "test-bucket"
 	maxKeys := 1500
-	s3server, err := setupFakeS3(
+	_, s3server, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
@@ -5368,7 +5473,7 @@ func TestFolderWithSubFolders(t *testing.T) {
 	secretAccessKey := "YOUR-SECRETACCESSKEY"
 	region := "eu-central-1"
 	bucket := "test-bucket"
-	s3server, err := setupFakeS3(
+	_, s3server, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
@@ -5471,7 +5576,7 @@ func TestTrailingSlashRedirect(t *testing.T) {
 	secretAccessKey := "YOUR-SECRETACCESSKEY"
 	region := "eu-central-1"
 	bucket := "test-bucket"
-	s3server, err := setupFakeS3(
+	_, s3server, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,

@@ -106,12 +106,17 @@ type GetOutput struct {
 
 // PutInput Put input object for PUT request.
 type PutInput struct {
-	Key          string
-	Body         io.ReadSeeker
-	ContentType  string
-	ContentSize  int64
-	Metadata     map[string]string
-	StorageClass string
+	Key                string
+	Body               io.ReadSeeker
+	ContentType        string
+	ContentSize        int64
+	Metadata           map[string]string
+	StorageClass       string
+	CacheControl       string
+	ContentDisposition string
+	ContentEncoding    string
+	ContentLanguage    string
+	Expires            *time.Time
 }
 
 // NewManager will return a new S3 client manager.

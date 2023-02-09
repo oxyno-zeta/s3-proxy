@@ -371,6 +371,20 @@ targets:
     #       # Values can be templated. Empty values will be flushed.
     #       metadata:
     #         key: value
+    #       # System Metadata cases.
+    #       # Values can be templated. Empty values will be flushed.
+    #       systemMetadata:
+    #         # Cache-Control value (will be put as header after)
+    #         cacheControl: ""
+    #         # Content-Disposition value (will be put as header after)
+    #         contentDisposition: ""
+    #         # Content-Encoding value (will be put as header after)
+    #         contentEncoding: ""
+    #         # Content-Language value (will be put as header after)
+    #         contentLanguage: ""
+    #         # Expires value (will be put as header after)
+    #         # Side note: This must have the RFC3339 date format at the end.
+    #         expires: ""
     #       # Storage class that will be used for uploaded objects
     #       # See storage class here: https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html
     #       # Values can be templated. Empty values will be flushed.

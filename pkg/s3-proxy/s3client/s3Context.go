@@ -324,8 +324,25 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*Result
 		ContentLength: aws.Int64(input.ContentSize),
 		Bucket:        aws.String(s3ctx.target.Bucket.Name),
 		Key:           aws.String(input.Key),
+		Expires:       input.Expires,
 	}
 
+	// Manage cache control case
+	if input.CacheControl != "" {
+		inp.CacheControl = aws.String(input.CacheControl)
+	}
+	// Manage content disposition case
+	if input.ContentDisposition != "" {
+		inp.ContentDisposition = aws.String(input.ContentDisposition)
+	}
+	// Manage content encoding case
+	if input.ContentEncoding != "" {
+		inp.ContentEncoding = aws.String(input.ContentEncoding)
+	}
+	// Manage content language case
+	if input.ContentLanguage != "" {
+		inp.ContentLanguage = aws.String(input.ContentLanguage)
+	}
 	// Manage content type case
 	if input.ContentType != "" {
 		inp.ContentType = aws.String(input.ContentType)

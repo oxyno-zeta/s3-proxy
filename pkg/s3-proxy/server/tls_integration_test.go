@@ -35,7 +35,7 @@ func TestTLSServer(t *testing.T) {
 	tracingConfig := &config.TracingConfig{}
 
 	// S3 mock server for all subtests.
-	s3server, err := setupFakeS3(accessKey, secretAccessKey, region, bucket)
+	_, s3server, err := setupFakeS3(accessKey, secretAccessKey, region, bucket)
 	if err != nil {
 		t.Fatal(err)
 		return

@@ -392,10 +392,20 @@ type PutActionConfig struct {
 
 // PutActionConfigConfig Put action configuration object configuration.
 type PutActionConfigConfig struct {
-	Metadata      map[string]string `mapstructure:"metadata"`
-	StorageClass  string            `mapstructure:"storageClass"`
-	AllowOverride bool              `mapstructure:"allowOverride"`
-	Webhooks      []*WebhookConfig  `mapstructure:"webhooks" validate:"dive"`
+	Metadata       map[string]string                    `mapstructure:"metadata"`
+	SystemMetadata *PutActionConfigSystemMetadataConfig `mapstructure:"systemMetadata"`
+	StorageClass   string                               `mapstructure:"storageClass"`
+	AllowOverride  bool                                 `mapstructure:"allowOverride"`
+	Webhooks       []*WebhookConfig                     `mapstructure:"webhooks" validate:"dive"`
+}
+
+// PutActionConfigSystemMetadataConfig Put action configuration system metadata object configuration.
+type PutActionConfigSystemMetadataConfig struct {
+	CacheControl       string `mapstructure:"cacheControl"`
+	ContentDisposition string `mapstructure:"contentDisposition"`
+	ContentEncoding    string `mapstructure:"contentEncoding"`
+	ContentLanguage    string `mapstructure:"contentLanguage"`
+	Expires            string `mapstructure:"expires"`
 }
 
 // GetActionConfig Get action configuration.
