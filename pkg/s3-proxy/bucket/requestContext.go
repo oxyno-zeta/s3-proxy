@@ -6,6 +6,7 @@ import (
 	"io"
 	"path"
 	"strings"
+	"time"
 
 	"emperror.dev/errors"
 
@@ -344,6 +345,98 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 	// Check if post actions configuration exists
 	if rctx.targetCfg.Actions.PUT != nil &&
 		rctx.targetCfg.Actions.PUT.Config != nil {
+		// Check if system metadata is defined
+		if rctx.targetCfg.Actions.PUT.Config.SystemMetadata != nil {
+			// Manage cache control
+			if rctx.targetCfg.Actions.PUT.Config.SystemMetadata.CacheControl != "" {
+				// Execute template
+				val, err2 := rctx.tplPutData(ctx, inp, key, rctx.targetCfg.Actions.PUT.Config.SystemMetadata.CacheControl)
+				// Check error
+				if err2 != nil {
+					resHan.InternalServerError(rctx.LoadFileContent, err2)
+
+					return
+				}
+				// Check if value is empty or not
+				if val != "" {
+					// Store
+					input.CacheControl = val
+				}
+			}
+			// Manage content disposition
+			if rctx.targetCfg.Actions.PUT.Config.SystemMetadata.ContentDisposition != "" {
+				// Execute template
+				val, err2 := rctx.tplPutData(ctx, inp, key, rctx.targetCfg.Actions.PUT.Config.SystemMetadata.ContentDisposition)
+				// Check error
+				if err2 != nil {
+					resHan.InternalServerError(rctx.LoadFileContent, err2)
+
+					return
+				}
+				// Check if value is empty or not
+				if val != "" {
+					// Store
+					input.ContentDisposition = val
+				}
+			}
+			// Manage content encoding
+			if rctx.targetCfg.Actions.PUT.Config.SystemMetadata.ContentEncoding != "" {
+				// Execute template
+				val, err2 := rctx.tplPutData(ctx, inp, key, rctx.targetCfg.Actions.PUT.Config.SystemMetadata.ContentEncoding)
+				// Check error
+				if err2 != nil {
+					resHan.InternalServerError(rctx.LoadFileContent, err2)
+
+					return
+				}
+				// Check if value is empty or not
+				if val != "" {
+					// Store
+					input.ContentEncoding = val
+				}
+			}
+			// Manage content language
+			if rctx.targetCfg.Actions.PUT.Config.SystemMetadata.ContentLanguage != "" {
+				// Execute template
+				val, err2 := rctx.tplPutData(ctx, inp, key, rctx.targetCfg.Actions.PUT.Config.SystemMetadata.ContentLanguage)
+				// Check error
+				if err2 != nil {
+					resHan.InternalServerError(rctx.LoadFileContent, err2)
+
+					return
+				}
+				// Check if value is empty or not
+				if val != "" {
+					// Store
+					input.ContentLanguage = val
+				}
+			}
+			// Manage content language
+			if rctx.targetCfg.Actions.PUT.Config.SystemMetadata.Expires != "" {
+				// Execute template
+				val, err2 := rctx.tplPutData(ctx, inp, key, rctx.targetCfg.Actions.PUT.Config.SystemMetadata.Expires)
+				// Check error
+				if err2 != nil {
+					resHan.InternalServerError(rctx.LoadFileContent, err2)
+
+					return
+				}
+				// Check if value is empty or not
+				if val != "" {
+					// Parse
+					d, err3 := time.Parse(time.RFC3339, val)
+					// Check error
+					if err3 != nil {
+						resHan.InternalServerError(rctx.LoadFileContent, errors.WithStack(err3))
+
+						return
+					}
+					// Store
+					input.Expires = &d
+				}
+			}
+		}
+
 		// Check if metadata is configured in target configuration
 		if rctx.targetCfg.Actions.PUT.Config.Metadata != nil {
 			// Store templated data
@@ -352,22 +445,13 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 			// Render templates
 			for k, v := range rctx.targetCfg.Actions.PUT.Config.Metadata {
 				// Execute template
-				buf, err2 := templateutils.ExecuteTemplate(v, &PutData{
-					User:  models.GetAuthenticatedUserFromContext(ctx),
-					Input: inp,
-					Key:   key,
-				})
+				val, err2 := rctx.tplPutData(ctx, inp, key, v)
 				// Check error
 				if err2 != nil {
 					resHan.InternalServerError(rctx.LoadFileContent, err2)
 
 					return
 				}
-
-				// Store value
-				val := buf.String()
-				// Remove all new lines
-				val = utils.NewLineMatcherRegex.ReplaceAllString(val, "")
 				// Check if value is empty or not
 				if val != "" {
 					// Store
@@ -382,23 +466,13 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 		// Check if storage class is present in target configuration
 		if rctx.targetCfg.Actions.PUT.Config.StorageClass != "" {
 			// Execute template
-			buf, err2 := templateutils.ExecuteTemplate(rctx.targetCfg.Actions.PUT.Config.StorageClass, &PutData{
-				User:  models.GetAuthenticatedUserFromContext(ctx),
-				Input: inp,
-				Key:   key,
-			})
-
+			val, err2 := rctx.tplPutData(ctx, inp, key, rctx.targetCfg.Actions.PUT.Config.StorageClass)
 			// Check error
 			if err2 != nil {
 				resHan.InternalServerError(rctx.LoadFileContent, err2)
 
 				return
 			}
-
-			// Store value
-			val := buf.String()
-			// Remove all new lines
-			val = utils.NewLineMatcherRegex.ReplaceAllString(val, "")
 			// Check if value is empty or not
 			if val != "" {
 				// Store
@@ -471,6 +545,33 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 			Filename:     inp.Filename,
 		},
 	)
+}
+
+func (rctx *requestContext) tplPutData(ctx context.Context, inp *PutInput, key, tplStr string) (string, error) {
+	// Execute template
+	buf, err := templateutils.ExecuteTemplate(tplStr, &PutData{
+		User:  models.GetAuthenticatedUserFromContext(ctx),
+		Input: inp,
+		Key:   key,
+	})
+
+	// Check error
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	// Store value
+	val := buf.String()
+	// Remove all new lines
+	val = utils.NewLineMatcherRegex.ReplaceAllString(val, "")
+	// Check if value is empty or not
+	if val != "" {
+		// Store
+		return val, nil
+	}
+
+	// Default
+	return "", nil
 }
 
 // Delete will delete object in S3.

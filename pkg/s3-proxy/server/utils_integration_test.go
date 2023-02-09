@@ -105,7 +105,7 @@ var testsDefaultGeneralTemplateConfig = &config.TemplateConfig{
 // Generate metrics instance
 var metricsCtx = metrics.NewClient()
 
-func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*httptest.Server, error) {
+func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*s3.S3, *httptest.Server, error) {
 	backend := s3mem.New()
 	faker := gofakes3.New(backend)
 	ts := httptest.NewServer(faker.Server())
@@ -128,7 +128,7 @@ func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*httptest.S
 	// Create a new bucket using the CreateBucket call.
 	_, err := s3Client.CreateBucket(cparams)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	files := map[string]string{
@@ -164,7 +164,7 @@ func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*httptest.S
 			}),
 		})
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
@@ -178,8 +178,8 @@ func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*httptest.S
 		},
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return ts, nil
+	return s3Client, ts, nil
 }
