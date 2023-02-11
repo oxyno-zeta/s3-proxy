@@ -5,12 +5,12 @@ default_install_hook_types:
   - commit-msg
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v2.29.4
+    rev: v2.42.0
     hooks:
       - id: commitizen
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v4.4.0
     hooks:
       - id: check-json
         stages: [commit]
@@ -32,12 +32,12 @@ repos:
         stages: [commit]
   - repo: https://github.com/pre-commit/mirrors-prettier
     # Use the sha or branch you want to point at
-    rev: v2.7.1
+    rev: v3.0.0-alpha.4
     hooks:
       - id: prettier
         stages: [commit]
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.8.0.4
+    rev: v0.9.0.2
     hooks:
       - id: shellcheck
         stages: [commit]
