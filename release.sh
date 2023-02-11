@@ -2,6 +2,6 @@
 
 set -ex
 
-npm install -g semantic-release@17.0.4 @semantic-release/exec@5.0.0
+npm install -g semantic-release@20.1.0 @semantic-release/exec@6.0.3
 
 semantic-release --no-ci
