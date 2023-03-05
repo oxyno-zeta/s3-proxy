@@ -31,6 +31,7 @@ HAS_GIT := $(shell command -v git;)
 HAS_GOLANGCI_LINT := $(shell command -v golangci-lint;)
 HAS_CURL:=$(shell command -v curl;)
 HAS_MOCKGEN:=$(shell command -v mockgen;)
+HAS_GOTESTFMT:=$(shell command -v gotestfmt;)
 
 .DEFAULT_GOAL := code/lint
 
@@ -91,6 +92,10 @@ endif
 .PHONY: test/all
 test/all: setup/dep/install
 	$(GO) test --tags=unit,integration -v -coverpkg=./pkg/... -covermode=count -coverprofile=c.out.tmp ./pkg/...
+
+.PHONY: test/all/gotestfmt
+test/all/gotestfmt: setup/dep/install
+	$(GO) test -json --tags=unit,integration -v -coverpkg=./pkg/... -covermode=count -coverprofile=c.out.tmp ./pkg/... | tee /tmp/gotest.log | gotestfmt
 
 .PHONY: test/unit
 test/unit: setup/dep/install
@@ -173,6 +178,10 @@ endif
 ifndef HAS_MOCKGEN
 	@echo "=> Installing mockgen tool"
 	go install github.com/golang/mock/mockgen@v1.6.0
+endif
+ifndef HAS_GOTESTFMT
+	@echo "=> Installing gotestfmt tool"
+	go install github.com/gotesttools/gotestfmt/v2/cmd/gotestfmt@v2.4.1
 endif
 	go mod download all
 	go mod tidy
