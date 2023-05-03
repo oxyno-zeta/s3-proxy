@@ -20,7 +20,6 @@ var bucketRequestContextKey = &contextKey{name: "bucket-request-context"}
 
 func HTTPMiddleware(
 	tgt *config.TargetConfig,
-	generalHelpers []string,
 	path string,
 	s3clientManager s3client.Manager,
 	wbManager webhook.Manager,
@@ -28,7 +27,7 @@ func HTTPMiddleware(
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			// Generate new bucket client
-			brctx := NewClient(tgt, generalHelpers, path, s3clientManager, wbManager)
+			brctx := NewClient(tgt, path, s3clientManager, wbManager)
 			// Add bucket structure to request context by creating a new context
 			ctx := context.WithValue(req.Context(), bucketRequestContextKey, brctx)
 			// Create new request with new context

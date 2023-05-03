@@ -32,6 +32,7 @@ HAS_GOLANGCI_LINT := $(shell command -v golangci-lint;)
 HAS_CURL:=$(shell command -v curl;)
 HAS_MOCKGEN:=$(shell command -v mockgen;)
 HAS_GOTESTFMT:=$(shell command -v gotestfmt;)
+HAS_FIELDALIGNMENT:=$(shell command -v fieldalignment;)
 
 .DEFAULT_GOAL := code/lint
 
@@ -46,6 +47,10 @@ code/generate:
 .PHONY: code/lint
 code/lint: setup/dep/install
 	golangci-lint run ./...
+
+.PHONY: code/fieldalignment
+code/fieldalignment: setup/dep/install
+	fieldalignment -fix -test=false ./...
 
 .PHONY: code/build
 code/build: code/clean setup/dep/install
@@ -170,7 +175,7 @@ ifndef HAS_GOLANGCI_LINT
 ifndef HAS_CURL
 	$(error You must install curl)
 endif
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.51.2
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.52.2
 endif
 ifndef HAS_GIT
 	$(error You must install Git)
@@ -182,6 +187,10 @@ endif
 ifndef HAS_GOTESTFMT
 	@echo "=> Installing gotestfmt tool"
 	go install github.com/gotesttools/gotestfmt/v2/cmd/gotestfmt@v2.4.1
+endif
+ifndef HAS_FIELDALIGNMENT
+	@echo "=> Installing fieldalignment tool"
+	$(GO) install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
 endif
 	go mod download all
 	go mod tidy

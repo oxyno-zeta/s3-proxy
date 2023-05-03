@@ -2,10 +2,11 @@
 # with their default values.
 # options for analysis running
 run:
+  go: "1.19"
   # default concurrency is a available CPU number
   concurrency: 4
   # timeout for analysis, e.g. 30s, 5m, default is 1m
-  timeout: 1m
+  timeout: 10m
   # exit code when at least one issue was found, default is 1
   issues-exit-code: 1
   # include test files or not, default is true
@@ -52,78 +53,9 @@ output:
   path-prefix: ""
 # all available settings of specific linters
 linters-settings:
-  dogsled:
-    # checks assignments with too many blank identifiers; default is 2
-    max-blank-identifiers: 2
-  dupl:
-    # tokens count to trigger issue, 150 by default
-    threshold: 150
-  errcheck:
-    # report about not checking of errors in type assertions: `a := b.(MyStruct)`;
-    # default is false: such cases aren't reported by default.
-    check-type-assertions: false
-    # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`;
-    # default is false: such cases aren't reported by default.
-    check-blank: false
-    # [deprecated] comma-separated list of pairs of the form pkg:regex
-    # the regex is used to ignore names within pkg. (default "fmt:.*").
-    # see https://github.com/kisielk/errcheck#the-deprecated-method for details
-    ignore: fmt:.*,io/ioutil:^Read.*
-    # path to a file containing a list of functions to exclude from checking
-    # see https://github.com/kisielk/errcheck#excluding-functions for details
-    exclude:
-    # exclude: /path/to/file.txt
-  exhaustive:
-    # indicates that switch statements are to be considered exhaustive if a
-    # 'default' case is present, even if all enum members aren't listed in the
-    # switch
-    default-signifies-exhaustive: false
-  funlen:
-    lines: 60
-    statements: 40
-  gci:
-    # put imports beginning with prefix after 3rd-party packages;
-    # only support one prefix
-    # if not set, use goimports.local-prefixes
-    local-prefixes: github.com/org/project
-  gocognit:
-    # minimal code complexity to report, 30 by default (but we recommend 10-20)
-    min-complexity: 10
-  nestif:
-    # minimal complexity of if statements to report, 5 by default
-    min-complexity: 4
-  goconst:
-    # minimal length of string constant, 3 by default
-    min-len: 3
-    # minimal occurrences count to trigger, 3 by default
-    min-occurrences: 3
-  gocritic:
-    # Which checks should be enabled; can't be combined with 'disabled-checks';
-    # See https://go-critic.github.io/overview#checks-overview
-    # To check which checks are enabled run `GL_DEBUG=gocritic golangci-lint run`
-    # By default list of stable checks is used.
-    enabled-checks:
-      - rangeValCopy
-    # Which checks should be disabled; can't be combined with 'enabled-checks'; default is empty
-    disabled-checks:
-      - regexpMust
-    # Enable multiple checks by tags, run `GL_DEBUG=gocritic golangci-lint run` to see all tags and checks.
-    # Empty list by default. See https://github.com/go-critic/go-critic#usage -> section "Tags".
-    enabled-tags:
-      - performance
-    disabled-tags:
-      - experimental
-    settings: # settings passed to gocritic
-      captLocal: # must be valid enabled check name
-        paramsOnly: true
-      rangeValCopy:
-        sizeThreshold: 32
-  gocyclo:
-    # minimal code complexity to report, 30 by default (but we recommend 10-20)
-    min-complexity: 10
-  godot:
-    # check all top-level comments, not only declarations
-    check-all: false
+  tagalign:
+    align: true
+    sort: true
   godox:
     # report any comments starting with keywords, this is useful for TODO or FIXME comments that
     # might be left in the code accidentally and should be resolved before merging
@@ -136,186 +68,268 @@ linters-settings:
   gofmt:
     # simplify code: gofmt with `-s` option, true by default
     simplify: true
-  goheader:
-    values:
-      const:
-      # define here const type values in format k:v, for example:
-      # YEAR: 2020
-      # COMPANY: MY COMPANY
-      regexp:
-        # define here regexp type values, for example
-        # AUTHOR: .*@mycompany\.com
-    template:
-      # put here copyright header template for source code files, for example:
-      #    {{ AUTHOR }} {{ COMPANY }} {{ YEAR }}
-      #    SPDX-License-Identifier: Apache-2.0
-      #
-      #    Licensed under the Apache License, Version 2.0 (the "License");
-      #    you may not use this file except in compliance with the License.
-      #    You may obtain a copy of the License at:
-      #
-      #      http://www.apache.org/licenses/LICENSE-2.0
-      #
-      #    Unless required by applicable law or agreed to in writing, software
-      #    distributed under the License is distributed on an "AS IS" BASIS,
-      #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-      #    See the License for the specific language governing permissions and
-      #    limitations under the License.
-    template-path:
-      # also as alternative of directive 'template' you may put the path to file with the template source
-  goimports:
-    # put imports beginning with prefix after 3rd-party packages;
-    # it's a comma-separated list of prefixes
-    local-prefixes: github.com/org/project
-  golint:
-    # minimal confidence for issues, default is 0.8
-    min-confidence: 0.8
-  gomnd:
-    settings:
-      mnd:
-        # the list of enabled checks, see https://github.com/tommy-muehle/go-mnd/#checks for description.
-        checks: argument,case,condition,operation,return,assign
-  gomodguard:
-    allowed:
-      modules:
-        [] # List of allowed modules
-        # - gopkg.in/yaml.v2
-      domains:
-        [] # List of allowed module domains
-        # - golang.org
-    blocked:
-      modules: [] # List of blocked modules
-      # - github.com/uudashr/go-module:                             # Blocked module
-      #     recommendations:                                        # Recommended modules that should be used instead (Optional)
-      #       - golang.org/x/mod
-      #     reason: "`mod` is the official go.mod parser library."  # Reason why the recommended module should be used (Optional)
-      versions:
-        [] # List of blocked module version constraints
-        # - github.com/mitchellh/go-homedir:                          # Blocked module with version constraint
-        #     version: "< 1.1.0"                                      # Version constraint, see https://github.com/Masterminds/semver#basic-comparisons
-        #     reason: "testing if blocked version constraint works."  # Reason why the version constraint exists. (Optional)
   govet:
     # report about shadowed variables
     check-shadowing: true
-    # settings per analyzer
-    settings:
-      printf: # analyzer name, run `go tool vet help` to see all analyzers
-        funcs: # run `go tool vet help printf` to see available settings for `printf` analyzer
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
-    # enable or disable analyzers by name
-    enable:
-      - atomicalign
-    enable-all: false
-    disable:
-      - shadow
-    disable-all: false
-  depguard:
-    list-type: blacklist
-    include-go-root: false
-    packages:
-      []
-      # - github.com/sirupsen/logrus
-    packages-with-error-message:
-      []
-      # specify an error message to output when a blacklisted package is used
-      # - github.com/sirupsen/logrus: "logging is allowed only by logutils.Log"
+    enable-all: true
+  revive:
+    # When set to false, ignores files with "GENERATED" header, similar to golint.
+    # See https://github.com/mgechev/revive#available-rules for details.
+    # Default: false
+    ignore-generated-header: true
+    rules:
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#atomic
+      - name: atomic
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#blank-imports
+      - name: blank-imports
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#bool-literal-in-expr
+      - name: bool-literal-in-expr
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#call-to-gc
+      - name: call-to-gc
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#confusing-results
+      - name: confusing-results
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#constant-logical-expr
+      - name: constant-logical-expr
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#context-as-argument
+      - name: context-as-argument
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#context-keys-type
+      - name: context-keys-type
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#datarace
+      - name: datarace
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#deep-exit
+      - name: deep-exit
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#defer
+      - name: defer
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#dot-imports
+      - name: dot-imports
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#duplicated-imports
+      - name: duplicated-imports
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#early-return
+      - name: early-return
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#empty-block
+      - name: empty-block
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#empty-lines
+      - name: empty-lines
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#error-naming
+      - name: error-naming
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#error-return
+      - name: error-return
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#error-strings
+      - name: error-strings
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#errorf
+      - name: errorf
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#function-result-limit
+      - name: function-result-limit
+        severity: warning
+        disabled: false
+        arguments: [4]
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#get-return
+      - name: get-return
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#identical-branches
+      - name: identical-branches
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#if-return
+      - name: if-return
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#increment-decrement
+      - name: increment-decrement
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#indent-error-flow
+      - name: indent-error-flow
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#import-shadowing
+      - name: import-shadowing
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#modifies-parameter
+      - name: modifies-parameter
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#modifies-value-receiver
+      - name: modifies-value-receiver
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#nested-structs
+      - name: nested-structs
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#optimize-operands-order
+      - name: optimize-operands-order
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#package-comments
+      - name: package-comments
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#range
+      - name: range
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#range-val-in-closure
+      - name: range-val-in-closure
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#range-val-address
+      - name: range-val-address
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#receiver-naming
+      - name: receiver-naming
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#redefines-builtin-id
+      - name: redefines-builtin-id
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#string-of-int
+      - name: string-of-int
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#superfluous-else
+      - name: superfluous-else
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#time-equal
+      - name: time-equal
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#time-naming
+      - name: time-naming
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#var-declaration
+      - name: var-declaration
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unconditional-recursion
+      - name: unconditional-recursion
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unexported-naming
+      - name: unexported-naming
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unexported-return
+      - name: unexported-return
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unnecessary-stmt
+      - name: unnecessary-stmt
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unreachable-code
+      - name: unreachable-code
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unused-parameter
+      - name: unused-parameter
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unused-receiver
+      - name: unused-receiver
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#useless-break
+      - name: useless-break
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#waitgroup-by-value
+      - name: waitgroup-by-value
+        severity: warning
+        disabled: false
+  gosec:
+    # To select a subset of rules to run.
+    # Available rules: https://github.com/securego/gosec#available-rules
+    # Default: [] - means include all rules
+    includes:
+      - G101 # Look for hard coded credentials
+      - G102 # Bind to all interfaces
+      - G103 # Audit the use of unsafe block
+      - G104 # Audit errors not checked
+      - G106 # Audit the use of ssh.InsecureIgnoreHostKey
+      - G107 # Url provided to HTTP request as taint input
+      - G108 # Profiling endpoint automatically exposed on /debug/pprof
+      - G109 # Potential Integer overflow made by strconv.Atoi result conversion to int16/32
+      - G110 # Potential DoS vulnerability via decompression bomb
+      - G111 # Potential directory traversal
+      - G112 # Potential slowloris attack
+      - G113 # Usage of Rat.SetString in math/big with an overflow (CVE-2022-23772)
+      - G114 # Use of net/http serve function that has no support for setting timeouts
+      - G201 # SQL query construction using format string
+      - G202 # SQL query construction using string concatenation
+      - G203 # Use of unescaped data in HTML templates
+      - G204 # Audit use of command execution
+      - G301 # Poor file permissions used when creating a directory
+      - G302 # Poor file permissions used with chmod
+      - G303 # Creating tempfile using a predictable path
+      - G304 # File path provided as taint input
+      - G305 # File traversal when extracting zip/tar archive
+      - G306 # Poor file permissions used when writing to a new file
+      - G307 # Deferring a method which returns an error
+      - G401 # Detect the usage of DES, RC4, MD5 or SHA1
+      - G402 # Look for bad TLS connection settings
+      - G403 # Ensure minimum RSA key length of 2048 bits
+      - G404 # Insecure random number source (rand)
+      - G501 # Import blocklist: crypto/md5
+      - G502 # Import blocklist: crypto/des
+      - G503 # Import blocklist: crypto/rc4
+      - G504 # Import blocklist: net/http/cgi
+      - G505 # Import blocklist: crypto/sha1
+      - G601 # Implicit memory aliasing of items from a range statement
   lll:
     # max line length, lines longer will be reported. Default is 120.
     # '\t' is counted as 1 character by default, and can be changed with the tab-width option
     line-length: 160
     # tab width in spaces. Default to 1.
     tab-width: 1
-  maligned:
-    # print struct with more effective memory layout or not, false by default
-    suggest-new: true
-  misspell:
-    # Correct spellings using locale preferences for US or UK.
-    # Default is to use a neutral variety of English.
-    # Setting locale to US will correct the British spelling of 'colour' to 'color'.
-    locale: US
-    ignore-words:
-      []
-      # - someword
-  nakedret:
-    # make an issue if func has more lines of code than this setting and it has naked returns; default is 30
-    max-func-lines: 30
-  prealloc:
-    # XXX: we don't recommend using this linter before doing performance profiling.
-    # For most programs usage of prealloc will be a premature optimization.
-    # Report preallocation suggestions only on simple loops that have no returns/breaks/continues/gotos in them.
-    # True by default.
-    simple: true
-    range-loops: true # Report preallocation suggestions on range loops, true by default
-    for-loops: false # Report preallocation suggestions on for loops, false by default
-  nolintlint:
-    # Enable to ensure that nolint directives are all used. Default is true.
-    allow-unused: false
-    # Disable to ensure that nolint directives don't have a leading space. Default is true.
-    allow-leading-space: true
-    # Exclude following linters from requiring an explanation.  Default is [].
-    allow-no-explanation: []
-    # Enable to require an explanation of nonzero length after each nolint directive. Default is false.
-    require-explanation: true
-    # Enable to require nolint directives to mention the specific linter being suppressed. Default is false.
-    require-specific: true
-  rowserrcheck:
-    packages:
-      - github.com/jmoiron/sqlx
   testpackage:
     # regexp pattern to skip files
-    skip-regexp: (export|internal)_test\.go
-  unparam:
-    # Inspect exported functions, default is false. Set to true if no external program/library imports your code.
-    # XXX: if you enable this setting, unparam will report a lot of false-positives in text editors:
-    # if it's called for subdir of a project it can't find external interfaces. All text editor integrations
-    # with golangci-lint call it on a directory with the changed file.
-    check-exported: false
-  unused:
-    # treat code as a program (not a library) and report unused exported identifiers; default is false.
-    # XXX: if you enable this setting, unused will report a lot of false-positives in text editors:
-    # if it's called for subdir of a project it can't find funcs usages. All text editor integrations
-    # with golangci-lint call it on a directory with the changed file.
-    check-exported: false
-  whitespace:
-    multi-if: false # Enforces newlines (or comments) after every multi-line if statement
-    multi-func: false # Enforces newlines (or comments) after every multi-line function signature
-  wsl:
-    # If true append is only allowed to be cuddled if appending value is
-    # matching variables, fields or types on line above. Default is true.
-    strict-append: true
-    # Allow calls and assignments to be cuddled as long as the lines have any
-    # matching variables, fields or types. Default is true.
-    allow-assign-and-call: true
-    # Allow multiline assignments to be cuddled. Default is true.
-    allow-multiline-assign: true
-    # Allow declarations (var) to be cuddled.
-    allow-cuddle-declarations: false
-    # Allow trailing comments in ending of blocks
-    allow-trailing-comment: false
-    # Force newlines in end of case at this limit (0 = never).
-    force-case-trailing-whitespace: 0
-    # Force cuddling of err checks with err var assignment
-    force-err-cuddling: false
-    # Allow leading comments to be separated with empty liens
-    allow-separated-leading-comment: false
-  gofumpt:
-    # Choose whether or not to use the extra rules that are disabled
-    # by default
-    extra-rules: false
-  # The custom section can be used to define linter plugins to be loaded at runtime. See README doc
-  #  for more info.
-  # custom:
-  #   # Each custom linter should have a unique name.
-  #   example:
-  #     # The path to the plugin *.so. Can be absolute or local. Required for each custom linter
-  #     path: /path/to/example.so
-  #     # The description of the linter. Optional, just for documentation purposes.
-  #     description: This is an example usage of a plugin linter.
-  #     # Intended to point to the repo location of the linter. Optional, just for documentation purposes.
-  #     original-url: github.com/golangci/example-linter
+    skip-regexp: _test\.go
 linters:
   enable:
     - govet
@@ -378,6 +392,7 @@ linters:
     - execinquery
     - reassign
     - usestdlibvars
+    # - tagalign # Added in 1.53.0
   disable:
     - deadcode
     - varcheck
@@ -399,10 +414,6 @@ linters:
     - exhaustruct
     - nosnakecase
     - interfacebloat
-  disable-all: false
-  presets:
-    - bugs
-    - unused
   fast: false
 issues:
   exclude-rules:
@@ -411,61 +422,64 @@ issues:
         - lll
       source: "^//go:generate "
     - linters:
+        - gomoddirectives
+      path: go.mod
+    - linters:
         - tagliatelle
       path: pkg/.*/authx/models/oidc-user\.go
     - linters:
         - tagliatelle
       path: pkg/.*/authx/authorization/opa-server\.go
-# issues:
-#   # List of regexps of issue texts to exclude, empty list by default.
-#   # But independently from this option we use default exclude patterns,
-#   # it can be disabled by `exclude-use-default: false`. To list all
-#   # excluded by default patterns execute `golangci-lint run --help`
-#   exclude:
-#     - abcdef
-#   # Excluding configuration per-path, per-linter, per-text and per-source
-#   exclude-rules:
-#     # Exclude some linters from running on tests files.
-#     - path: _test\.go
-#       linters:
-#         - gocyclo
-#         - errcheck
-#         - dupl
-#         - gosec
-#     # Exclude known linters from partially hard-vendored code,
-#     # which is impossible to exclude via "nolint" comments.
-#     - path: internal/hmac/
-#       text: "weak cryptographic primitive"
-#       linters:
-#         - gosec
-#     # Exclude some staticcheck messages
-#     - linters:
-#         - staticcheck
-#       text: "SA9003:"
-#     # Exclude lll issues for long lines with go:generate
-#     - linters:
-#         - lll
-#       source: "^//go:generate "
-#   # Independently from option `exclude` we use default exclude patterns,
-#   # it can be disabled by this option. To list all
-#   # excluded by default patterns execute `golangci-lint run --help`.
-#   # Default value for this option is true.
-#   exclude-use-default: false
-#   # Maximum issues count per one linter. Set to 0 to disable. Default is 50.
-#   max-issues-per-linter: 0
-#   # Maximum count of issues with the same text. Set to 0 to disable. Default is 3.
-#   max-same-issues: 0
-#   # Show only new issues: if there are unstaged changes or untracked files,
-#   # only those changes are analyzed, else only changes in HEAD~ are analyzed.
-#   # It's a super-useful option for integration of golangci-lint into existing
-#   # large codebase. It's not practical to fix all existing issues at the moment
-#   # of integration: much better don't allow issues in new code.
-#   # Default is false.
-#   new: false
-#   # Show only new issues created after git revision `REV`
-#   new-from-rev: REV
-#   # Show only new issues created in git patch with set file path.
-#   new-from-patch: # path/to/patch/file
+  # issues:
+  #   # List of regexps of issue texts to exclude, empty list by default.
+  #   # But independently from this option we use default exclude patterns,
+  #   # it can be disabled by `exclude-use-default: false`. To list all
+  #   # excluded by default patterns execute `golangci-lint run --help`
+  #   exclude:
+  #     - abcdef
+  #   # Excluding configuration per-path, per-linter, per-text and per-source
+  #   exclude-rules:
+  #     # Exclude some linters from running on tests files.
+  #     - path: _test\.go
+  #       linters:
+  #         - gocyclo
+  #         - errcheck
+  #         - dupl
+  #         - gosec
+  #     # Exclude known linters from partially hard-vendored code,
+  #     # which is impossible to exclude via "nolint" comments.
+  #     - path: internal/hmac/
+  #       text: "weak cryptographic primitive"
+  #       linters:
+  #         - gosec
+  #     # Exclude some staticcheck messages
+  #     - linters:
+  #         - staticcheck
+  #       text: "SA9003:"
+  #     # Exclude lll issues for long lines with go:generate
+  #     - linters:
+  #         - lll
+  #       source: "^//go:generate "
+  #   # Independently from option `exclude` we use default exclude patterns,
+  #   # it can be disabled by this option. To list all
+  #   # excluded by default patterns execute `golangci-lint run --help`.
+  #   # Default value for this option is true.
+  #   exclude-use-default: false
+  #   # Maximum issues count per one linter. Set to 0 to disable. Default is 50.
+  #   max-issues-per-linter: 0
+  #   # Maximum count of issues with the same text. Set to 0 to disable. Default is 3.
+  #   max-same-issues: 0
+  #   # Show only new issues: if there are unstaged changes or untracked files,
+  #   # only those changes are analyzed, else only changes in HEAD~ are analyzed.
+  #   # It's a super-useful option for integration of golangci-lint into existing
+  #   # large codebase. It's not practical to fix all existing issues at the moment
+  #   # of integration: much better don't allow issues in new code.
+  #   # Default is false.
+  #   new: false
+  #   # Show only new issues created in git patch with set file path.
+  #   new-from-patch: # path/to/patch/file
+  # Fix found issues (if it's supported by the linter)
+  fix: true
 severity:
   # Default value is empty string.
   # Set the default severity for issues. If severity rules are defined and the issues

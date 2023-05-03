@@ -8,11 +8,11 @@ import (
 
 // folderListingData Folder listing data for templating.
 type folderListingData struct {
-	Request    *http.Request
 	User       models.GenericUser
-	Entries    []*Entry
+	Request    *http.Request
 	BucketName string
 	Name       string
+	Entries    []*Entry
 }
 
 // errorData represents the structure used by error templating.

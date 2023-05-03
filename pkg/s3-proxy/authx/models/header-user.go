@@ -11,7 +11,7 @@ type HeaderUser struct {
 	Groups []string `json:"groups"`
 }
 
-func (u *HeaderUser) GetType() string {
+func (*HeaderUser) GetType() string {
 	return HeaderUserType
 }
 
@@ -29,7 +29,7 @@ func (u *HeaderUser) GetUsername() string {
 }
 
 // Get name (only available for OIDC user).
-func (u *HeaderUser) GetName() string {
+func (*HeaderUser) GetName() string {
 	return ""
 }
 
@@ -39,12 +39,12 @@ func (u *HeaderUser) GetGroups() []string {
 }
 
 // Get given name (only available for OIDC user).
-func (u *HeaderUser) GetGivenName() string {
+func (*HeaderUser) GetGivenName() string {
 	return ""
 }
 
 // Get family name (only available for OIDC user).
-func (u *HeaderUser) GetFamilyName() string {
+func (*HeaderUser) GetFamilyName() string {
 	return ""
 }
 
@@ -54,6 +54,6 @@ func (u *HeaderUser) GetEmail() string {
 }
 
 // Is Email Verified ? (only available for OIDC user).
-func (u *HeaderUser) IsEmailVerified() bool {
+func (*HeaderUser) IsEmailVerified() bool {
 	return false
 }

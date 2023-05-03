@@ -149,19 +149,19 @@ type Config struct {
 
 // TracingConfig represents the Tracing configuration structure.
 type TracingConfig struct {
-	Enabled       bool                   `mapstructure:"enabled"`
-	LogSpan       bool                   `mapstructure:"logSpan"`
+	FixedTags     map[string]interface{} `mapstructure:"fixedTags"`
 	FlushInterval string                 `mapstructure:"flushInterval"`
 	UDPHost       string                 `mapstructure:"udpHost"`
 	QueueSize     int                    `mapstructure:"queueSize"`
-	FixedTags     map[string]interface{} `mapstructure:"fixedTags"`
+	Enabled       bool                   `mapstructure:"enabled"`
+	LogSpan       bool                   `mapstructure:"logSpan"`
 }
 
 // ListTargetsConfig List targets configuration.
 type ListTargetsConfig struct {
-	Enabled  bool         `mapstructure:"enabled"`
 	Mount    *MountConfig `mapstructure:"mount" validate:"required_with=Enabled"`
 	Resource *Resource    `mapstructure:"resource" validate:"omitempty"`
+	Enabled  bool         `mapstructure:"enabled"`
 }
 
 // MountConfig Mount configuration.
@@ -179,28 +179,28 @@ type AuthProviderConfig struct {
 
 // OIDCAuthConfig OpenID Connect authentication configurations.
 type OIDCAuthConfig struct {
-	ClientID      string            `mapstructure:"clientID" validate:"required"`
 	ClientSecret  *CredentialConfig `mapstructure:"clientSecret" validate:"omitempty,dive"`
+	GroupClaim    string            `mapstructure:"groupClaim"`
 	IssuerURL     string            `mapstructure:"issuerUrl" validate:"required,url"`
 	RedirectURL   string            `mapstructure:"redirectUrl" validate:"omitempty,url"`
-	Scopes        []string          `mapstructure:"scopes"`
 	State         string            `mapstructure:"state" validate:"required"`
-	GroupClaim    string            `mapstructure:"groupClaim"`
+	ClientID      string            `mapstructure:"clientID" validate:"required"`
 	CookieName    string            `mapstructure:"cookieName"`
-	EmailVerified bool              `mapstructure:"emailVerified"`
-	CookieSecure  bool              `mapstructure:"cookieSecure"`
-	CookieDomains []string          `mapstructure:"cookieDomains"`
 	LoginPath     string            `mapstructure:"loginPath"`
 	CallbackPath  string            `mapstructure:"callbackPath"`
+	Scopes        []string          `mapstructure:"scopes"`
+	CookieDomains []string          `mapstructure:"cookieDomains"`
+	EmailVerified bool              `mapstructure:"emailVerified"`
+	CookieSecure  bool              `mapstructure:"cookieSecure"`
 }
 
 // HeaderOIDCAuthorizationAccess OpenID Connect or Header authorization accesses.
 type HeaderOIDCAuthorizationAccess struct {
+	GroupRegexp *regexp.Regexp
+	EmailRegexp *regexp.Regexp
 	Group       string `mapstructure:"group" validate:"required_without=Email"`
 	Email       string `mapstructure:"email" validate:"required_without=Group"`
 	Regexp      bool   `mapstructure:"regexp"`
-	GroupRegexp *regexp.Regexp
-	EmailRegexp *regexp.Regexp
 }
 
 // BasicAuthConfig Basic auth configurations.
@@ -217,8 +217,8 @@ type HeaderAuthConfig struct {
 
 // BasicAuthUserConfig Basic User auth configuration.
 type BasicAuthUserConfig struct {
-	User     string            `mapstructure:"user" validate:"required"`
 	Password *CredentialConfig `mapstructure:"password" validate:"required,dive"`
+	User     string            `mapstructure:"user" validate:"required"`
 }
 
 // TemplateConfigItem Template configuration item.
@@ -230,7 +230,6 @@ type TemplateConfigItem struct {
 
 // TemplateConfig Templates configuration.
 type TemplateConfig struct {
-	Helpers             []string            `mapstructure:"helpers" validate:"required,min=1,dive,required"`
 	FolderList          *TemplateConfigItem `mapstructure:"folderList" validate:"required"`
 	TargetList          *TemplateConfigItem `mapstructure:"targetList" validate:"required"`
 	NotFoundError       *TemplateConfigItem `mapstructure:"notFoundError" validate:"required"`
@@ -240,17 +239,18 @@ type TemplateConfig struct {
 	BadRequestError     *TemplateConfigItem `mapstructure:"badRequestError" validate:"required"`
 	Put                 *TemplateConfigItem `mapstructure:"put" validate:"required"`
 	Delete              *TemplateConfigItem `mapstructure:"delete" validate:"required"`
+	Helpers             []string            `mapstructure:"helpers" validate:"required,min=1,dive,required"`
 }
 
 // ServerConfig Server configuration.
 type ServerConfig struct {
-	ListenAddr string                `mapstructure:"listenAddr"`
-	Port       int                   `mapstructure:"port" validate:"required"`
 	Timeouts   *ServerTimeoutsConfig `mapstructure:"timeouts" validate:"required"`
 	CORS       *ServerCorsConfig     `mapstructure:"cors" validate:"omitempty"`
 	Cache      *CacheConfig          `mapstructure:"cache" validate:"omitempty"`
 	Compress   *ServerCompressConfig `mapstructure:"compress" validate:"omitempty"`
 	SSL        *ServerSSLConfig      `mapstructure:"ssl" validate:"omitempty"`
+	ListenAddr string                `mapstructure:"listenAddr"`
+	Port       int                   `mapstructure:"port" validate:"required"`
 }
 
 // ServerTimeoutsConfig Server timeouts configuration.
@@ -264,18 +264,18 @@ type ServerTimeoutsConfig struct {
 // ServerCompressConfig Server compress configuration.
 type ServerCompressConfig struct {
 	Enabled *bool    `mapstructure:"enabled"`
-	Level   int      `mapstructure:"level" validate:"required,min=1"`
 	Types   []string `mapstructure:"types" validate:"required,min=1"`
+	Level   int      `mapstructure:"level" validate:"required,min=1"`
 }
 
 // ServerSSLConfig Server SSL configuration.
 type ServerSSLConfig struct {
-	Enabled             bool                    `mapstructure:"enabled"`
-	Certificates        []*ServerSSLCertificate `mapstructure:"certificates"`
-	SelfSignedHostnames []string                `mapstructure:"selfSignedHostnames"`
 	MinTLSVersion       *string                 `mapstructure:"minTLSVersion"`
 	MaxTLSVersion       *string                 `mapstructure:"maxTLSVersion"`
+	Certificates        []*ServerSSLCertificate `mapstructure:"certificates"`
+	SelfSignedHostnames []string                `mapstructure:"selfSignedHostnames"`
 	CipherSuites        []string                `mapstructure:"cipherSuites"`
+	Enabled             bool                    `mapstructure:"enabled"`
 }
 
 // ServerSSLCertificate Server SSL certificate.
@@ -290,34 +290,34 @@ type ServerSSLCertificate struct {
 
 // SSLURLConfig SSL certificate/private key configuration for URLs.
 type SSLURLConfig struct {
+	AWSCredentials *BucketCredentialConfig `mapstructure:"awsCredentials" validate:"omitempty,dive"`
 	HTTPTimeout    string                  `mapstructure:"httpTimeout"`
 	AWSRegion      string                  `mapstructure:"awsRegion"`
 	AWSEndpoint    string                  `mapstructure:"awsEndpoint"`
-	AWSCredentials *BucketCredentialConfig `mapstructure:"awsCredentials" validate:"omitempty,dive"`
 	AWSDisableSSL  bool                    `mapstructure:"awsDisableSSL"`
 }
 
 // CacheConfig Cache configuration.
 type CacheConfig struct {
-	NoCacheEnabled bool   `mapstructure:"noCacheEnabled"`
 	Expires        string `mapstructure:"expires"`
 	CacheControl   string `mapstructure:"cacheControl"`
 	Pragma         string `mapstructure:"pragma"`
 	XAccelExpires  string `mapstructure:"xAccelExpires"`
+	NoCacheEnabled bool   `mapstructure:"noCacheEnabled"`
 }
 
 // ServerCorsConfig Server CORS configuration.
 type ServerCorsConfig struct {
-	Enabled            bool     `mapstructure:"enabled"`
-	AllowAll           bool     `mapstructure:"allowAll"`
-	AllowOrigins       []string `mapstructure:"allowOrigins"`
-	AllowMethods       []string `mapstructure:"allowMethods"`
-	AllowHeaders       []string `mapstructure:"allowHeaders"`
-	ExposeHeaders      []string `mapstructure:"exposeHeaders"`
 	MaxAge             *int     `mapstructure:"maxAge"`
 	AllowCredentials   *bool    `mapstructure:"allowCredentials"`
 	Debug              *bool    `mapstructure:"debug"`
 	OptionsPassthrough *bool    `mapstructure:"optionsPassthrough"`
+	AllowOrigins       []string `mapstructure:"allowOrigins"`
+	AllowMethods       []string `mapstructure:"allowMethods"`
+	AllowHeaders       []string `mapstructure:"allowHeaders"`
+	ExposeHeaders      []string `mapstructure:"exposeHeaders"`
+	Enabled            bool     `mapstructure:"enabled"`
+	AllowAll           bool     `mapstructure:"allowAll"`
 }
 
 // TargetConfig Bucket instance configuration.
@@ -341,7 +341,6 @@ type TargetKeyRewriteConfig struct {
 
 // TargetTemplateConfig Target templates configuration to override default ones.
 type TargetTemplateConfig struct {
-	Helpers             []*TargetHelperConfigItem `mapstructure:"helpers"`
 	FolderList          *TargetTemplateConfigItem `mapstructure:"folderList"`
 	NotFoundError       *TargetTemplateConfigItem `mapstructure:"notFoundError"`
 	InternalServerError *TargetTemplateConfigItem `mapstructure:"internalServerError"`
@@ -350,6 +349,7 @@ type TargetTemplateConfig struct {
 	BadRequestError     *TargetTemplateConfigItem `mapstructure:"badRequestError"`
 	Put                 *TargetTemplateConfigItem `mapstructure:"put"`
 	Delete              *TargetTemplateConfigItem `mapstructure:"delete"`
+	Helpers             []*TargetHelperConfigItem `mapstructure:"helpers"`
 }
 
 // TargetHelperConfigItem Target helper configuration item.
@@ -375,8 +375,8 @@ type ActionsConfig struct {
 
 // DeleteActionConfig Delete action configuration.
 type DeleteActionConfig struct {
-	Enabled bool                      `mapstructure:"enabled"`
 	Config  *DeleteActionConfigConfig `mapstructure:"config"`
+	Enabled bool                      `mapstructure:"enabled"`
 }
 
 // DeleteActionConfigConfig Delete action configuration object configuration.
@@ -386,8 +386,8 @@ type DeleteActionConfigConfig struct {
 
 // PutActionConfig Put action configuration.
 type PutActionConfig struct {
-	Enabled bool                   `mapstructure:"enabled"`
 	Config  *PutActionConfigConfig `mapstructure:"config"`
+	Enabled bool                   `mapstructure:"enabled"`
 }
 
 // PutActionConfigConfig Put action configuration object configuration.
@@ -395,8 +395,8 @@ type PutActionConfigConfig struct {
 	Metadata       map[string]string                    `mapstructure:"metadata"`
 	SystemMetadata *PutActionConfigSystemMetadataConfig `mapstructure:"systemMetadata"`
 	StorageClass   string                               `mapstructure:"storageClass"`
-	AllowOverride  bool                                 `mapstructure:"allowOverride"`
 	Webhooks       []*WebhookConfig                     `mapstructure:"webhooks" validate:"dive"`
+	AllowOverride  bool                                 `mapstructure:"allowOverride"`
 }
 
 // PutActionConfigSystemMetadataConfig Put action configuration system metadata object configuration.
@@ -410,41 +410,41 @@ type PutActionConfigSystemMetadataConfig struct {
 
 // GetActionConfig Get action configuration.
 type GetActionConfig struct {
-	Enabled bool                   `mapstructure:"enabled"`
 	Config  *GetActionConfigConfig `mapstructure:"config"`
+	Enabled bool                   `mapstructure:"enabled"`
 }
 
 // GetActionConfigConfig Get action configuration object configuration.
 type GetActionConfigConfig struct {
-	RedirectWithTrailingSlashForNotFoundFile bool              `mapstructure:"redirectWithTrailingSlashForNotFoundFile"`
-	IndexDocument                            string            `mapstructure:"indexDocument"`
 	StreamedFileHeaders                      map[string]string `mapstructure:"streamedFileHeaders"`
-	RedirectToSignedURL                      bool              `mapstructure:"redirectToSignedUrl"`
+	IndexDocument                            string            `mapstructure:"indexDocument"`
 	SignedURLExpirationString                string            `mapstructure:"signedUrlExpiration"`
+	Webhooks                                 []*WebhookConfig  `mapstructure:"webhooks" validate:"dive"`
 	SignedURLExpiration                      time.Duration
-	Webhooks                                 []*WebhookConfig `mapstructure:"webhooks" validate:"dive"`
+	RedirectWithTrailingSlashForNotFoundFile bool `mapstructure:"redirectWithTrailingSlashForNotFoundFile"`
+	RedirectToSignedURL                      bool `mapstructure:"redirectToSignedUrl"`
 }
 
 // WebhookConfig Webhook configuration.
 type WebhookConfig struct {
-	Method          string                       `mapstructure:"method" validate:"required,oneof=POST PATCH PUT DELETE"`
-	URL             string                       `mapstructure:"url" validate:"required,url"`
 	Headers         map[string]string            `mapstructure:"headers"`
 	SecretHeaders   map[string]*CredentialConfig `mapstructure:"secretHeaders" validate:"omitempty,dive"`
-	RetryCount      int                          `mapstructure:"retryCount" validate:"gte=0"`
+	Method          string                       `mapstructure:"method" validate:"required,oneof=POST PATCH PUT DELETE"`
+	URL             string                       `mapstructure:"url" validate:"required,url"`
 	MaxWaitTime     string                       `mapstructure:"maxWaitTime"`
 	DefaultWaitTime string                       `mapstructure:"defaultWaitTime"`
+	RetryCount      int                          `mapstructure:"retryCount" validate:"gte=0"`
 }
 
 // Resource Resource.
 type Resource struct {
-	Path      string              `mapstructure:"path" validate:"required"`
-	Methods   []string            `mapstructure:"methods" validate:"required,dive,required"`
 	WhiteList *bool               `mapstructure:"whiteList"`
-	Provider  string              `mapstructure:"provider"`
 	Basic     *ResourceBasic      `mapstructure:"basic" validate:"omitempty"`
 	OIDC      *ResourceHeaderOIDC `mapstructure:"oidc" validate:"omitempty"`
 	Header    *ResourceHeaderOIDC `mapstructure:"header" validate:"omitempty"`
+	Path      string              `mapstructure:"path" validate:"required"`
+	Provider  string              `mapstructure:"provider"`
+	Methods   []string            `mapstructure:"methods" validate:"required,dive,required"`
 }
 
 // ResourceBasic Basic auth resource.
@@ -454,25 +454,25 @@ type ResourceBasic struct {
 
 // ResourceHeaderOIDC OIDC or Header auth Resource.
 type ResourceHeaderOIDC struct {
-	AuthorizationAccesses  []*HeaderOIDCAuthorizationAccess `mapstructure:"authorizationAccesses" validate:"omitempty,dive"`
 	AuthorizationOPAServer *OPAServerAuthorization          `mapstructure:"authorizationOPAServer" validate:"omitempty,dive"`
+	AuthorizationAccesses  []*HeaderOIDCAuthorizationAccess `mapstructure:"authorizationAccesses" validate:"omitempty,dive"`
 }
 
 // OPAServerAuthorization OPA Server authorization.
 type OPAServerAuthorization struct {
-	URL  string            `mapstructure:"url" validate:"required,url"`
 	Tags map[string]string `mapstructure:"tags"`
+	URL  string            `mapstructure:"url" validate:"required,url"`
 }
 
 // BucketConfig Bucket configuration.
 type BucketConfig struct {
+	Credentials   *BucketCredentialConfig `mapstructure:"credentials" validate:"omitempty,dive"`
 	Name          string                  `mapstructure:"name" validate:"required"`
 	Prefix        string                  `mapstructure:"prefix"`
 	Region        string                  `mapstructure:"region"`
 	S3Endpoint    string                  `mapstructure:"s3Endpoint"`
-	Credentials   *BucketCredentialConfig `mapstructure:"credentials" validate:"omitempty,dive"`
-	DisableSSL    bool                    `mapstructure:"disableSSL"`
 	S3ListMaxKeys int64                   `mapstructure:"s3ListMaxKeys" validate:"gt=0"`
+	DisableSSL    bool                    `mapstructure:"disableSSL"`
 }
 
 // BucketCredentialConfig Bucket Credentials configurations.

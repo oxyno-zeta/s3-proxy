@@ -24,8 +24,8 @@ type requestContext struct {
 	s3ClientManager s3client.Manager
 	webhookManager  webhook.Manager
 	targetCfg       *config.TargetConfig
-	generalHelpers  []string
 	mountPath       string
+	generalHelpers  []string
 }
 
 // generateStartKey will generate start key used in all functions.
@@ -547,7 +547,7 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 	)
 }
 
-func (rctx *requestContext) tplPutData(ctx context.Context, inp *PutInput, key, tplStr string) (string, error) {
+func (*requestContext) tplPutData(ctx context.Context, inp *PutInput, key, tplStr string) (string, error) {
 	// Execute template
 	buf, err := templateutils.ExecuteTemplate(tplStr, &PutData{
 		User:  models.GetAuthenticatedUserFromContext(ctx),
@@ -661,10 +661,10 @@ func transformS3Entries(
 	return entries
 }
 
-func (rctx *requestContext) LoadFileContent(ctx context.Context, path string) (string, error) {
+func (rctx *requestContext) LoadFileContent(ctx context.Context, fpath string) (string, error) {
 	// Get object from s3
 	objOutput, _, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).GetObject(ctx, &s3client.GetInput{
-		Key: path,
+		Key: fpath,
 	})
 	// Check error
 	if err != nil {

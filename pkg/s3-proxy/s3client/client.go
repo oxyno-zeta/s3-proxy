@@ -55,12 +55,12 @@ const FolderType = "FOLDER"
 
 // ListElementOutput Bucket ListElementOutput.
 type ListElementOutput struct {
+	LastModified time.Time
 	Type         string
 	ETag         string
 	Name         string
-	LastModified time.Time
-	Size         int64
 	Key          string
+	Size         int64
 }
 
 // HeadOutput represents output of Head.
@@ -90,33 +90,33 @@ type GetInput struct {
 
 // GetOutput Object output for S3 get object.
 type GetOutput struct {
+	LastModified       time.Time
 	Body               io.ReadCloser
+	Metadata           map[string]string
 	CacheControl       string
 	Expires            string
 	ContentDisposition string
 	ContentEncoding    string
 	ContentLanguage    string
-	ContentLength      int64
 	ContentRange       string
 	ContentType        string
 	ETag               string
-	LastModified       time.Time
-	Metadata           map[string]string
+	ContentLength      int64
 }
 
 // PutInput Put input object for PUT request.
 type PutInput struct {
-	Key                string
 	Body               io.ReadSeeker
-	ContentType        string
-	ContentSize        int64
 	Metadata           map[string]string
+	Expires            *time.Time
+	Key                string
+	ContentType        string
 	StorageClass       string
 	CacheControl       string
 	ContentDisposition string
 	ContentEncoding    string
 	ContentLanguage    string
-	Expires            *time.Time
+	ContentSize        int64
 }
 
 // NewManager will return a new S3 client manager.

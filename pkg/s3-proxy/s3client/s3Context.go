@@ -64,7 +64,7 @@ func (s3ctx *s3Context) buildGetObjectInputFromInput(input *GetInput) *s3.GetObj
 	return s3Input
 }
 
-func (s3ctx *s3Context) GetObjectSignedURL(ctx context.Context, input *GetInput, expiration time.Duration) (string, error) {
+func (s3ctx *s3Context) GetObjectSignedURL(_ context.Context, input *GetInput, expiration time.Duration) (string, error) {
 	// Build input
 	s3Input := s3ctx.buildGetObjectInputFromInput(input)
 

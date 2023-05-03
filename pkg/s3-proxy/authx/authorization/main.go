@@ -17,7 +17,6 @@ import (
 var errAuthorizationMiddlewareNotSupported = errors.New("authorization not supported")
 
 func Middleware(
-	cfg *config.Config,
 	// This has been saved only for response handler.
 	// Not used inside the service functions because it is better to use fixed configuration to avoid conflict in case of reload and incoming request.
 	cfgManager config.Manager,

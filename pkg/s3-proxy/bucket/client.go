@@ -59,7 +59,6 @@ type PutData struct {
 // NewClient will generate a new client to do GET,PUT or DELETE actions.
 func NewClient(
 	tgt *config.TargetConfig,
-	generalHelpers []string,
 	mountPath string,
 	s3clientManager s3client.Manager,
 	wbManager webhook.Manager,

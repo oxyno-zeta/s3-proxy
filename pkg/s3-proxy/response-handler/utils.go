@@ -14,7 +14,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/templateutils"
 )
 
-func (h *handler) manageStatus(
+func (*handler) manageStatus(
 	helpersContent string,
 	tplConfigItem *config.TargetTemplateConfigItem,
 	defaultTpl string,
@@ -48,7 +48,7 @@ func (h *handler) manageStatus(
 	return strconv.Atoi(str)
 }
 
-func (h *handler) manageHeaders(helpersContent string, headersTpl map[string]string, hData interface{}) (map[string]string, error) {
+func (*handler) manageHeaders(helpersContent string, headersTpl map[string]string, hData interface{}) (map[string]string, error) {
 	// Store result
 	res := map[string]string{}
 

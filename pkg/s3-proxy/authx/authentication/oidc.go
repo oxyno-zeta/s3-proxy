@@ -440,22 +440,22 @@ func generateOIDCConfig(
 	req *http.Request,
 ) *oauth2.Config {
 	// Create oidc configuration
-	config := oauth2.Config{
+	cfg := oauth2.Config{
 		ClientID: oidcCfg.ClientID,
 		Endpoint: provider.Endpoint(),
 		Scopes:   oidcCfg.Scopes,
 	}
 	// Check if client secret is set
 	if oidcCfg.ClientSecret != nil {
-		config.ClientSecret = oidcCfg.ClientSecret.Value
+		cfg.ClientSecret = oidcCfg.ClientSecret.Value
 	}
 
 	// Check if main redirect url is defined
 	// Otherwise build a dynamic one
 	if mainRedirectURL != "" {
-		config.RedirectURL = mainRedirectURL
+		cfg.RedirectURL = mainRedirectURL
 	} else {
-		config.RedirectURL = fmt.Sprintf(
+		cfg.RedirectURL = fmt.Sprintf(
 			"%s://%s%s",
 			utils.GetRequestScheme(req),
 			utils.GetRequestHost(req),
@@ -464,7 +464,7 @@ func generateOIDCConfig(
 	}
 
 	// Return
-	return &config
+	return &cfg
 }
 
 // IsValidRedirect checks whether the redirect URL is whitelisted.

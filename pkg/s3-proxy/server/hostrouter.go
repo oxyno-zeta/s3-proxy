@@ -16,10 +16,10 @@ import (
 // Update to ensure that all wildcard domains will be tested in the injection order
 
 type HostRouter struct {
-	domainList            []string
 	routes                map[string]chi.Router
 	notFoundHandler       http.HandlerFunc
 	internalServerHandler func(err error) http.HandlerFunc
+	domainList            []string
 }
 
 func NewHostRouter(notFoundHandler http.HandlerFunc, internalServerHandler func(err error) http.HandlerFunc) HostRouter {

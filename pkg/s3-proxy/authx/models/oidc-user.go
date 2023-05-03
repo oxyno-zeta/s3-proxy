@@ -5,14 +5,14 @@ const OIDCUserType = "OIDC"
 type OIDCUser struct {
 	PreferredUsername string   `json:"preferred_username"`
 	Name              string   `json:"name"`
-	Groups            []string `json:"groups"`
 	GivenName         string   `json:"given_name"`
 	FamilyName        string   `json:"family_name"`
 	Email             string   `json:"email"`
+	Groups            []string `json:"groups"`
 	EmailVerified     bool     `json:"email_verified"`
 }
 
-func (u *OIDCUser) GetType() string {
+func (*OIDCUser) GetType() string {
 	return OIDCUserType
 }
 

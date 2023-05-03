@@ -36,16 +36,16 @@ const (
 
 // ClientIP will return client ip from request.
 func ClientIP(r *http.Request) string {
-	IPAddress := r.Header.Get("X-Real-Ip")
-	if IPAddress == "" {
-		IPAddress = r.Header.Get("X-Forwarded-For")
+	ipAddress := r.Header.Get("X-Real-Ip")
+	if ipAddress == "" {
+		ipAddress = r.Header.Get("X-Forwarded-For")
 	}
 
-	if IPAddress == "" {
-		IPAddress = r.RemoteAddr
+	if ipAddress == "" {
+		ipAddress = r.RemoteAddr
 	}
 
-	return IPAddress
+	return ipAddress
 }
 
 func GetRequestScheme(r *http.Request) string {

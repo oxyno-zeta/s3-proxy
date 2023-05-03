@@ -234,7 +234,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				rt2 = rt2.With(authenticationSvc.Middleware(resources))
 
 				// Add authorization middleware to router
-				rt2 = rt2.With(authorization.Middleware(cfg, svr.cfgManager, svr.metricsCl))
+				rt2 = rt2.With(authorization.Middleware(svr.cfgManager, svr.metricsCl))
 
 				rt2.Get("/", func(rw http.ResponseWriter, req *http.Request) {
 					// Get response handler
@@ -274,21 +274,14 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				// Add middleware in order to add response handler
 				rt2.Use(responsehandler.HTTPMiddleware(svr.cfgManager, targetKey))
 
-				// Store helpers
-				var generalHelpers []string
-				// Check if they are set
-				if cfg.Templates != nil && cfg.Templates.Helpers != nil {
-					generalHelpers = cfg.Templates.Helpers
-				}
-
 				// Add Bucket request context middleware to initialize it
-				rt2.Use(bucket.HTTPMiddleware(tgt, generalHelpers, path, svr.s3clientManager, svr.webhookManager))
+				rt2.Use(bucket.HTTPMiddleware(tgt, path, svr.s3clientManager, svr.webhookManager))
 
 				// Add authentication middleware to router
 				rt2.Use(authenticationSvc.Middleware(tgt.Resources))
 
 				// Add authorization middleware to router
-				rt2.Use(authorization.Middleware(cfg, svr.cfgManager, svr.metricsCl))
+				rt2.Use(authorization.Middleware(svr.cfgManager, svr.metricsCl))
 
 				// Check if GET action is enabled
 				if tgt.Actions.GET != nil && tgt.Actions.GET.Enabled {

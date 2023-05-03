@@ -116,7 +116,7 @@ func (m *manager) Load() error {
 	return nil
 }
 
-func (m *manager) createRestClients(list []*config.WebhookConfig) ([]*hookStorage, error) {
+func (*manager) createRestClients(list []*config.WebhookConfig) ([]*hookStorage, error) {
 	// Create result
 	res := []*hookStorage{}
 

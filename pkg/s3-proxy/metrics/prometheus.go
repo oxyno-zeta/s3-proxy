@@ -52,7 +52,7 @@ func (ctx *prometheusClient) Instrument(serverLabel string) func(next http.Handl
 }
 
 // GetExposeHandler Get handler to expose metrics for resquest.
-func (ctx *prometheusClient) GetExposeHandler() http.Handler {
+func (*prometheusClient) GetExposeHandler() http.Handler {
 	return promhttp.Handler()
 }
 
@@ -71,8 +71,13 @@ func (ctx *prometheusClient) IncAuthorized(providerType string) {
 	ctx.authorizedTotal.WithLabelValues(providerType).Inc()
 }
 
-func (ctx *prometheusClient) IncSucceedWebhooks(targetName, actionName string) {}
-func (ctx *prometheusClient) IncFailedWebhooks(targetName, actionName string)  {}
+func (ctx *prometheusClient) IncSucceedWebhooks(targetName, actionName string) {
+	ctx.succeedWebhooks.WithLabelValues(targetName, actionName).Inc()
+}
+
+func (ctx *prometheusClient) IncFailedWebhooks(targetName, actionName string) {
+	ctx.failedWebhooks.WithLabelValues(targetName, actionName).Inc()
+}
 
 func (ctx *prometheusClient) register() {
 	ctx.reqCnt = prometheus.NewCounterVec(

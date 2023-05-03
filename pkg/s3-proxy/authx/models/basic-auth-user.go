@@ -6,7 +6,7 @@ type BasicAuthUser struct {
 	Username string
 }
 
-func (u *BasicAuthUser) GetType() string {
+func (*BasicAuthUser) GetType() string {
 	return BasicAuthUserType
 }
 
@@ -20,31 +20,31 @@ func (u *BasicAuthUser) GetUsername() string {
 }
 
 // Get name (only available for OIDC user).
-func (u *BasicAuthUser) GetName() string {
+func (*BasicAuthUser) GetName() string {
 	return ""
 }
 
 // Get groups (only available for OIDC user).
-func (u *BasicAuthUser) GetGroups() []string {
+func (*BasicAuthUser) GetGroups() []string {
 	return nil
 }
 
 // Get given name (only available for OIDC user).
-func (u *BasicAuthUser) GetGivenName() string {
+func (*BasicAuthUser) GetGivenName() string {
 	return ""
 }
 
 // Get family name (only available for OIDC user).
-func (u *BasicAuthUser) GetFamilyName() string {
+func (*BasicAuthUser) GetFamilyName() string {
 	return ""
 }
 
 // Get email (only available for OIDC user).
-func (u *BasicAuthUser) GetEmail() string {
+func (*BasicAuthUser) GetEmail() string {
 	return ""
 }
 
 // Is Email Verified ? (only available for OIDC user).
-func (u *BasicAuthUser) IsEmailVerified() bool {
+func (*BasicAuthUser) IsEmailVerified() bool {
 	return false
 }

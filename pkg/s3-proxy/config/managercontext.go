@@ -147,7 +147,7 @@ func (ctx *managercontext) watchInternalFile(filePath string, forceStop chan boo
 	initWG.Wait() // make sure that the go routine above fully ended before returning
 }
 
-func (ctx *managercontext) loadDefaultConfigurationValues(vip *viper.Viper) {
+func (*managercontext) loadDefaultConfigurationValues(vip *viper.Viper) {
 	// Load default configuration
 	vip.SetDefault("log.level", DefaultLogLevel)
 	vip.SetDefault("log.format", DefaultLogFormat)

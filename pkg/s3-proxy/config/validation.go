@@ -33,9 +33,9 @@ func validateBusinessConfig(out *Config) error {
 		// Check mount path items
 		pathList := target.Mount.Path
 		for j := 0; j < len(pathList); j++ {
-			path := pathList[j]
+			p := pathList[j]
 			// Check path value
-			err := validatePath(fmt.Sprintf("path %d in target %s", j, key), path)
+			err := validatePath(fmt.Sprintf("path %d in target %s", j, key), p)
 			if err != nil {
 				return err
 			}
@@ -79,9 +79,9 @@ func validateBusinessConfig(out *Config) error {
 		// Check mount path items
 		pathList := out.ListTargets.Mount.Path
 		for j := 0; j < len(pathList); j++ {
-			path := pathList[j]
+			p := pathList[j]
 			// Check path value
-			err := validatePath(fmt.Sprintf("path %d in list targets", j), path)
+			err := validatePath(fmt.Sprintf("path %d in list targets", j), p)
 			if err != nil {
 				return err
 			}
@@ -220,13 +220,13 @@ func validateResource(beginErrorMessage string, res *Resource, authProviders *Au
 	return nil
 }
 
-func validatePath(beginErrorMessage string, path string) error {
+func validatePath(beginErrorMessage string, fpath string) error {
 	// Check that path begins with /
-	if !strings.HasPrefix(path, "/") {
+	if !strings.HasPrefix(fpath, "/") {
 		return errors.New(beginErrorMessage + " must starts with /")
 	}
 	// Check that path ends with /
-	if !strings.HasSuffix(path, "/") {
+	if !strings.HasSuffix(fpath, "/") {
 		return errors.New(beginErrorMessage + " must ends with /")
 	}
 	// Return no error

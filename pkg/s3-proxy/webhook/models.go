@@ -7,11 +7,11 @@ const (
 )
 
 type HookBody struct {
-	Action         string          `json:"action"`
-	RequestPath    string          `json:"requestPath"`
 	InputMetadata  interface{}     `json:"inputMetadata,omitempty"`
 	OutputMetadata interface{}     `json:"outputMetadata,omitempty"`
 	Target         *TargetHookBody `json:"target"`
+	Action         string          `json:"action"`
+	RequestPath    string          `json:"requestPath"`
 }
 
 type PutInputMetadataHookBody struct {
