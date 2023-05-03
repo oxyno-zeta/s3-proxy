@@ -2886,10 +2886,10 @@ func TestPublicRouter(t *testing.T) {
 			expectedS3ObjectKey:                "folder1/system-metadata.txt",
 			expectedS3ObjectStorageClass:       aws.String("Standard"),
 			expectedS3ObjectContentDisposition: aws.String("attachment"),
+			expectedS3ObjectContentEncoding:    aws.String("content-encoding"),
 			// Cannot be testing due to limitation on library
 			// https://github.com/johannesboyne/gofakes3/blob/master/gofakes3.go#L1079
 			// expectedS3ObjectCacheControl:       aws.String("cache-control"),
-			// expectedS3ObjectContentEncoding:    aws.String("content-encoding"),
 			// expectedS3ObjectContentLanguage:    aws.String("content-language"),
 		},
 		{
