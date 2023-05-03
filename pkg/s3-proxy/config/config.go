@@ -285,7 +285,7 @@ type ServerSSLCertificate struct {
 	CertificateURLConfig *SSLURLConfig `mapstructure:"certificateUrlConfig"`
 	PrivateKey           *string       `mapstructure:"privateKey"`
 	PrivateKeyURL        *string       `mapstructure:"privateKeyUrl"`
-	PrivateKeyURLConfig  *SSLURLConfig `mapstructure:"privaetKeyUrlConfig"`
+	PrivateKeyURLConfig  *SSLURLConfig `mapstructure:"privateKeyUrlConfig"`
 }
 
 // SSLURLConfig SSL certificate/private key configuration for URLs.
