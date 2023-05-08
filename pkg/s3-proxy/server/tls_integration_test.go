@@ -28,20 +28,19 @@ import (
 )
 
 func TestTLSServer(t *testing.T) {
-	accessKey := "YOUR-ACCESSKEYID"
-	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	accessKey := "MINIO_ACCESS_KEY"
+	secretAccessKey := "MINIO_SECRET_KEY"
+	s3Endpoint := "http://localhost:9000"
 	region := "eu-central-1"
 	bucket := "test-bucket"
 	tracingConfig := &config.TracingConfig{}
 
 	// S3 mock server for all subtests.
-	_, s3server, err := setupFakeS3(accessKey, secretAccessKey, region, bucket)
+	_, err := setupFakeS3(accessKey, secretAccessKey, region, bucket)
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	// Don't use defer -- it is called before the tests complete.
-	t.Cleanup(func() { s3server.Close() })
 
 	nextPort := 20000
 
@@ -487,7 +486,7 @@ func TestTLSServer(t *testing.T) {
 
 			// Update each target to use this mock server.
 			for _, targetCfg := range tt.config.Targets {
-				targetCfg.Bucket.S3Endpoint = s3server.URL
+				targetCfg.Bucket.S3Endpoint = s3Endpoint
 			}
 
 			if tt.config.Server.SSL != nil {
@@ -519,12 +518,12 @@ func TestTLSServer(t *testing.T) {
 					}
 
 					if cert.CertificateURLConfig != nil && cert.CertificateURLConfig.AWSEndpoint == "TEST" {
-						fmt.Printf("Replacing Certificate endpoint with %#v\n", s3server.URL)
-						cert.CertificateURLConfig.AWSEndpoint = s3server.URL
+						fmt.Printf("Replacing Certificate endpoint with %#v\n", s3Endpoint)
+						cert.CertificateURLConfig.AWSEndpoint = s3Endpoint
 					}
 
 					if cert.PrivateKeyURLConfig != nil && cert.PrivateKeyURLConfig.AWSEndpoint == "TEST" {
-						cert.PrivateKeyURLConfig.AWSEndpoint = s3server.URL
+						cert.PrivateKeyURLConfig.AWSEndpoint = s3Endpoint
 					}
 				}
 			}

@@ -3,16 +3,16 @@
 package server
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
-	"net/http/httptest"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/johannesboyne/gofakes3"
-	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 )
@@ -105,15 +105,11 @@ var testsDefaultGeneralTemplateConfig = &config.TemplateConfig{
 // Generate metrics instance
 var metricsCtx = metrics.NewClient()
 
-func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*s3.S3, *httptest.Server, error) {
-	backend := s3mem.New()
-	faker := gofakes3.New(backend)
-	ts := httptest.NewServer(faker.Server())
-
+func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*s3.S3, error) {
 	// configure S3 client
 	s3Config := &aws.Config{
 		Credentials:      credentials.NewStaticCredentials(accessKey, secretAccessKey, ""),
-		Endpoint:         aws.String(ts.URL),
+		Endpoint:         aws.String("http://localhost:9000"),
 		Region:           aws.String(region),
 		DisableSSL:       aws.Bool(true),
 		S3ForcePathStyle: aws.Bool(true),
@@ -128,7 +124,14 @@ func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*s3.S3, *ht
 	// Create a new bucket using the CreateBucket call.
 	_, err := s3Client.CreateBucket(cparams)
 	if err != nil {
-		return nil, nil, err
+		aerr, ok := err.(awserr.Error)
+		if ok {
+			if aerr.Code() != "BucketAlreadyOwnedByYou" {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
 	}
 
 	files := map[string]string{
@@ -156,30 +159,50 @@ func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*s3.S3, *ht
 	// Upload files
 	for k, v := range files {
 		_, err = s3Client.PutObject(&s3.PutObjectInput{
-			Body:   strings.NewReader(v),
-			Bucket: aws.String(bucket),
-			Key:    aws.String(k),
+			Body:        strings.NewReader(v),
+			Bucket:      aws.String(bucket),
+			Key:         aws.String(k),
+			ContentType: aws.String("text/plain; charset=utf-8"),
 			Metadata: aws.StringMap(map[string]string{
 				"m1-key": "v1",
 			}),
 		})
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 	}
 
 	// Add file with content-type
 	_, err = s3Client.PutObject(&s3.PutObjectInput{
-		Body:   strings.NewReader("test"),
-		Bucket: aws.String(bucket),
-		Key:    aws.String("content-type/file.txt"),
-		Metadata: map[string]*string{
-			"Content-Type": aws.String("text/plain"),
-		},
+		Body:        strings.NewReader("test"),
+		Bucket:      aws.String(bucket),
+		Key:         aws.String("content-type/file.txt"),
+		ContentType: aws.String("text/plain; charset=utf-8"),
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return s3Client, ts, nil
+	// Create gzip content
+	var gzBuf bytes.Buffer
+	gz := gzip.NewWriter(&gzBuf)
+	if _, err := gz.Write([]byte("gzip-string!")); err != nil {
+		return nil, err
+	}
+	if err := gz.Close(); err != nil {
+		return nil, err
+	}
+	// Add gzip file with content-type
+	_, err = s3Client.PutObject(&s3.PutObjectInput{
+		Body:            strings.NewReader(gzBuf.String()),
+		Bucket:          aws.String(bucket),
+		Key:             aws.String("content-type/gzip-file.gz"),
+		ContentType:     aws.String("text/plain; charset=utf-8"),
+		ContentEncoding: aws.String("gzip"),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return s3Client, nil
 }

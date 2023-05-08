@@ -34,17 +34,17 @@ import (
 func TestPublicRouter(t *testing.T) {
 	trueValue := true
 	falseValue := false
-	accessKey := "YOUR-ACCESSKEYID"
-	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	accessKey := "MINIO_ACCESS_KEY"
+	secretAccessKey := "MINIO_SECRET_KEY"
+	s3Endpoint := "http://localhost:9000"
 	region := "eu-central-1"
 	bucket := "test-bucket"
-	s3serverClient, s3server, err := setupFakeS3(
+	s3serverClient, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
 		bucket,
 	)
-	defer s3server.Close()
 	if err != nil {
 		t.Error(err)
 		return
@@ -104,7 +104,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -144,7 +144,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -183,7 +183,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -226,7 +226,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -275,7 +275,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -302,6 +302,47 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
+			name: "GET a gzip file should return a un-gzip file",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3Endpoint,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/content-type/gzip-file.gz",
+			expectedCode: 200,
+			expectedBody: "gzip-string!",
+			expectedHeaders: map[string]string{
+				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":     "text/plain",
+				"Content-Encoding": "gzip",
+			},
+		},
+		{
 			name: "GET a file with success with compress enabled",
 			args: args{
 				cfg: &config.Config{
@@ -315,7 +356,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -365,7 +406,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -408,7 +449,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -454,7 +495,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -505,7 +546,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -548,7 +589,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -580,7 +621,7 @@ func TestPublicRouter(t *testing.T) {
 			expectedHeaderContains: map[string][]string{
 				// Example: http://127.0.0.1:45677/test-bucket/folder1/test.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=YOUR-ACCESSKEYID%2F20221220%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20221220T181313Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host&X-Amz-Signature=d2fb2cd997791dacfa3c3b5a43e327dfb551a78927aad996cc6fde9172fa4114
 				"Location": {
-					s3server.URL,
+					s3Endpoint,
 					"/folder1/test.txt",
 					"X-Amz-Algorithm=AWS4-HMAC-SHA256",
 					"X-Amz-Credential=" + accessKey,
@@ -604,7 +645,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -649,7 +690,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -701,7 +742,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -747,7 +788,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -795,7 +836,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -865,7 +906,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -935,7 +976,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -1006,7 +1047,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -1079,7 +1120,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -1152,7 +1193,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -1218,7 +1259,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -1285,7 +1326,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -1342,7 +1383,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -1412,7 +1453,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -1486,7 +1527,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -1557,7 +1598,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -1633,7 +1674,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -1709,7 +1750,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -1787,7 +1828,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -1858,7 +1899,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -1929,7 +1970,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2009,7 +2050,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2089,7 +2130,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2163,7 +2204,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2244,7 +2285,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2319,7 +2360,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2394,7 +2435,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2451,7 +2492,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2494,7 +2535,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2527,7 +2568,7 @@ func TestPublicRouter(t *testing.T) {
 			expectedHeaderContains: map[string][]string{
 				// Example: http://127.0.0.1:45677/test-bucket/folder1/test.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=YOUR-ACCESSKEYID%2F20221220%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20221220T181313Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host&X-Amz-Signature=d2fb2cd997791dacfa3c3b5a43e327dfb551a78927aad996cc6fde9172fa4114
 				"Location": {
-					s3server.URL,
+					s3Endpoint,
 					"/folder1/index.html",
 					"X-Amz-Algorithm=AWS4-HMAC-SHA256",
 					"X-Amz-Credential=" + accessKey,
@@ -2551,7 +2592,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2594,7 +2635,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2632,7 +2673,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2688,7 +2729,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2734,7 +2775,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2789,7 +2830,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2804,7 +2845,7 @@ func TestPublicRouter(t *testing.T) {
 								PUT: &config.PutActionConfig{
 									Enabled: true,
 									Config: &config.PutActionConfigConfig{
-										StorageClass: "Standard",
+										StorageClass: "STANDARD",
 										Metadata: map[string]string{
 											"meta1": "meta1",
 										},
@@ -2826,7 +2867,7 @@ func TestPublicRouter(t *testing.T) {
 			},
 			validateS3Object:             true,
 			expectedS3ObjectKey:          "folder1/test2.txt",
-			expectedS3ObjectStorageClass: aws.String("Standard"),
+			expectedS3ObjectStorageClass: aws.String("STANDARD"),
 			expectedS3ObjectMetadata:     aws.StringMap(map[string]string{"Meta1": "meta1"}),
 		},
 		{
@@ -2843,7 +2884,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2858,7 +2899,7 @@ func TestPublicRouter(t *testing.T) {
 								PUT: &config.PutActionConfig{
 									Enabled: true,
 									Config: &config.PutActionConfigConfig{
-										StorageClass:  "Standard",
+										StorageClass:  "STANDARD",
 										AllowOverride: trueValue,
 										SystemMetadata: &config.PutActionConfigSystemMetadataConfig{
 											ContentDisposition: "attachment",
@@ -2884,13 +2925,13 @@ func TestPublicRouter(t *testing.T) {
 			},
 			validateS3Object:                   true,
 			expectedS3ObjectKey:                "folder1/system-metadata.txt",
-			expectedS3ObjectStorageClass:       aws.String("Standard"),
+			expectedS3ObjectStorageClass:       aws.String("STANDARD"),
 			expectedS3ObjectContentDisposition: aws.String("attachment"),
 			expectedS3ObjectContentEncoding:    aws.String("content-encoding"),
 			// Cannot be testing due to limitation on library
 			// https://github.com/johannesboyne/gofakes3/blob/master/gofakes3.go#L1079
-			// expectedS3ObjectCacheControl:       aws.String("cache-control"),
-			// expectedS3ObjectContentLanguage:    aws.String("content-language"),
+			expectedS3ObjectCacheControl:    aws.String("cache-control"),
+			expectedS3ObjectContentLanguage: aws.String("content-language"),
 		},
 		{
 			name: "PUT in a path without allow override should failed",
@@ -2906,7 +2947,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2921,7 +2962,7 @@ func TestPublicRouter(t *testing.T) {
 								PUT: &config.PutActionConfig{
 									Enabled: true,
 									Config: &config.PutActionConfigConfig{
-										StorageClass: "Standard",
+										StorageClass: "STANDARD",
 										Metadata: map[string]string{
 											"meta1": "meta1",
 										},
@@ -2964,7 +3005,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -2979,7 +3020,7 @@ func TestPublicRouter(t *testing.T) {
 								PUT: &config.PutActionConfig{
 									Enabled: true,
 									Config: &config.PutActionConfigConfig{
-										StorageClass: "Standard",
+										StorageClass: "STANDARD",
 										Metadata: map[string]string{
 											"meta1": "meta1",
 										},
@@ -3002,7 +3043,7 @@ func TestPublicRouter(t *testing.T) {
 			},
 			validateS3Object:             true,
 			expectedS3ObjectKey:          "folder1/test.txt",
-			expectedS3ObjectStorageClass: aws.String("Standard"),
+			expectedS3ObjectStorageClass: aws.String("STANDARD"),
 			expectedS3ObjectMetadata:     aws.StringMap(map[string]string{"Meta1": "meta1", "M1-Key": "v1"}),
 		},
 		{
@@ -3019,7 +3060,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -3068,7 +3109,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -3137,7 +3178,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -3152,7 +3193,7 @@ func TestPublicRouter(t *testing.T) {
 								PUT: &config.PutActionConfig{
 									Enabled: true,
 									Config: &config.PutActionConfigConfig{
-										StorageClass: "Standard",
+										StorageClass: "STANDARD",
 										Metadata: map[string]string{
 											"meta1": "meta1",
 										},
@@ -3182,7 +3223,7 @@ func TestPublicRouter(t *testing.T) {
 `,
 			validateS3Object:             true,
 			expectedS3ObjectKey:          "folder1/test.txt",
-			expectedS3ObjectStorageClass: aws.String("Standard"),
+			expectedS3ObjectStorageClass: aws.String("STANDARD"),
 			expectedS3ObjectMetadata:     aws.StringMap(map[string]string{"Meta1": "meta1", "M1-Key": "v1"}),
 		},
 		{
@@ -3199,7 +3240,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -3214,7 +3255,7 @@ func TestPublicRouter(t *testing.T) {
 								PUT: &config.PutActionConfig{
 									Enabled: true,
 									Config: &config.PutActionConfigConfig{
-										StorageClass: "Standard",
+										StorageClass: "STANDARD",
 										Metadata: map[string]string{
 											"meta1": "meta1",
 										},
@@ -3253,7 +3294,7 @@ func TestPublicRouter(t *testing.T) {
 `,
 			validateS3Object:             true,
 			expectedS3ObjectKey:          "folder1/test.txt",
-			expectedS3ObjectStorageClass: aws.String("Standard"),
+			expectedS3ObjectStorageClass: aws.String("STANDARD"),
 			expectedS3ObjectMetadata:     aws.StringMap(map[string]string{"Meta1": "meta1", "M1-Key": "v1"}),
 		},
 		{
@@ -3270,7 +3311,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -3310,7 +3351,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -3358,7 +3399,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -3421,7 +3462,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -3468,7 +3509,7 @@ func TestPublicRouter(t *testing.T) {
 							Bucket: &config.BucketConfig{
 								Name:       bucket,
 								Region:     region,
-								S3Endpoint: s3server.URL,
+								S3Endpoint: s3Endpoint,
 								Credentials: &config.BucketCredentialConfig{
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -3656,17 +3697,17 @@ func TestPublicRouter(t *testing.T) {
 }
 
 func TestTracing(t *testing.T) {
-	accessKey := "YOUR-ACCESSKEYID"
-	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	accessKey := "MINIO_ACCESS_KEY"
+	secretAccessKey := "MINIO_SECRET_KEY"
+	s3Endpoint := "http://localhost:9000"
 	region := "eu-central-1"
 	bucket := "test-bucket"
-	_, s3server, err := setupFakeS3(
+	_, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
 		bucket,
 	)
-	defer s3server.Close()
 	if err != nil {
 		t.Error(err)
 		return
@@ -3685,7 +3726,7 @@ func TestTracing(t *testing.T) {
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
 				Region:     region,
-				S3Endpoint: s3server.URL,
+				S3Endpoint: s3Endpoint,
 				Credentials: &config.BucketCredentialConfig{
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -3873,18 +3914,18 @@ func TestTracing(t *testing.T) {
 
 // This is in a separate test because this one will need a real server to discuss with OIDC server
 func TestOIDCAuthentication(t *testing.T) {
-	accessKey := "YOUR-ACCESSKEYID"
-	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	accessKey := "MINIO_ACCESS_KEY"
+	secretAccessKey := "MINIO_SECRET_KEY"
+	s3Endpoint := "http://localhost:9000"
 	region := "eu-central-1"
 	bucket := "test-bucket"
 
-	_, s3server, err := setupFakeS3(
+	_, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
 		bucket,
 	)
-	defer s3server.Close()
 	if err != nil {
 		t.Error(err)
 		return
@@ -3897,7 +3938,7 @@ func TestOIDCAuthentication(t *testing.T) {
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
 				Region:     region,
-				S3Endpoint: s3server.URL,
+				S3Endpoint: s3Endpoint,
 				Credentials: &config.BucketCredentialConfig{
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -3926,7 +3967,7 @@ func TestOIDCAuthentication(t *testing.T) {
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
 				Region:     region,
-				S3Endpoint: s3server.URL,
+				S3Endpoint: s3Endpoint,
 				Credentials: &config.BucketCredentialConfig{
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -3955,7 +3996,7 @@ func TestOIDCAuthentication(t *testing.T) {
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
 				Region:     region,
-				S3Endpoint: s3server.URL,
+				S3Endpoint: s3Endpoint,
 				Credentials: &config.BucketCredentialConfig{
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -3986,7 +4027,7 @@ func TestOIDCAuthentication(t *testing.T) {
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
 				Region:     region,
-				S3Endpoint: s3server.URL,
+				S3Endpoint: s3Endpoint,
 				Credentials: &config.BucketCredentialConfig{
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -4017,7 +4058,7 @@ func TestOIDCAuthentication(t *testing.T) {
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
 				Region:     region,
-				S3Endpoint: s3server.URL,
+				S3Endpoint: s3Endpoint,
 				Credentials: &config.BucketCredentialConfig{
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -4756,17 +4797,17 @@ func TestStartWithOnlyDefaultConfiguration(t *testing.T) {
 }
 
 func TestCORS(t *testing.T) {
-	accessKey := "YOUR-ACCESSKEYID"
-	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	accessKey := "MINIO_ACCESS_KEY"
+	secretAccessKey := "MINIO_SECRET_KEY"
+	s3Endpoint := "http://localhost:9000"
 	region := "eu-central-1"
 	bucket := "test-bucket"
-	_, s3server, err := setupFakeS3(
+	_, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
 		bucket,
 	)
-	defer s3server.Close()
 	if err != nil {
 		t.Error(err)
 		return
@@ -4778,7 +4819,7 @@ func TestCORS(t *testing.T) {
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
 				Region:     region,
-				S3Endpoint: s3server.URL,
+				S3Endpoint: s3Endpoint,
 				Credentials: &config.BucketCredentialConfig{
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -5151,17 +5192,17 @@ func TestCORS(t *testing.T) {
 }
 
 func TestIndexLargeBucket(t *testing.T) {
-	accessKey := "YOUR-ACCESSKEYID"
-	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	accessKey := "MINIO_ACCESS_KEY"
+	secretAccessKey := "MINIO_SECRET_KEY"
+	s3Endpoint := "http://localhost:9000"
 	region := "eu-central-1"
 	bucket := "test-bucket"
-	_, s3server, err := setupFakeS3(
+	_, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
 		bucket,
 	)
-	defer s3server.Close()
 	if err != nil {
 		t.Error(err)
 		return
@@ -5173,7 +5214,7 @@ func TestIndexLargeBucket(t *testing.T) {
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
 				Region:     region,
-				S3Endpoint: s3server.URL,
+				S3Endpoint: s3Endpoint,
 				Credentials: &config.BucketCredentialConfig{
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -5261,18 +5302,18 @@ func TestIndexLargeBucket(t *testing.T) {
 }
 
 func TestListLargeBucketAndSmallMaxKeys(t *testing.T) {
-	accessKey := "YOUR-ACCESSKEYID"
-	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	accessKey := "MINIO_ACCESS_KEY"
+	secretAccessKey := "MINIO_SECRET_KEY"
+	s3Endpoint := "http://localhost:9000"
 	region := "eu-central-1"
 	bucket := "test-bucket"
 	maxKeys := 500
-	_, s3server, err := setupFakeS3(
+	_, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
 		bucket,
 	)
-	defer s3server.Close()
 	if err != nil {
 		t.Error(err)
 		return
@@ -5284,7 +5325,7 @@ func TestListLargeBucketAndSmallMaxKeys(t *testing.T) {
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
 				Region:     region,
-				S3Endpoint: s3server.URL,
+				S3Endpoint: s3Endpoint,
 				Credentials: &config.BucketCredentialConfig{
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -5365,18 +5406,18 @@ func TestListLargeBucketAndSmallMaxKeys(t *testing.T) {
 }
 
 func TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys(t *testing.T) {
-	accessKey := "YOUR-ACCESSKEYID"
-	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	accessKey := "MINIO_ACCESS_KEY"
+	secretAccessKey := "MINIO_SECRET_KEY"
+	s3Endpoint := "http://localhost:9000"
 	region := "eu-central-1"
 	bucket := "test-bucket"
 	maxKeys := 1500
-	_, s3server, err := setupFakeS3(
+	_, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
 		bucket,
 	)
-	defer s3server.Close()
 	if err != nil {
 		t.Error(err)
 		return
@@ -5388,7 +5429,7 @@ func TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys(t *testing.T) {
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
 				Region:     region,
-				S3Endpoint: s3server.URL,
+				S3Endpoint: s3Endpoint,
 				Credentials: &config.BucketCredentialConfig{
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -5469,17 +5510,17 @@ func TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys(t *testing.T) {
 }
 
 func TestFolderWithSubFolders(t *testing.T) {
-	accessKey := "YOUR-ACCESSKEYID"
-	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	accessKey := "MINIO_ACCESS_KEY"
+	secretAccessKey := "MINIO_SECRET_KEY"
+	s3Endpoint := "http://localhost:9000"
 	region := "eu-central-1"
 	bucket := "test-bucket"
-	_, s3server, err := setupFakeS3(
+	_, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
 		bucket,
 	)
-	defer s3server.Close()
 	if err != nil {
 		t.Error(err)
 		return
@@ -5491,7 +5532,7 @@ func TestFolderWithSubFolders(t *testing.T) {
 			Bucket: &config.BucketConfig{
 				Name:       bucket,
 				Region:     region,
-				S3Endpoint: s3server.URL,
+				S3Endpoint: s3Endpoint,
 				Credentials: &config.BucketCredentialConfig{
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
@@ -5499,7 +5540,7 @@ func TestFolderWithSubFolders(t *testing.T) {
 				DisableSSL: true,
 			},
 			Mount: &config.MountConfig{
-				Path: []string{"/"},
+				Path: []string{"/fake/"},
 			},
 			Actions: &config.ActionsConfig{
 				GET: &config.GetActionConfig{Enabled: true},
@@ -5553,7 +5594,7 @@ func TestFolderWithSubFolders(t *testing.T) {
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest(
 		"GET",
-		"http://localhost/folder4/",
+		"http://localhost:8080/fake/folder4/",
 		nil,
 	)
 	assert.NoError(t, err)
@@ -5572,17 +5613,17 @@ func TestFolderWithSubFolders(t *testing.T) {
 }
 
 func TestTrailingSlashRedirect(t *testing.T) {
-	accessKey := "YOUR-ACCESSKEYID"
-	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	accessKey := "MINIO_ACCESS_KEY"
+	secretAccessKey := "MINIO_SECRET_KEY"
+	s3Endpoint := "http://localhost:9000"
 	region := "eu-central-1"
 	bucket := "test-bucket"
-	_, s3server, err := setupFakeS3(
+	_, err := setupFakeS3(
 		accessKey,
 		secretAccessKey,
 		region,
 		bucket,
 	)
-	defer s3server.Close()
 	if err != nil {
 		assert.NoError(t, err)
 		return
@@ -5599,7 +5640,7 @@ func TestTrailingSlashRedirect(t *testing.T) {
 	bucketCfg := &config.BucketConfig{
 		Name:       bucket,
 		Region:     region,
-		S3Endpoint: s3server.URL,
+		S3Endpoint: s3Endpoint,
 		Credentials: &config.BucketCredentialConfig{
 			AccessKey: &config.CredentialConfig{Value: accessKey},
 			SecretKey: &config.CredentialConfig{Value: secretAccessKey},
