@@ -5,7 +5,7 @@ go 1.19
 require (
 	emperror.dev/errors v0.8.1
 	github.com/Masterminds/sprig/v3 v3.2.3
-	github.com/aws/aws-sdk-go v1.44.255
+	github.com/aws/aws-sdk-go v1.44.256
 	github.com/coreos/go-oidc/v3 v3.5.0
 	github.com/dimiro1/health v0.0.0-20191019130555-c5cbb4d46ffc
 	github.com/dustin/go-humanize v1.0.1
@@ -17,7 +17,7 @@ require (
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/gobwas/glob v0.2.3
 	github.com/golang/mock v1.6.0
-	github.com/johannesboyne/gofakes3 v0.0.0-20230310080033-c0edf658332b
+	github.com/johannesboyne/gofakes3 v0.0.0-20230506070712-04da935ef877
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/prometheus/client_golang v1.15.1
 	github.com/sirupsen/logrus v1.9.0
