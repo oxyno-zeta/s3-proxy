@@ -8,6 +8,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
@@ -113,6 +114,12 @@ func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string)
 	// Get trace
 	parentTrace := tracing.GetTraceFromContext(ctx)
 
+	// Init & get request headers
+	var requestHeaders map[string]string
+	if s3ctx.target.Bucket.RequestConfig != nil {
+		requestHeaders = s3ctx.target.Bucket.RequestConfig.ListHeaders
+	}
+
 	// Loop
 	for loopControl {
 		// Create child trace
@@ -177,6 +184,7 @@ func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string)
 
 				return lastPage
 			},
+			addHeadersToRequest(requestHeaders),
 		)
 
 		// Metrics
@@ -223,7 +231,17 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 	// Build input
 	s3Input := s3ctx.buildGetObjectInputFromInput(input)
 
-	obj, err := s3ctx.svcClient.GetObjectWithContext(ctx, s3Input)
+	// Init & get request headers
+	var requestHeaders map[string]string
+	if s3ctx.target.Bucket.RequestConfig != nil {
+		requestHeaders = s3ctx.target.Bucket.RequestConfig.GetHeaders
+	}
+
+	obj, err := s3ctx.svcClient.GetObjectWithContext(
+		ctx,
+		s3Input,
+		addHeadersToRequest(requestHeaders),
+	)
 	// Metrics
 	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, GetObjectOperation)
 	// Check if error exists
@@ -356,8 +374,18 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*Result
 		inp.StorageClass = aws.String(input.StorageClass)
 	}
 
+	// Init & get request headers
+	var requestHeaders map[string]string
+	if s3ctx.target.Bucket.RequestConfig != nil {
+		requestHeaders = s3ctx.target.Bucket.RequestConfig.PutHeaders
+	}
+
 	// Upload to S3 bucket
-	_, err := s3ctx.svcClient.PutObjectWithContext(ctx, inp)
+	_, err := s3ctx.svcClient.PutObjectWithContext(
+		ctx,
+		inp,
+		addHeadersToRequest(requestHeaders),
+	)
 	// Check error
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -391,11 +419,21 @@ func (s3ctx *s3Context) HeadObject(ctx context.Context, key string) (*HeadOutput
 
 	defer childTrace.Finish()
 
+	// Init & get request headers
+	var requestHeaders map[string]string
+	if s3ctx.target.Bucket.RequestConfig != nil {
+		requestHeaders = s3ctx.target.Bucket.RequestConfig.GetHeaders
+	}
+
 	// Head object in bucket
-	_, err := s3ctx.svcClient.HeadObjectWithContext(ctx, &s3.HeadObjectInput{
-		Bucket: aws.String(s3ctx.target.Bucket.Name),
-		Key:    aws.String(key),
-	})
+	_, err := s3ctx.svcClient.HeadObjectWithContext(
+		ctx,
+		&s3.HeadObjectInput{
+			Bucket: aws.String(s3ctx.target.Bucket.Name),
+			Key:    aws.String(key),
+		},
+		addHeadersToRequest(requestHeaders),
+	)
 	// Metrics
 	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, HeadObjectOperation)
 	// Test error
@@ -434,11 +472,21 @@ func (s3ctx *s3Context) DeleteObject(ctx context.Context, key string) (*ResultIn
 
 	defer childTrace.Finish()
 
+	// Init & get request headers
+	var requestHeaders map[string]string
+	if s3ctx.target.Bucket.RequestConfig != nil {
+		requestHeaders = s3ctx.target.Bucket.RequestConfig.DeleteHeaders
+	}
+
 	// Delete object
-	_, err := s3ctx.svcClient.DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{
-		Bucket: aws.String(s3ctx.target.Bucket.Name),
-		Key:    aws.String(key),
-	})
+	_, err := s3ctx.svcClient.DeleteObjectWithContext(
+		ctx,
+		&s3.DeleteObjectInput{
+			Bucket: aws.String(s3ctx.target.Bucket.Name),
+			Key:    aws.String(key),
+		},
+		addHeadersToRequest(requestHeaders),
+	)
 	// Check error
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -457,4 +505,13 @@ func (s3ctx *s3Context) DeleteObject(ctx context.Context, key string) (*ResultIn
 
 	// Return
 	return info, nil
+}
+
+func addHeadersToRequest(headers map[string]string) func(r *request.Request) {
+	return func(r *request.Request) {
+		// Loop over them
+		for k, v := range headers {
+			r.HTTPRequest.Header.Set(k, v)
+		}
+	}
 }

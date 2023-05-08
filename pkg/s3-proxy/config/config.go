@@ -467,12 +467,21 @@ type OPAServerAuthorization struct {
 // BucketConfig Bucket configuration.
 type BucketConfig struct {
 	Credentials   *BucketCredentialConfig `mapstructure:"credentials" validate:"omitempty,dive"`
+	RequestConfig *BucketRequestConfig    `mapstructure:"requestConfig" validate:"omitempty,dive"`
 	Name          string                  `mapstructure:"name" validate:"required"`
 	Prefix        string                  `mapstructure:"prefix"`
 	Region        string                  `mapstructure:"region"`
 	S3Endpoint    string                  `mapstructure:"s3Endpoint"`
 	S3ListMaxKeys int64                   `mapstructure:"s3ListMaxKeys" validate:"gt=0"`
 	DisableSSL    bool                    `mapstructure:"disableSSL"`
+}
+
+// BucketRequestConfig Bucket request configuration.
+type BucketRequestConfig struct {
+	ListHeaders   map[string]string `mapstructure:"listHeaders"`
+	GetHeaders    map[string]string `mapstructure:"getHeaders"`
+	PutHeaders    map[string]string `mapstructure:"putHeaders"`
+	DeleteHeaders map[string]string `mapstructure:"deleteHeaders"`
 }
 
 // BucketCredentialConfig Bucket Credentials configurations.

@@ -490,4 +490,13 @@ targets:
       #     env: AWS_ACCESS_KEY_ID
       #   secretKey:
       #     path: secret_key_file
+      # requestConfig:
+      #   listHeaders:
+      #     Accept-Encoding: gzip
+      #   getHeaders:
+      #     Accept-Encoding: gzip
+      #   putHeaders:
+      #     Accept-Encoding: gzip
+      #   deleteHeaders:
+      #     Accept-Encoding: gzip
 ```
