@@ -351,7 +351,6 @@ linters:
     - gofmt
     - goimports
     - goheader
-    - depguard
     - misspell
     - lll
     - unparam
@@ -392,7 +391,9 @@ linters:
     - execinquery
     - reassign
     - usestdlibvars
-    # - tagalign # Added in 1.53.0
+    - tagalign
+    - gosmopolitan
+    - mirror
   disable:
     - deadcode
     - varcheck
@@ -414,6 +415,8 @@ linters:
     - exhaustruct
     - nosnakecase
     - interfacebloat
+    - zerologlint
+    - depguard
   fast: false
 issues:
   exclude-rules:
