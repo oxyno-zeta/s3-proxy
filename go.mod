@@ -28,7 +28,7 @@ require (
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	golang.org/x/net v0.10.0
 	golang.org/x/oauth2 v0.8.0
-	golang.org/x/sync v0.2.0
+	golang.org/x/sync v0.3.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
