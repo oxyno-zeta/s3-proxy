@@ -393,6 +393,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 
 							return
 						}
+
 						// Parse multipart form
 						err = req.ParseMultipartForm(0)
 						if err != nil {
@@ -407,6 +408,11 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 
 							return
 						}
+						// Defer close file
+						defer file.Close()
+						// Defer remove all form
+						defer req.MultipartForm.RemoveAll() //nolint: errcheck // Ignored
+
 						// Create input for put request
 						inp := &bucket.PutInput{
 							RequestPath: requestPath,
