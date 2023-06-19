@@ -3643,6 +3643,7 @@ func TestPublicRouter(t *testing.T) {
 					Key:    &tt.expectedS3ObjectKey,
 				})
 				assert.NoError(t, err)
+				// TODO Migrate to SDK V2 to test ACL
 				assert.Equal(t, tt.expectedS3ObjectMetadata, r.Metadata, "S3 object metadata")
 				assert.Equal(t, tt.expectedS3ObjectStorageClass, r.StorageClass, "S3 object storage class")
 				assert.Equal(t, tt.expectedS3ObjectCacheControl, r.CacheControl, "S3 object cache control")

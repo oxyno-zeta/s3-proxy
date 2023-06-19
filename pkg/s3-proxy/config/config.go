@@ -394,6 +394,7 @@ type PutActionConfig struct {
 type PutActionConfigConfig struct {
 	Metadata       map[string]string                    `mapstructure:"metadata"`
 	SystemMetadata *PutActionConfigSystemMetadataConfig `mapstructure:"systemMetadata"`
+	CannedACL      *string                              `mapstructure:"cannedACL"`
 	StorageClass   string                               `mapstructure:"storageClass"`
 	Webhooks       []*WebhookConfig                     `mapstructure:"webhooks"       validate:"dive"`
 	AllowOverride  bool                                 `mapstructure:"allowOverride"`
