@@ -391,6 +391,9 @@ targets:
     #       storageClass: STANDARD # GLACIER, ...
     #       # Will allow override objects if enabled
     #       allowOverride: false
+    #       # Canned ACL put on each file uploaded.
+    #       # https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl
+    #       # cannedACL: ""
     #       # Webhooks
     #       webhooks: []
     #   # Action for DELETE requests on target

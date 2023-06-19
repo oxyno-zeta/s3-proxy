@@ -345,6 +345,15 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*Result
 		Expires:       input.Expires,
 	}
 
+	// Manage ACL
+	if s3ctx.target.Actions != nil &&
+		s3ctx.target.Actions.PUT != nil &&
+		s3ctx.target.Actions.PUT.Config != nil &&
+		s3ctx.target.Actions.PUT.Config.CannedACL != nil &&
+		*s3ctx.target.Actions.PUT.Config.CannedACL != "" {
+		// Inject ACL
+		inp.ACL = s3ctx.target.Actions.PUT.Config.CannedACL
+	}
 	// Manage cache control case
 	if input.CacheControl != "" {
 		inp.CacheControl = aws.String(input.CacheControl)
