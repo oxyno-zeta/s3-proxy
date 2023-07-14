@@ -270,6 +270,20 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 		}
 	}
 
+	// Check if list folders is disabled
+	if rctx.targetCfg.Actions != nil && rctx.targetCfg.Actions.GET != nil &&
+		rctx.targetCfg.Actions.GET.Config != nil &&
+		rctx.targetCfg.Actions.GET.Config.DisableListing {
+		// Answer directly
+		resHan.FoldersFilesList(
+			rctx.LoadFileContent,
+			make([]*responsehandler.Entry, 0),
+		)
+
+		// Stop
+		return
+	}
+
 	// Directory listing case
 	s3Entries, info, err := rctx.s3ClientManager.
 		GetClientForTarget(rctx.targetCfg.Name).

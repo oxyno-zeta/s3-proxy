@@ -424,6 +424,7 @@ type GetActionConfigConfig struct {
 	SignedURLExpiration                      time.Duration
 	RedirectWithTrailingSlashForNotFoundFile bool `mapstructure:"redirectWithTrailingSlashForNotFoundFile"`
 	RedirectToSignedURL                      bool `mapstructure:"redirectToSignedUrl"`
+	DisableListing                           bool `mapstructure:"disableListing"`
 }
 
 // WebhookConfig Webhook configuration.

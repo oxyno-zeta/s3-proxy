@@ -2144,6 +2144,39 @@ func Test_requestContext_Get(t *testing.T) {
 				times: 1,
 			},
 		},
+		{
+			name: "list bucket should not be done when disable listing is enabled",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Name: "target",
+					Bucket: &config.BucketConfig{
+						Name:   "bucket1",
+						Prefix: "/",
+					},
+					KeyRewriteList: []*config.TargetKeyRewriteConfig{{
+						SourceRegex: regexp.MustCompile(`^/folder/index\.html$`),
+						Target:      "/fake/fake.html",
+						TargetType:  config.RegexTargetKeyRewriteTargetType,
+					}},
+					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
+						Config: &config.GetActionConfigConfig{
+							DisableListing: true,
+						},
+					}},
+				},
+				mountPath: "/mount",
+			},
+			args: args{
+				input: &GetInput{RequestPath: "/folder/"},
+			},
+			s3ClientListFilesAndDirectoriesMockResult: s3ClientListFilesAndDirectoriesMockResult{
+				times: 0,
+			},
+			responseHandlerFoldersFilesListMockResult: responseHandlerFoldersFilesListMockResult{
+				times:  1,
+				input2: []*responsehandler.Entry{},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
