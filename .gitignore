@@ -139,3 +139,4 @@ _dist/
 coverage.html
 bundle.tar.gz
 *.log
+junit.xml
