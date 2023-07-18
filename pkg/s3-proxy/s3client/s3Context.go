@@ -6,20 +6,20 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3iface"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/smithy-go"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 )
 
 type s3Context struct {
-	svcClient  s3iface.S3API
-	target     *config.TargetConfig
-	metricsCtx metrics.Client
+	svcClient     *s3.Client
+	presignClient *s3.PresignClient
+	target        *config.TargetConfig
+	metricsCtx    metrics.Client
 }
 
 // ListObjectsOperation List objects operation.
@@ -37,7 +37,7 @@ const PutObjectOperation = "put-object"
 // DeleteObjectOperation Delete object operation.
 const DeleteObjectOperation = "delete-object"
 
-const s3MaxKeys int64 = 1000
+const s3MaxKeys int32 = 1000
 
 func (s3ctx *s3Context) buildGetObjectInputFromInput(input *GetInput) *s3.GetObjectInput {
 	s3Input := &s3.GetObjectInput{
@@ -65,24 +65,24 @@ func (s3ctx *s3Context) buildGetObjectInputFromInput(input *GetInput) *s3.GetObj
 	return s3Input
 }
 
-func (s3ctx *s3Context) GetObjectSignedURL(_ context.Context, input *GetInput, expiration time.Duration) (string, error) {
+func (s3ctx *s3Context) GetObjectSignedURL(ctx context.Context, input *GetInput, expiration time.Duration) (string, error) {
 	// Build input
 	s3Input := s3ctx.buildGetObjectInputFromInput(input)
 
 	// Build object request
-	req, _ := s3ctx.svcClient.GetObjectRequest(s3Input)
-	// Build url
-	urlStr, err := req.Presign(expiration)
+	req, err := s3ctx.presignClient.PresignGetObject(ctx, s3Input, s3.WithPresignExpires(expiration))
 	// Check error
 	if err != nil {
-		// Try to cast error into an AWS Error if possible
-		//nolint: errorlint // Cast
-		aerr, ok := err.(awserr.Error)
-		if ok {
-			// Check if it is a not found case
-			if aerr.Code() == s3.ErrCodeNoSuchKey {
-				return "", ErrNotFound
-			} else if aerr.Code() == "PreconditionFailed" {
+		var nsk *types.NoSuchKey
+		// Check no such key error
+		if errors.As(err, &nsk) {
+			return "", ErrNotFound
+		}
+
+		// Check precondition failed
+		var apiErr smithy.APIError
+		if errors.As(err, &apiErr) {
+			if apiErr.ErrorCode() == "PreconditionFailed" {
 				return "", ErrPreconditionFailed
 			}
 		}
@@ -90,7 +90,7 @@ func (s3ctx *s3Context) GetObjectSignedURL(_ context.Context, input *GetInput, e
 		return "", errors.WithStack(err)
 	}
 
-	return urlStr, nil
+	return req.URL, nil
 }
 
 // ListFilesAndDirectories List files and directories.
@@ -131,61 +131,57 @@ func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string)
 		childTrace.SetTag("s3-proxy.target-name", s3ctx.target.Name)
 
 		// Request S3
-		err := s3ctx.svcClient.ListObjectsV2PagesWithContext(
+		page, err := s3ctx.svcClient.ListObjectsV2(
 			ctx,
 			&s3.ListObjectsV2Input{
 				Bucket:            aws.String(s3ctx.target.Bucket.Name),
 				Prefix:            aws.String(key),
 				Delimiter:         aws.String("/"),
-				MaxKeys:           aws.Int64(maxKeys),
+				MaxKeys:           maxKeys,
 				ContinuationToken: nextToken,
 			},
-			func(page *s3.ListObjectsV2Output, lastPage bool) bool {
-				// Store next token
-				nextToken = page.NextContinuationToken
-
-				// Check if keycount exists
-				if page.KeyCount != nil {
-					// Remove current keys to tmp max elements
-					tmpMaxElements -= *page.KeyCount
-					// Update max keys if needed
-					if tmpMaxElements < maxKeys {
-						maxKeys = tmpMaxElements
-					}
-				}
-
-				// Manage loop control
-				loopControl = nextToken != nil && tmpMaxElements > 0
-
-				// Manage folders
-				for _, item := range page.CommonPrefixes {
-					name := strings.TrimPrefix(*item.Prefix, key)
-					folders = append(folders, &ListElementOutput{
-						Type: FolderType,
-						Key:  *item.Prefix,
-						Name: name,
-					})
-				}
-
-				// Manage files
-				for _, item := range page.Contents {
-					name := strings.TrimPrefix(*item.Key, key)
-					if name != "" {
-						files = append(files, &ListElementOutput{
-							Type:         FileType,
-							ETag:         *item.ETag,
-							Name:         name,
-							LastModified: *item.LastModified,
-							Size:         *item.Size,
-							Key:          *item.Key,
-						})
-					}
-				}
-
-				return lastPage
+			func(o *s3.Options) {
+				o.HTTPClient = customizeHTTPClient(o.HTTPClient, requestHeaders)
 			},
-			addHeadersToRequest(requestHeaders),
 		)
+
+		// Store next token
+		nextToken = page.NextContinuationToken
+
+		// Remove current keys to tmp max elements
+		tmpMaxElements -= page.KeyCount
+		// Update max keys if needed
+		if tmpMaxElements < maxKeys {
+			maxKeys = tmpMaxElements
+		}
+
+		// Manage loop control
+		loopControl = nextToken != nil && tmpMaxElements > 0
+
+		// Manage folders
+		for _, item := range page.CommonPrefixes {
+			name := strings.TrimPrefix(*item.Prefix, key)
+			folders = append(folders, &ListElementOutput{
+				Type: FolderType,
+				Key:  *item.Prefix,
+				Name: name,
+			})
+		}
+
+		// Manage files
+		for _, item := range page.Contents {
+			name := strings.TrimPrefix(*item.Key, key)
+			if name != "" {
+				files = append(files, &ListElementOutput{
+					Type:         FileType,
+					ETag:         *item.ETag,
+					Name:         name,
+					LastModified: *item.LastModified,
+					Size:         item.Size,
+					Key:          *item.Key,
+				})
+			}
+		}
 
 		// Metrics
 		s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, ListObjectsOperation)
@@ -237,27 +233,30 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 		requestHeaders = s3ctx.target.Bucket.RequestConfig.GetHeaders
 	}
 
-	obj, err := s3ctx.svcClient.GetObjectWithContext(
+	obj, err := s3ctx.svcClient.GetObject(
 		ctx,
 		s3Input,
-		addHeadersToRequest(requestHeaders),
+		func(o *s3.Options) {
+			o.HTTPClient = customizeHTTPClient(o.HTTPClient, requestHeaders)
+		},
 	)
 	// Metrics
 	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, GetObjectOperation)
 	// Check if error exists
 	if err != nil {
-		// Try to cast error into an AWS Error if possible
-		//nolint: errorlint // Cast
-		aerr, ok := err.(awserr.Error)
-		if ok {
-			// Check if it is a not found case
-			//nolint: gocritic // Because don't want to write a switch for the moment
-			if aerr.Code() == s3.ErrCodeNoSuchKey {
-				return nil, nil, ErrNotFound
-			} else if aerr.Code() == "NotModified" {
-				return nil, nil, ErrNotModified
-			} else if aerr.Code() == "PreconditionFailed" {
+		var nsk *types.NoSuchKey
+		// Check no such key error
+		if errors.As(err, &nsk) {
+			return nil, nil, ErrNotFound
+		}
+
+		// Check precondition failed
+		var apiErr smithy.APIError
+		if errors.As(err, &apiErr) {
+			if apiErr.ErrorCode() == "PreconditionFailed" {
 				return nil, nil, ErrPreconditionFailed
+			} else if apiErr.ErrorCode() == "NotModified" {
+				return nil, nil, ErrNotModified
 			}
 		}
 
@@ -265,12 +264,9 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 	}
 	// Build output
 	output := &GetOutput{
-		Body: obj.Body,
-	}
-
-	// Metadata transformation
-	if obj.Metadata != nil {
-		output.Metadata = aws.StringValueMap(obj.Metadata)
+		Body:          obj.Body,
+		ContentLength: obj.ContentLength,
+		Metadata:      obj.Metadata,
 	}
 
 	if obj.CacheControl != nil {
@@ -278,7 +274,7 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 	}
 
 	if obj.Expires != nil {
-		output.Expires = *obj.Expires
+		output.Expires = obj.Expires.Format(time.RFC1123)
 	}
 
 	if obj.ContentDisposition != nil {
@@ -291,10 +287,6 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 
 	if obj.ContentLanguage != nil {
 		output.ContentLanguage = *obj.ContentLanguage
-	}
-
-	if obj.ContentLength != nil {
-		output.ContentLength = *obj.ContentLength
 	}
 
 	if obj.ContentRange != nil {
@@ -339,10 +331,11 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*Result
 
 	inp := &s3.PutObjectInput{
 		Body:          input.Body,
-		ContentLength: aws.Int64(input.ContentSize),
+		ContentLength: input.ContentSize,
 		Bucket:        aws.String(s3ctx.target.Bucket.Name),
 		Key:           aws.String(input.Key),
 		Expires:       input.Expires,
+		Metadata:      input.Metadata,
 	}
 
 	// Manage ACL
@@ -352,7 +345,7 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*Result
 		s3ctx.target.Actions.PUT.Config.CannedACL != nil &&
 		*s3ctx.target.Actions.PUT.Config.CannedACL != "" {
 		// Inject ACL
-		inp.ACL = s3ctx.target.Actions.PUT.Config.CannedACL
+		inp.ACL = types.ObjectCannedACL(*s3ctx.target.Actions.PUT.Config.CannedACL)
 	}
 	// Manage cache control case
 	if input.CacheControl != "" {
@@ -374,13 +367,9 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*Result
 	if input.ContentType != "" {
 		inp.ContentType = aws.String(input.ContentType)
 	}
-	// Manage metadata case
-	if input.Metadata != nil {
-		inp.Metadata = aws.StringMap(input.Metadata)
-	}
 	// Manage storage class
 	if input.StorageClass != "" {
-		inp.StorageClass = aws.String(input.StorageClass)
+		inp.StorageClass = types.StorageClass(input.StorageClass)
 	}
 
 	// Init & get request headers
@@ -390,10 +379,12 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*Result
 	}
 
 	// Upload to S3 bucket
-	_, err := s3ctx.svcClient.PutObjectWithContext(
+	_, err := s3ctx.svcClient.PutObject(
 		ctx,
 		inp,
-		addHeadersToRequest(requestHeaders),
+		func(o *s3.Options) {
+			o.HTTPClient = customizeHTTPClient(o.HTTPClient, requestHeaders)
+		},
 	)
 	// Check error
 	if err != nil {
@@ -435,24 +426,24 @@ func (s3ctx *s3Context) HeadObject(ctx context.Context, key string) (*HeadOutput
 	}
 
 	// Head object in bucket
-	_, err := s3ctx.svcClient.HeadObjectWithContext(
+	_, err := s3ctx.svcClient.HeadObject(
 		ctx,
 		&s3.HeadObjectInput{
 			Bucket: aws.String(s3ctx.target.Bucket.Name),
 			Key:    aws.String(key),
 		},
-		addHeadersToRequest(requestHeaders),
+		func(o *s3.Options) {
+			o.HTTPClient = customizeHTTPClient(o.HTTPClient, requestHeaders)
+		},
 	)
 	// Metrics
 	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, HeadObjectOperation)
 	// Test error
 	if err != nil {
-		// Try to cast error into an AWS Error if possible
-		//nolint: errorlint // Cast
-		aerr, ok := err.(awserr.Error)
-		if ok {
-			// Issue not fixed: https://github.com/aws/aws-sdk-go/issues/1208
-			if aerr.Code() == "NotFound" {
+		// Check precondition failed
+		var apiErr smithy.APIError
+		if errors.As(err, &apiErr) {
+			if apiErr.ErrorCode() == "NotFound" {
 				return nil, ErrNotFound
 			}
 		}
@@ -488,13 +479,15 @@ func (s3ctx *s3Context) DeleteObject(ctx context.Context, key string) (*ResultIn
 	}
 
 	// Delete object
-	_, err := s3ctx.svcClient.DeleteObjectWithContext(
+	_, err := s3ctx.svcClient.DeleteObject(
 		ctx,
 		&s3.DeleteObjectInput{
 			Bucket: aws.String(s3ctx.target.Bucket.Name),
 			Key:    aws.String(key),
 		},
-		addHeadersToRequest(requestHeaders),
+		func(o *s3.Options) {
+			o.HTTPClient = customizeHTTPClient(o.HTTPClient, requestHeaders)
+		},
 	)
 	// Check error
 	if err != nil {
@@ -514,13 +507,4 @@ func (s3ctx *s3Context) DeleteObject(ctx context.Context, key string) (*ResultIn
 
 	// Return
 	return info, nil
-}
-
-func addHeadersToRequest(headers map[string]string) func(r *request.Request) {
-	return func(r *request.Request) {
-		// Loop over them
-		for k, v := range headers {
-			r.HTTPRequest.Header.Set(k, v)
-		}
-	}
 }

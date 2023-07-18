@@ -3,14 +3,15 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http/httptest"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awscfg "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
@@ -105,28 +106,37 @@ var testsDefaultGeneralTemplateConfig = &config.TemplateConfig{
 // Generate metrics instance
 var metricsCtx = metrics.NewClient()
 
-func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*s3.S3, *httptest.Server, error) {
+func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*s3.Client, *httptest.Server, error) {
 	backend := s3mem.New()
 	faker := gofakes3.New(backend)
 	ts := httptest.NewServer(faker.Server())
 
-	// configure S3 client
-	s3Config := &aws.Config{
-		Credentials:      credentials.NewStaticCredentials(accessKey, secretAccessKey, ""),
-		Endpoint:         aws.String(ts.URL),
-		Region:           aws.String(region),
-		DisableSSL:       aws.Bool(true),
-		S3ForcePathStyle: aws.Bool(true),
+	cfg, err := awscfg.LoadDefaultConfig(
+		context.TODO(),
+		awscfg.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				PartitionID:       "aws",
+				URL:               ts.URL,
+				SigningRegion:     region,
+				HostnameImmutable: true,
+			}, nil
+		})),
+		awscfg.WithRegion(region),
+		awscfg.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(accessKey, secretAccessKey, ""),
+		),
+	)
+	if err != nil {
+		return nil, nil, err
 	}
-	newSession := session.New(s3Config)
 
-	s3Client := s3.New(newSession)
+	s3Client := s3.NewFromConfig(cfg)
 	cparams := &s3.CreateBucketInput{
 		Bucket: aws.String(bucket),
 	}
 
 	// Create a new bucket using the CreateBucket call.
-	_, err := s3Client.CreateBucket(cparams)
+	_, err = s3Client.CreateBucket(context.TODO(), cparams)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -155,13 +165,21 @@ func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*s3.S3, *ht
 
 	// Upload files
 	for k, v := range files {
-		_, err = s3Client.PutObject(&s3.PutObjectInput{
+		var contentType *string
+		if strings.HasSuffix(k, ".txt") {
+			contentType = aws.String("text/plain; charset=utf-8")
+		} else if strings.HasSuffix(k, ".html") {
+			contentType = aws.String("text/html; charset=utf-8")
+		}
+
+		_, err = s3Client.PutObject(context.TODO(), &s3.PutObjectInput{
 			Body:   strings.NewReader(v),
 			Bucket: aws.String(bucket),
 			Key:    aws.String(k),
-			Metadata: aws.StringMap(map[string]string{
+			Metadata: map[string]string{
 				"m1-key": "v1",
-			}),
+			},
+			ContentType: contentType,
 		})
 		if err != nil {
 			return nil, nil, err
@@ -169,13 +187,11 @@ func setupFakeS3(accessKey, secretAccessKey, region, bucket string) (*s3.S3, *ht
 	}
 
 	// Add file with content-type
-	_, err = s3Client.PutObject(&s3.PutObjectInput{
-		Body:   strings.NewReader("test"),
-		Bucket: aws.String(bucket),
-		Key:    aws.String("content-type/file.txt"),
-		Metadata: map[string]*string{
-			"Content-Type": aws.String("text/plain"),
-		},
+	_, err = s3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Body:        strings.NewReader("test"),
+		Bucket:      aws.String(bucket),
+		Key:         aws.String("content-type/file.txt"),
+		ContentType: aws.String("text/plain; charset=utf-8"),
 	})
 	if err != nil {
 		return nil, nil, err

@@ -3,13 +3,14 @@
 package generalutils
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net/http"
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -218,9 +219,8 @@ func TestParseTLSVersion(t *testing.T) {
 
 func TestGetDocumentURLOption(t *testing.T) {
 	options := []GetDocumentFromURLOption{
-		WithAWSEndpoint("host.endpoint"),
+		WithAWSEndpoint("http://host.endpoint"),
 		WithAWSRegion("region-1"),
-		WithAWSDisableSSL(true),
 		WithAWSStaticCredentials("TestAccessKey", "TestSecretKey", "TestToken"),
 		WithHTTPTimeout(time.Duration(30 * time.Second)),
 	}
@@ -243,20 +243,19 @@ func TestGetDocumentURLOption(t *testing.T) {
 			}
 
 			if awsConfig != nil {
-				if assert.NotNil(t, awsConfig.Endpoint, "endpoint should be set") {
-					assert.Equal(t, "host.endpoint", *awsConfig.Endpoint, "endpoint should be host.endpoint")
+				if assert.NotNil(t, awsConfig.EndpointResolverWithOptions, "endpoint resolver should be set") {
+					res, err := awsConfig.EndpointResolverWithOptions.ResolveEndpoint("fake", "fake")
+					if assert.Nil(t, err, "endpoint resolver shouldn't resolve an error") {
+						assert.Equal(t, "http://host.endpoint", res.URL, "endpoint should be host.endpoint")
+					}
 				}
 
 				if assert.NotNil(t, awsConfig.Region, "region should be set") {
-					assert.Equal(t, "region-1", *awsConfig.Region, "region should be region-1")
-				}
-
-				if assert.NotNil(t, awsConfig.DisableSSL, "disablessl should be set") {
-					assert.Equal(t, true, *awsConfig.DisableSSL, "disablessl should be true")
+					assert.Equal(t, "region-1", awsConfig.Region, "region should be region-1")
 				}
 
 				if assert.NotNil(t, awsConfig.Credentials, "credentials should be set") {
-					credValue, err := awsConfig.Credentials.Get()
+					credValue, err := awsConfig.Credentials.Retrieve(context.TODO())
 					if assert.Nil(t, err, "credentials.Get should return nil") {
 						assert.Equal(t, "TestAccessKey", credValue.AccessKeyID, "accesskey should be TestAccessKey")
 						assert.Equal(t, "TestSecretKey", credValue.SecretAccessKey, "secretkey should be TestSecretKey")
@@ -265,7 +264,7 @@ func TestGetDocumentURLOption(t *testing.T) {
 				}
 
 				if assert.NotNil(t, awsConfig.HTTPClient, "httpclient should be set") {
-					assert.Equal(t, time.Duration(30*time.Second), awsConfig.HTTPClient.Timeout, "awsclient HTTP timeout should be 30 seconds")
+					assert.Equal(t, time.Duration(30*time.Second), awsConfig.HTTPClient.(*http.Client).Timeout, "awsclient HTTP timeout should be 30 seconds")
 				}
 			}
 

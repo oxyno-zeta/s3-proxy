@@ -1,10 +1,10 @@
 package generalutils
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -12,14 +12,14 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
+	awscfg "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
 const (
@@ -182,7 +182,15 @@ type GetDocumentFromURLOption func(awsCfg *aws.Config, httpClient *http.Client)
 func WithAWSEndpoint(endpoint string) GetDocumentFromURLOption {
 	return func(awsCfg *aws.Config, httpClient *http.Client) {
 		if awsCfg != nil {
-			awsCfg.Endpoint = aws.String(endpoint)
+			customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+				return aws.Endpoint{
+					PartitionID:       "aws",
+					URL:               endpoint,
+					SigningRegion:     region,
+					HostnameImmutable: true,
+				}, nil
+			})
+			awsCfg.EndpointResolverWithOptions = customResolver
 		}
 	}
 }
@@ -191,16 +199,7 @@ func WithAWSEndpoint(endpoint string) GetDocumentFromURLOption {
 func WithAWSRegion(region string) GetDocumentFromURLOption {
 	return func(awsCfg *aws.Config, httpClient *http.Client) {
 		if awsCfg != nil {
-			awsCfg.Region = aws.String(region)
-		}
-	}
-}
-
-// WithAWSDisableSSL is an option for GetDocumentFromURL to optionally disable SSL for requests.
-func WithAWSDisableSSL(disableSSL bool) GetDocumentFromURLOption {
-	return func(awsCfg *aws.Config, httpClient *http.Client) {
-		if awsCfg != nil {
-			awsCfg.DisableSSL = aws.Bool(disableSSL)
+			awsCfg.Region = region
 		}
 	}
 }
@@ -209,7 +208,7 @@ func WithAWSDisableSSL(disableSSL bool) GetDocumentFromURLOption {
 func WithAWSStaticCredentials(accessKey, secretKey, token string) GetDocumentFromURLOption {
 	return func(awsCfg *aws.Config, httpClient *http.Client) {
 		if awsCfg != nil {
-			awsCfg.Credentials = credentials.NewStaticCredentials(accessKey, secretKey, token)
+			awsCfg.Credentials = credentials.NewStaticCredentialsProvider(accessKey, secretKey, token)
 		}
 	}
 }
@@ -217,12 +216,8 @@ func WithAWSStaticCredentials(accessKey, secretKey, token string) GetDocumentFro
 // WithHTTPTimeout is an option for GetDocumentFromURL to set the HTTP timeout.
 func WithHTTPTimeout(timeout time.Duration) GetDocumentFromURLOption {
 	return func(awsCfg *aws.Config, httpClient *http.Client) {
-		if awsCfg != nil {
-			if awsCfg.HTTPClient == nil {
-				awsCfg.HTTPClient = &http.Client{}
-			}
-
-			awsCfg.HTTPClient.Timeout = timeout
+		if awsCfg != nil && awsCfg.HTTPClient == nil {
+			awsCfg.HTTPClient = &http.Client{Timeout: timeout}
 		}
 
 		if httpClient != nil {
@@ -339,47 +334,39 @@ func getDocumentFromHTTP(rawURL string, opts ...GetDocumentFromURLOption) ([]byt
 // If the object is server-side encrypted, S3 will automatically decrypt this for us before returning it. Client-side
 // decryption is not supported.
 func getDocumentFromS3(bucket, key string, opts ...GetDocumentFromURLOption) ([]byte, error) {
-	cfg := aws.NewConfig()
-	for _, opt := range opts {
-		opt(cfg, nil)
+	cfg, err := awscfg.LoadDefaultConfig(context.TODO())
+	// Check error
+	if err != nil {
+		return nil, errors.WithStack(err)
 	}
 
-	if cfg.Endpoint != nil {
-		// If the endpoint is a URL with an IP address, force path style addressing.
-		// Otherwise, we end up with URLs like https://bucketname.127.0.0.1/
-		endpointURL, err := url.Parse(*cfg.Endpoint)
-		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("invalid S3 endpoint URL: %s", *cfg.Endpoint))
-		}
-
-		hostIP := net.ParseIP(endpointURL.Hostname())
-		if hostIP != nil {
-			cfg.S3ForcePathStyle = aws.Bool(true)
-		}
+	// Add options
+	for _, opt := range opts {
+		opt(&cfg, nil)
 	}
 
 	// We don't use the s3-proxy S3 client here to avoid polluting our metrics.
-	sess, err := session.NewSession(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	s3Client := s3.New(sess)
+	s3Client := s3.NewFromConfig(cfg)
 
 	goi := s3.GetObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
 	}
 
-	goo, err := s3Client.GetObject(&goi)
-
+	goo, err := s3Client.GetObject(context.TODO(), &goi)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	defer goo.Body.Close()
 
-	return io.ReadAll(goo.Body)
+	bb, err := io.ReadAll(goo.Body)
+	// Check error
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return bb, nil
 }
 
 // getDocumentFromSecretsManager retrieves a textual document from the specified Secrets Manager secret.
@@ -387,35 +374,35 @@ func getDocumentFromS3(bucket, key string, opts ...GetDocumentFromURLOption) ([]
 // TODO: To support testing, this needs to take a context argument so an STS/Secrets Manager client can be injected for testing.
 // This requires changes in the server.
 func getDocumentFromSecretsManager(docARN *arn.ARN, opts ...GetDocumentFromURLOption) ([]byte, error) {
-	cfg := aws.NewConfig()
-	cfg.Region = aws.String(docARN.Region)
-
-	for _, opt := range opts {
-		opt(cfg, nil)
+	cfg, err := awscfg.LoadDefaultConfig(context.TODO())
+	// Check error
+	if err != nil {
+		return nil, errors.WithStack(err)
 	}
 
-	sess, err := session.NewSession(cfg)
-	if err != nil {
-		return nil, err
+	cfg.Region = docARN.Region
+
+	for _, opt := range opts {
+		opt(&cfg, nil)
 	}
 
 	// Make sure the account ID matches the ARN's account ID.
-	stsClient := sts.New(sess)
-	gcio, err := stsClient.GetCallerIdentity(&sts.GetCallerIdentityInput{})
+	stsClient := sts.NewFromConfig(cfg)
+	gcio, err := stsClient.GetCallerIdentity(context.TODO(), &sts.GetCallerIdentityInput{})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to determine current account ID")
 	}
 
-	if aws.StringValue(gcio.Account) != docARN.AccountID {
-		return nil, errors.Errorf("account ID in ARN: %s (current account is %s)", docARN.String(), aws.StringValue(gcio.Account))
+	if gcio.Account != nil && *gcio.Account != docARN.AccountID {
+		return nil, errors.Errorf("account ID in ARN: %s (current account is %s)", docARN.String(), *gcio.Account)
 	}
 
-	secretsManagerClient := secretsmanager.New(sess)
+	secretsManagerClient := secretsmanager.NewFromConfig(cfg)
 	gsvi := secretsmanager.GetSecretValueInput{
 		SecretId: aws.String(docARN.Resource[len("secret:"):]),
 	}
-	gsvo, err := secretsManagerClient.GetSecretValue(&gsvi)
+	gsvo, err := secretsManagerClient.GetSecretValue(context.TODO(), &gsvi)
 
 	if err != nil {
 		return nil, err
@@ -438,40 +425,40 @@ func getDocumentFromSecretsManager(docARN *arn.ARN, opts ...GetDocumentFromURLOp
 // TODO: To support testing, this needs to take a context argument so an STS/SSM client can be injected for testing.
 // This requires changes in the server.
 func getDocumentFromSSM(docARN *arn.ARN, opts ...GetDocumentFromURLOption) ([]byte, error) {
-	cfg := aws.NewConfig()
-	cfg.Region = aws.String(docARN.Region)
-
-	for _, opt := range opts {
-		opt(cfg, nil)
+	cfg, err := awscfg.LoadDefaultConfig(context.TODO())
+	// Check error
+	if err != nil {
+		return nil, errors.WithStack(err)
 	}
 
-	sess, err := session.NewSession(cfg)
-	if err != nil {
-		return nil, err
+	cfg.Region = docARN.Region
+
+	for _, opt := range opts {
+		opt(&cfg, nil)
 	}
 
 	// Make sure the account ID matches the ARN's account ID.
-	stsClient := sts.New(sess)
-	gcio, err := stsClient.GetCallerIdentity(&sts.GetCallerIdentityInput{})
+	stsClient := sts.NewFromConfig(cfg)
+	gcio, err := stsClient.GetCallerIdentity(context.TODO(), &sts.GetCallerIdentityInput{})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to determine current account ID")
 	}
 
-	if aws.StringValue(gcio.Account) != docARN.AccountID {
-		return nil, errors.Errorf("account ID in ARN does not match current acccount: %s (current account is %s)", docARN.String(), aws.StringValue(gcio.Account))
+	if gcio.Account != nil && *gcio.Account != docARN.AccountID {
+		return nil, errors.Errorf("account ID in ARN does not match current acccount: %s (current account is %s)", docARN.String(), *gcio.Account)
 	}
 
-	ssmClient := ssm.New(sess)
+	ssmClient := ssm.NewFromConfig(cfg)
 
 	gpi := ssm.GetParameterInput{
 		Name:           aws.String(docARN.Resource[len("parameter/"):]),
 		WithDecryption: aws.Bool(true),
 	}
-	gpo, err := ssmClient.GetParameter(&gpi)
-
+	gpo, err := ssmClient.GetParameter(context.TODO(), &gpi)
+	// Check error
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	if gpo.Parameter != nil {

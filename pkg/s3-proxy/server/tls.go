@@ -270,10 +270,6 @@ func getURLOptions(urlConfig *config.SSLURLConfig) ([]utils.GetDocumentFromURLOp
 		result = append(result, utils.WithAWSEndpoint(urlConfig.AWSEndpoint))
 	}
 
-	if urlConfig.AWSDisableSSL {
-		result = append(result, utils.WithAWSDisableSSL(urlConfig.AWSDisableSSL))
-	}
-
 	if s3Creds := urlConfig.AWSCredentials; s3Creds != nil {
 		if s3Creds.AccessKey != nil && s3Creds.SecretKey != nil && s3Creds.AccessKey.Value != "" && s3Creds.SecretKey.Value != "" {
 			result = append(result, utils.WithAWSStaticCredentials(s3Creds.AccessKey.Value, s3Creds.SecretKey.Value, ""))

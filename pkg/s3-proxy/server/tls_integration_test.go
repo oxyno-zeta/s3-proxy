@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/golang/mock/gomock"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	cmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config/mocks"
@@ -94,7 +94,6 @@ func TestTLSServer(t *testing.T) {
 							AccessKey: &config.CredentialConfig{Value: accessKey},
 							SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 						},
-						DisableSSL: true,
 					},
 					Mount: &config.MountConfig{
 						Path: []string{"/mount/"},
@@ -359,7 +358,7 @@ func TestTLSServer(t *testing.T) {
 				},
 			}),
 			expect:   testExpectSetupErr,
-			errorStr: "failed to create TLS configuration for server: unable to load certificate: failed to get certificate from URL: s3://bucket/key: invalid S3 endpoint URL: :r&qwer+asdf:",
+			errorStr: `failed to create TLS configuration for server: unable to load certificate: failed to get certificate from URL: s3://bucket/key: operation error S3: GetObject, failed to parse endpoint URL: parse ":r&qwer+asdf": missing protocol scheme`,
 		},
 		{
 			name: "Invalid S3 URL (wrong key)",
@@ -387,7 +386,7 @@ func TestTLSServer(t *testing.T) {
 				},
 			}),
 			expect:   testExpectSetupErr,
-			errorStr: "failed to create TLS configuration for server: unable to load certificate: failed to get certificate from URL: s3://test-bucket/ssl/not_found.pem: NoSuchKey",
+			errorStr: "failed to create TLS configuration for server: unable to load certificate: failed to get certificate from URL: s3://test-bucket/ssl/not_found.pem: operation error S3: GetObject, https response error StatusCode: 404",
 		},
 		{
 			name: "Invalid S3 URL (no key)",
@@ -480,7 +479,8 @@ func TestTLSServer(t *testing.T) {
 		tt := currentTest
 
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// TODO
+			// t.Parallel()
 
 			// An HTTP test server that returns the certificate and private key (created if needed).
 			var httpServer *httptest.Server
@@ -574,6 +574,15 @@ func TestTLSServer(t *testing.T) {
 
 				return
 			} else if !assert.NoError(t, err) {
+				fmt.Println("======================")
+				fmt.Println("======================")
+				fmt.Println("======================")
+				fmt.Println("======================")
+				fmt.Println("======================")
+				fmt.Println("======================")
+				fmt.Println("======================")
+				fmt.Println("======================")
+				fmt.Println("======================")
 				return
 			}
 

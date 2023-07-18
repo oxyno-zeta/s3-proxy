@@ -4,6 +4,7 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,8 +20,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/golang/mock/gomock"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	cmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config/mocks"
@@ -80,13 +81,13 @@ func TestPublicRouter(t *testing.T) {
 		expectedHeaderContains             map[string][]string
 		validateS3Object                   bool
 		expectedS3ObjectKey                string
-		expectedS3ObjectMetadata           map[string]*string
+		expectedS3ObjectMetadata           map[string]string
 		expectedS3ObjectCacheControl       *string
 		expectedS3ObjectContentDisposition *string
 		expectedS3ObjectContentEncoding    *string
 		expectedS3ObjectContentLanguage    *string
-		expectedS3ObjectExpires            *string
-		expectedS3ObjectStorageClass       *string
+		expectedS3ObjectExpires            string
+		expectedS3ObjectStorageClass       string
 		notExpectedBody                    string
 		wantErr                            bool
 	}{
@@ -109,7 +110,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -149,7 +149,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -188,7 +187,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -231,7 +229,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -280,7 +277,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -320,7 +316,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -370,7 +365,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -413,7 +407,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -459,7 +452,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -510,7 +502,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -535,7 +526,7 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
-			name: "GET a file with success (redirect to signed url enabled)",
+			name: "GET a file with success _redirect to signed url enabled_",
 			args: args{
 				cfg: &config.Config{
 					Server:      svrCfg,
@@ -553,7 +544,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -586,7 +576,7 @@ func TestPublicRouter(t *testing.T) {
 					"X-Amz-Credential=" + accessKey,
 					region,
 					"X-Amz-Expires=60",
-					"X-Amz-SignedHeaders=host&X-Amz-Signature=",
+					"X-Amz-SignedHeaders=host&x-id=GetObject&X-Amz-Signature=",
 				},
 			},
 		},
@@ -609,7 +599,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -654,7 +643,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -706,7 +694,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -752,7 +739,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -800,7 +786,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -870,7 +855,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -940,7 +924,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -1011,7 +994,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -1084,7 +1066,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -1157,7 +1138,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -1223,7 +1203,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -1290,7 +1269,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -1347,7 +1325,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -1417,7 +1394,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -1491,7 +1467,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -1562,7 +1537,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -1638,7 +1612,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -1714,7 +1687,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -1792,7 +1764,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -1863,7 +1834,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -1934,7 +1904,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2014,7 +1983,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2094,7 +2062,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2168,7 +2135,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2249,7 +2215,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2324,7 +2289,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2399,7 +2363,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2456,7 +2419,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2481,7 +2443,7 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
-			name: "GET index document with index document enabled with success",
+			name: "GET index document with index document enabled with success on signed url",
 			args: args{
 				cfg: &config.Config{
 					Server:      svrCfg,
@@ -2499,7 +2461,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2533,7 +2494,7 @@ func TestPublicRouter(t *testing.T) {
 					"X-Amz-Credential=" + accessKey,
 					region,
 					"X-Amz-Expires=60",
-					"X-Amz-SignedHeaders=host&X-Amz-Signature=",
+					"X-Amz-SignedHeaders=host&x-id=GetObject&X-Amz-Signature=",
 				},
 			},
 		},
@@ -2556,7 +2517,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2599,7 +2559,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2637,7 +2596,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2693,7 +2651,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2739,7 +2696,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2794,7 +2750,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2826,8 +2781,8 @@ func TestPublicRouter(t *testing.T) {
 			},
 			validateS3Object:             true,
 			expectedS3ObjectKey:          "folder1/test2.txt",
-			expectedS3ObjectStorageClass: aws.String("Standard"),
-			expectedS3ObjectMetadata:     aws.StringMap(map[string]string{"Meta1": "meta1"}),
+			expectedS3ObjectStorageClass: "Standard",
+			expectedS3ObjectMetadata:     map[string]string{"meta1": "meta1"},
 		},
 		{
 			name: "PUT a file with system metadata",
@@ -2848,7 +2803,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2884,7 +2838,7 @@ func TestPublicRouter(t *testing.T) {
 			},
 			validateS3Object:                   true,
 			expectedS3ObjectKey:                "folder1/system-metadata.txt",
-			expectedS3ObjectStorageClass:       aws.String("Standard"),
+			expectedS3ObjectStorageClass:       "Standard",
 			expectedS3ObjectContentDisposition: aws.String("attachment"),
 			expectedS3ObjectContentEncoding:    aws.String("content-encoding"),
 			// Cannot be testing due to limitation on library
@@ -2911,7 +2865,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -2969,7 +2922,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -3002,8 +2954,8 @@ func TestPublicRouter(t *testing.T) {
 			},
 			validateS3Object:             true,
 			expectedS3ObjectKey:          "folder1/test.txt",
-			expectedS3ObjectStorageClass: aws.String("Standard"),
-			expectedS3ObjectMetadata:     aws.StringMap(map[string]string{"Meta1": "meta1", "M1-Key": "v1"}),
+			expectedS3ObjectStorageClass: "Standard",
+			expectedS3ObjectMetadata:     map[string]string{"meta1": "meta1", "m1-key": "v1"},
 		},
 		{
 			name: "PUT in a path should fail because no input",
@@ -3024,7 +2976,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -3073,7 +3024,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -3142,7 +3092,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -3182,8 +3131,8 @@ func TestPublicRouter(t *testing.T) {
 `,
 			validateS3Object:             true,
 			expectedS3ObjectKey:          "folder1/test.txt",
-			expectedS3ObjectStorageClass: aws.String("Standard"),
-			expectedS3ObjectMetadata:     aws.StringMap(map[string]string{"Meta1": "meta1", "M1-Key": "v1"}),
+			expectedS3ObjectStorageClass: "Standard",
+			expectedS3ObjectMetadata:     map[string]string{"meta1": "meta1", "m1-key": "v1"},
 		},
 		{
 			name: "PUT with a custom target template and status code should be ok",
@@ -3204,7 +3153,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -3253,8 +3201,8 @@ func TestPublicRouter(t *testing.T) {
 `,
 			validateS3Object:             true,
 			expectedS3ObjectKey:          "folder1/test.txt",
-			expectedS3ObjectStorageClass: aws.String("Standard"),
-			expectedS3ObjectMetadata:     aws.StringMap(map[string]string{"Meta1": "meta1", "M1-Key": "v1"}),
+			expectedS3ObjectStorageClass: "Standard",
+			expectedS3ObjectMetadata:     map[string]string{"meta1": "meta1", "m1-key": "v1"},
 		},
 		{
 			name: "GET a file with success with space in path",
@@ -3275,7 +3223,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -3297,7 +3244,7 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
-			name: "GET a file with success with custom headers (general helpers)",
+			name: "GET a file with success with custom headers _general helpers_",
 			args: args{
 				cfg: &config.Config{
 					Server:      svrCfg,
@@ -3315,7 +3262,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -3325,7 +3271,7 @@ func TestPublicRouter(t *testing.T) {
 									Enabled: true,
 									Config: &config.GetActionConfigConfig{
 										StreamedFileHeaders: map[string]string{
-											"Fake": "{{ index .StreamFile.Metadata \"M1-Key\" }}",
+											"Fake": "{{ index .StreamFile.Metadata \"m1-key\" }}",
 										},
 									},
 								},
@@ -3345,7 +3291,7 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
-			name: "GET a file with success with custom headers (target helpers)",
+			name: "GET a file with success with custom headers _target helpers_",
 			args: args{
 				cfg: &config.Config{
 					Server:      svrCfg,
@@ -3363,7 +3309,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -3379,7 +3324,7 @@ func TestPublicRouter(t *testing.T) {
 									Enabled: true,
 									Config: &config.GetActionConfigConfig{
 										StreamedFileHeaders: map[string]string{
-											"Fake": "{{ index .StreamFile.Metadata \"M1-Key\" }}",
+											"Fake": "{{ index .StreamFile.Metadata \"m1-key\" }}",
 										},
 									},
 								},
@@ -3426,7 +3371,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -3473,7 +3417,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -3529,7 +3472,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -3602,7 +3544,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -3650,7 +3591,6 @@ func TestPublicRouter(t *testing.T) {
 									AccessKey: &config.CredentialConfig{Value: accessKey},
 									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 								},
-								DisableSSL: true,
 							},
 							Mount: &config.MountConfig{
 								Path: []string{"/mount/"},
@@ -3815,19 +3755,20 @@ func TestPublicRouter(t *testing.T) {
 			assert.Equal(t, tt.expectedCode, w.Code)
 
 			if tt.validateS3Object {
-				r, err := s3serverClient.HeadObject(&s3.HeadObjectInput{
+				r, err := s3serverClient.HeadObject(context.TODO(), &s3.HeadObjectInput{
 					Bucket: &bucket,
 					Key:    &tt.expectedS3ObjectKey,
 				})
 				assert.NoError(t, err)
-				// TODO Migrate to SDK V2 to test ACL
 				assert.Equal(t, tt.expectedS3ObjectMetadata, r.Metadata, "S3 object metadata")
-				assert.Equal(t, tt.expectedS3ObjectStorageClass, r.StorageClass, "S3 object storage class")
+				assert.Equal(t, tt.expectedS3ObjectStorageClass, string(r.StorageClass), "S3 object storage class")
 				assert.Equal(t, tt.expectedS3ObjectCacheControl, r.CacheControl, "S3 object cache control")
 				assert.Equal(t, tt.expectedS3ObjectContentDisposition, r.ContentDisposition, "S3 object content disposition")
 				assert.Equal(t, tt.expectedS3ObjectContentEncoding, r.ContentEncoding, "S3 object content encoding")
 				assert.Equal(t, tt.expectedS3ObjectContentLanguage, r.ContentLanguage, "S3 object content language")
-				assert.Equal(t, tt.expectedS3ObjectExpires, r.Expires, "S3 object expires")
+				if r.Expires != nil {
+					assert.Equal(t, tt.expectedS3ObjectExpires, r.Expires.Format(time.RFC1123), "S3 object expires")
+				}
 			}
 		})
 	}
@@ -3868,7 +3809,6 @@ func TestTracing(t *testing.T) {
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 				},
-				DisableSSL: true,
 			},
 			Mount: &config.MountConfig{
 				Path: []string{"/mount/"},
@@ -4080,7 +4020,6 @@ func TestOIDCAuthentication(t *testing.T) {
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 				},
-				DisableSSL: true,
 			},
 			Mount: &config.MountConfig{
 				Path: []string{"/mount/"},
@@ -4109,7 +4048,6 @@ func TestOIDCAuthentication(t *testing.T) {
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 				},
-				DisableSSL: true,
 			},
 			Mount: &config.MountConfig{
 				Path: []string{"/mount-multiple-provider/"},
@@ -4138,7 +4076,6 @@ func TestOIDCAuthentication(t *testing.T) {
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 				},
-				DisableSSL: true,
 			},
 			Mount: &config.MountConfig{
 				Path: []string{"/mount-opa-server/"},
@@ -4169,7 +4106,6 @@ func TestOIDCAuthentication(t *testing.T) {
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 				},
-				DisableSSL: true,
 			},
 			Mount: &config.MountConfig{
 				Path: []string{"/mount-wrong-opa-server-url/"},
@@ -4200,7 +4136,6 @@ func TestOIDCAuthentication(t *testing.T) {
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 				},
-				DisableSSL: true,
 			},
 			Mount: &config.MountConfig{
 				Path: []string{"/mount-with-group/"},
@@ -4961,7 +4896,6 @@ func TestCORS(t *testing.T) {
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 				},
-				DisableSSL: true,
 			},
 			Mount: &config.MountConfig{
 				Path: []string{"/mount/"},
@@ -5356,7 +5290,6 @@ func TestIndexLargeBucket(t *testing.T) {
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 				},
-				DisableSSL:    true,
 				S3ListMaxKeys: 1000,
 			},
 			Mount: &config.MountConfig{
@@ -5467,8 +5400,7 @@ func TestListLargeBucketAndSmallMaxKeys(t *testing.T) {
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 				},
-				DisableSSL:    true,
-				S3ListMaxKeys: int64(maxKeys),
+				S3ListMaxKeys: int32(maxKeys),
 			},
 			Mount: &config.MountConfig{
 				Path: []string{"/"},
@@ -5571,8 +5503,7 @@ func TestListLargeBucketAndMaxKeysGreaterThanS3MaxKeys(t *testing.T) {
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 				},
-				DisableSSL:    true,
-				S3ListMaxKeys: int64(maxKeys),
+				S3ListMaxKeys: int32(maxKeys),
 			},
 			Mount: &config.MountConfig{
 				Path: []string{"/"},
@@ -5674,7 +5605,6 @@ func TestFolderWithSubFolders(t *testing.T) {
 					AccessKey: &config.CredentialConfig{Value: accessKey},
 					SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 				},
-				DisableSSL: true,
 			},
 			Mount: &config.MountConfig{
 				Path: []string{"/"},
@@ -5782,7 +5712,6 @@ func TestTrailingSlashRedirect(t *testing.T) {
 			AccessKey: &config.CredentialConfig{Value: accessKey},
 			SecretKey: &config.CredentialConfig{Value: secretAccessKey},
 		},
-		DisableSSL: true,
 	}
 	type args struct {
 		cfg *config.Config

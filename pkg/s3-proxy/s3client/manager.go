@@ -1,11 +1,13 @@
 package s3client
 
 import (
+	"context"
+
 	"emperror.dev/errors"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awscfg "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/thoas/go-funk"
@@ -63,34 +65,44 @@ func (m *manager) Load() error {
 }
 
 func newClient(tgt *config.TargetConfig, metricsCtx metrics.Client) (Client, error) {
-	sessionConfig := &aws.Config{
-		Region: aws.String(tgt.Bucket.Region),
+	params := []func(*awscfg.LoadOptions) error{
+		awscfg.WithRegion(tgt.Bucket.Region),
 	}
 	// Load credentials if they exists
 	if tgt.Bucket.Credentials != nil && tgt.Bucket.Credentials.AccessKey != nil && tgt.Bucket.Credentials.SecretKey != nil {
-		sessionConfig.Credentials = credentials.NewStaticCredentials(tgt.Bucket.Credentials.AccessKey.Value, tgt.Bucket.Credentials.SecretKey.Value, "")
+		params = append(params, awscfg.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(tgt.Bucket.Credentials.AccessKey.Value, tgt.Bucket.Credentials.SecretKey.Value, ""),
+		))
 	}
 	// Load custom endpoint if it exists
 	if tgt.Bucket.S3Endpoint != "" {
-		sessionConfig.Endpoint = aws.String(tgt.Bucket.S3Endpoint)
-		sessionConfig.S3ForcePathStyle = aws.Bool(true)
+		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				PartitionID:       "aws",
+				URL:               tgt.Bucket.S3Endpoint,
+				SigningRegion:     region,
+				HostnameImmutable: true,
+			}, nil
+		})
+
+		params = append(params, awscfg.WithEndpointResolverWithOptions(customResolver))
 	}
-	// Check if ssl needs to be disabled
-	if tgt.Bucket.DisableSSL {
-		sessionConfig.DisableSSL = aws.Bool(true)
-	}
-	// Create session
-	sess, err := session.NewSession(sessionConfig)
+
+	// Create configuration
+	cfg, err := awscfg.LoadDefaultConfig(context.TODO(), params...)
 	// Check error
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 	// Create s3 client
-	svcClient := s3.New(sess)
+	svcClient := s3.NewFromConfig(cfg)
+	// Create presign client
+	presignCl := s3.NewPresignClient(svcClient)
 
 	return &s3Context{
-		svcClient:  svcClient,
-		target:     tgt,
-		metricsCtx: metricsCtx,
+		svcClient:     svcClient,
+		presignClient: presignCl,
+		target:        tgt,
+		metricsCtx:    metricsCtx,
 	}, nil
 }

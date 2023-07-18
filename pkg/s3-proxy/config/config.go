@@ -44,7 +44,7 @@ const DefaultLogFormat = "json"
 const DefaultBucketRegion = "us-east-1"
 
 // DefaultBucketS3ListMaxKeys Default bucket S3 list max keys.
-const DefaultBucketS3ListMaxKeys int64 = 1000
+const DefaultBucketS3ListMaxKeys int32 = 1000
 
 // DefaultTemplateFolderListPath Default template folder list path.
 const DefaultTemplateFolderListPath = "templates/folder-list.tpl"
@@ -474,7 +474,7 @@ type BucketConfig struct {
 	Prefix        string                  `mapstructure:"prefix"`
 	Region        string                  `mapstructure:"region"`
 	S3Endpoint    string                  `mapstructure:"s3Endpoint"`
-	S3ListMaxKeys int64                   `mapstructure:"s3ListMaxKeys" validate:"gt=0"`
+	S3ListMaxKeys int32                   `mapstructure:"s3ListMaxKeys" validate:"gt=0"`
 	DisableSSL    bool                    `mapstructure:"disableSSL"`
 }
 

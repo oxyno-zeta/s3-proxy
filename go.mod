@@ -5,7 +5,14 @@ go 1.19
 require (
 	emperror.dev/errors v0.8.1
 	github.com/Masterminds/sprig/v3 v3.2.3
-	github.com/aws/aws-sdk-go v1.44.300
+	github.com/aws/aws-sdk-go-v2 v1.19.0
+	github.com/aws/aws-sdk-go-v2/config v1.18.28
+	github.com/aws/aws-sdk-go-v2/credentials v1.13.27
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.37.0
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.19.11
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.36.8
+	github.com/aws/aws-sdk-go-v2/service/sts v1.19.3
+	github.com/aws/smithy-go v1.13.5
 	github.com/coreos/go-oidc/v3 v3.6.0
 	github.com/dimiro1/health v0.0.0-20191019130555-c5cbb4d46ffc
 	github.com/dustin/go-humanize v1.0.1
@@ -36,6 +43,19 @@ require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
+	github.com/aws/aws-sdk-go v1.44.300 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.10 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.35 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.29 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.36 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.27 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.11 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.30 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.29 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.14.4 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.12.13 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.13 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
