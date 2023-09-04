@@ -11,7 +11,7 @@ jobs:
       md: ${{ steps.filter.outputs.md }}
       config: ${{ steps.filter.outputs.config }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -30,7 +30,7 @@ jobs:
     needs:
       - changes
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
       - uses: actions/setup-python@v4
         with:
           python-version: 3.x
@@ -46,7 +46,7 @@ jobs:
       (github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
       - uses: actions/setup-python@v4
         with:
           python-version: 3.x
