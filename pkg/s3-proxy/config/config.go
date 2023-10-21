@@ -141,7 +141,7 @@ type Config struct {
 	Tracing        *TracingConfig           `mapstructure:"tracing"`
 	Server         *ServerConfig            `mapstructure:"server"`
 	InternalServer *ServerConfig            `mapstructure:"internalServer"`
-	Targets        map[string]*TargetConfig `mapstructure:"targets"        validate:"dive"`
+	Targets        map[string]*TargetConfig `mapstructure:"targets"`
 	Templates      *TemplateConfig          `mapstructure:"templates"`
 	AuthProviders  *AuthProviderConfig      `mapstructure:"authProviders"`
 	ListTargets    *ListTargetsConfig       `mapstructure:"listTargets"`
@@ -172,14 +172,14 @@ type MountConfig struct {
 
 // AuthProviderConfig Authentication provider configurations.
 type AuthProviderConfig struct {
-	Basic  map[string]*BasicAuthConfig  `mapstructure:"basic"  validate:"omitempty,dive"`
-	OIDC   map[string]*OIDCAuthConfig   `mapstructure:"oidc"   validate:"omitempty,dive"`
-	Header map[string]*HeaderAuthConfig `mapstructure:"header" validate:"omitempty,dive"`
+	Basic  map[string]*BasicAuthConfig  `mapstructure:"basic"  validate:"omitempty"`
+	OIDC   map[string]*OIDCAuthConfig   `mapstructure:"oidc"   validate:"omitempty"`
+	Header map[string]*HeaderAuthConfig `mapstructure:"header" validate:"omitempty"`
 }
 
 // OIDCAuthConfig OpenID Connect authentication configurations.
 type OIDCAuthConfig struct {
-	ClientSecret  *CredentialConfig `mapstructure:"clientSecret"  validate:"omitempty,dive"`
+	ClientSecret  *CredentialConfig `mapstructure:"clientSecret"  validate:"omitempty"`
 	GroupClaim    string            `mapstructure:"groupClaim"`
 	IssuerURL     string            `mapstructure:"issuerUrl"     validate:"required,url"`
 	RedirectURL   string            `mapstructure:"redirectUrl"   validate:"omitempty,url"`
@@ -217,7 +217,7 @@ type HeaderAuthConfig struct {
 
 // BasicAuthUserConfig Basic User auth configuration.
 type BasicAuthUserConfig struct {
-	Password *CredentialConfig `mapstructure:"password" validate:"required,dive"`
+	Password *CredentialConfig `mapstructure:"password" validate:"required"`
 	User     string            `mapstructure:"user"     validate:"required"`
 }
 
@@ -290,7 +290,7 @@ type ServerSSLCertificate struct {
 
 // SSLURLConfig SSL certificate/private key configuration for URLs.
 type SSLURLConfig struct {
-	AWSCredentials *BucketCredentialConfig `mapstructure:"awsCredentials" validate:"omitempty,dive"`
+	AWSCredentials *BucketCredentialConfig `mapstructure:"awsCredentials" validate:"omitempty"`
 	HTTPTimeout    string                  `mapstructure:"httpTimeout"`
 	AWSRegion      string                  `mapstructure:"awsRegion"`
 	AWSEndpoint    string                  `mapstructure:"awsEndpoint"`
@@ -430,7 +430,7 @@ type GetActionConfigConfig struct {
 // WebhookConfig Webhook configuration.
 type WebhookConfig struct {
 	Headers         map[string]string            `mapstructure:"headers"`
-	SecretHeaders   map[string]*CredentialConfig `mapstructure:"secretHeaders"   validate:"omitempty,dive"`
+	SecretHeaders   map[string]*CredentialConfig `mapstructure:"secretHeaders"   validate:"omitempty"`
 	Method          string                       `mapstructure:"method"          validate:"required,oneof=POST PATCH PUT DELETE"`
 	URL             string                       `mapstructure:"url"             validate:"required,url"`
 	MaxWaitTime     string                       `mapstructure:"maxWaitTime"`
@@ -456,7 +456,7 @@ type ResourceBasic struct {
 
 // ResourceHeaderOIDC OIDC or Header auth Resource.
 type ResourceHeaderOIDC struct {
-	AuthorizationOPAServer *OPAServerAuthorization          `mapstructure:"authorizationOPAServer" validate:"omitempty,dive"`
+	AuthorizationOPAServer *OPAServerAuthorization          `mapstructure:"authorizationOPAServer" validate:"omitempty"`
 	AuthorizationAccesses  []*HeaderOIDCAuthorizationAccess `mapstructure:"authorizationAccesses"  validate:"omitempty,dive"`
 }
 
@@ -468,8 +468,8 @@ type OPAServerAuthorization struct {
 
 // BucketConfig Bucket configuration.
 type BucketConfig struct {
-	Credentials   *BucketCredentialConfig `mapstructure:"credentials"   validate:"omitempty,dive"`
-	RequestConfig *BucketRequestConfig    `mapstructure:"requestConfig" validate:"omitempty,dive"`
+	Credentials   *BucketCredentialConfig `mapstructure:"credentials"   validate:"omitempty"`
+	RequestConfig *BucketRequestConfig    `mapstructure:"requestConfig" validate:"omitempty"`
 	Name          string                  `mapstructure:"name"          validate:"required"`
 	Prefix        string                  `mapstructure:"prefix"`
 	Region        string                  `mapstructure:"region"`
@@ -488,8 +488,8 @@ type BucketRequestConfig struct {
 
 // BucketCredentialConfig Bucket Credentials configurations.
 type BucketCredentialConfig struct {
-	AccessKey *CredentialConfig `mapstructure:"accessKey" validate:"omitempty,dive"`
-	SecretKey *CredentialConfig `mapstructure:"secretKey" validate:"omitempty,dive"`
+	AccessKey *CredentialConfig `mapstructure:"accessKey" validate:"omitempty"`
+	SecretKey *CredentialConfig `mapstructure:"secretKey" validate:"omitempty"`
 }
 
 // CredentialConfig Credential Configurations.

@@ -395,7 +395,7 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
-			name: "GET a file with no cache enabled (no cache config)",
+			name: "GET a file with no cache enabled _no cache config_",
 			args: args{
 				cfg: &config.Config{
 					Server:      svrCfg,
@@ -432,13 +432,13 @@ func TestPublicRouter(t *testing.T) {
 			expectedHeaders: map[string]string{
 				"Cache-Control":   "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":    "text/plain; charset=utf-8",
-				"Expires":         time.Unix(0, 0).Format(time.RFC1123),
+				"Expires":         time.Unix(0, 0).UTC().Format(http.TimeFormat),
 				"Pragma":          "no-cache",
 				"X-Accel-Expires": "0",
 			},
 		},
 		{
-			name: "GET a file with no cache enabled (no cache enabled)",
+			name: "GET a file with no cache enabled _no cache enabled_",
 			args: args{
 				cfg: &config.Config{
 					Server: &config.ServerConfig{
@@ -478,7 +478,7 @@ func TestPublicRouter(t *testing.T) {
 			expectedHeaders: map[string]string{
 				"Cache-Control":   "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 				"Content-Type":    "text/plain; charset=utf-8",
-				"Expires":         time.Unix(0, 0).Format(time.RFC1123),
+				"Expires":         time.Unix(0, 0).UTC().Format(http.TimeFormat),
 				"Pragma":          "no-cache",
 				"X-Accel-Expires": "0",
 			},

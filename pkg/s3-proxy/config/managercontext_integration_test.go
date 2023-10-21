@@ -1015,7 +1015,8 @@ targets:
     path: /test/
   templates:
     notFoundError:
-      inBucket: false
+	  path: ""
+      status: "404"
   bucket:
     name: bucket1
     region: us-east-1
