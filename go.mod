@@ -18,7 +18,6 @@ require (
 	github.com/go-playground/validator/v10 v10.15.5
 	github.com/go-resty/resty/v2 v2.10.0
 	github.com/gobwas/glob v0.2.3
-	github.com/golang/mock v1.6.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20230506070712-04da935ef877
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/prometheus/client_golang v1.17.0
@@ -28,6 +27,7 @@ require (
 	github.com/thoas/go-funk v0.9.3
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
+	go.uber.org/mock v0.3.0
 	golang.org/x/net v0.17.0
 	golang.org/x/oauth2 v0.13.0
 	golang.org/x/sync v0.4.0

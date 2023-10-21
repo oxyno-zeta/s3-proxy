@@ -182,11 +182,11 @@ ifndef HAS_GIT
 endif
 ifndef HAS_MOCKGEN
 	@echo "=> Installing mockgen tool"
-	go install github.com/golang/mock/mockgen@v1.6.0
+	go install go.uber.org/mock/mockgen@v0.3.0
 endif
 ifndef HAS_GOTESTSUM
 	@echo "=> Installing gotestsum tool"
-	go install gotest.tools/gotestsum@v1.10.1
+	go install gotest.tools/gotestsum@v1.11.0
 endif
 ifndef HAS_FIELDALIGNMENT
 	@echo "=> Installing fieldalignment tool"
