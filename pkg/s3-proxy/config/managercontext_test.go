@@ -279,8 +279,12 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 				out: &Config{
 					Targets: map[string]*TargetConfig{
 						"test": {
-							Actions:   &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
-							Bucket:    &BucketConfig{},
+							Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
+							Bucket: &BucketConfig{
+								S3MaxUploadParts:    DefaultS3MaxUploadParts,
+								S3UploadPartSize:    DefaultS3UploadPartSize,
+								S3UploadConcurrency: DefaultS3UploadConcurrency,
+							},
 							Templates: &TargetTemplateConfig{},
 						},
 					},
@@ -290,9 +294,15 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 			result: &Config{
 				Targets: map[string]*TargetConfig{
 					"test": {
-						Name:      "test",
-						Actions:   &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
-						Bucket:    &BucketConfig{Region: DefaultBucketRegion, S3ListMaxKeys: DefaultBucketS3ListMaxKeys},
+						Name:    "test",
+						Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
+						Bucket: &BucketConfig{
+							Region:              DefaultBucketRegion,
+							S3ListMaxKeys:       DefaultBucketS3ListMaxKeys,
+							S3MaxUploadParts:    DefaultS3MaxUploadParts,
+							S3UploadPartSize:    DefaultS3UploadPartSize,
+							S3UploadConcurrency: DefaultS3UploadConcurrency,
+						},
 						Templates: &TargetTemplateConfig{},
 					},
 				},
@@ -307,7 +317,13 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					Targets: map[string]*TargetConfig{
 						"test": {
 							Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
-							Bucket:  &BucketConfig{Region: "test", S3ListMaxKeys: 100},
+							Bucket: &BucketConfig{
+								Region:              "test",
+								S3ListMaxKeys:       100,
+								S3MaxUploadParts:    DefaultS3MaxUploadParts,
+								S3UploadPartSize:    DefaultS3UploadPartSize,
+								S3UploadConcurrency: DefaultS3UploadConcurrency,
+							},
 							Resources: []*Resource{
 								{
 									OIDC: &ResourceHeaderOIDC{
@@ -331,7 +347,13 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					"test": {
 						Name:    "test",
 						Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
-						Bucket:  &BucketConfig{Region: "test", S3ListMaxKeys: 100},
+						Bucket: &BucketConfig{
+							Region:              "test",
+							S3ListMaxKeys:       100,
+							S3MaxUploadParts:    DefaultS3MaxUploadParts,
+							S3UploadPartSize:    DefaultS3UploadPartSize,
+							S3UploadConcurrency: DefaultS3UploadConcurrency,
+						},
 						Resources: []*Resource{
 							{
 								Methods: []string{"GET"},

@@ -11,15 +11,18 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 )
 
 type s3Context struct {
-	svcClient  s3iface.S3API
-	target     *config.TargetConfig
-	metricsCtx metrics.Client
+	svcClient         s3iface.S3API
+	s3managerUploader s3manageriface.UploaderAPI
+	target            *config.TargetConfig
+	metricsCtx        metrics.Client
 }
 
 // ListObjectsOperation List objects operation.
@@ -337,12 +340,11 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*Result
 
 	defer childTrace.Finish()
 
-	inp := &s3.PutObjectInput{
-		Body:          input.Body,
-		ContentLength: aws.Int64(input.ContentSize),
-		Bucket:        aws.String(s3ctx.target.Bucket.Name),
-		Key:           aws.String(input.Key),
-		Expires:       input.Expires,
+	inp := &s3manager.UploadInput{
+		Body:    input.Body,
+		Bucket:  aws.String(s3ctx.target.Bucket.Name),
+		Key:     aws.String(input.Key),
+		Expires: input.Expires,
 	}
 
 	// Manage ACL
@@ -390,11 +392,14 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*Result
 	}
 
 	// Upload to S3 bucket
-	_, err := s3ctx.svcClient.PutObjectWithContext(
-		ctx,
-		inp,
-		addHeadersToRequest(requestHeaders),
-	)
+	_, err := s3ctx.s3managerUploader.UploadWithContext(ctx, inp, func(u *s3manager.Uploader) {
+		// Check if it exists
+		if u.RequestOptions == nil {
+			u.RequestOptions = make([]request.Option, 0)
+		}
+		// Save new option
+		u.RequestOptions = append(u.RequestOptions, addHeadersToRequest(requestHeaders))
+	})
 	// Check error
 	if err != nil {
 		return nil, errors.WithStack(err)

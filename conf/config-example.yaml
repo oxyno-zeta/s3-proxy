@@ -480,6 +480,10 @@ targets:
       region: eu-west-1
       s3Endpoint:
       disableSSL: false
+      # s3MaxUploadParts: 10000
+      # s3UploadPartSize: 5
+      # s3UploadConcurrency: 5
+      # s3UploadLeavePartsOnError: false
       # s3ListMaxKeys: 1000
       # credentials:
       #   accessKey:
