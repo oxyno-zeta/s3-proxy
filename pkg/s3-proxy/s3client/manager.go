@@ -6,10 +6,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/thoas/go-funk"
 )
+
+const oneMega = 1024 * 1024
 
 type manager struct {
 	targetClient map[string]Client
@@ -88,9 +91,17 @@ func newClient(tgt *config.TargetConfig, metricsCtx metrics.Client) (Client, err
 	// Create s3 client
 	svcClient := s3.New(sess)
 
+	s3managerUploader := s3manager.NewUploader(sess, func(u *s3manager.Uploader) {
+		u.Concurrency = tgt.Bucket.S3UploadConcurrency
+		u.MaxUploadParts = tgt.Bucket.S3MaxUploadParts
+		u.LeavePartsOnError = tgt.Bucket.S3UploadLeavePartsOnError
+		u.PartSize = tgt.Bucket.S3UploadPartSize * oneMega
+	})
+
 	return &s3Context{
-		svcClient:  svcClient,
-		target:     tgt,
-		metricsCtx: metricsCtx,
+		svcClient:         svcClient,
+		target:            tgt,
+		metricsCtx:        metricsCtx,
+		s3managerUploader: s3managerUploader,
 	}, nil
 }

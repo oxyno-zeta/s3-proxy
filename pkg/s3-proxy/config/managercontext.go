@@ -590,6 +590,18 @@ func loadBusinessDefaultValues(out *Config) error {
 		if item.Bucket != nil && item.Bucket.S3ListMaxKeys == 0 {
 			item.Bucket.S3ListMaxKeys = DefaultBucketS3ListMaxKeys
 		}
+		// Manage default s3 max upload parts
+		if item.Bucket != nil && item.Bucket.S3MaxUploadParts == 0 {
+			item.Bucket.S3MaxUploadParts = DefaultS3MaxUploadParts
+		}
+		// Manage default s3 upload part size
+		if item.Bucket != nil && item.Bucket.S3UploadPartSize == 0 {
+			item.Bucket.S3UploadPartSize = DefaultS3UploadPartSize
+		}
+		// Manage default s3 upload concurrency
+		if item.Bucket != nil && item.Bucket.S3UploadConcurrency == 0 {
+			item.Bucket.S3UploadConcurrency = DefaultS3UploadConcurrency
+		}
 		// Manage default configuration for target actions
 		if item.Actions == nil {
 			item.Actions = &ActionsConfig{GET: &GetActionConfig{Enabled: true}}

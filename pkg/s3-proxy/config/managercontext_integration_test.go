@@ -209,9 +209,12 @@ targets:
 							Path: []string{"/test/"},
 						},
 						Bucket: &BucketConfig{
-							Name:          "bucket1",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
@@ -271,9 +274,12 @@ targets:
 							Path: []string{"/test/"},
 						},
 						Bucket: &BucketConfig{
-							Name:          "bucket1",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
@@ -340,9 +346,12 @@ targets:
 							Path: []string{"/test/"},
 						},
 						Bucket: &BucketConfig{
-							Name:          "bucket1",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
@@ -355,9 +364,12 @@ targets:
 							Path: []string{"/test2/"},
 						},
 						Bucket: &BucketConfig{
-							Name:          "bucket2",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket2",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
@@ -415,9 +427,12 @@ targets:
 							Path: []string{"/test/"},
 						},
 						Bucket: &BucketConfig{
-							Name:          "bucket1",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
@@ -487,9 +502,12 @@ targets:
 							Path: []string{"/test/"},
 						},
 						Bucket: &BucketConfig{
-							Name:          "bucket1",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
@@ -665,9 +683,12 @@ targets:
 							Path: []string{"/test/"},
 						},
 						Bucket: &BucketConfig{
-							Name:          "bucket1",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
@@ -802,9 +823,12 @@ targets:
 							Path: []string{"/test/"},
 						},
 						Bucket: &BucketConfig{
-							Name:          "bucket1",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Env:   "ENV1",
@@ -913,9 +937,12 @@ targets:
 							Path: []string{"/test/"},
 						},
 						Bucket: &BucketConfig{
-							Name:          "bucket1",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Path:  secret1Filename,
@@ -984,9 +1011,12 @@ VALUE1
 							Path: []string{"/test/"},
 						},
 						Bucket: &BucketConfig{
-							Name:          "bucket1",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Path:  secretWithNewLineFilename,
@@ -1084,9 +1114,12 @@ targets:
 							Path: []string{"/test/"},
 						},
 						Bucket: &BucketConfig{
-							Name:          "bucket1",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Value: "VALUE1",
@@ -1164,9 +1197,12 @@ targets:
 							Path: []string{"/test/"},
 						},
 						Bucket: &BucketConfig{
-							Name:          "bucket1",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Value: "value1",
@@ -1240,9 +1276,12 @@ targets:
 							TargetType:  RegexTargetKeyRewriteTargetType,
 						}},
 						Bucket: &BucketConfig{
-							Name:          "bucket1",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Value: "value1",
@@ -1313,9 +1352,12 @@ targets:
 							Path: []string{"/test/"},
 						},
 						Bucket: &BucketConfig{
-							Name:          "bucket1",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Value: "value1",
@@ -1392,9 +1434,12 @@ targets:
 							Path: []string{"/test/"},
 						},
 						Bucket: &BucketConfig{
-							Name:          "bucket1",
-							Region:        "us-east-1",
-							S3ListMaxKeys: 1000,
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Value: "value1",
@@ -1584,9 +1629,12 @@ targets:
 					Path: []string{"/test/"},
 				},
 				Bucket: &BucketConfig{
-					Name:          "bucket1",
-					Region:        "us-east-1",
-					S3ListMaxKeys: 1000,
+					Name:                "bucket1",
+					Region:              "us-east-1",
+					S3ListMaxKeys:       1000,
+					S3MaxUploadParts:    10000,
+					S3UploadPartSize:    5,
+					S3UploadConcurrency: 5,
 					Credentials: &BucketCredentialConfig{
 						AccessKey: &CredentialConfig{
 							Value: "VALUE1",
@@ -1652,9 +1700,12 @@ log:
 						Path: []string{"/test/"},
 					},
 					Bucket: &BucketConfig{
-						Name:          "bucket1",
-						Region:        "us-east-1",
-						S3ListMaxKeys: 1000,
+						Name:                "bucket1",
+						Region:              "us-east-1",
+						S3ListMaxKeys:       1000,
+						S3MaxUploadParts:    10000,
+						S3UploadPartSize:    5,
+						S3UploadConcurrency: 5,
 						Credentials: &BucketCredentialConfig{
 							AccessKey: &CredentialConfig{
 								Value: "VALUE1",
@@ -1781,9 +1832,12 @@ targets:
 					Path: []string{"/test/"},
 				},
 				Bucket: &BucketConfig{
-					Name:          "bucket1",
-					Region:        "us-east-1",
-					S3ListMaxKeys: 1000,
+					Name:                "bucket1",
+					Region:              "us-east-1",
+					S3ListMaxKeys:       1000,
+					S3MaxUploadParts:    10000,
+					S3UploadPartSize:    5,
+					S3UploadConcurrency: 5,
 					Credentials: &BucketCredentialConfig{
 						AccessKey: &CredentialConfig{
 							Value: "VALUE1",
@@ -1846,9 +1900,12 @@ targets:
 						Path: []string{"/test/"},
 					},
 					Bucket: &BucketConfig{
-						Name:          "bucket1",
-						Region:        "us-east-1",
-						S3ListMaxKeys: 1000,
+						Name:                "bucket1",
+						Region:              "us-east-1",
+						S3ListMaxKeys:       1000,
+						S3MaxUploadParts:    10000,
+						S3UploadPartSize:    5,
+						S3UploadConcurrency: 5,
 						Credentials: &BucketCredentialConfig{
 							AccessKey: &CredentialConfig{
 								Value: "SECRET1",
@@ -1975,9 +2032,12 @@ targets:
 					Path: []string{"/test/"},
 				},
 				Bucket: &BucketConfig{
-					Name:          "bucket1",
-					Region:        "us-east-1",
-					S3ListMaxKeys: 1000,
+					Name:                "bucket1",
+					Region:              "us-east-1",
+					S3ListMaxKeys:       1000,
+					S3MaxUploadParts:    10000,
+					S3UploadPartSize:    5,
+					S3UploadConcurrency: 5,
 					Credentials: &BucketCredentialConfig{
 						AccessKey: &CredentialConfig{
 							Value: "VALUE1",
@@ -2043,9 +2103,12 @@ configuration with error
 						Path: []string{"/test/"},
 					},
 					Bucket: &BucketConfig{
-						Name:          "bucket1",
-						Region:        "us-east-1",
-						S3ListMaxKeys: 1000,
+						Name:                "bucket1",
+						Region:              "us-east-1",
+						S3ListMaxKeys:       1000,
+						S3MaxUploadParts:    10000,
+						S3UploadPartSize:    5,
+						S3UploadConcurrency: 5,
 						Credentials: &BucketCredentialConfig{
 							AccessKey: &CredentialConfig{
 								Value: "VALUE1",
@@ -2182,9 +2245,12 @@ targets:
 					Path: []string{"/test/"},
 				},
 				Bucket: &BucketConfig{
-					Name:          "bucket1",
-					Region:        "us-east-1",
-					S3ListMaxKeys: 1000,
+					Name:                "bucket1",
+					Region:              "us-east-1",
+					S3ListMaxKeys:       1000,
+					S3MaxUploadParts:    10000,
+					S3UploadPartSize:    5,
+					S3UploadConcurrency: 5,
 					Credentials: &BucketCredentialConfig{
 						AccessKey: &CredentialConfig{
 							Value: "VALUE1",
@@ -2256,9 +2322,12 @@ authProviders:
 						Path: []string{"/test/"},
 					},
 					Bucket: &BucketConfig{
-						Name:          "bucket1",
-						Region:        "us-east-1",
-						S3ListMaxKeys: 1000,
+						Name:                "bucket1",
+						Region:              "us-east-1",
+						S3ListMaxKeys:       1000,
+						S3MaxUploadParts:    10000,
+						S3UploadPartSize:    5,
+						S3UploadConcurrency: 5,
 						Credentials: &BucketCredentialConfig{
 							AccessKey: &CredentialConfig{
 								Value: "VALUE1",
@@ -2408,9 +2477,12 @@ targets:
 					Path: []string{"/test/"},
 				},
 				Bucket: &BucketConfig{
-					Name:          "bucket1",
-					Region:        "us-east-1",
-					S3ListMaxKeys: 1000,
+					Name:                "bucket1",
+					Region:              "us-east-1",
+					S3ListMaxKeys:       1000,
+					S3MaxUploadParts:    10000,
+					S3UploadPartSize:    5,
+					S3UploadConcurrency: 5,
 					Credentials: &BucketCredentialConfig{
 						AccessKey: &CredentialConfig{
 							Value: "VALUE1",

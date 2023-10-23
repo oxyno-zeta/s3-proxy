@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 // DefaultPort Default port.
@@ -131,6 +132,11 @@ var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support opti
 
 // TemplateErrLoadingEnvCredentialEmpty Template Error when Loading Environment variable Credentials.
 var TemplateErrLoadingEnvCredentialEmpty = "error loading credentials, environment variable %s is empty" //nolint: gosec // No credentials here, false positive
+
+// Default Upload configurations.
+const DefaultS3MaxUploadParts = s3manager.MaxUploadParts
+const DefaultS3UploadPartSize int64 = 5
+const DefaultS3UploadConcurrency = s3manager.DefaultUploadConcurrency
 
 const oidcLoginPathTemplate = "/auth/%s"
 const oidcCallbackPathTemplate = "/auth/%s/callback"
@@ -468,14 +474,18 @@ type OPAServerAuthorization struct {
 
 // BucketConfig Bucket configuration.
 type BucketConfig struct {
-	Credentials   *BucketCredentialConfig `mapstructure:"credentials"   validate:"omitempty"`
-	RequestConfig *BucketRequestConfig    `mapstructure:"requestConfig" validate:"omitempty"`
-	Name          string                  `mapstructure:"name"          validate:"required"`
-	Prefix        string                  `mapstructure:"prefix"`
-	Region        string                  `mapstructure:"region"`
-	S3Endpoint    string                  `mapstructure:"s3Endpoint"`
-	S3ListMaxKeys int64                   `mapstructure:"s3ListMaxKeys" validate:"gt=0"`
-	DisableSSL    bool                    `mapstructure:"disableSSL"`
+	Credentials               *BucketCredentialConfig `mapstructure:"credentials"               validate:"omitempty"`
+	RequestConfig             *BucketRequestConfig    `mapstructure:"requestConfig"             validate:"omitempty"`
+	Name                      string                  `mapstructure:"name"                      validate:"required"`
+	Prefix                    string                  `mapstructure:"prefix"`
+	Region                    string                  `mapstructure:"region"`
+	S3Endpoint                string                  `mapstructure:"s3Endpoint"`
+	S3ListMaxKeys             int64                   `mapstructure:"s3ListMaxKeys"             validate:"gt=0"`
+	S3MaxUploadParts          int                     `mapstructure:"s3MaxUploadParts"          validate:"required,gte=1"`
+	S3UploadPartSize          int64                   `mapstructure:"s3UploadPartSize"          validate:"required,gte=5"`
+	S3UploadConcurrency       int                     `mapstructure:"s3UploadConcurrency"       validate:"required,gte=1"`
+	S3UploadLeavePartsOnError bool                    `mapstructure:"s3UploadLeavePartsOnError"`
+	DisableSSL                bool                    `mapstructure:"disableSSL"`
 }
 
 // BucketRequestConfig Bucket request configuration.
