@@ -30,7 +30,7 @@ func Test_transformS3Entries(t *testing.T) {
 	now := time.Now()
 	type args struct {
 		s3Entries           []*s3client.ListElementOutput
-		rctx                *requestContext
+		rctx                *bucketReqImpl
 		bucketRootPrefixKey string
 	}
 	tests := []struct {
@@ -42,7 +42,7 @@ func Test_transformS3Entries(t *testing.T) {
 			name: "Empty list",
 			args: args{
 				s3Entries:           []*s3client.ListElementOutput{},
-				rctx:                &requestContext{},
+				rctx:                &bucketReqImpl{},
 				bucketRootPrefixKey: "prefix/",
 			},
 			want: []*responsehandler.Entry{},
@@ -60,7 +60,7 @@ func Test_transformS3Entries(t *testing.T) {
 						Key:          "key",
 					},
 				},
-				rctx: &requestContext{
+				rctx: &bucketReqImpl{
 					mountPath: "mount/",
 				},
 				bucketRootPrefixKey: "prefix/",
@@ -90,7 +90,7 @@ func Test_transformS3Entries(t *testing.T) {
 						Key:          "key",
 					},
 				},
-				rctx: &requestContext{
+				rctx: &bucketReqImpl{
 					mountPath: "mount/",
 				},
 				bucketRootPrefixKey: "/",
@@ -120,7 +120,7 @@ func Test_transformS3Entries(t *testing.T) {
 						Key:          "key",
 					},
 				},
-				rctx: &requestContext{
+				rctx: &bucketReqImpl{
 					mountPath: "/",
 				},
 				bucketRootPrefixKey: "/",
@@ -150,7 +150,7 @@ func Test_transformS3Entries(t *testing.T) {
 						Key:          "key",
 					},
 				},
-				rctx: &requestContext{
+				rctx: &bucketReqImpl{
 					mountPath: "",
 				},
 				bucketRootPrefixKey: "/",
@@ -180,7 +180,7 @@ func Test_transformS3Entries(t *testing.T) {
 						Key:          "key",
 					},
 				},
-				rctx: &requestContext{
+				rctx: &bucketReqImpl{
 					mountPath: "mount/",
 				},
 				bucketRootPrefixKey: "/",
@@ -210,7 +210,7 @@ func Test_transformS3Entries(t *testing.T) {
 						Key:          "key/",
 					},
 				},
-				rctx: &requestContext{
+				rctx: &bucketReqImpl{
 					mountPath: "mount/",
 				},
 				bucketRootPrefixKey: "/",
@@ -454,7 +454,7 @@ func Test_requestContext_Delete(t *testing.T) {
 				).
 				Times(tt.webhookManagerManageDeleteHooksMockResult.times)
 
-			rctx := &requestContext{
+			rctx := &bucketReqImpl{
 				s3ClientManager: s3clManagerMock,
 				webhookManager:  webhookManagerMock,
 				targetCfg:       tt.fields.targetCfg,
@@ -1417,7 +1417,7 @@ func Test_requestContext_Put(t *testing.T) {
 					tt.webhookManagerManagePutHooksMockResult.times,
 				)
 
-			rctx := &requestContext{
+			rctx := &bucketReqImpl{
 				s3ClientManager: s3clManagerMock,
 				webhookManager:  webhookManagerMock,
 				targetCfg:       tt.fields.targetCfg,
@@ -2262,7 +2262,7 @@ func Test_requestContext_Get(t *testing.T) {
 					tt.webhookManagerManageGetHooksMockResult.times,
 				)
 
-			rctx := &requestContext{
+			rctx := &bucketReqImpl{
 				s3ClientManager: s3clManagerMock,
 				webhookManager:  webhookManagerMock,
 				targetCfg:       tt.fields.targetCfg,
@@ -2554,7 +2554,7 @@ func Test_requestContext_manageKeyRewrite(t *testing.T) {
 			ctx = responsehandler.SetResponseHandlerInContext(ctx, resHandlerMock)
 			ctx = models.SetAuthenticatedUserInContext(ctx, tt.userMockResult)
 
-			rctx := &requestContext{
+			rctx := &bucketReqImpl{
 				targetCfg:      tt.fields.targetCfg,
 				generalHelpers: tt.fields.generalHelpers,
 			}

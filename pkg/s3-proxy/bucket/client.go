@@ -63,7 +63,7 @@ func NewClient(
 	s3clientManager s3client.Manager,
 	wbManager webhook.Manager,
 ) Client {
-	return &requestContext{
+	return &bucketReqImpl{
 		s3ClientManager: s3clientManager,
 		targetCfg:       tgt,
 		mountPath:       mountPath,

@@ -19,8 +19,8 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
 )
 
-// requestContext Bucket request context.
-type requestContext struct {
+// bucketReqImpl Bucket request context.
+type bucketReqImpl struct {
 	s3ClientManager s3client.Manager
 	webhookManager  webhook.Manager
 	targetCfg       *config.TargetConfig
@@ -29,8 +29,8 @@ type requestContext struct {
 }
 
 // generateStartKey will generate start key used in all functions.
-func (rctx *requestContext) generateStartKey(requestPath string) string {
-	bucketRootPrefixKey := rctx.targetCfg.Bucket.GetRootPrefix()
+func (bri *bucketReqImpl) generateStartKey(requestPath string) string {
+	bucketRootPrefixKey := bri.targetCfg.Bucket.GetRootPrefix()
 	// Key must begin by bucket prefix
 	key := bucketRootPrefixKey
 	// Trim first / if exists
@@ -39,11 +39,11 @@ func (rctx *requestContext) generateStartKey(requestPath string) string {
 	return key
 }
 
-func (rctx *requestContext) manageKeyRewrite(ctx context.Context, key string) (string, error) {
+func (bri *bucketReqImpl) manageKeyRewrite(ctx context.Context, key string) (string, error) {
 	// Check if key rewrite list exists
-	if rctx.targetCfg.KeyRewriteList != nil {
+	if bri.targetCfg.KeyRewriteList != nil {
 		// Loop over key rewrite list
-		for _, kr := range rctx.targetCfg.KeyRewriteList {
+		for _, kr := range bri.targetCfg.KeyRewriteList {
 			// Check if key is matching
 			if kr.SourceRegex.MatchString(key) {
 				// Find submatches
@@ -69,17 +69,17 @@ func (rctx *requestContext) manageKeyRewrite(ctx context.Context, key string) (s
 				// Initialize variable
 				targetTplHelpers := make([]*config.TargetHelperConfigItem, 0)
 				// Check if helpers have been declared in target configuration
-				if rctx.targetCfg.Templates != nil && rctx.targetCfg.Templates.Helpers != nil {
+				if bri.targetCfg.Templates != nil && bri.targetCfg.Templates.Helpers != nil {
 					// Save target template helpers
-					targetTplHelpers = rctx.targetCfg.Templates.Helpers
+					targetTplHelpers = bri.targetCfg.Templates.Helpers
 				}
 
 				// Load all helpers
 				helpersString, err := templateutils.LoadAllHelpersContent(
 					ctx,
-					rctx.LoadFileContent,
+					bri.LoadFileContent,
 					targetTplHelpers,
-					rctx.generalHelpers,
+					bri.generalHelpers,
 				)
 				// Check error
 				if err != nil {
@@ -98,7 +98,7 @@ func (rctx *requestContext) manageKeyRewrite(ctx context.Context, key string) (s
 				buf, err := templateutils.ExecuteTemplate(tpl, &targetKeyRewriteData{
 					Request: resHan.GetRequest(),
 					User:    user,
-					Target:  rctx.targetCfg,
+					Target:  bri.targetCfg,
 					Key:     key,
 				})
 				// Check error
@@ -123,24 +123,24 @@ func (rctx *requestContext) manageKeyRewrite(ctx context.Context, key string) (s
 }
 
 // Get proxy GET requests.
-func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
+func (bri *bucketReqImpl) Get(ctx context.Context, input *GetInput) {
 	// Get response handler
 	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
 	// Generate start key
-	key := rctx.generateStartKey(input.RequestPath)
+	key := bri.generateStartKey(input.RequestPath)
 	// Manage key rewrite
-	key, err := rctx.manageKeyRewrite(ctx, key)
+	key, err := bri.manageKeyRewrite(ctx, key)
 	// Check error
 	if err != nil {
-		resHan.InternalServerError(rctx.LoadFileContent, err)
+		resHan.InternalServerError(bri.LoadFileContent, err)
 		// Stop
 		return
 	}
 
 	// Check that the path ends with a / for a directory listing or the main path special case (empty path)
 	if strings.HasSuffix(input.RequestPath, "/") || input.RequestPath == "" {
-		rctx.manageGetFolder(ctx, key, input)
+		bri.manageGetFolder(ctx, key, input)
 		// Stop
 		return
 	}
@@ -148,13 +148,13 @@ func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
 	// Get object case
 
 	// Check if it is asked to redirect to signed url
-	if rctx.targetCfg.Actions != nil &&
-		rctx.targetCfg.Actions.GET != nil &&
-		rctx.targetCfg.Actions.GET.Config != nil &&
-		rctx.targetCfg.Actions.GET.Config.RedirectToSignedURL {
+	if bri.targetCfg.Actions != nil &&
+		bri.targetCfg.Actions.GET != nil &&
+		bri.targetCfg.Actions.GET.Config != nil &&
+		bri.targetCfg.Actions.GET.Config.RedirectToSignedURL {
 		// Get S3 client
-		s3cl := rctx.s3ClientManager.
-			GetClientForTarget(rctx.targetCfg.Name)
+		s3cl := bri.s3ClientManager.
+			GetClientForTarget(bri.targetCfg.Name)
 		// Head file in bucket
 		headOutput, err2 := s3cl.HeadObject(ctx, key)
 		// Check if there is an error
@@ -165,11 +165,11 @@ func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
 			// File found
 
 			// Redirect to signed url
-			err = rctx.redirectToSignedURL(ctx, key, input)
+			err = bri.redirectToSignedURL(ctx, key, input)
 		}
 	} else {
 		// Stream object
-		err = rctx.streamFileForResponse(ctx, key, input)
+		err = bri.streamFileForResponse(ctx, key, input)
 	}
 
 	// Check error
@@ -178,9 +178,9 @@ func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
 		//nolint: gocritic // Don't want a switch
 		if errors.Is(err, s3client.ErrNotFound) {
 			// Test that redirect with trailing slash isn't asked and possible on this request
-			if rctx.targetCfg.Actions != nil && rctx.targetCfg.Actions.GET != nil &&
-				rctx.targetCfg.Actions.GET.Config != nil &&
-				rctx.targetCfg.Actions.GET.Config.RedirectWithTrailingSlashForNotFoundFile &&
+			if bri.targetCfg.Actions != nil && bri.targetCfg.Actions.GET != nil &&
+				bri.targetCfg.Actions.GET.Config != nil &&
+				bri.targetCfg.Actions.GET.Config.RedirectWithTrailingSlashForNotFoundFile &&
 				!strings.HasSuffix(input.RequestPath, "/") {
 				// Redirect with trailing slash
 				resHan.RedirectWithTrailingSlash()
@@ -188,7 +188,7 @@ func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
 				return
 			}
 			// Not found
-			resHan.NotFoundError(rctx.LoadFileContent)
+			resHan.NotFoundError(bri.LoadFileContent)
 			// Stop
 			return
 		} else if errors.Is(err, s3client.ErrNotModified) {
@@ -203,42 +203,42 @@ func (rctx *requestContext) Get(ctx context.Context, input *GetInput) {
 			return
 		}
 		// Manage error response
-		resHan.InternalServerError(rctx.LoadFileContent, err)
+		resHan.InternalServerError(bri.LoadFileContent, err)
 		// Stop
 		return
 	}
 }
 
-func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, input *GetInput) {
+func (bri *bucketReqImpl) manageGetFolder(ctx context.Context, key string, input *GetInput) {
 	// Get response handler
 	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
 	// Check if index document is activated
-	if rctx.targetCfg.Actions != nil && rctx.targetCfg.Actions.GET != nil &&
-		rctx.targetCfg.Actions.GET.Config != nil &&
-		rctx.targetCfg.Actions.GET.Config.IndexDocument != "" {
+	if bri.targetCfg.Actions != nil && bri.targetCfg.Actions.GET != nil &&
+		bri.targetCfg.Actions.GET.Config != nil &&
+		bri.targetCfg.Actions.GET.Config.IndexDocument != "" {
 		// Create index key path
-		indexKey := path.Join(key, rctx.targetCfg.Actions.GET.Config.IndexDocument)
+		indexKey := path.Join(key, bri.targetCfg.Actions.GET.Config.IndexDocument)
 		// Head index file in bucket
-		headOutput, err := rctx.s3ClientManager.
-			GetClientForTarget(rctx.targetCfg.Name).
+		headOutput, err := bri.s3ClientManager.
+			GetClientForTarget(bri.targetCfg.Name).
 			HeadObject(ctx, indexKey)
 		// Check if error exists and not a not found error
 		if err != nil && !errors.Is(err, s3client.ErrNotFound) {
 			// Manage error response
-			resHan.InternalServerError(rctx.LoadFileContent, err)
+			resHan.InternalServerError(bri.LoadFileContent, err)
 			// Stop
 			return
 		}
 		// Check that we found the file
 		if headOutput != nil {
 			// Check if it is asked to redirect to signed url
-			if rctx.targetCfg.Actions.GET.Config.RedirectToSignedURL {
+			if bri.targetCfg.Actions.GET.Config.RedirectToSignedURL {
 				// Redirect to signed url
-				err = rctx.redirectToSignedURL(ctx, indexKey, input)
+				err = bri.redirectToSignedURL(ctx, indexKey, input)
 			} else {
 				// Get data
-				err = rctx.streamFileForResponse(ctx, headOutput.Key, input)
+				err = bri.streamFileForResponse(ctx, headOutput.Key, input)
 			}
 			// Check if error exists
 			if err != nil {
@@ -246,7 +246,7 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 				//nolint: gocritic // Don't want a switch
 				if errors.Is(err, s3client.ErrNotFound) {
 					// Not found
-					resHan.NotFoundError(rctx.LoadFileContent)
+					resHan.NotFoundError(bri.LoadFileContent)
 
 					return
 				} else if errors.Is(err, s3client.ErrNotModified) {
@@ -261,7 +261,7 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 					return
 				}
 				// Response with error
-				resHan.InternalServerError(rctx.LoadFileContent, err)
+				resHan.InternalServerError(bri.LoadFileContent, err)
 				// Stop
 				return
 			}
@@ -271,12 +271,12 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 	}
 
 	// Check if list folders is disabled
-	if rctx.targetCfg.Actions != nil && rctx.targetCfg.Actions.GET != nil &&
-		rctx.targetCfg.Actions.GET.Config != nil &&
-		rctx.targetCfg.Actions.GET.Config.DisableListing {
+	if bri.targetCfg.Actions != nil && bri.targetCfg.Actions.GET != nil &&
+		bri.targetCfg.Actions.GET.Config != nil &&
+		bri.targetCfg.Actions.GET.Config.DisableListing {
 		// Answer directly
 		resHan.FoldersFilesList(
-			rctx.LoadFileContent,
+			bri.LoadFileContent,
 			make([]*responsehandler.Entry, 0),
 		)
 
@@ -285,20 +285,20 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 	}
 
 	// Directory listing case
-	s3Entries, info, err := rctx.s3ClientManager.
-		GetClientForTarget(rctx.targetCfg.Name).
+	s3Entries, info, err := bri.s3ClientManager.
+		GetClientForTarget(bri.targetCfg.Name).
 		ListFilesAndDirectories(ctx, key)
 	// Check error
 	if err != nil {
-		resHan.InternalServerError(rctx.LoadFileContent, err)
+		resHan.InternalServerError(bri.LoadFileContent, err)
 		// Stop
 		return
 	}
 
 	// Send hook
-	rctx.webhookManager.ManageGETHooks(
+	bri.webhookManager.ManageGETHooks(
 		ctx,
-		rctx.targetCfg.Name,
+		bri.targetCfg.Name,
 		input.RequestPath,
 		&webhook.GetInputMetadata{
 			IfModifiedSince:   input.IfModifiedSince,
@@ -316,23 +316,23 @@ func (rctx *requestContext) manageGetFolder(ctx context.Context, key string, inp
 	)
 
 	// Transform entries in entry with path objects
-	bucketRootPrefixKey := rctx.targetCfg.Bucket.GetRootPrefix()
-	entries := transformS3Entries(s3Entries, rctx, bucketRootPrefixKey)
+	bucketRootPrefixKey := bri.targetCfg.Bucket.GetRootPrefix()
+	entries := transformS3Entries(s3Entries, bri, bucketRootPrefixKey)
 
 	// Answer
 	resHan.FoldersFilesList(
-		rctx.LoadFileContent,
+		bri.LoadFileContent,
 		entries,
 	)
 }
 
 // Put proxy PUT requests.
-func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
+func (bri *bucketReqImpl) Put(ctx context.Context, inp *PutInput) {
 	// Get response handler
 	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
 	// Generate start key
-	key := rctx.generateStartKey(inp.RequestPath)
+	key := bri.generateStartKey(inp.RequestPath)
 	// Add / at the end if not present
 	if !strings.HasSuffix(key, "/") {
 		key += "/"
@@ -340,10 +340,10 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 	// Add filename at the end of key
 	key += inp.Filename
 	// Manage key rewrite
-	key, err := rctx.manageKeyRewrite(ctx, key)
+	key, err := bri.manageKeyRewrite(ctx, key)
 	// Check error
 	if err != nil {
-		resHan.InternalServerError(rctx.LoadFileContent, err)
+		resHan.InternalServerError(bri.LoadFileContent, err)
 		// Stop
 		return
 	}
@@ -357,17 +357,17 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 	}
 
 	// Check if post actions configuration exists
-	if rctx.targetCfg.Actions.PUT != nil &&
-		rctx.targetCfg.Actions.PUT.Config != nil {
+	if bri.targetCfg.Actions.PUT != nil &&
+		bri.targetCfg.Actions.PUT.Config != nil {
 		// Check if system metadata is defined
-		if rctx.targetCfg.Actions.PUT.Config.SystemMetadata != nil {
+		if bri.targetCfg.Actions.PUT.Config.SystemMetadata != nil {
 			// Manage cache control
-			if rctx.targetCfg.Actions.PUT.Config.SystemMetadata.CacheControl != "" {
+			if bri.targetCfg.Actions.PUT.Config.SystemMetadata.CacheControl != "" {
 				// Execute template
-				val, err2 := rctx.tplPutData(ctx, inp, key, rctx.targetCfg.Actions.PUT.Config.SystemMetadata.CacheControl)
+				val, err2 := bri.tplPutData(ctx, inp, key, bri.targetCfg.Actions.PUT.Config.SystemMetadata.CacheControl)
 				// Check error
 				if err2 != nil {
-					resHan.InternalServerError(rctx.LoadFileContent, err2)
+					resHan.InternalServerError(bri.LoadFileContent, err2)
 
 					return
 				}
@@ -378,12 +378,12 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 				}
 			}
 			// Manage content disposition
-			if rctx.targetCfg.Actions.PUT.Config.SystemMetadata.ContentDisposition != "" {
+			if bri.targetCfg.Actions.PUT.Config.SystemMetadata.ContentDisposition != "" {
 				// Execute template
-				val, err2 := rctx.tplPutData(ctx, inp, key, rctx.targetCfg.Actions.PUT.Config.SystemMetadata.ContentDisposition)
+				val, err2 := bri.tplPutData(ctx, inp, key, bri.targetCfg.Actions.PUT.Config.SystemMetadata.ContentDisposition)
 				// Check error
 				if err2 != nil {
-					resHan.InternalServerError(rctx.LoadFileContent, err2)
+					resHan.InternalServerError(bri.LoadFileContent, err2)
 
 					return
 				}
@@ -394,12 +394,12 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 				}
 			}
 			// Manage content encoding
-			if rctx.targetCfg.Actions.PUT.Config.SystemMetadata.ContentEncoding != "" {
+			if bri.targetCfg.Actions.PUT.Config.SystemMetadata.ContentEncoding != "" {
 				// Execute template
-				val, err2 := rctx.tplPutData(ctx, inp, key, rctx.targetCfg.Actions.PUT.Config.SystemMetadata.ContentEncoding)
+				val, err2 := bri.tplPutData(ctx, inp, key, bri.targetCfg.Actions.PUT.Config.SystemMetadata.ContentEncoding)
 				// Check error
 				if err2 != nil {
-					resHan.InternalServerError(rctx.LoadFileContent, err2)
+					resHan.InternalServerError(bri.LoadFileContent, err2)
 
 					return
 				}
@@ -410,12 +410,12 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 				}
 			}
 			// Manage content language
-			if rctx.targetCfg.Actions.PUT.Config.SystemMetadata.ContentLanguage != "" {
+			if bri.targetCfg.Actions.PUT.Config.SystemMetadata.ContentLanguage != "" {
 				// Execute template
-				val, err2 := rctx.tplPutData(ctx, inp, key, rctx.targetCfg.Actions.PUT.Config.SystemMetadata.ContentLanguage)
+				val, err2 := bri.tplPutData(ctx, inp, key, bri.targetCfg.Actions.PUT.Config.SystemMetadata.ContentLanguage)
 				// Check error
 				if err2 != nil {
-					resHan.InternalServerError(rctx.LoadFileContent, err2)
+					resHan.InternalServerError(bri.LoadFileContent, err2)
 
 					return
 				}
@@ -426,12 +426,12 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 				}
 			}
 			// Manage content language
-			if rctx.targetCfg.Actions.PUT.Config.SystemMetadata.Expires != "" {
+			if bri.targetCfg.Actions.PUT.Config.SystemMetadata.Expires != "" {
 				// Execute template
-				val, err2 := rctx.tplPutData(ctx, inp, key, rctx.targetCfg.Actions.PUT.Config.SystemMetadata.Expires)
+				val, err2 := bri.tplPutData(ctx, inp, key, bri.targetCfg.Actions.PUT.Config.SystemMetadata.Expires)
 				// Check error
 				if err2 != nil {
-					resHan.InternalServerError(rctx.LoadFileContent, err2)
+					resHan.InternalServerError(bri.LoadFileContent, err2)
 
 					return
 				}
@@ -441,7 +441,7 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 					d, err3 := time.Parse(time.RFC3339, val)
 					// Check error
 					if err3 != nil {
-						resHan.InternalServerError(rctx.LoadFileContent, errors.WithStack(err3))
+						resHan.InternalServerError(bri.LoadFileContent, errors.WithStack(err3))
 
 						return
 					}
@@ -452,17 +452,17 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 		}
 
 		// Check if metadata is configured in target configuration
-		if rctx.targetCfg.Actions.PUT.Config.Metadata != nil {
+		if bri.targetCfg.Actions.PUT.Config.Metadata != nil {
 			// Store templated data
 			metadata := map[string]string{}
 
 			// Render templates
-			for k, v := range rctx.targetCfg.Actions.PUT.Config.Metadata {
+			for k, v := range bri.targetCfg.Actions.PUT.Config.Metadata {
 				// Execute template
-				val, err2 := rctx.tplPutData(ctx, inp, key, v)
+				val, err2 := bri.tplPutData(ctx, inp, key, v)
 				// Check error
 				if err2 != nil {
-					resHan.InternalServerError(rctx.LoadFileContent, err2)
+					resHan.InternalServerError(bri.LoadFileContent, err2)
 
 					return
 				}
@@ -478,12 +478,12 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 		}
 
 		// Check if storage class is present in target configuration
-		if rctx.targetCfg.Actions.PUT.Config.StorageClass != "" {
+		if bri.targetCfg.Actions.PUT.Config.StorageClass != "" {
 			// Execute template
-			val, err2 := rctx.tplPutData(ctx, inp, key, rctx.targetCfg.Actions.PUT.Config.StorageClass)
+			val, err2 := bri.tplPutData(ctx, inp, key, bri.targetCfg.Actions.PUT.Config.StorageClass)
 			// Check error
 			if err2 != nil {
-				resHan.InternalServerError(rctx.LoadFileContent, err2)
+				resHan.InternalServerError(bri.LoadFileContent, err2)
 
 				return
 			}
@@ -495,14 +495,14 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 		}
 
 		// Check if allow override is enabled
-		if !rctx.targetCfg.Actions.PUT.Config.AllowOverride {
+		if !bri.targetCfg.Actions.PUT.Config.AllowOverride {
 			// Need to check if file already exists
-			headOutput, err2 := rctx.s3ClientManager.
-				GetClientForTarget(rctx.targetCfg.Name).
+			headOutput, err2 := bri.s3ClientManager.
+				GetClientForTarget(bri.targetCfg.Name).
 				HeadObject(ctx, key)
 			// Check if error is not found if exists
 			if err2 != nil && !errors.Is(err2, s3client.ErrNotFound) {
-				resHan.InternalServerError(rctx.LoadFileContent, err2)
+				resHan.InternalServerError(bri.LoadFileContent, err2)
 				// Stop
 				return
 			}
@@ -511,7 +511,7 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 				// Create error
 				err2 := fmt.Errorf("file detected on path %s for PUT request and override isn't allowed", key)
 				// Response
-				resHan.ForbiddenError(rctx.LoadFileContent, err2)
+				resHan.ForbiddenError(bri.LoadFileContent, err2)
 				// Stop
 				return
 			}
@@ -519,20 +519,20 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 	}
 
 	// Put file
-	info, err := rctx.s3ClientManager.
-		GetClientForTarget(rctx.targetCfg.Name).
+	info, err := bri.s3ClientManager.
+		GetClientForTarget(bri.targetCfg.Name).
 		PutObject(ctx, input)
 	// Check error
 	if err != nil {
-		resHan.InternalServerError(rctx.LoadFileContent, err)
+		resHan.InternalServerError(bri.LoadFileContent, err)
 		// Stop
 		return
 	}
 
 	// Send hook
-	rctx.webhookManager.ManagePUTHooks(
+	bri.webhookManager.ManagePUTHooks(
 		ctx,
-		rctx.targetCfg.Name,
+		bri.targetCfg.Name,
 		inp.RequestPath,
 		&webhook.PutInputMetadata{
 			Filename:    inp.Filename,
@@ -549,7 +549,7 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 
 	// Answer
 	resHan.Put(
-		rctx.LoadFileContent,
+		bri.LoadFileContent,
 		&responsehandler.PutInput{
 			Key:          key,
 			ContentType:  inp.ContentType,
@@ -561,7 +561,7 @@ func (rctx *requestContext) Put(ctx context.Context, inp *PutInput) {
 	)
 }
 
-func (*requestContext) tplPutData(ctx context.Context, inp *PutInput, key, tplStr string) (string, error) {
+func (*bucketReqImpl) tplPutData(ctx context.Context, inp *PutInput, key, tplStr string) (string, error) {
 	// Execute template
 	buf, err := templateutils.ExecuteTemplate(tplStr, &PutData{
 		User:  models.GetAuthenticatedUserFromContext(ctx),
@@ -589,43 +589,43 @@ func (*requestContext) tplPutData(ctx context.Context, inp *PutInput, key, tplSt
 }
 
 // Delete will delete object in S3.
-func (rctx *requestContext) Delete(ctx context.Context, requestPath string) {
+func (bri *bucketReqImpl) Delete(ctx context.Context, requestPath string) {
 	// Get response handler
 	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
 	// Generate start key
-	key := rctx.generateStartKey(requestPath)
+	key := bri.generateStartKey(requestPath)
 	// Manage key rewrite
-	key, err := rctx.manageKeyRewrite(ctx, key)
+	key, err := bri.manageKeyRewrite(ctx, key)
 	// Check error
 	if err != nil {
-		resHan.InternalServerError(rctx.LoadFileContent, err)
+		resHan.InternalServerError(bri.LoadFileContent, err)
 		// Stop
 		return
 	}
 
 	// Check that the path ends with a / for a directory or the main path special case (empty path)
 	if strings.HasSuffix(requestPath, "/") || requestPath == "" {
-		resHan.InternalServerError(rctx.LoadFileContent, ErrRemovalFolder)
+		resHan.InternalServerError(bri.LoadFileContent, ErrRemovalFolder)
 		// Stop
 		return
 	}
 
 	// Delete object in S3
-	info, err := rctx.s3ClientManager.
-		GetClientForTarget(rctx.targetCfg.Name).
+	info, err := bri.s3ClientManager.
+		GetClientForTarget(bri.targetCfg.Name).
 		DeleteObject(ctx, key)
 	// Check if error exists
 	if err != nil {
-		resHan.InternalServerError(rctx.LoadFileContent, err)
+		resHan.InternalServerError(bri.LoadFileContent, err)
 		// Stop
 		return
 	}
 
 	// Send hook
-	rctx.webhookManager.ManageDELETEHooks(
+	bri.webhookManager.ManageDELETEHooks(
 		ctx,
-		rctx.targetCfg.Name,
+		bri.targetCfg.Name,
 		requestPath,
 		&webhook.S3Metadata{
 			Bucket:     info.Bucket,
@@ -637,7 +637,7 @@ func (rctx *requestContext) Delete(ctx context.Context, requestPath string) {
 
 	// Answer
 	resHan.Delete(
-		rctx.LoadFileContent,
+		bri.LoadFileContent,
 		&responsehandler.DeleteInput{
 			Key: key,
 		},
@@ -646,7 +646,7 @@ func (rctx *requestContext) Delete(ctx context.Context, requestPath string) {
 
 func transformS3Entries(
 	s3Entries []*s3client.ListElementOutput,
-	rctx *requestContext,
+	rctx *bucketReqImpl,
 	bucketRootPrefixKey string,
 ) []*responsehandler.Entry {
 	// Prepare result
@@ -675,9 +675,9 @@ func transformS3Entries(
 	return entries
 }
 
-func (rctx *requestContext) LoadFileContent(ctx context.Context, fpath string) (string, error) {
+func (bri *bucketReqImpl) LoadFileContent(ctx context.Context, fpath string) (string, error) {
 	// Get object from s3
-	objOutput, _, err := rctx.s3ClientManager.GetClientForTarget(rctx.targetCfg.Name).GetObject(ctx, &s3client.GetInput{
+	objOutput, _, err := bri.s3ClientManager.GetClientForTarget(bri.targetCfg.Name).GetObject(ctx, &s3client.GetInput{
 		Key: fpath,
 	})
 	// Check error
@@ -696,12 +696,12 @@ func (rctx *requestContext) LoadFileContent(ctx context.Context, fpath string) (
 	return string(bb), nil
 }
 
-func (rctx *requestContext) redirectToSignedURL(ctx context.Context, key string, input *GetInput) error {
+func (bri *bucketReqImpl) redirectToSignedURL(ctx context.Context, key string, input *GetInput) error {
 	// Get response handler from context
 	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 	// Get signed url
-	url, err := rctx.s3ClientManager.
-		GetClientForTarget(rctx.targetCfg.Name).
+	url, err := bri.s3ClientManager.
+		GetClientForTarget(bri.targetCfg.Name).
 		GetObjectSignedURL(
 			ctx,
 			&s3client.GetInput{
@@ -712,7 +712,7 @@ func (rctx *requestContext) redirectToSignedURL(ctx context.Context, key string,
 				IfUnmodifiedSince: input.IfUnmodifiedSince,
 				Range:             input.Range,
 			},
-			rctx.targetCfg.Actions.GET.Config.SignedURLExpiration,
+			bri.targetCfg.Actions.GET.Config.SignedURLExpiration,
 		)
 	// Check error
 	if err != nil {
@@ -724,13 +724,13 @@ func (rctx *requestContext) redirectToSignedURL(ctx context.Context, key string,
 	return nil
 }
 
-func (rctx *requestContext) streamFileForResponse(ctx context.Context, key string, input *GetInput) error {
+func (bri *bucketReqImpl) streamFileForResponse(ctx context.Context, key string, input *GetInput) error {
 	// Get response handler from context
 	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
 	// Get object from s3
-	objOutput, info, err := rctx.s3ClientManager.
-		GetClientForTarget(rctx.targetCfg.Name).
+	objOutput, info, err := bri.s3ClientManager.
+		GetClientForTarget(bri.targetCfg.Name).
 		GetObject(ctx, &s3client.GetInput{
 			Key:               key,
 			IfModifiedSince:   input.IfModifiedSince,
@@ -764,16 +764,16 @@ func (rctx *requestContext) streamFileForResponse(ctx context.Context, key strin
 	}
 
 	// Stream
-	err = resHan.StreamFile(rctx.LoadFileContent, inp)
+	err = resHan.StreamFile(bri.LoadFileContent, inp)
 	// Check error
 	if err != nil {
 		return err
 	}
 
 	// Send hook
-	rctx.webhookManager.ManageGETHooks(
+	bri.webhookManager.ManageGETHooks(
 		ctx,
-		rctx.targetCfg.Name,
+		bri.targetCfg.Name,
 		input.RequestPath,
 		&webhook.GetInputMetadata{
 			IfModifiedSince:   input.IfModifiedSince,
