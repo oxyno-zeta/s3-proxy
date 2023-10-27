@@ -25,7 +25,7 @@ var mainConfigFolderPath = "conf/"
 
 var validate = validator.New()
 
-type managercontext struct {
+type managerimpl struct {
 	cfg                       *Config
 	configs                   []*viper.Viper
 	onChangeHooks             []func()
@@ -33,11 +33,11 @@ type managercontext struct {
 	internalFileWatchChannels []chan bool
 }
 
-func (ctx *managercontext) AddOnChangeHook(hook func()) {
-	ctx.onChangeHooks = append(ctx.onChangeHooks, hook)
+func (impl *managerimpl) AddOnChangeHook(hook func()) {
+	impl.onChangeHooks = append(impl.onChangeHooks, hook)
 }
 
-func (ctx *managercontext) Load() error {
+func (impl *managerimpl) Load() error {
 	// List files
 	files, err := os.ReadDir(mainConfigFolderPath)
 	if err != nil {
@@ -45,29 +45,29 @@ func (ctx *managercontext) Load() error {
 	}
 
 	// Generate viper instances for static configs
-	ctx.configs = generateViperInstances(files)
+	impl.configs = generateViperInstances(files)
 
 	// Load configuration
-	err = ctx.loadConfiguration()
+	err = impl.loadConfiguration()
 	if err != nil {
 		return err
 	}
 
 	// Loop over config files
-	funk.ForEach(ctx.configs, func(vip *viper.Viper) {
+	funk.ForEach(impl.configs, func(vip *viper.Viper) {
 		// Add hooks for on change events
 		vip.OnConfigChange(func(in fsnotify.Event) {
-			ctx.logger.Infof("Reload configuration detected for file %s", vip.ConfigFileUsed())
+			impl.logger.Infof("Reload configuration detected for file %s", vip.ConfigFileUsed())
 
 			// Reload config
-			err2 := ctx.loadConfiguration()
+			err2 := impl.loadConfiguration()
 			if err2 != nil {
-				ctx.logger.Error(err2)
+				impl.logger.Error(err2)
 				// Stop here and do not call hooks => configuration is unstable
 				return
 			}
 			// Call all hooks
-			funk.ForEach(ctx.onChangeHooks, func(hook func()) { hook() })
+			funk.ForEach(impl.onChangeHooks, func(hook func()) { hook() })
 		})
 		// Watch for configuration changes
 		vip.WatchConfig()
@@ -77,14 +77,14 @@ func (ctx *managercontext) Load() error {
 }
 
 // Imported and modified from viper v1.7.0.
-func (ctx *managercontext) watchInternalFile(filePath string, forceStop chan bool, onChange func()) {
+func (impl *managerimpl) watchInternalFile(filePath string, forceStop chan bool, onChange func()) {
 	initWG := sync.WaitGroup{}
 	initWG.Add(1)
 
 	go func() {
 		watcher, err := fsnotify.NewWatcher()
 		if err != nil {
-			ctx.logger.Fatal(errors.WithStack(err))
+			impl.logger.Fatal(errors.WithStack(err))
 		}
 		defer watcher.Close()
 
@@ -129,7 +129,7 @@ func (ctx *managercontext) watchInternalFile(filePath string, forceStop chan boo
 
 				case err, ok := <-watcher.Errors:
 					if ok { // 'Errors' channel is not closed
-						ctx.logger.Errorf("watcher error: %v\n", err)
+						impl.logger.Errorf("watcher error: %v\n", err)
 					}
 
 					eventsWG.Done()
@@ -147,7 +147,7 @@ func (ctx *managercontext) watchInternalFile(filePath string, forceStop chan boo
 	initWG.Wait() // make sure that the go routine above fully ended before returning
 }
 
-func (*managercontext) loadDefaultConfigurationValues(vip *viper.Viper) {
+func (*managerimpl) loadDefaultConfigurationValues(vip *viper.Viper) {
 	// Load default configuration
 	vip.SetDefault("log.level", DefaultLogLevel)
 	vip.SetDefault("log.format", DefaultLogFormat)
@@ -214,10 +214,10 @@ func generateViperInstances(files []os.DirEntry) []*viper.Viper {
 	return list
 }
 
-func (ctx *managercontext) loadConfiguration() error {
+func (impl *managerimpl) loadConfiguration() error {
 	// Load must start by flushing all existing watcher on internal files
-	for i := 0; i < len(ctx.internalFileWatchChannels); i++ {
-		ch := ctx.internalFileWatchChannels[i]
+	for i := 0; i < len(impl.internalFileWatchChannels); i++ {
+		ch := impl.internalFileWatchChannels[i]
 		// Send the force stop
 		ch <- true
 	}
@@ -226,10 +226,10 @@ func (ctx *managercontext) loadConfiguration() error {
 	globalViper := viper.New()
 
 	// Put default values
-	ctx.loadDefaultConfigurationValues(globalViper)
+	impl.loadDefaultConfigurationValues(globalViper)
 
 	// Loop over configs
-	for _, vip := range ctx.configs {
+	for _, vip := range impl.configs {
 		err := vip.ReadInConfig()
 		if err != nil {
 			return errors.WithStack(err)
@@ -268,7 +268,7 @@ func (ctx *managercontext) loadConfiguration() error {
 	}
 	// Initialize or flush watch internal file channels
 	internalFileWatchChannels := make([]chan bool, 0)
-	ctx.internalFileWatchChannels = internalFileWatchChannels
+	impl.internalFileWatchChannels = internalFileWatchChannels
 	// Loop over all credentials in order to watch file change
 	funk.ForEach(credentials, func(cred *CredentialConfig) {
 		// Check if credential is about a path
@@ -276,22 +276,22 @@ func (ctx *managercontext) loadConfiguration() error {
 			// Create channel
 			ch := make(chan bool)
 			// Run the watch file
-			ctx.watchInternalFile(cred.Path, ch, func() {
+			impl.watchInternalFile(cred.Path, ch, func() {
 				// File change detected
-				ctx.logger.Infof("Reload credential file detected for path %s", cred.Path)
+				impl.logger.Infof("Reload credential file detected for path %s", cred.Path)
 
 				// Reload config
 				err2 := loadCredential(cred)
 				if err2 != nil {
-					ctx.logger.Error(err2)
+					impl.logger.Error(err2)
 					// Stop here and do not call hooks => configuration is unstable
 					return
 				}
 				// Call all hooks
-				funk.ForEach(ctx.onChangeHooks, func(hook func()) { hook() })
+				funk.ForEach(impl.onChangeHooks, func(hook func()) { hook() })
 			})
 			// Add channel to list of channels
-			ctx.internalFileWatchChannels = append(ctx.internalFileWatchChannels, ch)
+			impl.internalFileWatchChannels = append(impl.internalFileWatchChannels, ch)
 		}
 	})
 
@@ -300,14 +300,14 @@ func (ctx *managercontext) loadConfiguration() error {
 		return err
 	}
 
-	ctx.cfg = &out
+	impl.cfg = &out
 
 	return nil
 }
 
 // GetConfig allow to get configuration object.
-func (ctx *managercontext) GetConfig() *Config {
-	return ctx.cfg
+func (impl *managerimpl) GetConfig() *Config {
+	return impl.cfg
 }
 
 func loadAllCredentials(out *Config) ([]*CredentialConfig, error) {

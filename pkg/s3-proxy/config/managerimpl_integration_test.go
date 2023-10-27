@@ -1507,7 +1507,7 @@ targets:
 			// Change var for main configuration file
 			mainConfigFolderPath = dir
 
-			ctx := &managercontext{
+			ctx := &managerimpl{
 				logger: log.NewLogger(),
 			}
 
@@ -1588,7 +1588,7 @@ targets:
 	// Change var for main configuration file
 	mainConfigFolderPath = dir
 
-	ctx := &managercontext{
+	ctx := &managerimpl{
 		logger: log.NewLogger(),
 	}
 
@@ -1791,7 +1791,7 @@ targets:
 	// Change var for main configuration file
 	mainConfigFolderPath = dir
 
-	ctx := &managercontext{
+	ctx := &managerimpl{
 		logger: log.NewLogger(),
 	}
 
@@ -1991,7 +1991,7 @@ targets:
 	// Change var for main configuration file
 	mainConfigFolderPath = dir
 
-	ctx := &managercontext{
+	ctx := &managerimpl{
 		logger: log.NewLogger(),
 	}
 
@@ -2198,7 +2198,7 @@ targets:
 	// Change var for main configuration file
 	mainConfigFolderPath = dir
 
-	ctx := &managercontext{
+	ctx := &managerimpl{
 		logger: log.NewLogger(),
 	}
 
@@ -2430,7 +2430,7 @@ targets:
 	// Change var for main configuration file
 	mainConfigFolderPath = dir
 
-	ctx := &managercontext{
+	ctx := &managerimpl{
 		logger: log.NewLogger(),
 	}
 

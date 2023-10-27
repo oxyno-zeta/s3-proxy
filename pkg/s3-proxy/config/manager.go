@@ -15,7 +15,7 @@ type Manager interface {
 }
 
 func NewManager(logger log.Logger) Manager {
-	return &managercontext{
+	return &managerimpl{
 		logger:                    logger,
 		internalFileWatchChannels: make([]chan bool, 0),
 	}
