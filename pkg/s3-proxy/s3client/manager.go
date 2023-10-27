@@ -98,7 +98,7 @@ func newClient(tgt *config.TargetConfig, metricsCtx metrics.Client) (Client, err
 		u.PartSize = tgt.Bucket.S3UploadPartSize * oneMega
 	})
 
-	return &s3Context{
+	return &s3client{
 		svcClient:         svcClient,
 		target:            tgt,
 		metricsCtx:        metricsCtx,

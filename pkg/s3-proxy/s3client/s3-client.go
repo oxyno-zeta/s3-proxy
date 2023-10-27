@@ -18,7 +18,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 )
 
-type s3Context struct {
+type s3client struct {
 	svcClient         s3iface.S3API
 	s3managerUploader s3manageriface.UploaderAPI
 	target            *config.TargetConfig
@@ -42,9 +42,9 @@ const DeleteObjectOperation = "delete-object"
 
 const s3MaxKeys int64 = 1000
 
-func (s3ctx *s3Context) buildGetObjectInputFromInput(input *GetInput) *s3.GetObjectInput {
+func (s3cl *s3client) buildGetObjectInputFromInput(input *GetInput) *s3.GetObjectInput {
 	s3Input := &s3.GetObjectInput{
-		Bucket:            aws.String(s3ctx.target.Bucket.Name),
+		Bucket:            aws.String(s3cl.target.Bucket.Name),
 		Key:               aws.String(input.Key),
 		IfModifiedSince:   input.IfModifiedSince,
 		IfUnmodifiedSince: input.IfUnmodifiedSince,
@@ -68,12 +68,12 @@ func (s3ctx *s3Context) buildGetObjectInputFromInput(input *GetInput) *s3.GetObj
 	return s3Input
 }
 
-func (s3ctx *s3Context) GetObjectSignedURL(_ context.Context, input *GetInput, expiration time.Duration) (string, error) {
+func (s3cl *s3client) GetObjectSignedURL(_ context.Context, input *GetInput, expiration time.Duration) (string, error) {
 	// Build input
-	s3Input := s3ctx.buildGetObjectInputFromInput(input)
+	s3Input := s3cl.buildGetObjectInputFromInput(input)
 
 	// Build object request
-	req, _ := s3ctx.svcClient.GetObjectRequest(s3Input)
+	req, _ := s3cl.svcClient.GetObjectRequest(s3Input)
 	// Build url
 	urlStr, err := req.Presign(expiration)
 	// Check error
@@ -97,21 +97,21 @@ func (s3ctx *s3Context) GetObjectSignedURL(_ context.Context, input *GetInput, e
 }
 
 // ListFilesAndDirectories List files and directories.
-func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string) ([]*ListElementOutput, *ResultInfo, error) {
+func (s3cl *s3client) ListFilesAndDirectories(ctx context.Context, key string) ([]*ListElementOutput, *ResultInfo, error) {
 	// List files on path
 	folders := make([]*ListElementOutput, 0)
 	files := make([]*ListElementOutput, 0)
 	// Prepare next token structure
 	var nextToken *string
 	// Temporary max elements for limits
-	tmpMaxElements := s3ctx.target.Bucket.S3ListMaxKeys
+	tmpMaxElements := s3cl.target.Bucket.S3ListMaxKeys
 	// Loop control
 	loopControl := true
 	// Initialize max keys
 	maxKeys := s3MaxKeys
 	// Check size of max keys
-	if s3ctx.target.Bucket.S3ListMaxKeys < maxKeys {
-		maxKeys = s3ctx.target.Bucket.S3ListMaxKeys
+	if s3cl.target.Bucket.S3ListMaxKeys < maxKeys {
+		maxKeys = s3cl.target.Bucket.S3ListMaxKeys
 	}
 
 	// Get trace
@@ -119,25 +119,25 @@ func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string)
 
 	// Init & get request headers
 	var requestHeaders map[string]string
-	if s3ctx.target.Bucket.RequestConfig != nil {
-		requestHeaders = s3ctx.target.Bucket.RequestConfig.ListHeaders
+	if s3cl.target.Bucket.RequestConfig != nil {
+		requestHeaders = s3cl.target.Bucket.RequestConfig.ListHeaders
 	}
 
 	// Loop
 	for loopControl {
 		// Create child trace
 		childTrace := parentTrace.GetChildTrace("s3-bucket.list-objects-request")
-		childTrace.SetTag("s3-bucket.bucket-name", s3ctx.target.Bucket.Name)
-		childTrace.SetTag("s3-bucket.bucket-region", s3ctx.target.Bucket.Region)
-		childTrace.SetTag("s3-bucket.bucket-prefix", s3ctx.target.Bucket.Prefix)
-		childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3ctx.target.Bucket.S3Endpoint)
-		childTrace.SetTag("s3-proxy.target-name", s3ctx.target.Name)
+		childTrace.SetTag("s3-bucket.bucket-name", s3cl.target.Bucket.Name)
+		childTrace.SetTag("s3-bucket.bucket-region", s3cl.target.Bucket.Region)
+		childTrace.SetTag("s3-bucket.bucket-prefix", s3cl.target.Bucket.Prefix)
+		childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3cl.target.Bucket.S3Endpoint)
+		childTrace.SetTag("s3-proxy.target-name", s3cl.target.Name)
 
 		// Request S3
-		err := s3ctx.svcClient.ListObjectsV2PagesWithContext(
+		err := s3cl.svcClient.ListObjectsV2PagesWithContext(
 			ctx,
 			&s3.ListObjectsV2Input{
-				Bucket:            aws.String(s3ctx.target.Bucket.Name),
+				Bucket:            aws.String(s3cl.target.Bucket.Name),
 				Prefix:            aws.String(key),
 				Delimiter:         aws.String("/"),
 				MaxKeys:           aws.Int64(maxKeys),
@@ -191,7 +191,7 @@ func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string)
 		)
 
 		// Metrics
-		s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, ListObjectsOperation)
+		s3cl.metricsCtx.IncS3Operations(s3cl.target.Name, s3cl.target.Bucket.Name, ListObjectsOperation)
 
 		// End trace
 		childTrace.Finish()
@@ -208,9 +208,9 @@ func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string)
 
 	// Create info
 	info := &ResultInfo{
-		Bucket:     s3ctx.target.Bucket.Name,
-		Region:     s3ctx.target.Bucket.Region,
-		S3Endpoint: s3ctx.target.Bucket.S3Endpoint,
+		Bucket:     s3cl.target.Bucket.Name,
+		Region:     s3cl.target.Bucket.Region,
+		S3Endpoint: s3cl.target.Bucket.S3Endpoint,
 		Key:        key,
 	}
 
@@ -218,35 +218,35 @@ func (s3ctx *s3Context) ListFilesAndDirectories(ctx context.Context, key string)
 }
 
 // GetObject Get object from S3 bucket.
-func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOutput, *ResultInfo, error) {
+func (s3cl *s3client) GetObject(ctx context.Context, input *GetInput) (*GetOutput, *ResultInfo, error) {
 	// Get trace
 	parentTrace := tracing.GetTraceFromContext(ctx)
 	// Create child trace
 	childTrace := parentTrace.GetChildTrace("s3-bucket.get-object-request")
-	childTrace.SetTag("s3-bucket.bucket-name", s3ctx.target.Bucket.Name)
-	childTrace.SetTag("s3-bucket.bucket-region", s3ctx.target.Bucket.Region)
-	childTrace.SetTag("s3-bucket.bucket-prefix", s3ctx.target.Bucket.Prefix)
-	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3ctx.target.Bucket.S3Endpoint)
-	childTrace.SetTag("s3-proxy.target-name", s3ctx.target.Name)
+	childTrace.SetTag("s3-bucket.bucket-name", s3cl.target.Bucket.Name)
+	childTrace.SetTag("s3-bucket.bucket-region", s3cl.target.Bucket.Region)
+	childTrace.SetTag("s3-bucket.bucket-prefix", s3cl.target.Bucket.Prefix)
+	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3cl.target.Bucket.S3Endpoint)
+	childTrace.SetTag("s3-proxy.target-name", s3cl.target.Name)
 
 	defer childTrace.Finish()
 
 	// Build input
-	s3Input := s3ctx.buildGetObjectInputFromInput(input)
+	s3Input := s3cl.buildGetObjectInputFromInput(input)
 
 	// Init & get request headers
 	var requestHeaders map[string]string
-	if s3ctx.target.Bucket.RequestConfig != nil {
-		requestHeaders = s3ctx.target.Bucket.RequestConfig.GetHeaders
+	if s3cl.target.Bucket.RequestConfig != nil {
+		requestHeaders = s3cl.target.Bucket.RequestConfig.GetHeaders
 	}
 
-	obj, err := s3ctx.svcClient.GetObjectWithContext(
+	obj, err := s3cl.svcClient.GetObjectWithContext(
 		ctx,
 		s3Input,
 		addHeadersToRequest(requestHeaders),
 	)
 	// Metrics
-	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, GetObjectOperation)
+	s3cl.metricsCtx.IncS3Operations(s3cl.target.Name, s3cl.target.Bucket.Name, GetObjectOperation)
 	// Check if error exists
 	if err != nil {
 		// Try to cast error into an AWS Error if possible
@@ -318,43 +318,43 @@ func (s3ctx *s3Context) GetObject(ctx context.Context, input *GetInput) (*GetOut
 
 	// Create info
 	info := &ResultInfo{
-		Bucket:     s3ctx.target.Bucket.Name,
-		S3Endpoint: s3ctx.target.Bucket.S3Endpoint,
-		Region:     s3ctx.target.Bucket.Region,
+		Bucket:     s3cl.target.Bucket.Name,
+		S3Endpoint: s3cl.target.Bucket.S3Endpoint,
+		Region:     s3cl.target.Bucket.Region,
 		Key:        input.Key,
 	}
 
 	return output, info, nil
 }
 
-func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*ResultInfo, error) {
+func (s3cl *s3client) PutObject(ctx context.Context, input *PutInput) (*ResultInfo, error) {
 	// Get trace
 	parentTrace := tracing.GetTraceFromContext(ctx)
 	// Create child trace
 	childTrace := parentTrace.GetChildTrace("s3-bucket.put-object-request")
-	childTrace.SetTag("s3-bucket.bucket-name", s3ctx.target.Bucket.Name)
-	childTrace.SetTag("s3-bucket.bucket-region", s3ctx.target.Bucket.Region)
-	childTrace.SetTag("s3-bucket.bucket-prefix", s3ctx.target.Bucket.Prefix)
-	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3ctx.target.Bucket.S3Endpoint)
-	childTrace.SetTag("s3-proxy.target-name", s3ctx.target.Name)
+	childTrace.SetTag("s3-bucket.bucket-name", s3cl.target.Bucket.Name)
+	childTrace.SetTag("s3-bucket.bucket-region", s3cl.target.Bucket.Region)
+	childTrace.SetTag("s3-bucket.bucket-prefix", s3cl.target.Bucket.Prefix)
+	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3cl.target.Bucket.S3Endpoint)
+	childTrace.SetTag("s3-proxy.target-name", s3cl.target.Name)
 
 	defer childTrace.Finish()
 
 	inp := &s3manager.UploadInput{
 		Body:    input.Body,
-		Bucket:  aws.String(s3ctx.target.Bucket.Name),
+		Bucket:  aws.String(s3cl.target.Bucket.Name),
 		Key:     aws.String(input.Key),
 		Expires: input.Expires,
 	}
 
 	// Manage ACL
-	if s3ctx.target.Actions != nil &&
-		s3ctx.target.Actions.PUT != nil &&
-		s3ctx.target.Actions.PUT.Config != nil &&
-		s3ctx.target.Actions.PUT.Config.CannedACL != nil &&
-		*s3ctx.target.Actions.PUT.Config.CannedACL != "" {
+	if s3cl.target.Actions != nil &&
+		s3cl.target.Actions.PUT != nil &&
+		s3cl.target.Actions.PUT.Config != nil &&
+		s3cl.target.Actions.PUT.Config.CannedACL != nil &&
+		*s3cl.target.Actions.PUT.Config.CannedACL != "" {
 		// Inject ACL
-		inp.ACL = s3ctx.target.Actions.PUT.Config.CannedACL
+		inp.ACL = s3cl.target.Actions.PUT.Config.CannedACL
 	}
 	// Manage cache control case
 	if input.CacheControl != "" {
@@ -387,12 +387,12 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*Result
 
 	// Init & get request headers
 	var requestHeaders map[string]string
-	if s3ctx.target.Bucket.RequestConfig != nil {
-		requestHeaders = s3ctx.target.Bucket.RequestConfig.PutHeaders
+	if s3cl.target.Bucket.RequestConfig != nil {
+		requestHeaders = s3cl.target.Bucket.RequestConfig.PutHeaders
 	}
 
 	// Upload to S3 bucket
-	_, err := s3ctx.s3managerUploader.UploadWithContext(ctx, inp, func(u *s3manager.Uploader) {
+	_, err := s3cl.s3managerUploader.UploadWithContext(ctx, inp, func(u *s3manager.Uploader) {
 		// Check if it exists
 		if u.RequestOptions == nil {
 			u.RequestOptions = make([]request.Option, 0)
@@ -406,13 +406,13 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*Result
 	}
 
 	// Metrics
-	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, PutObjectOperation)
+	s3cl.metricsCtx.IncS3Operations(s3cl.target.Name, s3cl.target.Bucket.Name, PutObjectOperation)
 
 	// Create info
 	info := &ResultInfo{
-		Bucket:     s3ctx.target.Bucket.Name,
-		S3Endpoint: s3ctx.target.Bucket.S3Endpoint,
-		Region:     s3ctx.target.Bucket.Region,
+		Bucket:     s3cl.target.Bucket.Name,
+		S3Endpoint: s3cl.target.Bucket.S3Endpoint,
+		Region:     s3cl.target.Bucket.Region,
 		Key:        input.Key,
 	}
 
@@ -420,36 +420,36 @@ func (s3ctx *s3Context) PutObject(ctx context.Context, input *PutInput) (*Result
 	return info, nil
 }
 
-func (s3ctx *s3Context) HeadObject(ctx context.Context, key string) (*HeadOutput, error) {
+func (s3cl *s3client) HeadObject(ctx context.Context, key string) (*HeadOutput, error) {
 	// Get trace
 	parentTrace := tracing.GetTraceFromContext(ctx)
 	// Create child trace
 	childTrace := parentTrace.GetChildTrace("s3-bucket.head-object-request")
-	childTrace.SetTag("s3-bucket.bucket-name", s3ctx.target.Bucket.Name)
-	childTrace.SetTag("s3-bucket.bucket-region", s3ctx.target.Bucket.Region)
-	childTrace.SetTag("s3-bucket.bucket-prefix", s3ctx.target.Bucket.Prefix)
-	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3ctx.target.Bucket.S3Endpoint)
-	childTrace.SetTag("s3-proxy.target-name", s3ctx.target.Name)
+	childTrace.SetTag("s3-bucket.bucket-name", s3cl.target.Bucket.Name)
+	childTrace.SetTag("s3-bucket.bucket-region", s3cl.target.Bucket.Region)
+	childTrace.SetTag("s3-bucket.bucket-prefix", s3cl.target.Bucket.Prefix)
+	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3cl.target.Bucket.S3Endpoint)
+	childTrace.SetTag("s3-proxy.target-name", s3cl.target.Name)
 
 	defer childTrace.Finish()
 
 	// Init & get request headers
 	var requestHeaders map[string]string
-	if s3ctx.target.Bucket.RequestConfig != nil {
-		requestHeaders = s3ctx.target.Bucket.RequestConfig.GetHeaders
+	if s3cl.target.Bucket.RequestConfig != nil {
+		requestHeaders = s3cl.target.Bucket.RequestConfig.GetHeaders
 	}
 
 	// Head object in bucket
-	_, err := s3ctx.svcClient.HeadObjectWithContext(
+	_, err := s3cl.svcClient.HeadObjectWithContext(
 		ctx,
 		&s3.HeadObjectInput{
-			Bucket: aws.String(s3ctx.target.Bucket.Name),
+			Bucket: aws.String(s3cl.target.Bucket.Name),
 			Key:    aws.String(key),
 		},
 		addHeadersToRequest(requestHeaders),
 	)
 	// Metrics
-	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, HeadObjectOperation)
+	s3cl.metricsCtx.IncS3Operations(s3cl.target.Name, s3cl.target.Bucket.Name, HeadObjectOperation)
 	// Test error
 	if err != nil {
 		// Try to cast error into an AWS Error if possible
@@ -473,30 +473,30 @@ func (s3ctx *s3Context) HeadObject(ctx context.Context, key string) (*HeadOutput
 	return output, nil
 }
 
-func (s3ctx *s3Context) DeleteObject(ctx context.Context, key string) (*ResultInfo, error) {
+func (s3cl *s3client) DeleteObject(ctx context.Context, key string) (*ResultInfo, error) {
 	// Get trace
 	parentTrace := tracing.GetTraceFromContext(ctx)
 	// Create child trace
 	childTrace := parentTrace.GetChildTrace("s3-bucket.delete-object-request")
-	childTrace.SetTag("s3-bucket.bucket-name", s3ctx.target.Bucket.Name)
-	childTrace.SetTag("s3-bucket.bucket-region", s3ctx.target.Bucket.Region)
-	childTrace.SetTag("s3-bucket.bucket-prefix", s3ctx.target.Bucket.Prefix)
-	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3ctx.target.Bucket.S3Endpoint)
-	childTrace.SetTag("s3-proxy.target-name", s3ctx.target.Name)
+	childTrace.SetTag("s3-bucket.bucket-name", s3cl.target.Bucket.Name)
+	childTrace.SetTag("s3-bucket.bucket-region", s3cl.target.Bucket.Region)
+	childTrace.SetTag("s3-bucket.bucket-prefix", s3cl.target.Bucket.Prefix)
+	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3cl.target.Bucket.S3Endpoint)
+	childTrace.SetTag("s3-proxy.target-name", s3cl.target.Name)
 
 	defer childTrace.Finish()
 
 	// Init & get request headers
 	var requestHeaders map[string]string
-	if s3ctx.target.Bucket.RequestConfig != nil {
-		requestHeaders = s3ctx.target.Bucket.RequestConfig.DeleteHeaders
+	if s3cl.target.Bucket.RequestConfig != nil {
+		requestHeaders = s3cl.target.Bucket.RequestConfig.DeleteHeaders
 	}
 
 	// Delete object
-	_, err := s3ctx.svcClient.DeleteObjectWithContext(
+	_, err := s3cl.svcClient.DeleteObjectWithContext(
 		ctx,
 		&s3.DeleteObjectInput{
-			Bucket: aws.String(s3ctx.target.Bucket.Name),
+			Bucket: aws.String(s3cl.target.Bucket.Name),
 			Key:    aws.String(key),
 		},
 		addHeadersToRequest(requestHeaders),
@@ -507,13 +507,13 @@ func (s3ctx *s3Context) DeleteObject(ctx context.Context, key string) (*ResultIn
 	}
 
 	// Metrics
-	s3ctx.metricsCtx.IncS3Operations(s3ctx.target.Name, s3ctx.target.Bucket.Name, DeleteObjectOperation)
+	s3cl.metricsCtx.IncS3Operations(s3cl.target.Name, s3cl.target.Bucket.Name, DeleteObjectOperation)
 
 	// Create info
 	info := &ResultInfo{
-		Bucket:     s3ctx.target.Bucket.Name,
-		S3Endpoint: s3ctx.target.Bucket.S3Endpoint,
-		Region:     s3ctx.target.Bucket.Region,
+		Bucket:     s3cl.target.Bucket.Name,
+		S3Endpoint: s3cl.target.Bucket.S3Endpoint,
+		Region:     s3cl.target.Bucket.Region,
 		Key:        key,
 	}
 
