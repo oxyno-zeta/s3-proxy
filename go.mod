@@ -9,7 +9,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/aws/aws-sdk-go v1.46.1
 	github.com/coreos/go-oidc/v3 v3.7.0
-	github.com/dimiro1/health v0.0.0-20191019130555-c5cbb4d46ffc
+	github.com/dimiro1/health v0.0.0-20231118160444-e388c68d7d7e
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-chi/chi/v5 v5.0.10
