@@ -16,7 +16,7 @@ require (
 	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/httptracer v0.3.0
 	github.com/go-playground/validator/v10 v10.15.5
-	github.com/go-resty/resty/v2 v2.10.0
+	github.com/go-resty/resty/v2 v2.11.0
 	github.com/gobwas/glob v0.2.3
 	github.com/johannesboyne/gofakes3 v0.0.0-20230506070712-04da935ef877
 	github.com/opentracing/opentracing-go v1.2.0
