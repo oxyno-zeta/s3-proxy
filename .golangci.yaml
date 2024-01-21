@@ -394,6 +394,12 @@ linters:
     - tagalign
     - gosmopolitan
     - mirror
+    - gochecksumtype
+    - inamedparam
+    - perfsprint
+    - protogetter
+    - sloglint
+    - testifylint
   disable:
     - deadcode
     - varcheck

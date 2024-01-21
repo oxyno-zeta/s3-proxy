@@ -49,7 +49,7 @@ type TracingLogger interface {
 }
 
 type CorsLogger interface {
-	Printf(string, ...interface{})
+	Printf(msg string, args ...interface{})
 }
 
 func NewLogger() Logger {

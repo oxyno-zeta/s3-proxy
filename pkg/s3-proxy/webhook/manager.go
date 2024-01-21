@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"emperror.dev/errors"
@@ -428,7 +429,7 @@ func (m *manager) runHooks(
 			return
 		}
 		// Add status code to logger
-		spLogger = spLogger.WithField("webhook_status_code", fmt.Sprint(res.StatusCode()))
+		spLogger = spLogger.WithField("webhook_status_code", strconv.Itoa(res.StatusCode()))
 		// Check status code
 		if res.StatusCode() >= http.StatusBadRequest {
 			// Create error

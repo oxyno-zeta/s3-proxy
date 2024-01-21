@@ -175,14 +175,14 @@ ifndef HAS_GOLANGCI_LINT
 ifndef HAS_CURL
 	$(error You must install curl)
 endif
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.54.2
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.55.2
 endif
 ifndef HAS_GIT
 	$(error You must install Git)
 endif
 ifndef HAS_MOCKGEN
 	@echo "=> Installing mockgen tool"
-	go install go.uber.org/mock/mockgen@v0.3.0
+	go install go.uber.org/mock/mockgen@v0.4.0
 endif
 ifndef HAS_GOTESTSUM
 	@echo "=> Installing gotestsum tool"
@@ -190,7 +190,7 @@ ifndef HAS_GOTESTSUM
 endif
 ifndef HAS_FIELDALIGNMENT
 	@echo "=> Installing fieldalignment tool"
-	$(GO) install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
+	$(GO) install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.16.1
 endif
 	go mod download all
 	go mod tidy
