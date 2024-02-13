@@ -116,6 +116,7 @@ func (svr *Server) GenerateServer() error {
 		}
 		// Change server handler
 		server.Handler = r
+
 		svr.logger.Info("Server handler reloaded")
 	})
 
@@ -236,7 +237,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				// Add authorization middleware to router
 				rt2 = rt2.With(authorization.Middleware(svr.cfgManager, svr.metricsCl))
 
-				rt2.Get("/", func(rw http.ResponseWriter, req *http.Request) {
+				rt2.Get("/", func(_ http.ResponseWriter, req *http.Request) {
 					// Get response handler
 					resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
 
@@ -286,7 +287,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				// Check if GET action is enabled
 				if tgt.Actions.GET != nil && tgt.Actions.GET.Enabled {
 					// Add GET method to router
-					rt2.Get("/*", func(rw http.ResponseWriter, req *http.Request) {
+					rt2.Get("/*", func(_ http.ResponseWriter, req *http.Request) {
 						// Get bucket request context
 						brctx := bucket.GetBucketRequestContextFromContext(req.Context())
 						// Get response handler
@@ -367,7 +368,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				// Check if PUT action is enabled
 				if tgt.Actions.PUT != nil && tgt.Actions.PUT.Enabled {
 					// Add PUT method to router
-					rt2.Put("/*", func(rw http.ResponseWriter, req *http.Request) {
+					rt2.Put("/*", func(_ http.ResponseWriter, req *http.Request) {
 						// Get bucket request context
 						brctx := bucket.GetBucketRequestContextFromContext(req.Context())
 						// Get response handler
@@ -429,7 +430,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				// Check if DELETE action is enabled
 				if tgt.Actions.DELETE != nil && tgt.Actions.DELETE.Enabled {
 					// Add DELETE method to router
-					rt2.Delete("/*", func(rw http.ResponseWriter, req *http.Request) {
+					rt2.Delete("/*", func(_ http.ResponseWriter, req *http.Request) {
 						// Get bucket request context
 						brctx := bucket.GetBucketRequestContextFromContext(req.Context())
 						// Get response handler

@@ -299,7 +299,7 @@ func validateSSLCertificateComponentConfig(
 		}
 
 		if componentURLConfig != nil {
-			err = validateSSLURLConfig(componentURLConfig, fmt.Sprintf("%sUrlConfig", componentName))
+			err = validateSSLURLConfig(componentURLConfig, componentName+"UrlConfig")
 			if err != nil {
 				return err
 			}
@@ -315,7 +315,7 @@ func validateSSLURLConfig(urlConfig *SSLURLConfig, component string) error {
 	if urlConfig.HTTPTimeout != "" {
 		duration, err := time.ParseDuration(urlConfig.HTTPTimeout)
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("%s.httpTimeout is invalid", component))
+			return errors.Wrap(err, component+".httpTimeout is invalid")
 		}
 
 		if duration < time.Duration(0) {

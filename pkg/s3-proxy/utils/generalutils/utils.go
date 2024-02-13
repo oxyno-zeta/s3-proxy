@@ -180,7 +180,7 @@ type GetDocumentFromURLOption func(awsCfg *aws.Config, httpClient *http.Client)
 
 // WithAWSEndpoint is an option for GetDocumentFromURL to set the AWS service endpoint.
 func WithAWSEndpoint(endpoint string) GetDocumentFromURLOption {
-	return func(awsCfg *aws.Config, httpClient *http.Client) {
+	return func(awsCfg *aws.Config, _ *http.Client) {
 		if awsCfg != nil {
 			awsCfg.Endpoint = aws.String(endpoint)
 		}
@@ -189,7 +189,7 @@ func WithAWSEndpoint(endpoint string) GetDocumentFromURLOption {
 
 // WithAWSRegion is an option for GetDocumentFromURL to set the AWS region.
 func WithAWSRegion(region string) GetDocumentFromURLOption {
-	return func(awsCfg *aws.Config, httpClient *http.Client) {
+	return func(awsCfg *aws.Config, _ *http.Client) {
 		if awsCfg != nil {
 			awsCfg.Region = aws.String(region)
 		}
@@ -198,7 +198,7 @@ func WithAWSRegion(region string) GetDocumentFromURLOption {
 
 // WithAWSDisableSSL is an option for GetDocumentFromURL to optionally disable SSL for requests.
 func WithAWSDisableSSL(disableSSL bool) GetDocumentFromURLOption {
-	return func(awsCfg *aws.Config, httpClient *http.Client) {
+	return func(awsCfg *aws.Config, _ *http.Client) {
 		if awsCfg != nil {
 			awsCfg.DisableSSL = aws.Bool(disableSSL)
 		}
@@ -207,7 +207,7 @@ func WithAWSDisableSSL(disableSSL bool) GetDocumentFromURLOption {
 
 // WithAWSStaticCredentials is an option for GetDocumentFromURL to set AWS credentials.
 func WithAWSStaticCredentials(accessKey, secretKey, token string) GetDocumentFromURLOption {
-	return func(awsCfg *aws.Config, httpClient *http.Client) {
+	return func(awsCfg *aws.Config, _ *http.Client) {
 		if awsCfg != nil {
 			awsCfg.Credentials = credentials.NewStaticCredentials(accessKey, secretKey, token)
 		}
@@ -349,7 +349,7 @@ func getDocumentFromS3(bucket, key string, opts ...GetDocumentFromURLOption) ([]
 		// Otherwise, we end up with URLs like https://bucketname.127.0.0.1/
 		endpointURL, err := url.Parse(*cfg.Endpoint)
 		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("invalid S3 endpoint URL: %s", *cfg.Endpoint))
+			return nil, errors.Wrap(err, "invalid S3 endpoint URL: "+*cfg.Endpoint)
 		}
 
 		hostIP := net.ParseIP(endpointURL.Hostname())

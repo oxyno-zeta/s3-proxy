@@ -3,7 +3,6 @@ package templateutils
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"os"
 	"strings"
 	"text/template"
@@ -154,8 +153,9 @@ func s3ProxyFuncMap(t *template.Template) template.FuncMap {
 
 		if v, ok := includedNames[name]; ok {
 			if v > recursionMaxNums {
-				return "", errors.Wrapf(fmt.Errorf("unable to execute template"), "rendering template has a nested reference name: %s", name)
+				return "", errors.Wrapf(errors.New("unable to execute template"), "rendering template has a nested reference name: %s", name)
 			}
+
 			includedNames[name]++
 		} else {
 			includedNames[name] = 1

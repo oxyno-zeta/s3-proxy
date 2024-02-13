@@ -329,12 +329,15 @@ func (s *service) oidcAuthMiddleware(res *config.Resource) func(http.Handler) ht
 			if claims["family_name"] != nil {
 				ouser.FamilyName, _ = claims["family_name"].(string)
 			}
+
 			if claims["given_name"] != nil {
 				ouser.GivenName, _ = claims["given_name"].(string)
 			}
+
 			if claims["name"] != nil {
 				ouser.Name, _ = claims["name"].(string)
 			}
+
 			if claims["preferred_username"] != nil {
 				ouser.PreferredUsername, _ = claims["preferred_username"].(string)
 			}

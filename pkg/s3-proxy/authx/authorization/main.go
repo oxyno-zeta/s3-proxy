@@ -73,6 +73,7 @@ func Middleware(
 			if resource.OIDC != nil || resource.Header != nil {
 				// Initialize variables
 				var authorizationProvider string
+				// Initialize variables
 				var headerOIDCResource *config.ResourceHeaderOIDC
 
 				// Check if resource is OIDC
@@ -103,6 +104,7 @@ func Middleware(
 				if headerOIDCResource.AuthorizationOPAServer != nil {
 					var err error
 					authorized, err = isOPAServerAuthorized(r, user, headerOIDCResource)
+					// Check error
 					if err != nil {
 						// Check if bucket request context doesn't exist to use local default files
 						if brctx == nil {

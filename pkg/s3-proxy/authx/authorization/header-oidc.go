@@ -32,7 +32,6 @@ func isHeaderOIDCAuthorizedBasic(groups []string, email string, authorizationAcc
 			}
 		} else {
 			// Not a regex case
-
 			// Check group case
 			if item.Group != "" {
 				result := funk.Contains(groups, item.Group)

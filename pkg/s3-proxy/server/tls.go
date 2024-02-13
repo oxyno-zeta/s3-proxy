@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -142,8 +141,7 @@ func getCertificateFromConfig(certConfig *config.ServerSSLCertificate, logger lo
 		if err != nil {
 			logger.Errorf("Failed to get certificate from URL %s: %v", *certConfig.CertificateURL, err)
 
-			return nil, errors.Wrap(err, fmt.Sprintf(
-				"failed to get certificate from URL: %s", *certConfig.CertificateURL))
+			return nil, errors.Wrap(err, "failed to get certificate from URL: "+*certConfig.CertificateURL)
 		}
 
 	default:
@@ -164,8 +162,7 @@ func getCertificateFromConfig(certConfig *config.ServerSSLCertificate, logger lo
 		if err != nil {
 			logger.Errorf("Failed to get private key from URL %s: %v", *certConfig.PrivateKeyURL, err)
 
-			return nil, errors.Wrap(err, fmt.Sprintf(
-				"failed to get private key from URL: %s", *certConfig.PrivateKeyURL))
+			return nil, errors.Wrap(err, "failed to get private key from URL: "+*certConfig.PrivateKeyURL)
 		}
 
 	default:

@@ -163,7 +163,6 @@ func (bri *bucketReqImpl) Get(ctx context.Context, input *GetInput) {
 			err = err2
 		} else if headOutput != nil {
 			// File found
-
 			// Redirect to signed url
 			err = bri.redirectToSignedURL(ctx, key, input)
 		}
