@@ -19,6 +19,13 @@ You can see a full example in the [Example section](./example.md)
 | targets        | Map[String][targetconfiguration](#targetconfiguration)    | No       | None    | Targets configuration. Map key will be considered as the target name. (This will used in urls and list of targets.) |
 | authProviders  | [AuthProvidersConfiguration](#authprovidersconfiguration) | No       | None    | Authentication providers configuration                                                                              |
 | listTargets    | [ListTargetsConfiguration](#listtargetsconfiguration)     | No       | None    | List targets feature configuration                                                                                  |
+| metrics        | [MetricsConfiguration](#metricsconfiguration)             | No       | None    | Metrics configurations                                                                                              |
+
+## MetricsConfiguration
+
+| Key               | Type    | Required | Default | Description                              |
+| ----------------- | ------- | -------- | ------- | ---------------------------------------- |
+| disableRouterPath | Boolean | No       | `false` | Disable router path exported in metrics. |
 
 ## LogConfiguration
 

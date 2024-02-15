@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -23,7 +24,7 @@ type prometheusClient struct {
 }
 
 // Instrument will instrument gin routes.
-func (cl *prometheusClient) Instrument(serverLabel string) func(next http.Handler) http.Handler {
+func (cl *prometheusClient) Instrument(serverLabel string, metricsCfg *config.MetricsConfig) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Begin timer
@@ -42,11 +43,18 @@ func (cl *prometheusClient) Instrument(serverLabel string) func(next http.Handle
 			// Get response size
 			resSz := float64(sw.length)
 
+			// Init path
+			path := r.URL.Path
+			// Check if router path metrics is disabled
+			if metricsCfg != nil && metricsCfg.DisableRouterPath {
+				path = ""
+			}
+
 			// Manage prometheus metrics
-			cl.reqDur.WithLabelValues(serverLabel, status, r.Method, r.Host, r.URL.Path).Observe(elapsed)
-			cl.reqCnt.WithLabelValues(serverLabel, status, r.Method, r.Host, r.URL.Path).Inc()
-			cl.reqSz.WithLabelValues(serverLabel, status, r.Method, r.Host, r.URL.Path).Observe(float64(reqSz))
-			cl.resSz.WithLabelValues(serverLabel, status, r.Method, r.Host, r.URL.Path).Observe(resSz)
+			cl.reqDur.WithLabelValues(serverLabel, status, r.Method, r.Host, path).Observe(elapsed)
+			cl.reqCnt.WithLabelValues(serverLabel, status, r.Method, r.Host, path).Inc()
+			cl.reqSz.WithLabelValues(serverLabel, status, r.Method, r.Host, path).Observe(float64(reqSz))
+			cl.resSz.WithLabelValues(serverLabel, status, r.Method, r.Host, path).Observe(resSz)
 		})
 	}
 }

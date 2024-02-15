@@ -5,6 +5,7 @@
 //
 //	mockgen -destination=./mocks/mock_Manager.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook Manager
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 

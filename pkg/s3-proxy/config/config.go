@@ -145,12 +145,18 @@ const oidcCallbackPathTemplate = "/auth/%s/callback"
 type Config struct {
 	Log            *LogConfig               `mapstructure:"log"`
 	Tracing        *TracingConfig           `mapstructure:"tracing"`
+	Metrics        *MetricsConfig           `mapstructure:"metrics"`
 	Server         *ServerConfig            `mapstructure:"server"`
 	InternalServer *ServerConfig            `mapstructure:"internalServer"`
 	Targets        map[string]*TargetConfig `mapstructure:"targets"`
 	Templates      *TemplateConfig          `mapstructure:"templates"`
 	AuthProviders  *AuthProviderConfig      `mapstructure:"authProviders"`
 	ListTargets    *ListTargetsConfig       `mapstructure:"listTargets"`
+}
+
+// MetricsConfig represents the metrics configuration structure.
+type MetricsConfig struct {
+	DisableRouterPath bool `mapstructure:"disableRouterPath"`
 }
 
 // TracingConfig represents the Tracing configuration structure.

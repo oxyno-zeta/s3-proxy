@@ -140,6 +140,7 @@ func Test_managercontext_Load(t *testing.T) {
 					Enabled: false,
 				},
 				Targets: nil,
+				Metrics: &MetricsConfig{DisableRouterPath: false},
 			},
 		},
 		{
@@ -166,6 +167,7 @@ func Test_managercontext_Load(t *testing.T) {
 					Enabled: false,
 				},
 				Targets: nil,
+				Metrics: &MetricsConfig{DisableRouterPath: false},
 			},
 		},
 		{
@@ -199,6 +201,7 @@ targets:
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -264,6 +267,7 @@ targets:
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -336,6 +340,7 @@ targets:
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -417,6 +422,7 @@ targets:
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -492,6 +498,7 @@ targets:
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -673,6 +680,7 @@ targets:
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
+				Metrics: &MetricsConfig{DisableRouterPath: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -813,6 +821,7 @@ targets:
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -927,6 +936,7 @@ targets:
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -1001,6 +1011,7 @@ VALUE1
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -1104,6 +1115,7 @@ targets:
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -1187,6 +1199,7 @@ targets:
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -1260,6 +1273,7 @@ targets:
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -1342,6 +1356,7 @@ targets:
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -1424,6 +1439,7 @@ targets:
 				},
 				Templates: defaultTemplateCfg,
 				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
 				ListTargets: &ListTargetsConfig{
 					Enabled: false,
 				},
@@ -1619,6 +1635,7 @@ targets:
 		},
 		Templates: defaultTemplateCfg,
 		Tracing:   &TracingConfig{Enabled: false},
+		Metrics:   &MetricsConfig{DisableRouterPath: false},
 		ListTargets: &ListTargetsConfig{
 			Enabled: false,
 		},
@@ -1690,6 +1707,7 @@ log:
 			},
 			Templates: defaultTemplateCfg,
 			Tracing:   &TracingConfig{Enabled: false},
+			Metrics:   &MetricsConfig{DisableRouterPath: false},
 			ListTargets: &ListTargetsConfig{
 				Enabled: false,
 			},
@@ -1822,6 +1840,7 @@ targets:
 		},
 		Templates: defaultTemplateCfg,
 		Tracing:   &TracingConfig{Enabled: false},
+		Metrics:   &MetricsConfig{DisableRouterPath: false},
 		ListTargets: &ListTargetsConfig{
 			Enabled: false,
 		},
@@ -1890,6 +1909,7 @@ targets:
 			},
 			Templates: defaultTemplateCfg,
 			Tracing:   &TracingConfig{Enabled: false},
+			Metrics:   &MetricsConfig{DisableRouterPath: false},
 			ListTargets: &ListTargetsConfig{
 				Enabled: false,
 			},
@@ -2022,6 +2042,7 @@ targets:
 		},
 		Templates: defaultTemplateCfg,
 		Tracing:   &TracingConfig{Enabled: false},
+		Metrics:   &MetricsConfig{DisableRouterPath: false},
 		ListTargets: &ListTargetsConfig{
 			Enabled: false,
 		},
@@ -2093,6 +2114,7 @@ configuration with error
 			},
 			Templates: defaultTemplateCfg,
 			Tracing:   &TracingConfig{Enabled: false},
+			Metrics:   &MetricsConfig{DisableRouterPath: false},
 			ListTargets: &ListTargetsConfig{
 				Enabled: false,
 			},
@@ -2235,6 +2257,7 @@ targets:
 			},
 		},
 		Tracing: &TracingConfig{Enabled: false},
+		Metrics: &MetricsConfig{DisableRouterPath: false},
 		ListTargets: &ListTargetsConfig{
 			Enabled: false,
 		},
@@ -2307,6 +2330,7 @@ authProviders:
 			},
 			Templates: defaultTemplateCfg,
 			Tracing:   &TracingConfig{Enabled: false},
+			Metrics:   &MetricsConfig{DisableRouterPath: false},
 			ListTargets: &ListTargetsConfig{
 				Enabled: false,
 			},
@@ -2460,6 +2484,7 @@ targets:
 			Timeouts: svrTimeoutsCfg,
 		},
 		Tracing:   &TracingConfig{Enabled: false},
+		Metrics:   &MetricsConfig{DisableRouterPath: false},
 		Templates: defaultTemplateCfg,
 		AuthProviders: &AuthProviderConfig{
 			Basic: map[string]*BasicAuthConfig{

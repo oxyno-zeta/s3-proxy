@@ -115,7 +115,7 @@ func (svr *InternalServer) generateInternalRouter() http.Handler {
 		tracing.GetTraceIDFromRequest,
 	))
 	r.Use(log.HTTPAddLoggerToContextMiddleware())
-	r.Use(svr.metricsCl.Instrument("internal"))
+	r.Use(svr.metricsCl.Instrument("internal", cfg.Metrics))
 	r.Use(middleware.Recoverer)
 
 	healthHandler := health.NewHandler()

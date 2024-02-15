@@ -5,6 +5,7 @@
 //
 //	mockgen -destination=./mocks/mock_Client.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client Client
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 

@@ -5,6 +5,7 @@
 //
 //	mockgen -destination=./mocks/mock_Client.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics Client
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 
@@ -12,6 +13,7 @@ import (
 	http "net/http"
 	reflect "reflect"
 
+	config "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -113,15 +115,15 @@ func (mr *MockClientMockRecorder) IncSucceedWebhooks(arg0, arg1 any) *gomock.Cal
 }
 
 // Instrument mocks base method.
-func (m *MockClient) Instrument(arg0 string) func(http.Handler) http.Handler {
+func (m *MockClient) Instrument(arg0 string, arg1 *config.MetricsConfig) func(http.Handler) http.Handler {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Instrument", arg0)
+	ret := m.ctrl.Call(m, "Instrument", arg0, arg1)
 	ret0, _ := ret[0].(func(http.Handler) http.Handler)
 	return ret0
 }
 
 // Instrument indicates an expected call of Instrument.
-func (mr *MockClientMockRecorder) Instrument(arg0 any) *gomock.Call {
+func (mr *MockClientMockRecorder) Instrument(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Instrument", reflect.TypeOf((*MockClient)(nil).Instrument), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Instrument", reflect.TypeOf((*MockClient)(nil).Instrument), arg0, arg1)
 }

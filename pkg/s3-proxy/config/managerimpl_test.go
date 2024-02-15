@@ -29,6 +29,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 			result: &Config{
 				ListTargets: &ListTargetsConfig{Enabled: false},
 				Tracing:     &TracingConfig{Enabled: false},
+				Metrics:     &MetricsConfig{DisableRouterPath: false},
 			},
 		},
 		{
@@ -42,6 +43,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 			result: &Config{
 				ListTargets: &ListTargetsConfig{Enabled: false},
 				Tracing:     &TracingConfig{Enabled: false, LogSpan: true},
+				Metrics:     &MetricsConfig{DisableRouterPath: false},
 			},
 		},
 		{
@@ -65,6 +67,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
+				Metrics: &MetricsConfig{DisableRouterPath: false},
 			},
 		},
 		{
@@ -104,6 +107,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
+				Metrics: &MetricsConfig{DisableRouterPath: false},
 			},
 		},
 		{
@@ -150,6 +154,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
+				Metrics: &MetricsConfig{DisableRouterPath: false},
 			},
 		},
 		{
@@ -171,6 +176,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
+				Metrics: &MetricsConfig{DisableRouterPath: false},
 			},
 		},
 		{
@@ -210,6 +216,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
+				Metrics: &MetricsConfig{DisableRouterPath: false},
 			},
 		},
 		{
@@ -249,6 +256,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					},
 				},
 				Tracing: &TracingConfig{Enabled: false},
+				Metrics: &MetricsConfig{DisableRouterPath: false},
 			},
 		},
 		{
@@ -271,6 +279,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 				},
 				ListTargets: &ListTargetsConfig{Enabled: false},
 				Tracing:     &TracingConfig{Enabled: false},
+				Metrics:     &MetricsConfig{DisableRouterPath: false},
 			},
 		},
 		{
@@ -308,6 +317,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 				},
 				ListTargets: &ListTargetsConfig{Enabled: false},
 				Tracing:     &TracingConfig{Enabled: false},
+				Metrics:     &MetricsConfig{DisableRouterPath: false},
 			},
 		},
 		{
@@ -373,6 +383,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 				},
 				ListTargets: &ListTargetsConfig{Enabled: false},
 				Tracing:     &TracingConfig{Enabled: false},
+				Metrics:     &MetricsConfig{DisableRouterPath: false},
 			},
 		},
 	}

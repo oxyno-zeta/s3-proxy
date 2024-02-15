@@ -17,6 +17,11 @@ log:
   # Log file path
   # filePath:
 
+# Metrics configuration
+metrics:
+  # Disable router path save in HTTP metrics
+  disableRouterPath: false
+
 # Server configurations
 # server:
 #   listenAddr: ""

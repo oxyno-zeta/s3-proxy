@@ -5,6 +5,7 @@
 //
 //	mockgen -destination=./mocks/mock_ResponseHandler.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler ResponseHandler
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 

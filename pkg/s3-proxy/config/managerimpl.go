@@ -735,6 +735,11 @@ func loadBusinessDefaultValues(out *Config) error {
 		out.Tracing = &TracingConfig{Enabled: false}
 	}
 
+	// Manage default values for metrics configuration
+	if out.Metrics == nil {
+		out.Metrics = &MetricsConfig{}
+	}
+
 	return nil
 }
 

@@ -172,7 +172,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 		tracing.GetTraceIDFromRequest,
 	))
 	r.Use(log.HTTPAddLoggerToContextMiddleware())
-	r.Use(svr.metricsCl.Instrument("business"))
+	r.Use(svr.metricsCl.Instrument("business", cfg.Metrics))
 	// Recover panic
 	r.Use(middleware.Recoverer)
 
