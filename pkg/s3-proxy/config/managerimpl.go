@@ -20,9 +20,6 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-// Main configuration folder path.
-var mainConfigFolderPath = "conf/"
-
 var validate = validator.New()
 
 type managerimpl struct {
@@ -37,15 +34,15 @@ func (impl *managerimpl) AddOnChangeHook(hook func()) {
 	impl.onChangeHooks = append(impl.onChangeHooks, hook)
 }
 
-func (impl *managerimpl) Load() error {
+func (impl *managerimpl) Load(mainConfDir string) error {
 	// List files
-	files, err := os.ReadDir(mainConfigFolderPath)
+	files, err := os.ReadDir(mainConfDir)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	// Generate viper instances for static configs
-	impl.configs = generateViperInstances(files)
+	impl.configs = generateViperInstances(files, mainConfDir)
 
 	// Load configuration
 	err = impl.loadConfiguration()
@@ -191,7 +188,7 @@ func (*managerimpl) loadDefaultConfigurationValues(vip *viper.Viper) {
 	vip.SetDefault("templates.delete.status", DefaultTemplateStatusNoContent)
 }
 
-func generateViperInstances(files []os.DirEntry) []*viper.Viper {
+func generateViperInstances(files []os.DirEntry, mainConfDir string) []*viper.Viper {
 	list := make([]*viper.Viper, 0)
 	// Loop over static files to create viper instance for them
 	funk.ForEach(files, func(file os.DirEntry) {
@@ -205,7 +202,7 @@ func generateViperInstances(files []os.DirEntry) []*viper.Viper {
 			// Set config name
 			vip.SetConfigName(cfgFileName)
 			// Add configuration path
-			vip.AddConfigPath(mainConfigFolderPath)
+			vip.AddConfigPath(mainConfDir)
 			// Append it
 			list = append(list, vip)
 		}

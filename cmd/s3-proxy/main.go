@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
@@ -9,12 +12,13 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
+	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
 
 // Main package
 
-func main() {
+func startServer(mainConfDir string) {
 	// Create new logger
 	logger := log.NewLogger()
 
@@ -22,7 +26,7 @@ func main() {
 	cfgManager := config.NewManager(logger)
 
 	// Load configuration
-	err := cfgManager.Load()
+	err := cfgManager.Load(mainConfDir)
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -131,5 +135,35 @@ func main() {
 
 	if err := g.Wait(); err != nil {
 		logger.Fatal(err)
+	}
+}
+
+func main() {
+	var configFolder string
+
+	var rootCmd = &cobra.Command{
+		Use:   "s3-proxy",
+		Short: "S3 Reverse Proxy",
+		Long:  "S3 Reverse Proxy with GET, PUT and DELETE methods and authentication (OpenID Connect and Basic Auth)",
+		Run: func(_ *cobra.Command, _ []string) {
+			startServer(configFolder)
+		},
+	}
+
+	var versionCmd = &cobra.Command{
+		Use:   "version",
+		Short: "Print the version number of s3-proxy",
+		Run: func(_ *cobra.Command, _ []string) {
+			v := version.GetVersion()
+			fmt.Printf("version: %s (git commit: %s) built on %s", v.Version, v.GitCommit, v.BuildDate)
+		},
+	}
+
+	rootCmd.AddCommand(versionCmd)
+	rootCmd.PersistentFlags().StringVar(&configFolder, "config", "conf/", "Config folder (default is <Current Working Directory>/conf/)")
+
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
