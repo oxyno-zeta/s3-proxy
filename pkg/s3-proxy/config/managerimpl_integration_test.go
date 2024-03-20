@@ -1520,15 +1520,12 @@ targets:
 				defer os.Remove(k)
 			}
 
-			// Change var for main configuration file
-			mainConfigFolderPath = dir
-
 			ctx := &managerimpl{
 				logger: log.NewLogger(),
 			}
 
 			// Load config
-			err = ctx.Load()
+			err = ctx.Load(dir)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Load() error = %v, wantErr %v", err, tt.wantErr)
@@ -1601,9 +1598,6 @@ targets:
 		defer os.Remove(k)
 	}
 
-	// Change var for main configuration file
-	mainConfigFolderPath = dir
-
 	ctx := &managerimpl{
 		logger: log.NewLogger(),
 	}
@@ -1613,7 +1607,7 @@ targets:
 	})
 
 	// Load config
-	err = ctx.Load()
+	err = ctx.Load(dir)
 	assert.NoError(t, err)
 	// Get configuration
 	res := ctx.GetConfig()
@@ -1806,9 +1800,6 @@ targets:
 		defer os.Remove(k)
 	}
 
-	// Change var for main configuration file
-	mainConfigFolderPath = dir
-
 	ctx := &managerimpl{
 		logger: log.NewLogger(),
 	}
@@ -1818,7 +1809,7 @@ targets:
 	})
 
 	// Load config
-	err = ctx.Load()
+	err = ctx.Load(dir)
 	assert.NoError(t, err)
 	// Get configuration
 	res := ctx.GetConfig()
@@ -2008,9 +1999,6 @@ targets:
 		defer os.Remove(k)
 	}
 
-	// Change var for main configuration file
-	mainConfigFolderPath = dir
-
 	ctx := &managerimpl{
 		logger: log.NewLogger(),
 	}
@@ -2020,7 +2008,7 @@ targets:
 	})
 
 	// Load config
-	err = ctx.Load()
+	err = ctx.Load(dir)
 	assert.NoError(t, err)
 	// Get configuration
 	res := ctx.GetConfig()
@@ -2217,9 +2205,6 @@ targets:
 		defer os.Remove(k)
 	}
 
-	// Change var for main configuration file
-	mainConfigFolderPath = dir
-
 	ctx := &managerimpl{
 		logger: log.NewLogger(),
 	}
@@ -2229,7 +2214,7 @@ targets:
 	})
 
 	// Load config
-	err = ctx.Load()
+	err = ctx.Load(dir)
 	assert.NoError(t, err)
 	// Get configuration
 	res := ctx.GetConfig()
@@ -2451,9 +2436,6 @@ targets:
 		defer os.Remove(k)
 	}
 
-	// Change var for main configuration file
-	mainConfigFolderPath = dir
-
 	ctx := &managerimpl{
 		logger: log.NewLogger(),
 	}
@@ -2463,7 +2445,7 @@ targets:
 	})
 
 	// Load config
-	err = ctx.Load()
+	err = ctx.Load(dir)
 	assert.NoError(t, err)
 	// Get configuration
 	res := ctx.GetConfig()

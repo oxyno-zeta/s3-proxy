@@ -7,7 +7,7 @@ import "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 //go:generate mockgen -destination=./mocks/mock_Manager.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config Manager
 type Manager interface {
 	// Load configuration
-	Load() error
+	Load(mainConfDir string) error
 	// Get configuration object
 	GetConfig() *Config
 	// Add on change hook for configuration change

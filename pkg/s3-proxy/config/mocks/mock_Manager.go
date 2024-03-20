@@ -66,15 +66,15 @@ func (mr *MockManagerMockRecorder) GetConfig() *gomock.Call {
 }
 
 // Load mocks base method.
-func (m *MockManager) Load() error {
+func (m *MockManager) Load(arg0 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Load")
+	ret := m.ctrl.Call(m, "Load", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Load indicates an expected call of Load.
-func (mr *MockManagerMockRecorder) Load() *gomock.Call {
+func (mr *MockManagerMockRecorder) Load(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Load", reflect.TypeOf((*MockManager)(nil).Load))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Load", reflect.TypeOf((*MockManager)(nil).Load), arg0)
 }
