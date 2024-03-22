@@ -20,7 +20,7 @@ func validateBusinessConfig(out *Config) error {
 	for key, target := range out.Targets {
 		// Check if resources are declared
 		if target.Resources != nil {
-			for j := 0; j < len(target.Resources); j++ {
+			for j := range len(target.Resources) {
 				res := target.Resources[j]
 				// Validate resource
 				err := validateResource(fmt.Sprintf("resource %d from target %s", j, key), res, out.AuthProviders, target.Mount.Path)
@@ -32,7 +32,7 @@ func validateBusinessConfig(out *Config) error {
 		}
 		// Check mount path items
 		pathList := target.Mount.Path
-		for j := 0; j < len(pathList); j++ {
+		for j := range len(pathList) {
 			p := pathList[j]
 			// Check path value
 			err := validatePath(fmt.Sprintf("path %d in target %s", j, key), p)
@@ -78,7 +78,7 @@ func validateBusinessConfig(out *Config) error {
 		}
 		// Check mount path items
 		pathList := out.ListTargets.Mount.Path
-		for j := 0; j < len(pathList); j++ {
+		for j := range len(pathList) {
 			p := pathList[j]
 			// Check path value
 			err := validatePath(fmt.Sprintf("path %d in list targets", j), p)
@@ -202,7 +202,7 @@ func validateResource(beginErrorMessage string, res *Resource, authProviders *Au
 	// Check if resource path contains mount path item
 	pathMatch := false
 	// Loop over mount path list
-	for i := 0; i < len(mountPathList); i++ {
+	for i := range len(mountPathList) {
 		mountPath := mountPathList[i]
 		// Check
 		if strings.HasPrefix(res.Path, mountPath) {

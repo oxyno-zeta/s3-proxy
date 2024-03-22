@@ -213,7 +213,7 @@ func generateViperInstances(files []os.DirEntry, mainConfDir string) []*viper.Vi
 
 func (impl *managerimpl) loadConfiguration() error {
 	// Load must start by flushing all existing watcher on internal files
-	for i := 0; i < len(impl.internalFileWatchChannels); i++ {
+	for i := range len(impl.internalFileWatchChannels) {
 		ch := impl.internalFileWatchChannels[i]
 		// Send the force stop
 		ch <- true
@@ -315,13 +315,13 @@ func loadAllCredentials(out *Config) ([]*CredentialConfig, error) {
 	for _, item := range out.Targets {
 		// Check if resources are declared
 		if item.Resources != nil {
-			for j := 0; j < len(item.Resources); j++ {
+			for j := range len(item.Resources) {
 				// Store ressource
 				res := item.Resources[j]
 				// Check if basic auth configuration exists
 				if res.Basic != nil && res.Basic.Credentials != nil {
 					// Loop over creds
-					for k := 0; k < len(res.Basic.Credentials); k++ {
+					for k := range len(res.Basic.Credentials) {
 						it := res.Basic.Credentials[k]
 						// Load credential
 						err := loadCredential(it.Password)
@@ -412,7 +412,7 @@ func loadAllCredentials(out *Config) ([]*CredentialConfig, error) {
 	if out.ListTargets != nil && out.ListTargets.Resource != nil &&
 		out.ListTargets.Resource.Basic != nil && out.ListTargets.Resource.Basic.Credentials != nil {
 		// Loop over credentials declared
-		for i := 0; i < len(out.ListTargets.Resource.Basic.Credentials); i++ {
+		for i := range len(out.ListTargets.Resource.Basic.Credentials) {
 			// Store item access
 			it := out.ListTargets.Resource.Basic.Credentials[i]
 			// Load credential
