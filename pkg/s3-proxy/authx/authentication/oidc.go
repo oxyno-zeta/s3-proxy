@@ -147,7 +147,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 			// Create error
 			err = errors.New("failed to exchange token: " + err.Error())
 			// Answer
-			responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
+			responsehandler.GeneralUnauthorizedError(r, w, s.cfgManager, err)
 
 			return
 		}
@@ -157,7 +157,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 			// Create error
 			err = errors.New("no id_token field in token")
 			// Answer
-			responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
+			responsehandler.GeneralUnauthorizedError(r, w, s.cfgManager, err)
 
 			return
 		}
@@ -167,7 +167,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 			// Create error
 			err = errors.New("failed to verify ID Token: " + err.Error())
 			// Answer
-			responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
+			responsehandler.GeneralUnauthorizedError(r, w, s.cfgManager, err)
 
 			return
 		}
@@ -178,7 +178,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 		err = idToken.Claims(&resp)
 		if err != nil {
 			// Answer
-			responsehandler.GeneralInternalServerError(r, w, s.cfgManager, errors.WithStack(err))
+			responsehandler.GeneralUnauthorizedError(r, w, s.cfgManager, errors.WithStack(err))
 
 			return
 		}

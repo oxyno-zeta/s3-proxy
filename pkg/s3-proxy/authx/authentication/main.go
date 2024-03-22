@@ -125,9 +125,9 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 			err = errAuthenticationMiddlewareNotSupported
 			// Check if bucket request context doesn't exist to use local default files
 			if brctx == nil {
-				responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
+				responsehandler.GeneralUnauthorizedError(r, w, s.cfgManager, err)
 			} else {
-				resHan.InternalServerError(brctx.LoadFileContent, err)
+				resHan.UnauthorizedError(brctx.LoadFileContent, err)
 			}
 		})
 	}
