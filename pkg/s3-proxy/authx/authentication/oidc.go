@@ -125,13 +125,24 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 		}
 
 		// Check if rdVal exists and that redirect url value is valid
-		if rdVal != "" && !isValidRedirect(rdVal) {
-			// Create error
-			err := errors.New("redirect url is invalid")
-			// Answer
-			responsehandler.GeneralBadRequestError(r, w, s.cfgManager, err)
+		if rdVal != "" {
+			isValid, err := isValidRedirect(rdVal, utils.GetRequestURI(r))
+			// Check error
+			if err != nil {
+				// Answer
+				responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
 
-			return
+				return
+			}
+			// Check if it is invalid
+			if !isValid {
+				// Create error
+				err = errors.New("redirect url is invalid")
+				// Answer
+				responsehandler.GeneralBadRequestError(r, w, s.cfgManager, err)
+
+				return
+			}
 		}
 
 		// Create OIDC configuration
@@ -471,6 +482,30 @@ func generateOIDCConfig(
 }
 
 // IsValidRedirect checks whether the redirect URL is whitelisted.
-func isValidRedirect(redirect string) bool {
-	return strings.HasPrefix(redirect, "http://") || strings.HasPrefix(redirect, "https://")
+func isValidRedirect(redirectURLStr, reqURLStr string) (bool, error) {
+	// Check if it isn't forged with complete urls
+	if !(strings.HasPrefix(redirectURLStr, "http://") || strings.HasPrefix(redirectURLStr, "https://")) {
+		return false, nil
+	}
+
+	// Parse request URL
+	currentURL, err := url.Parse(reqURLStr)
+	// Check error
+	if err != nil {
+		return false, errors.WithStack(err)
+	}
+	// Parse redirect URL
+	redURL, err := url.Parse(redirectURLStr)
+	// Check error
+	if err != nil {
+		return false, errors.WithStack(err)
+	}
+
+	// Check if hosts aren't the same
+	if redURL.Host != currentURL.Host {
+		return false, nil
+	}
+
+	// Default
+	return true, nil
 }

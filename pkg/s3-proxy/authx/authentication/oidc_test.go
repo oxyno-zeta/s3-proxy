@@ -125,97 +125,114 @@ func Test_getJWTToken(t *testing.T) {
 
 func Test_isValidRedirect(t *testing.T) {
 	type args struct {
-		redirect string
+		redirectURLStr string
+		reqURLStr      string
 	}
 	tests := []struct {
-		name string
-		args args
-		want bool
+		name    string
+		args    args
+		want    bool
+		wantErr bool
 	}{
 		{
 			name: "empty redirect",
-			args: args{redirect: ""},
+			args: args{redirectURLStr: ""},
 			want: false,
 		},
 		{
 			name: "singleSlash",
-			args: args{redirect: "/redirect"},
+			args: args{redirectURLStr: "/redirect"},
 			want: false,
 		},
 		{
 			name: "doubleSlash",
-			args: args{redirect: "//redirect"},
+			args: args{redirectURLStr: "//redirect"},
 			want: false,
 		},
 		{
 			name: "validHTTP",
-			args: args{redirect: "http://foo.bar/redirect"},
+			args: args{redirectURLStr: "http://foo.bar/redirect", reqURLStr: "http://foo.bar/"},
 			want: true,
 		},
 		{
 			name: "validHTTPS",
-			args: args{redirect: "https://foo.bar/redirect"},
+			args: args{redirectURLStr: "https://foo.bar/redirect", reqURLStr: "http://foo.bar/"},
 			want: true,
 		},
 		{
+			name: "not same domain http",
+			args: args{redirectURLStr: "http://foo.bar/redirect", reqURLStr: "http://fake.com/"},
+			want: false,
+		},
+		{
+			name: "not same domain https",
+			args: args{redirectURLStr: "https://foo.bar/redirect", reqURLStr: "http://fake.com/"},
+			want: false,
+		},
+		{
 			name: "openRedirect1",
-			args: args{redirect: "/\\evil.com"},
+			args: args{redirectURLStr: "/\\evil.com"},
 			want: false,
 		},
 		{
 			name: "openRedirectSpace1",
-			args: args{redirect: "/ /evil.com"},
+			args: args{redirectURLStr: "/ /evil.com"},
 			want: false,
 		},
 		{
 			name: "openRedirectSpace2",
-			args: args{redirect: "/ \\evil.com"},
+			args: args{redirectURLStr: "/ \\evil.com"},
 			want: false,
 		},
 		{
 			name: "openRedirectTab1",
-			args: args{redirect: "/\t/evil.com"},
+			args: args{redirectURLStr: "/\t/evil.com"},
 			want: false,
 		},
 		{
 			name: "openRedirectTab2",
-			args: args{redirect: "/\t\\evil.com"},
+			args: args{redirectURLStr: "/\t\\evil.com"},
 			want: false,
 		},
 		{
 			name: "openRedirectVerticalTab1",
-			args: args{redirect: "/\v/evil.com"},
+			args: args{redirectURLStr: "/\v/evil.com"},
 			want: false,
 		},
 		{
 			name: "openRedirectVerticalTab2",
-			args: args{redirect: "/\v\\evil.com"},
+			args: args{redirectURLStr: "/\v\\evil.com"},
 			want: false,
 		},
 		{
 			name: "openRedirectNewLine1",
-			args: args{redirect: "/\n/evil.com"},
+			args: args{redirectURLStr: "/\n/evil.com"},
 			want: false,
 		},
 		{
 			name: "openRedirectNewLine2",
-			args: args{redirect: "/\n\\evil.com"},
+			args: args{redirectURLStr: "/\n\\evil.com"},
 			want: false,
 		},
 		{
 			name: "openRedirectCarriageReturn1",
-			args: args{redirect: "/\r/evil.com"},
+			args: args{redirectURLStr: "/\r/evil.com"},
 			want: false,
 		},
 		{
 			name: "openRedirectCarriageReturn2",
-			args: args{redirect: "/\r\\evil.com"},
+			args: args{redirectURLStr: "/\r\\evil.com"},
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := isValidRedirect(tt.args.redirect); got != tt.want {
+			got, err := isValidRedirect(tt.args.redirectURLStr, tt.args.reqURLStr)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("isValidRedirect() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
 				t.Errorf("isValidRedirect() = %v, want %v", got, tt.want)
 			}
 		})
