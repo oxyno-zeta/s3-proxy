@@ -119,12 +119,14 @@ targets:
   - name: test
     # ...
     keyRewriteList:
-      - source: ^/file.html$
-        target: /redirected/file.html
+      - source: ^/folder1/file.html$
+        target: /folder1/redirected/file.html
     bucket:
       # ...
       prefix: "/folder1"
 ```
+
+The bucket prefix is in fact added before any key rewrite list item matching.
 
 The S3 key result of this request will be : `/folder1/redirected/file.html`.
 
