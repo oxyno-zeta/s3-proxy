@@ -89,7 +89,7 @@ func (l *StructuredLoggerEntry) Write(status, bytes int, _ http.Header, elapsed 
 	l.Logger = l.Logger.WithFields(logrus.Fields{
 		"resp_status":       status,
 		"resp_bytes_length": bytes,
-		"resp_elapsed_ms":   float64(elapsed.Nanoseconds()) / 1000000.0, //nolint: gomnd // No constant for that
+		"resp_elapsed_ms":   float64(elapsed.Nanoseconds()) / 1000000.0, //nolint: mnd // No constant for that
 	})
 	logFunc := l.Logger.Infoln
 	// Check status code for warn logger

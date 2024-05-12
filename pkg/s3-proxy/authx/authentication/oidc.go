@@ -105,12 +105,12 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 		}
 
 		// Split request query state to get redirect url and original state
-		split := strings.SplitN(reqQueryState, stateRedirectSeparator, 2) //nolint: gomnd // Ignoring because create by app just before
+		split := strings.SplitN(reqQueryState, stateRedirectSeparator, 2) //nolint: mnd // Ignoring because create by app just before
 		// Prepare and affect values
 		reqState := split[0]
 		rdVal := ""
 		// Check if length is ok to include a redirect url
-		if len(split) == 2 { //nolint: gomnd // No constant for that
+		if len(split) == 2 { //nolint: mnd // No constant for that
 			rdVal = split[1]
 		}
 

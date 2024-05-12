@@ -101,7 +101,7 @@ func parseForwarded(forwarded string) (proto, host string) {
 	}
 
 	for _, forwardedPair := range strings.Split(forwarded, ";") {
-		if tv := strings.SplitN(forwardedPair, "=", 2); len(tv) == 2 { //nolint: gomnd // No constant for that
+		if tv := strings.SplitN(forwardedPair, "=", 2); len(tv) == 2 { //nolint: mnd // No constant for that
 			token, value := tv[0], tv[1]
 			token = strings.TrimSpace(token)
 			value = strings.TrimSpace(strings.Trim(value, `"`))
@@ -286,8 +286,8 @@ func getDocumentFromARN(rawURL string, opts ...GetDocumentFromURLOption) ([]byte
 	// Service and resource has already been validated here.
 	switch docARN.Service {
 	case serviceS3:
-		parts := strings.SplitN(docARN.Resource, "/", 2) //nolint:gomnd // Splitting once
-		if len(parts) != 2 {                             //nolint:gomnd // Splitting once
+		parts := strings.SplitN(docARN.Resource, "/", 2) //nolint:mnd // Splitting once
+		if len(parts) != 2 {                             //nolint:mnd // Splitting once
 			// Should not get here; covered by validateDocumentARN.
 			return nil, errors.New("missing S3 key")
 		}
@@ -552,8 +552,8 @@ func validateDocumentARN(rawURL string) (*arn.ARN, error) {
 			return nil, errors.New("invalid S3 ARN: account ID cannot be set")
 		}
 
-		parts := strings.SplitN(docARN.Resource, "/", 2) //nolint:gomnd // Splitting once
-		if len(parts) != 2 {                             //nolint:gomnd // Splitting once
+		parts := strings.SplitN(docARN.Resource, "/", 2) //nolint:mnd // Splitting once
+		if len(parts) != 2 {                             //nolint:mnd // Splitting once
 			return nil, errors.New("missing S3 key")
 		}
 
