@@ -484,6 +484,58 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
+			name: "GET a file with cache management enabled, but not found",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Cache: &config.CacheConfig{
+							Expires:       "expires",
+							CacheControl:  "must-revalidate, max-age=0",
+							Pragma:        "pragma",
+							XAccelExpires: "xaccelexpires",
+						},
+						Compress: svrCfg.Compress,
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "GET",
+			inputURL:     "http://localhost/mount/folder1/test.txt-not-existing",
+			expectedCode: 404,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /mount/folder1/test.txt-not-existing</h1>
+  </body>
+</html>`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+			},
+		},
+		{
 			name: "GET a file with cache management enabled",
 			args: args{
 				cfg: &config.Config{

@@ -157,6 +157,9 @@ func (h *handler) NotFoundError(
 	// Get configuration
 	cfg := h.cfgManager.GetConfig()
 
+	// force no-cache headers for 404 status codes
+	h.res.Header().Set("Cache-Control", "no-cache, no-store, no-transform, must-revalidate, private, max-age=0")
+
 	// Create specific error
 	err := errors.New("Not Found")
 
