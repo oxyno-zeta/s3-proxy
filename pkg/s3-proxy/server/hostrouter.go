@@ -84,5 +84,5 @@ func (hr *HostRouter) getRouterWithWildcard(host string) (chi.Router, error) {
 	}
 
 	// Default case
-	return nil, nil
+	return nil, nil //nolint:nilnil
 }
