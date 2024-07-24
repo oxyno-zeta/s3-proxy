@@ -429,6 +429,10 @@ issues:
     - linters:
         - tagliatelle
       path: pkg/.*/authx/authorization/opa-server\.go
+    - linters:
+        - tagliatelle
+        - lll
+      path: pkg/.*/config/config\.go
   # issues:
   #   # List of regexps of issue texts to exclude, empty list by default.
   #   # But independently from this option we use default exclude patterns,

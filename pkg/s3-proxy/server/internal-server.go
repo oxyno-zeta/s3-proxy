@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -122,6 +123,34 @@ func (svr *InternalServer) generateInternalRouter() http.Handler {
 	// Listen path
 	r.Handle("/metrics", svr.metricsCl.GetExposeHandler())
 	r.Handle("/health", healthHandler)
+	r.Handle("/config", configHandler(svr.cfgManager))
 
 	return r
+}
+
+func configHandler(cfgManager config.Manager) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		// Get configuration
+		cfg := cfgManager.GetConfig()
+
+		// Create output answer
+		type resp struct {
+			Config *config.Config `json:"config"`
+		}
+		// json marshal
+		bb, err := json.Marshal(&resp{Config: cfg})
+		// Check error
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(err.Error()))
+
+			// Stop
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Add("Content-Type", "application/json")
+
+		_, _ = w.Write(bb)
+	})
 }

@@ -143,383 +143,383 @@ const oidcCallbackPathTemplate = "/auth/%s/callback"
 
 // Config Application Configuration.
 type Config struct {
-	Log            *LogConfig               `mapstructure:"log"`
-	Tracing        *TracingConfig           `mapstructure:"tracing"`
-	Metrics        *MetricsConfig           `mapstructure:"metrics"`
-	Server         *ServerConfig            `mapstructure:"server"`
-	InternalServer *ServerConfig            `mapstructure:"internalServer"`
-	Targets        map[string]*TargetConfig `mapstructure:"targets"`
-	Templates      *TemplateConfig          `mapstructure:"templates"`
-	AuthProviders  *AuthProviderConfig      `mapstructure:"authProviders"`
-	ListTargets    *ListTargetsConfig       `mapstructure:"listTargets"`
+	Log            *LogConfig               `json:"log"            mapstructure:"log"`
+	Tracing        *TracingConfig           `json:"tracing"        mapstructure:"tracing"`
+	Metrics        *MetricsConfig           `json:"metrics"        mapstructure:"metrics"`
+	Server         *ServerConfig            `json:"server"         mapstructure:"server"`
+	InternalServer *ServerConfig            `json:"internalServer" mapstructure:"internalServer"`
+	Targets        map[string]*TargetConfig `json:"targets"        mapstructure:"targets"`
+	Templates      *TemplateConfig          `json:"templates"      mapstructure:"templates"`
+	AuthProviders  *AuthProviderConfig      `json:"authProviders"  mapstructure:"authProviders"`
+	ListTargets    *ListTargetsConfig       `json:"listTargets"    mapstructure:"listTargets"`
 }
 
 // MetricsConfig represents the metrics configuration structure.
 type MetricsConfig struct {
-	DisableRouterPath bool `mapstructure:"disableRouterPath"`
+	DisableRouterPath bool `json:"disableRouterPath" mapstructure:"disableRouterPath"`
 }
 
 // TracingConfig represents the Tracing configuration structure.
 type TracingConfig struct {
-	FixedTags     map[string]interface{} `mapstructure:"fixedTags"`
-	FlushInterval string                 `mapstructure:"flushInterval"`
-	UDPHost       string                 `mapstructure:"udpHost"`
-	QueueSize     int                    `mapstructure:"queueSize"`
-	Enabled       bool                   `mapstructure:"enabled"`
-	LogSpan       bool                   `mapstructure:"logSpan"`
+	FixedTags     map[string]interface{} `json:"fixedTags"     mapstructure:"fixedTags"`
+	FlushInterval string                 `json:"flushInterval" mapstructure:"flushInterval"`
+	UDPHost       string                 `json:"udpHost"       mapstructure:"udpHost"`
+	QueueSize     int                    `json:"queueSize"     mapstructure:"queueSize"`
+	Enabled       bool                   `json:"enabled"       mapstructure:"enabled"`
+	LogSpan       bool                   `json:"logSpan"       mapstructure:"logSpan"`
 }
 
 // ListTargetsConfig List targets configuration.
 type ListTargetsConfig struct {
-	Mount    *MountConfig `mapstructure:"mount"    validate:"required_with=Enabled"`
-	Resource *Resource    `mapstructure:"resource" validate:"omitempty"`
-	Enabled  bool         `mapstructure:"enabled"`
+	Mount    *MountConfig `json:"mount"    mapstructure:"mount"    validate:"required_with=Enabled"`
+	Resource *Resource    `json:"resource" mapstructure:"resource" validate:"omitempty"`
+	Enabled  bool         `json:"enabled"  mapstructure:"enabled"`
 }
 
 // MountConfig Mount configuration.
 type MountConfig struct {
-	Host string   `mapstructure:"host"`
-	Path []string `mapstructure:"path" validate:"required,dive,required"`
+	Host string   `json:"host" mapstructure:"host"`
+	Path []string `json:"path" mapstructure:"path" validate:"required,dive,required"`
 }
 
 // AuthProviderConfig Authentication provider configurations.
 type AuthProviderConfig struct {
-	Basic  map[string]*BasicAuthConfig  `mapstructure:"basic"  validate:"omitempty"`
-	OIDC   map[string]*OIDCAuthConfig   `mapstructure:"oidc"   validate:"omitempty"`
-	Header map[string]*HeaderAuthConfig `mapstructure:"header" validate:"omitempty"`
+	Basic  map[string]*BasicAuthConfig  `json:"basic"  mapstructure:"basic"  validate:"omitempty"`
+	OIDC   map[string]*OIDCAuthConfig   `json:"oidc"   mapstructure:"oidc"   validate:"omitempty"`
+	Header map[string]*HeaderAuthConfig `json:"header" mapstructure:"header" validate:"omitempty"`
 }
 
 // OIDCAuthConfig OpenID Connect authentication configurations.
 type OIDCAuthConfig struct {
-	ClientSecret  *CredentialConfig `mapstructure:"clientSecret"  validate:"omitempty"`
-	GroupClaim    string            `mapstructure:"groupClaim"`
-	IssuerURL     string            `mapstructure:"issuerUrl"     validate:"required,url"`
-	RedirectURL   string            `mapstructure:"redirectUrl"   validate:"omitempty,url"`
-	State         string            `mapstructure:"state"         validate:"required"`
-	ClientID      string            `mapstructure:"clientID"      validate:"required"`
-	CookieName    string            `mapstructure:"cookieName"`
-	LoginPath     string            `mapstructure:"loginPath"`
-	CallbackPath  string            `mapstructure:"callbackPath"`
-	Scopes        []string          `mapstructure:"scopes"`
-	CookieDomains []string          `mapstructure:"cookieDomains"`
-	EmailVerified bool              `mapstructure:"emailVerified"`
-	CookieSecure  bool              `mapstructure:"cookieSecure"`
+	ClientSecret  *CredentialConfig `json:"clientSecret"  mapstructure:"clientSecret"  validate:"omitempty"`
+	GroupClaim    string            `json:"groupClaim"    mapstructure:"groupClaim"`
+	IssuerURL     string            `json:"issuerUrl"     mapstructure:"issuerUrl"     validate:"required,url"`
+	RedirectURL   string            `json:"redirectUrl"   mapstructure:"redirectUrl"   validate:"omitempty,url"`
+	State         string            `json:"state"         mapstructure:"state"         validate:"required"`
+	ClientID      string            `json:"clientID"      mapstructure:"clientID"      validate:"required"`
+	CookieName    string            `json:"cookieName"    mapstructure:"cookieName"`
+	LoginPath     string            `json:"loginPath"     mapstructure:"loginPath"`
+	CallbackPath  string            `json:"callbackPath"  mapstructure:"callbackPath"`
+	Scopes        []string          `json:"scopes"        mapstructure:"scopes"`
+	CookieDomains []string          `json:"cookieDomains" mapstructure:"cookieDomains"`
+	EmailVerified bool              `json:"emailVerified" mapstructure:"emailVerified"`
+	CookieSecure  bool              `json:"cookieSecure"  mapstructure:"cookieSecure"`
 }
 
 // HeaderOIDCAuthorizationAccess OpenID Connect or Header authorization accesses.
 type HeaderOIDCAuthorizationAccess struct {
-	GroupRegexp *regexp.Regexp
-	EmailRegexp *regexp.Regexp
-	Group       string `mapstructure:"group"  validate:"required_without=Email"`
-	Email       string `mapstructure:"email"  validate:"required_without=Group"`
-	Regexp      bool   `mapstructure:"regexp"`
+	GroupRegexp *regexp.Regexp `json:"-"`
+	EmailRegexp *regexp.Regexp `json:"-"`
+	Group       string         `json:"group"  mapstructure:"group"  validate:"required_without=Email"`
+	Email       string         `json:"email"  mapstructure:"email"  validate:"required_without=Group"`
+	Regexp      bool           `json:"regexp" mapstructure:"regexp"`
 }
 
 // BasicAuthConfig Basic auth configurations.
 type BasicAuthConfig struct {
-	Realm string `mapstructure:"realm" validate:"required"`
+	Realm string `json:"realm" mapstructure:"realm" validate:"required"`
 }
 
 // HeaderAuthConfig Header auth configuration.
 type HeaderAuthConfig struct {
-	UsernameHeader string `mapstructure:"usernameHeader" validate:"required"`
-	EmailHeader    string `mapstructure:"emailHeader"    validate:"required"`
-	GroupsHeader   string `mapstructure:"groupsHeader"`
+	UsernameHeader string `json:"usernameHeader" mapstructure:"usernameHeader" validate:"required"`
+	EmailHeader    string `json:"emailHeader"    mapstructure:"emailHeader"    validate:"required"`
+	GroupsHeader   string `json:"groupsHeader"   mapstructure:"groupsHeader"`
 }
 
 // BasicAuthUserConfig Basic User auth configuration.
 type BasicAuthUserConfig struct {
-	Password *CredentialConfig `mapstructure:"password" validate:"required"`
-	User     string            `mapstructure:"user"     validate:"required"`
+	Password *CredentialConfig `json:"password" mapstructure:"password" validate:"required"`
+	User     string            `json:"user"     mapstructure:"user"     validate:"required"`
 }
 
 // TemplateConfigItem Template configuration item.
 type TemplateConfigItem struct {
-	Path    string            `mapstructure:"path"    validate:"required"`
-	Headers map[string]string `mapstructure:"headers"`
-	Status  string            `mapstructure:"status"`
+	Path    string            `json:"path"    mapstructure:"path"    validate:"required"`
+	Headers map[string]string `json:"headers" mapstructure:"headers"`
+	Status  string            `json:"status"  mapstructure:"status"`
 }
 
 // TemplateConfig Templates configuration.
 type TemplateConfig struct {
-	FolderList          *TemplateConfigItem `mapstructure:"folderList"          validate:"required"`
-	TargetList          *TemplateConfigItem `mapstructure:"targetList"          validate:"required"`
-	NotFoundError       *TemplateConfigItem `mapstructure:"notFoundError"       validate:"required"`
-	InternalServerError *TemplateConfigItem `mapstructure:"internalServerError" validate:"required"`
-	UnauthorizedError   *TemplateConfigItem `mapstructure:"unauthorizedError"   validate:"required"`
-	ForbiddenError      *TemplateConfigItem `mapstructure:"forbiddenError"      validate:"required"`
-	BadRequestError     *TemplateConfigItem `mapstructure:"badRequestError"     validate:"required"`
-	Put                 *TemplateConfigItem `mapstructure:"put"                 validate:"required"`
-	Delete              *TemplateConfigItem `mapstructure:"delete"              validate:"required"`
-	Helpers             []string            `mapstructure:"helpers"             validate:"required,min=1,dive,required"`
+	FolderList          *TemplateConfigItem `json:"folderList"          mapstructure:"folderList"          validate:"required"`
+	TargetList          *TemplateConfigItem `json:"targetList"          mapstructure:"targetList"          validate:"required"`
+	NotFoundError       *TemplateConfigItem `json:"notFoundError"       mapstructure:"notFoundError"       validate:"required"`
+	InternalServerError *TemplateConfigItem `json:"internalServerError" mapstructure:"internalServerError" validate:"required"`
+	UnauthorizedError   *TemplateConfigItem `json:"unauthorizedError"   mapstructure:"unauthorizedError"   validate:"required"`
+	ForbiddenError      *TemplateConfigItem `json:"forbiddenError"      mapstructure:"forbiddenError"      validate:"required"`
+	BadRequestError     *TemplateConfigItem `json:"badRequestError"     mapstructure:"badRequestError"     validate:"required"`
+	Put                 *TemplateConfigItem `json:"put"                 mapstructure:"put"                 validate:"required"`
+	Delete              *TemplateConfigItem `json:"delete"              mapstructure:"delete"              validate:"required"`
+	Helpers             []string            `json:"helpers"             mapstructure:"helpers"             validate:"required,min=1,dive,required"`
 }
 
 // ServerConfig Server configuration.
 type ServerConfig struct {
-	Timeouts   *ServerTimeoutsConfig `mapstructure:"timeouts"   validate:"required"`
-	CORS       *ServerCorsConfig     `mapstructure:"cors"       validate:"omitempty"`
-	Cache      *CacheConfig          `mapstructure:"cache"      validate:"omitempty"`
-	Compress   *ServerCompressConfig `mapstructure:"compress"   validate:"omitempty"`
-	SSL        *ServerSSLConfig      `mapstructure:"ssl"        validate:"omitempty"`
-	ListenAddr string                `mapstructure:"listenAddr"`
-	Port       int                   `mapstructure:"port"       validate:"required"`
+	Timeouts   *ServerTimeoutsConfig `json:"timeouts"   mapstructure:"timeouts"   validate:"required"`
+	CORS       *ServerCorsConfig     `json:"cors"       mapstructure:"cors"       validate:"omitempty"`
+	Cache      *CacheConfig          `json:"cache"      mapstructure:"cache"      validate:"omitempty"`
+	Compress   *ServerCompressConfig `json:"compress"   mapstructure:"compress"   validate:"omitempty"`
+	SSL        *ServerSSLConfig      `json:"ssl"        mapstructure:"ssl"        validate:"omitempty"`
+	ListenAddr string                `json:"listenAddr" mapstructure:"listenAddr"`
+	Port       int                   `json:"port"       mapstructure:"port"       validate:"required"`
 }
 
 // ServerTimeoutsConfig Server timeouts configuration.
 type ServerTimeoutsConfig struct {
-	ReadTimeout       string `mapstructure:"readTimeout"`
-	ReadHeaderTimeout string `mapstructure:"readHeaderTimeout"`
-	WriteTimeout      string `mapstructure:"writeTimeout"`
-	IdleTimeout       string `mapstructure:"idleTimeout"`
+	ReadTimeout       string `json:"readTimeout"       mapstructure:"readTimeout"`
+	ReadHeaderTimeout string `json:"readHeaderTimeout" mapstructure:"readHeaderTimeout"`
+	WriteTimeout      string `json:"writeTimeout"      mapstructure:"writeTimeout"`
+	IdleTimeout       string `json:"idleTimeout"       mapstructure:"idleTimeout"`
 }
 
 // ServerCompressConfig Server compress configuration.
 type ServerCompressConfig struct {
-	Enabled *bool    `mapstructure:"enabled"`
-	Types   []string `mapstructure:"types"   validate:"required,min=1"`
-	Level   int      `mapstructure:"level"   validate:"required,min=1"`
+	Enabled *bool    `json:"enabled" mapstructure:"enabled"`
+	Types   []string `json:"types"   mapstructure:"types"   validate:"required,min=1"`
+	Level   int      `json:"level"   mapstructure:"level"   validate:"required,min=1"`
 }
 
 // ServerSSLConfig Server SSL configuration.
 type ServerSSLConfig struct {
-	MinTLSVersion       *string                 `mapstructure:"minTLSVersion"`
-	MaxTLSVersion       *string                 `mapstructure:"maxTLSVersion"`
-	Certificates        []*ServerSSLCertificate `mapstructure:"certificates"`
-	SelfSignedHostnames []string                `mapstructure:"selfSignedHostnames"`
-	CipherSuites        []string                `mapstructure:"cipherSuites"`
-	Enabled             bool                    `mapstructure:"enabled"`
+	MinTLSVersion       *string                 `json:"minTLSVersion"       mapstructure:"minTLSVersion"`
+	MaxTLSVersion       *string                 `json:"maxTLSVersion"       mapstructure:"maxTLSVersion"`
+	Certificates        []*ServerSSLCertificate `json:"certificates"        mapstructure:"certificates"`
+	SelfSignedHostnames []string                `json:"selfSignedHostnames" mapstructure:"selfSignedHostnames"`
+	CipherSuites        []string                `json:"cipherSuites"        mapstructure:"cipherSuites"`
+	Enabled             bool                    `json:"enabled"             mapstructure:"enabled"`
 }
 
 // ServerSSLCertificate Server SSL certificate.
 type ServerSSLCertificate struct {
-	Certificate          *string       `mapstructure:"certificate"`
-	CertificateURL       *string       `mapstructure:"certificateUrl"`
-	CertificateURLConfig *SSLURLConfig `mapstructure:"certificateUrlConfig"`
-	PrivateKey           *string       `mapstructure:"privateKey"`
-	PrivateKeyURL        *string       `mapstructure:"privateKeyUrl"`
-	PrivateKeyURLConfig  *SSLURLConfig `mapstructure:"privateKeyUrlConfig"`
+	Certificate          *string       `json:"certificate"          mapstructure:"certificate"`
+	CertificateURL       *string       `json:"certificateUrl"       mapstructure:"certificateUrl"`
+	CertificateURLConfig *SSLURLConfig `json:"certificateUrlConfig" mapstructure:"certificateUrlConfig"`
+	PrivateKey           *string       `json:"privateKey"           mapstructure:"privateKey"`
+	PrivateKeyURL        *string       `json:"privateKeyUrl"        mapstructure:"privateKeyUrl"`
+	PrivateKeyURLConfig  *SSLURLConfig `json:"privateKeyUrlConfig"  mapstructure:"privateKeyUrlConfig"`
 }
 
 // SSLURLConfig SSL certificate/private key configuration for URLs.
 type SSLURLConfig struct {
-	AWSCredentials *BucketCredentialConfig `mapstructure:"awsCredentials" validate:"omitempty"`
-	HTTPTimeout    string                  `mapstructure:"httpTimeout"`
-	AWSRegion      string                  `mapstructure:"awsRegion"`
-	AWSEndpoint    string                  `mapstructure:"awsEndpoint"`
-	AWSDisableSSL  bool                    `mapstructure:"awsDisableSSL"`
+	AWSCredentials *BucketCredentialConfig `json:"awsCredentials" mapstructure:"awsCredentials" validate:"omitempty"`
+	HTTPTimeout    string                  `json:"httpTimeout"    mapstructure:"httpTimeout"`
+	AWSRegion      string                  `json:"awsRegion"      mapstructure:"awsRegion"`
+	AWSEndpoint    string                  `json:"awsEndpoint"    mapstructure:"awsEndpoint"`
+	AWSDisableSSL  bool                    `json:"awsDisableSSL"  mapstructure:"awsDisableSSL"`
 }
 
 // CacheConfig Cache configuration.
 type CacheConfig struct {
-	Expires        string `mapstructure:"expires"`
-	CacheControl   string `mapstructure:"cacheControl"`
-	Pragma         string `mapstructure:"pragma"`
-	XAccelExpires  string `mapstructure:"xAccelExpires"`
-	NoCacheEnabled bool   `mapstructure:"noCacheEnabled"`
+	Expires        string `json:"expires"        mapstructure:"expires"`
+	CacheControl   string `json:"cacheControl"   mapstructure:"cacheControl"`
+	Pragma         string `json:"pragma"         mapstructure:"pragma"`
+	XAccelExpires  string `json:"xAccelExpires"  mapstructure:"xAccelExpires"`
+	NoCacheEnabled bool   `json:"noCacheEnabled" mapstructure:"noCacheEnabled"`
 }
 
 // ServerCorsConfig Server CORS configuration.
 type ServerCorsConfig struct {
-	MaxAge             *int     `mapstructure:"maxAge"`
-	AllowCredentials   *bool    `mapstructure:"allowCredentials"`
-	Debug              *bool    `mapstructure:"debug"`
-	OptionsPassthrough *bool    `mapstructure:"optionsPassthrough"`
-	AllowOrigins       []string `mapstructure:"allowOrigins"`
-	AllowMethods       []string `mapstructure:"allowMethods"`
-	AllowHeaders       []string `mapstructure:"allowHeaders"`
-	ExposeHeaders      []string `mapstructure:"exposeHeaders"`
-	Enabled            bool     `mapstructure:"enabled"`
-	AllowAll           bool     `mapstructure:"allowAll"`
+	MaxAge             *int     `json:"maxAge"             mapstructure:"maxAge"`
+	AllowCredentials   *bool    `json:"allowCredentials"   mapstructure:"allowCredentials"`
+	Debug              *bool    `json:"debug"              mapstructure:"debug"`
+	OptionsPassthrough *bool    `json:"optionsPassthrough" mapstructure:"optionsPassthrough"`
+	AllowOrigins       []string `json:"allowOrigins"       mapstructure:"allowOrigins"`
+	AllowMethods       []string `json:"allowMethods"       mapstructure:"allowMethods"`
+	AllowHeaders       []string `json:"allowHeaders"       mapstructure:"allowHeaders"`
+	ExposeHeaders      []string `json:"exposeHeaders"      mapstructure:"exposeHeaders"`
+	Enabled            bool     `json:"enabled"            mapstructure:"enabled"`
+	AllowAll           bool     `json:"allowAll"           mapstructure:"allowAll"`
 }
 
 // TargetConfig Bucket instance configuration.
 type TargetConfig struct {
-	Name           string                    `validate:"required"`
-	Bucket         *BucketConfig             `mapstructure:"bucket"         validate:"required"`
-	Resources      []*Resource               `mapstructure:"resources"      validate:"dive"`
-	Mount          *MountConfig              `mapstructure:"mount"          validate:"required"`
-	Actions        *ActionsConfig            `mapstructure:"actions"`
-	Templates      *TargetTemplateConfig     `mapstructure:"templates"`
-	KeyRewriteList []*TargetKeyRewriteConfig `mapstructure:"keyRewriteList"`
+	Name           string                    `json:"-"              validate:"required"`
+	Bucket         *BucketConfig             `json:"bucket"         mapstructure:"bucket"         validate:"required"`
+	Resources      []*Resource               `json:"resources"      mapstructure:"resources"      validate:"dive"`
+	Mount          *MountConfig              `json:"mount"          mapstructure:"mount"          validate:"required"`
+	Actions        *ActionsConfig            `json:"actions"        mapstructure:"actions"`
+	Templates      *TargetTemplateConfig     `json:"templates"      mapstructure:"templates"`
+	KeyRewriteList []*TargetKeyRewriteConfig `json:"keyRewriteList" mapstructure:"keyRewriteList"`
 }
 
 // TargetKeyRewriteConfig Target key rewrite configuration.
 type TargetKeyRewriteConfig struct {
-	Source      string `mapstructure:"source" validate:"required,min=1"`
-	SourceRegex *regexp.Regexp
-	Target      string `mapstructure:"target"     validate:"required,min=1"`
-	TargetType  string `mapstructure:"targetType" validate:"required,oneof=REGEX TEMPLATE"`
+	Source      string         `json:"source"     mapstructure:"source"     validate:"required,min=1"`
+	SourceRegex *regexp.Regexp `json:"-"`
+	Target      string         `json:"target"     mapstructure:"target"     validate:"required,min=1"`
+	TargetType  string         `json:"targetType" mapstructure:"targetType" validate:"required,oneof=REGEX TEMPLATE"`
 }
 
 // TargetTemplateConfig Target templates configuration to override default ones.
 type TargetTemplateConfig struct {
-	FolderList          *TargetTemplateConfigItem `mapstructure:"folderList"`
-	NotFoundError       *TargetTemplateConfigItem `mapstructure:"notFoundError"`
-	InternalServerError *TargetTemplateConfigItem `mapstructure:"internalServerError"`
-	ForbiddenError      *TargetTemplateConfigItem `mapstructure:"forbiddenError"`
-	UnauthorizedError   *TargetTemplateConfigItem `mapstructure:"unauthorizedError"`
-	BadRequestError     *TargetTemplateConfigItem `mapstructure:"badRequestError"`
-	Put                 *TargetTemplateConfigItem `mapstructure:"put"`
-	Delete              *TargetTemplateConfigItem `mapstructure:"delete"`
-	Helpers             []*TargetHelperConfigItem `mapstructure:"helpers"`
+	FolderList          *TargetTemplateConfigItem `json:"folderList"          mapstructure:"folderList"`
+	NotFoundError       *TargetTemplateConfigItem `json:"notFoundError"       mapstructure:"notFoundError"`
+	InternalServerError *TargetTemplateConfigItem `json:"internalServerError" mapstructure:"internalServerError"`
+	ForbiddenError      *TargetTemplateConfigItem `json:"forbiddenError"      mapstructure:"forbiddenError"`
+	UnauthorizedError   *TargetTemplateConfigItem `json:"unauthorizedError"   mapstructure:"unauthorizedError"`
+	BadRequestError     *TargetTemplateConfigItem `json:"badRequestError"     mapstructure:"badRequestError"`
+	Put                 *TargetTemplateConfigItem `json:"put"                 mapstructure:"put"`
+	Delete              *TargetTemplateConfigItem `json:"delete"              mapstructure:"delete"`
+	Helpers             []*TargetHelperConfigItem `json:"helpers"             mapstructure:"helpers"`
 }
 
 // TargetHelperConfigItem Target helper configuration item.
 type TargetHelperConfigItem struct {
-	Path     string `mapstructure:"path"     validate:"required,min=1"`
-	InBucket bool   `mapstructure:"inBucket"`
+	Path     string `json:"path"     mapstructure:"path"     validate:"required,min=1"`
+	InBucket bool   `json:"inBucket" mapstructure:"inBucket"`
 }
 
 // TargetTemplateConfigItem Target template configuration item.
 type TargetTemplateConfigItem struct {
-	Path     string            `mapstructure:"path"     validate:"required,min=1"`
-	Headers  map[string]string `mapstructure:"headers"`
-	Status   string            `mapstructure:"status"`
-	InBucket bool              `mapstructure:"inBucket"`
+	Path     string            `json:"path"     mapstructure:"path"     validate:"required,min=1"`
+	Headers  map[string]string `json:"headers"  mapstructure:"headers"`
+	Status   string            `json:"status"   mapstructure:"status"`
+	InBucket bool              `json:"inBucket" mapstructure:"inBucket"`
 }
 
 // ActionsConfig is dedicated to actions configuration in a target.
 type ActionsConfig struct {
-	GET    *GetActionConfig    `mapstructure:"GET"`
-	PUT    *PutActionConfig    `mapstructure:"PUT"`
-	DELETE *DeleteActionConfig `mapstructure:"DELETE"`
+	GET    *GetActionConfig    `json:"GET"    mapstructure:"GET"`
+	PUT    *PutActionConfig    `json:"PUT"    mapstructure:"PUT"`
+	DELETE *DeleteActionConfig `json:"DELETE" mapstructure:"DELETE"`
 }
 
 // DeleteActionConfig Delete action configuration.
 type DeleteActionConfig struct {
-	Config  *DeleteActionConfigConfig `mapstructure:"config"`
-	Enabled bool                      `mapstructure:"enabled"`
+	Config  *DeleteActionConfigConfig `json:"config"  mapstructure:"config"`
+	Enabled bool                      `json:"enabled" mapstructure:"enabled"`
 }
 
 // DeleteActionConfigConfig Delete action configuration object configuration.
 type DeleteActionConfigConfig struct {
-	Webhooks []*WebhookConfig `mapstructure:"webhooks" validate:"dive"`
+	Webhooks []*WebhookConfig `json:"webhooks" mapstructure:"webhooks" validate:"dive"`
 }
 
 // PutActionConfig Put action configuration.
 type PutActionConfig struct {
-	Config  *PutActionConfigConfig `mapstructure:"config"`
-	Enabled bool                   `mapstructure:"enabled"`
+	Config  *PutActionConfigConfig `json:"config"  mapstructure:"config"`
+	Enabled bool                   `json:"enabled" mapstructure:"enabled"`
 }
 
 // PutActionConfigConfig Put action configuration object configuration.
 type PutActionConfigConfig struct {
-	Metadata       map[string]string                    `mapstructure:"metadata"`
-	SystemMetadata *PutActionConfigSystemMetadataConfig `mapstructure:"systemMetadata"`
-	CannedACL      *string                              `mapstructure:"cannedACL"`
-	StorageClass   string                               `mapstructure:"storageClass"`
-	Webhooks       []*WebhookConfig                     `mapstructure:"webhooks"       validate:"dive"`
-	AllowOverride  bool                                 `mapstructure:"allowOverride"`
+	Metadata       map[string]string                    `json:"metadata"       mapstructure:"metadata"`
+	SystemMetadata *PutActionConfigSystemMetadataConfig `json:"systemMetadata" mapstructure:"systemMetadata"`
+	CannedACL      *string                              `json:"cannedACL"      mapstructure:"cannedACL"`
+	StorageClass   string                               `json:"storageClass"   mapstructure:"storageClass"`
+	Webhooks       []*WebhookConfig                     `json:"webhooks"       mapstructure:"webhooks"       validate:"dive"`
+	AllowOverride  bool                                 `json:"allowOverride"  mapstructure:"allowOverride"`
 }
 
 // PutActionConfigSystemMetadataConfig Put action configuration system metadata object configuration.
 type PutActionConfigSystemMetadataConfig struct {
-	CacheControl       string `mapstructure:"cacheControl"`
-	ContentDisposition string `mapstructure:"contentDisposition"`
-	ContentEncoding    string `mapstructure:"contentEncoding"`
-	ContentLanguage    string `mapstructure:"contentLanguage"`
-	Expires            string `mapstructure:"expires"`
+	CacheControl       string `json:"cacheControl"       mapstructure:"cacheControl"`
+	ContentDisposition string `json:"contentDisposition" mapstructure:"contentDisposition"`
+	ContentEncoding    string `json:"contentEncoding"    mapstructure:"contentEncoding"`
+	ContentLanguage    string `json:"contentLanguage"    mapstructure:"contentLanguage"`
+	Expires            string `json:"expires"            mapstructure:"expires"`
 }
 
 // GetActionConfig Get action configuration.
 type GetActionConfig struct {
-	Config  *GetActionConfigConfig `mapstructure:"config"`
-	Enabled bool                   `mapstructure:"enabled"`
+	Config  *GetActionConfigConfig `json:"config"  mapstructure:"config"`
+	Enabled bool                   `json:"enabled" mapstructure:"enabled"`
 }
 
 // GetActionConfigConfig Get action configuration object configuration.
 type GetActionConfigConfig struct {
-	StreamedFileHeaders                      map[string]string `mapstructure:"streamedFileHeaders"`
-	IndexDocument                            string            `mapstructure:"indexDocument"`
-	SignedURLExpirationString                string            `mapstructure:"signedUrlExpiration"`
-	Webhooks                                 []*WebhookConfig  `mapstructure:"webhooks"            validate:"dive"`
-	SignedURLExpiration                      time.Duration
-	RedirectWithTrailingSlashForNotFoundFile bool `mapstructure:"redirectWithTrailingSlashForNotFoundFile"`
-	RedirectToSignedURL                      bool `mapstructure:"redirectToSignedUrl"`
-	DisableListing                           bool `mapstructure:"disableListing"`
+	StreamedFileHeaders                      map[string]string `json:"streamedFileHeaders"                      mapstructure:"streamedFileHeaders"`
+	IndexDocument                            string            `json:"indexDocument"                            mapstructure:"indexDocument"`
+	SignedURLExpirationString                string            `json:"signedUrlExpiration"                      mapstructure:"signedUrlExpiration"`
+	Webhooks                                 []*WebhookConfig  `json:"webhooks"                                 mapstructure:"webhooks"                                 validate:"dive"`
+	SignedURLExpiration                      time.Duration     `json:"-"`
+	RedirectWithTrailingSlashForNotFoundFile bool              `json:"redirectWithTrailingSlashForNotFoundFile" mapstructure:"redirectWithTrailingSlashForNotFoundFile"`
+	RedirectToSignedURL                      bool              `json:"redirectToSignedUrl"                      mapstructure:"redirectToSignedUrl"`
+	DisableListing                           bool              `json:"disableListing"                           mapstructure:"disableListing"`
 }
 
 // WebhookConfig Webhook configuration.
 type WebhookConfig struct {
-	Headers         map[string]string            `mapstructure:"headers"`
-	SecretHeaders   map[string]*CredentialConfig `mapstructure:"secretHeaders"   validate:"omitempty"`
-	Method          string                       `mapstructure:"method"          validate:"required,oneof=POST PATCH PUT DELETE"`
-	URL             string                       `mapstructure:"url"             validate:"required,url"`
-	MaxWaitTime     string                       `mapstructure:"maxWaitTime"`
-	DefaultWaitTime string                       `mapstructure:"defaultWaitTime"`
-	RetryCount      int                          `mapstructure:"retryCount"      validate:"gte=0"`
+	Headers         map[string]string            `json:"headers"         mapstructure:"headers"`
+	SecretHeaders   map[string]*CredentialConfig `json:"secretHeaders"   mapstructure:"secretHeaders"   validate:"omitempty"`
+	Method          string                       `json:"method"          mapstructure:"method"          validate:"required,oneof=POST PATCH PUT DELETE"`
+	URL             string                       `json:"url"             mapstructure:"url"             validate:"required,url"`
+	MaxWaitTime     string                       `json:"maxWaitTime"     mapstructure:"maxWaitTime"`
+	DefaultWaitTime string                       `json:"defaultWaitTime" mapstructure:"defaultWaitTime"`
+	RetryCount      int                          `json:"retryCount"      mapstructure:"retryCount"      validate:"gte=0"`
 }
 
 // Resource Resource.
 type Resource struct {
-	WhiteList *bool               `mapstructure:"whiteList"`
-	Basic     *ResourceBasic      `mapstructure:"basic"     validate:"omitempty"`
-	OIDC      *ResourceHeaderOIDC `mapstructure:"oidc"      validate:"omitempty"`
-	Header    *ResourceHeaderOIDC `mapstructure:"header"    validate:"omitempty"`
-	Path      string              `mapstructure:"path"      validate:"required"`
-	Provider  string              `mapstructure:"provider"`
-	Methods   []string            `mapstructure:"methods"   validate:"required,dive,required"`
+	WhiteList *bool               `json:"whiteList" mapstructure:"whiteList"`
+	Basic     *ResourceBasic      `json:"basic"     mapstructure:"basic"     validate:"omitempty"`
+	OIDC      *ResourceHeaderOIDC `json:"oidc"      mapstructure:"oidc"      validate:"omitempty"`
+	Header    *ResourceHeaderOIDC `json:"header"    mapstructure:"header"    validate:"omitempty"`
+	Path      string              `json:"path"      mapstructure:"path"      validate:"required"`
+	Provider  string              `json:"provider"  mapstructure:"provider"`
+	Methods   []string            `json:"methods"   mapstructure:"methods"   validate:"required,dive,required"`
 }
 
 // ResourceBasic Basic auth resource.
 type ResourceBasic struct {
-	Credentials []*BasicAuthUserConfig `mapstructure:"credentials" validate:"omitempty,dive"`
+	Credentials []*BasicAuthUserConfig `json:"credentials" mapstructure:"credentials" validate:"omitempty,dive"`
 }
 
 // ResourceHeaderOIDC OIDC or Header auth Resource.
 type ResourceHeaderOIDC struct {
-	AuthorizationOPAServer *OPAServerAuthorization          `mapstructure:"authorizationOPAServer" validate:"omitempty"`
-	AuthorizationAccesses  []*HeaderOIDCAuthorizationAccess `mapstructure:"authorizationAccesses"  validate:"omitempty,dive"`
+	AuthorizationOPAServer *OPAServerAuthorization          `json:"authorizationOPAServer" mapstructure:"authorizationOPAServer" validate:"omitempty"`
+	AuthorizationAccesses  []*HeaderOIDCAuthorizationAccess `json:"authorizationAccesses"  mapstructure:"authorizationAccesses"  validate:"omitempty,dive"`
 }
 
 // OPAServerAuthorization OPA Server authorization.
 type OPAServerAuthorization struct {
-	Tags map[string]string `mapstructure:"tags"`
-	URL  string            `mapstructure:"url"  validate:"required,url"`
+	Tags map[string]string `json:"tags" mapstructure:"tags"`
+	URL  string            `json:"url"  mapstructure:"url"  validate:"required,url"`
 }
 
 // BucketConfig Bucket configuration.
 type BucketConfig struct {
-	Credentials               *BucketCredentialConfig `mapstructure:"credentials"               validate:"omitempty"`
-	RequestConfig             *BucketRequestConfig    `mapstructure:"requestConfig"             validate:"omitempty"`
-	Name                      string                  `mapstructure:"name"                      validate:"required"`
-	Prefix                    string                  `mapstructure:"prefix"`
-	Region                    string                  `mapstructure:"region"`
-	S3Endpoint                string                  `mapstructure:"s3Endpoint"`
-	S3ListMaxKeys             int64                   `mapstructure:"s3ListMaxKeys"             validate:"gt=0"`
-	S3MaxUploadParts          int                     `mapstructure:"s3MaxUploadParts"          validate:"required,gte=1"`
-	S3UploadPartSize          int64                   `mapstructure:"s3UploadPartSize"          validate:"required,gte=5"`
-	S3UploadConcurrency       int                     `mapstructure:"s3UploadConcurrency"       validate:"required,gte=1"`
-	S3UploadLeavePartsOnError bool                    `mapstructure:"s3UploadLeavePartsOnError"`
-	DisableSSL                bool                    `mapstructure:"disableSSL"`
+	Credentials               *BucketCredentialConfig `json:"credentials"               mapstructure:"credentials"               validate:"omitempty"`
+	RequestConfig             *BucketRequestConfig    `json:"requestConfig"             mapstructure:"requestConfig"             validate:"omitempty"`
+	Name                      string                  `json:"name"                      mapstructure:"name"                      validate:"required"`
+	Prefix                    string                  `json:"prefix"                    mapstructure:"prefix"`
+	Region                    string                  `json:"region"                    mapstructure:"region"`
+	S3Endpoint                string                  `json:"s3Endpoint"                mapstructure:"s3Endpoint"`
+	S3ListMaxKeys             int64                   `json:"s3ListMaxKeys"             mapstructure:"s3ListMaxKeys"             validate:"gt=0"`
+	S3MaxUploadParts          int                     `json:"s3MaxUploadParts"          mapstructure:"s3MaxUploadParts"          validate:"required,gte=1"`
+	S3UploadPartSize          int64                   `json:"s3UploadPartSize"          mapstructure:"s3UploadPartSize"          validate:"required,gte=5"`
+	S3UploadConcurrency       int                     `json:"s3UploadConcurrency"       mapstructure:"s3UploadConcurrency"       validate:"required,gte=1"`
+	S3UploadLeavePartsOnError bool                    `json:"s3UploadLeavePartsOnError" mapstructure:"s3UploadLeavePartsOnError"`
+	DisableSSL                bool                    `json:"disableSSL"                mapstructure:"disableSSL"`
 }
 
 // BucketRequestConfig Bucket request configuration.
 type BucketRequestConfig struct {
-	ListHeaders   map[string]string `mapstructure:"listHeaders"`
-	GetHeaders    map[string]string `mapstructure:"getHeaders"`
-	PutHeaders    map[string]string `mapstructure:"putHeaders"`
-	DeleteHeaders map[string]string `mapstructure:"deleteHeaders"`
+	ListHeaders   map[string]string `json:"listHeaders"   mapstructure:"listHeaders"`
+	GetHeaders    map[string]string `json:"getHeaders"    mapstructure:"getHeaders"`
+	PutHeaders    map[string]string `json:"putHeaders"    mapstructure:"putHeaders"`
+	DeleteHeaders map[string]string `json:"deleteHeaders" mapstructure:"deleteHeaders"`
 }
 
 // BucketCredentialConfig Bucket Credentials configurations.
 type BucketCredentialConfig struct {
-	AccessKey *CredentialConfig `mapstructure:"accessKey" validate:"omitempty"`
-	SecretKey *CredentialConfig `mapstructure:"secretKey" validate:"omitempty"`
+	AccessKey *CredentialConfig `json:"accessKey" mapstructure:"accessKey" validate:"omitempty"`
+	SecretKey *CredentialConfig `json:"secretKey" mapstructure:"secretKey" validate:"omitempty"`
 }
 
 // CredentialConfig Credential Configurations.
 type CredentialConfig struct {
-	Path  string `mapstructure:"path"  validate:"required_without_all=Env Value"`
-	Env   string `mapstructure:"env"   validate:"required_without_all=Path Value"`
-	Value string `mapstructure:"value" validate:"required_without_all=Path Env"`
+	Path  string `json:"path" mapstructure:"path"  validate:"required_without_all=Env Value"`
+	Env   string `json:"env"  mapstructure:"env"   validate:"required_without_all=Path Value"`
+	Value string `json:"-"    mapstructure:"value" validate:"required_without_all=Path Env"` // Ignore this key in json marshal
 }
 
 // LogConfig Log configuration.
 type LogConfig struct {
-	Level    string `mapstructure:"level"    validate:"required"`
-	Format   string `mapstructure:"format"   validate:"required"`
-	FilePath string `mapstructure:"filePath"`
+	Level    string `json:"level"    mapstructure:"level"    validate:"required"`
+	Format   string `json:"format"   mapstructure:"format"   validate:"required"`
+	FilePath string `json:"filePath" mapstructure:"filePath"`
 }
 
 // GetRootPrefix Get bucket root prefix.
