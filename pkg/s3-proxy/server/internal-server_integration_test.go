@@ -77,25 +77,17 @@ func TestInternalServer_generateInternalRouter(t *testing.T) {
 				return
 			}
 			got.ServeHTTP(w, req)
-			if tt.expectedCode != w.Code {
-				t.Errorf("Integration test on generateInternalRouter() status code = %v, expected status code %v", w.Code, tt.expectedCode)
-				return
-			}
+
+			assert.Equal(t, tt.expectedCode, w.Code)
 
 			if tt.expectedBody != "" {
 				body := w.Body.String()
-				if tt.expectedBody != body {
-					t.Errorf("Integration test on generateInternalRouter() body = \"%v\", expected body \"%v\"", body, tt.expectedBody)
-					return
-				}
+				assert.Equal(t, tt.expectedBody, body)
 			}
 
 			if tt.notExpectedBody != "" {
 				body := w.Body.String()
-				if tt.notExpectedBody == body {
-					t.Errorf("Integration test on generateInternalRouter() body = \"%v\", not expected body \"%v\"", body, tt.notExpectedBody)
-					return
-				}
+				assert.Equal(t, tt.notExpectedBody, body)
 			}
 		})
 	}
