@@ -59,10 +59,10 @@ code/build: code/clean setup/dep/install
 .PHONY: code/build-cross
 code/build-cross: code/clean setup/dep/install
 ifdef HAS_GORELEASER
-	goreleaser -p 2 --snapshot --skip-publish
+	goreleaser -p 2 --snapshot
 endif
 ifndef HAS_GORELEASER
-	curl -sL https://git.io/goreleaser | bash -s -- -p 2 --snapshot --skip-publish
+	curl -sL https://git.io/goreleaser | bash -s -- -p 2 --snapshot
 endif
 
 .PHONY: code/clean
