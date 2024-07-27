@@ -3698,6 +3698,7 @@ func TestPublicRouter(t *testing.T) {
 			cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(tt.args.cfg)
 
 			logger := log.NewLogger()
+			logger.Configure("DEBUG", "human", "")
 			// Create tracing service
 			tsvc, err := tracing.New(cfgManagerMock, logger)
 			assert.NoError(t, err)
