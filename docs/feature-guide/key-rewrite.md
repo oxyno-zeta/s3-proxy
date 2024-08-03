@@ -16,7 +16,7 @@ This can be considered as similar as symlinks in Unix.
 
 ## How this is working ?
 
-The list of key rewrite is called over all incoming keys that will be sent to S3 (S3 prefix excluded).
+The list of key rewrite is called over all incoming keys that will be sent to S3 (S3 prefix included).
 
 The first source regexp matching the key will select the target template that will be used. If nothing is matching, the incoming key will be untouched.
 
