@@ -85,6 +85,8 @@ github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGw
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
 github.com/johannesboyne/gofakes3 v0.0.0-20240217095638-c55a48f17be6 h1:W8heH5NR7dfdB4FehSFI+DxjCbVKe9fPkPqKzCPJwnM=
 github.com/johannesboyne/gofakes3 v0.0.0-20240217095638-c55a48f17be6/go.mod h1:AxgWC4DDX54O2WDoQO1Ceabtn6IbktjU/7bigor+66g=
+github.com/johannesboyne/gofakes3 v0.0.0-20240701191259-edd0227ffc37 h1:w/TiKkLc+oLH7mUCpP5DUn8+a0CjhK9yWQLKBA0Iv1w=
+github.com/johannesboyne/gofakes3 v0.0.0-20240701191259-edd0227ffc37/go.mod h1:AxgWC4DDX54O2WDoQO1Ceabtn6IbktjU/7bigor+66g=
 github.com/jung-kurt/gofpdf v1.0.3-0.20190309125859-24315acbbda5/go.mod h1:7Id9E/uU8ce6rXgefFLlgrJj/GYY22cpxn+r32jIOes=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
