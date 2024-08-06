@@ -2,7 +2,7 @@ module github.com/oxyno-zeta/s3-proxy
 
 go 1.22
 
-toolchain go1.22.0
+toolchain go1.22.6
 
 require (
 	emperror.dev/errors v0.8.1
