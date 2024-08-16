@@ -700,7 +700,7 @@ func loadBusinessDefaultValues(out *Config) error {
 	if out.AuthProviders != nil && out.AuthProviders.OIDC != nil {
 		for k, v := range out.AuthProviders.OIDC {
 			// Manage default scopes
-			if v.Scopes == nil || len(v.Scopes) == 0 {
+			if len(v.Scopes) == 0 {
 				v.Scopes = DefaultOIDCScopes
 			}
 			// Manage default group claim
