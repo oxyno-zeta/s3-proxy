@@ -2553,6 +2553,7 @@ func Test_requestContext_manageKeyRewrite(t *testing.T) {
 			ctx := context.TODO()
 			ctx = responsehandler.SetResponseHandlerInContext(ctx, resHandlerMock)
 			ctx = models.SetAuthenticatedUserInContext(ctx, tt.userMockResult)
+			ctx = log.SetLoggerInContext(ctx, log.NewLogger())
 
 			rctx := &bucketReqImpl{
 				targetCfg:      tt.fields.targetCfg,

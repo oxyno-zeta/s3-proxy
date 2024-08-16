@@ -12,6 +12,7 @@ import (
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
@@ -42,15 +43,24 @@ func (bri *bucketReqImpl) generateStartKey(requestPath string) string {
 func (bri *bucketReqImpl) manageKeyRewrite(ctx context.Context, key string) (string, error) {
 	// Check if key rewrite list exists
 	if bri.targetCfg.KeyRewriteList != nil {
+		// Get logger
+		logger := log.GetLoggerFromContext(ctx)
+
 		// Loop over key rewrite list
 		for _, kr := range bri.targetCfg.KeyRewriteList {
 			// Check if key is matching
 			if kr.SourceRegex.MatchString(key) {
+				// Debug log
+				logger.Debugf("Rewrite key : Key %s is matching the source rewrite %s", key, kr.SourceRegex.String())
+
 				// Find submatches
 				submatches := kr.SourceRegex.FindStringSubmatchIndex(key)
 
 				// Check if there isn't any submatch
 				if len(submatches) == 0 {
+					// Debug log
+					logger.Debugf("Rewrite key : Key %s have been changed to %s", key, kr.Target)
+
 					return kr.Target, nil
 				}
 
@@ -60,6 +70,10 @@ func (bri *bucketReqImpl) manageKeyRewrite(ctx context.Context, key string) (str
 					result := []byte{}
 					// Replace matches in target
 					result = kr.SourceRegex.ExpandString(result, kr.Target, key, submatches)
+
+					// Debug log
+					logger.Debugf("Rewrite key : Key %s have been changed to %s", key, string(result))
+
 					// Return result
 					return string(result), nil
 				}
@@ -112,6 +126,9 @@ func (bri *bucketReqImpl) manageKeyRewrite(ctx context.Context, key string) (str
 				str = utils.NewLineMatcherRegex.ReplaceAllString(str, "")
 				// Trim spaces
 				str = strings.TrimSpace(str)
+
+				// Debug log
+				logger.Debugf("Rewrite key : Key %s have been changed to %s", key, str)
 
 				return str, nil
 			}
