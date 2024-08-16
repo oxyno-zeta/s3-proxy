@@ -10,6 +10,34 @@ To conclude, if you want to have a **AND** accesses list (following the example 
 
 ## Examples
 
+### Empty list
+
+Example of authorization accesses configuration:
+
+```yaml
+targets:
+  target1:
+    resources:
+      - path: /*
+        provider: provider1
+        oidc:
+          authorizationAccesses: []
+     bucket:
+       ...
+```
+
+We consider those users:
+
+- Jean Dupont with `group1` and `group2` groups
+- Astérix with `group1` and `group3` groups
+- Obélix with `group3` group
+
+Accesses will be:
+
+- Jean Dupont: Authorized because list is empty
+- Astérix: Authorized because list is empty
+- Obélix: Authorized because list is empty
+
 ### Group matching
 
 Example of authorization accesses configuration:
