@@ -210,9 +210,10 @@ type OIDCAuthConfig struct {
 type HeaderOIDCAuthorizationAccess struct {
 	GroupRegexp *regexp.Regexp `json:"-"`
 	EmailRegexp *regexp.Regexp `json:"-"`
-	Group       string         `json:"group"  mapstructure:"group"  validate:"required_without=Email"`
-	Email       string         `json:"email"  mapstructure:"email"  validate:"required_without=Group"`
-	Regexp      bool           `json:"regexp" mapstructure:"regexp"`
+	Group       string         `json:"group"     mapstructure:"group"     validate:"required_without=Email"`
+	Email       string         `json:"email"     mapstructure:"email"     validate:"required_without=Group"`
+	Regexp      bool           `json:"regexp"    mapstructure:"regexp"`
+	Forbidden   bool           `json:"forbidden" mapstructure:"forbidden"`
 }
 
 // BasicAuthConfig Basic auth configurations.

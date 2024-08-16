@@ -424,11 +424,12 @@ This authentication method should be used only with a software like [Oauth2-prox
 
 ## HeaderOIDCAuthorizationAccesses
 
-| Key    | Type    | Required               | Default | Description                                    |
-| ------ | ------- | ---------------------- | ------- | ---------------------------------------------- |
-| group  | String  | Required without email | None    | Group name                                     |
-| email  | String  | Required without group | None    | Email                                          |
-| regexp | Boolean | No                     | `false` | Consider group or email as regexp for matching |
+| Key       | Type    | Required               | Default | Description                                                                                                                                                                      |
+| --------- | ------- | ---------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| group     | String  | Required without email | None    | Group name                                                                                                                                                                       |
+| email     | String  | Required without group | None    | Email                                                                                                                                                                            |
+| regexp    | Boolean | No                     | `false` | Consider group or email as regexp for matching                                                                                                                                   |
+| forbidden | Boolean | No                     | `false` | This will consider anything matching group or email as a forbidden matching (regex enabled or not). This have been done because there isn't way to do a negative match on regex. |
 
 ## ResourceBasic
 

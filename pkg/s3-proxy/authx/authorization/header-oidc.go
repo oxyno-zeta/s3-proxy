@@ -21,14 +21,14 @@ func isHeaderOIDCAuthorizedBasic(groups []string, email string, authorizationAcc
 				for _, grp := range groups {
 					// Try matching for group regexp
 					if item.GroupRegexp.MatchString(grp) {
-						return true
+						return !item.Forbidden
 					}
 				}
 			}
 
 			// Check email case
 			if item.Email != "" && item.EmailRegexp.MatchString(email) {
-				return true
+				return !item.Forbidden
 			}
 		} else {
 			// Not a regex case
@@ -36,12 +36,12 @@ func isHeaderOIDCAuthorizedBasic(groups []string, email string, authorizationAcc
 			if item.Group != "" {
 				result := funk.Contains(groups, item.Group)
 				if result {
-					return true
+					return !item.Forbidden
 				}
 			}
 			// Check email case
 			if item.Email != "" && item.Email == email {
-				return true
+				return !item.Forbidden
 			}
 		}
 	}

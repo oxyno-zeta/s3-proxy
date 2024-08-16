@@ -176,6 +176,42 @@ func Test_isHeaderOIDCAuthorizedBasic(t *testing.T) {
 			},
 			want: true,
 		},
+		{
+			name: "should be forbidden if email regexp is matching but forbidden",
+			args: args{
+				groups: make([]string, 0),
+				email:  "email@valid.test",
+				authorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{
+					{
+						Regexp:      true,
+						Email:       ".*@valid.test",
+						EmailRegexp: regexp.MustCompile(".*@valid.test"),
+						Forbidden:   true,
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "should be forbidden if email regexp is matching but forbidden but second have ok for groups",
+			args: args{
+				groups: []string{"grp1"},
+				email:  "email@valid.test",
+				authorizationAccesses: []*config.HeaderOIDCAuthorizationAccess{
+					{
+						Regexp:      true,
+						Email:       ".*@valid.test",
+						EmailRegexp: regexp.MustCompile(".*@valid.test"),
+						Forbidden:   true,
+					},
+					{
+						Regexp: true,
+						Group:  "grp1",
+					},
+				},
+			},
+			want: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
