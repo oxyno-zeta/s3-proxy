@@ -351,7 +351,6 @@ linters:
     - mnd
     - gomodguard
     - godot
-    - exportloopref
     - exhaustive
     - sqlclosecheck
     - nlreturn
@@ -385,6 +384,7 @@ linters:
     - protogetter
     - sloglint
     - testifylint
+    - copyloopvar
   disable:
     - prealloc
     - gochecknoglobals
