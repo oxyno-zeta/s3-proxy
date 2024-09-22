@@ -88,8 +88,1532 @@ func TestPublicRouter(t *testing.T) {
 		expectedS3ObjectExpires            *string
 		expectedS3ObjectStorageClass       *string
 		notExpectedBody                    string
+		expectedEmptyBody                  bool
 		wantErr                            bool
 	}{
+		{
+			name: "HEAD a not found path",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/not-found/",
+			expectedCode:      404,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "HEAD a folder without index document enabled",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/",
+			expectedCode:      200,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "HEAD a folder without index document enabled (json)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "HEAD",
+			inputURL:    "http://localhost/mount/folder1/",
+			inputHeaders: map[string]string{
+				"Accept": "application/json",
+			},
+			expectedCode: 200,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "application/json; charset=utf-8",
+			},
+			expectedEmptyBody: true,
+		},
+		{
+			name: "HEAD a folder without index document enabled and custom folder list template override",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+							Templates: &config.TargetTemplateConfig{
+								FolderList: &config.TargetTemplateConfigItem{
+									InBucket: true,
+									Path:     "templates/folder-list.tpl",
+									Headers: map[string]string{
+										"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/",
+			expectedCode:      200,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "HEAD a file with success",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/test.txt",
+			expectedCode:      200,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				// "Content-Type":  "text/plain; charset=utf-8", // Testing implementation don't support it...
+			},
+		},
+		{
+			name: "HEAD a file with success with compress enabled",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "HEAD",
+			inputURL:    "http://localhost/mount/content-type/file.txt",
+			inputHeaders: map[string]string{
+				"Accept-Encoding": "gzip",
+			},
+			expectedEmptyBody: true,
+			expectedCode:      200,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				// "Content-Type":     "text/plain; charset=utf-8", // Testing implementation don't support it...
+				// "Content-Encoding": "gzip", // Testing implementation don't support it...
+			},
+		},
+		{
+			name: "HEAD a file with success without compress enabled",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Compress: &config.ServerCompressConfig{
+							Enabled: &falseValue,
+							Level:   config.DefaultServerCompressLevel,
+							Types:   config.DefaultServerCompressTypes,
+						},
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod: "HEAD",
+			inputURL:    "http://localhost/mount/content-type/file.txt",
+			inputHeaders: map[string]string{
+				"Accept-Encoding": "gzip",
+			},
+			expectedEmptyBody: true,
+			expectedCode:      200,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				// "Content-Type":  "text/plain; charset=utf-8", // Testing implementation don't support it...
+			},
+		},
+		{
+			name: "HEAD a file with no cache enabled _no cache config_",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/test.txt",
+			expectedCode:      200,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				// "Content-Type":    "text/plain; charset=utf-8", // Testing implementation don't support it...
+				"Expires":         time.Unix(0, 0).UTC().Format(http.TimeFormat),
+				"Pragma":          "no-cache",
+				"X-Accel-Expires": "0",
+			},
+		},
+		{
+			name: "HEAD a file with no cache enabled _no cache enabled_",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Cache:    &config.CacheConfig{NoCacheEnabled: true},
+						Compress: svrCfg.Compress,
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/test.txt",
+			expectedCode:      200,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				// "Content-Type":    "text/plain; charset=utf-8", // Testing implementation don't support it...
+				"Expires":         time.Unix(0, 0).UTC().Format(http.TimeFormat),
+				"Pragma":          "no-cache",
+				"X-Accel-Expires": "0",
+			},
+		},
+		{
+			name: "HEAD a file with cache management enabled",
+			args: args{
+				cfg: &config.Config{
+					Server: &config.ServerConfig{
+						Cache: &config.CacheConfig{
+							Expires:       "expires",
+							CacheControl:  "must-revalidate, max-age=0",
+							Pragma:        "pragma",
+							XAccelExpires: "xaccelexpires",
+						},
+						Compress: svrCfg.Compress,
+					},
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/test.txt",
+			expectedCode:      200,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "must-revalidate, max-age=0",
+				// "Content-Type":    "text/plain; charset=utf-8", // Testing implementation don't support it...
+				"Expires":         "expires",
+				"Pragma":          "pragma",
+				"X-Accel-Expires": "xaccelexpires",
+			},
+		},
+		{
+			name: "HEAD a file with success (redirect to signed url enabled)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{
+									Enabled: true,
+								},
+								GET: &config.GetActionConfig{
+									Enabled: true,
+									Config: &config.GetActionConfigConfig{
+										RedirectToSignedURL: true,
+										SignedURLExpiration: time.Minute,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:  "HEAD",
+			inputURL:     "http://localhost/mount/folder1/test.txt",
+			expectedCode: 200,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+			},
+			expectedEmptyBody: true,
+		},
+		{
+			name: "HEAD a file with a not found error",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/test.txt-not-existing",
+			expectedCode:      404,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "HEAD a file with a not found error (redirect to signed url enabled)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{
+									Enabled: true,
+								},
+								GET: &config.GetActionConfig{
+									Enabled: true,
+									Config: &config.GetActionConfigConfig{
+										RedirectToSignedURL: true,
+										SignedURLExpiration: time.Minute,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/test.txt-not-existing",
+			expectedCode:      404,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+				"Location":      "",
+			},
+		},
+		{
+			name: "HEAD a file with a not found error because of not valid host",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+								Host: "test.local",
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/test.txt",
+			expectedCode:      404,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "HEAD a file with success on specific host",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+								Host: "test.local",
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://test.local/mount/folder1/test.txt",
+			expectedCode:      200,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				// "Content-Type":  "text/plain; charset=utf-8", // Testing implementation don't support it...
+			},
+		},
+		{
+			name: "HEAD a file with forbidden error in case of no resource found",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Basic: map[string]*config.BasicAuthConfig{
+							"provider1": {
+								Realm: "realm1",
+							},
+						},
+					},
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Resources: []*config.Resource{
+								{
+									Path:     "/mount/folder2/*",
+									Methods:  []string{"HEAD"},
+									Provider: "provider1",
+									Basic: &config.ResourceBasic{
+										Credentials: []*config.BasicAuthUserConfig{
+											{
+												User: "user1",
+												Password: &config.CredentialConfig{
+													Value: "pass1",
+												},
+											},
+										},
+									},
+								},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/test.txt",
+			expectedCode:      403,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "HEAD a file with forbidden error in case of no resource found because no valid http methods",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Basic: map[string]*config.BasicAuthConfig{
+							"provider1": {
+								Realm: "realm1",
+							},
+						},
+					},
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Resources: []*config.Resource{
+								{
+									Path:     "/mount/folder2/*",
+									Methods:  []string{"PUT"},
+									Provider: "provider1",
+									Basic: &config.ResourceBasic{
+										Credentials: []*config.BasicAuthUserConfig{
+											{
+												User: "user1",
+												Password: &config.CredentialConfig{
+													Value: "pass1",
+												},
+											},
+										},
+									},
+								},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/test.txt",
+			expectedCode:      403,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "HEAD a file with unauthorized error in case of no basic auth",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Basic: map[string]*config.BasicAuthConfig{
+							"provider1": {
+								Realm: "realm1",
+							},
+						},
+					},
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Resources: []*config.Resource{
+								{
+									Path:     "/mount/folder1/*",
+									Methods:  []string{"HEAD"},
+									Provider: "provider1",
+									Basic: &config.ResourceBasic{
+										Credentials: []*config.BasicAuthUserConfig{
+											{
+												User: "user1",
+												Password: &config.CredentialConfig{
+													Value: "pass1",
+												},
+											},
+										},
+									},
+								},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/test.txt",
+			expectedCode:      401,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":     "text/html; charset=utf-8",
+				"Www-Authenticate": "Basic realm=\"realm1\"",
+			},
+		},
+		{
+			name: "HEAD a file with unauthorized error in case of not found basic auth user",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Basic: map[string]*config.BasicAuthConfig{
+							"provider1": {
+								Realm: "realm1",
+							},
+						},
+					},
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Resources: []*config.Resource{
+								{
+									Path:     "/mount/folder1/*",
+									Methods:  []string{"HEAD"},
+									Provider: "provider1",
+									Basic: &config.ResourceBasic{
+										Credentials: []*config.BasicAuthUserConfig{
+											{
+												User: "user1",
+												Password: &config.CredentialConfig{
+													Value: "pass1",
+												},
+											},
+										},
+									},
+								},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:        "HEAD",
+			inputURL:           "http://localhost/mount/folder1/test.txt",
+			inputBasicUser:     "user2",
+			inputBasicPassword: "pass2",
+			expectedCode:       401,
+			expectedEmptyBody:  true,
+			expectedHeaders: map[string]string{
+				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":     "text/html; charset=utf-8",
+				"Www-Authenticate": "Basic realm=\"realm1\"",
+			},
+		},
+		{
+			name: "HEAD a file with unauthorized error in case of wrong basic auth password",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Basic: map[string]*config.BasicAuthConfig{
+							"provider1": {
+								Realm: "realm1",
+							},
+						},
+					},
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Resources: []*config.Resource{
+								{
+									Path:     "/mount/folder1/*",
+									Methods:  []string{"HEAD"},
+									Provider: "provider1",
+									Basic: &config.ResourceBasic{
+										Credentials: []*config.BasicAuthUserConfig{
+											{
+												User: "user1",
+												Password: &config.CredentialConfig{
+													Value: "pass1",
+												},
+											},
+										},
+									},
+								},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:        "HEAD",
+			inputURL:           "http://localhost/mount/folder1/test.txt",
+			inputBasicUser:     "user1",
+			inputBasicPassword: "pass2",
+			expectedCode:       401,
+			expectedEmptyBody:  true,
+			expectedHeaders: map[string]string{
+				"Cache-Control":    "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":     "text/html; charset=utf-8",
+				"Www-Authenticate": "Basic realm=\"realm1\"",
+			},
+		},
+		{
+			name: "HEAD a file with success in case of valid basic auth",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Basic: map[string]*config.BasicAuthConfig{
+							"provider1": {
+								Realm: "realm1",
+							},
+						},
+					},
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Resources: []*config.Resource{
+								{
+									Path:     "/mount/folder1/*",
+									Methods:  []string{"HEAD"},
+									Provider: "provider1",
+									Basic: &config.ResourceBasic{
+										Credentials: []*config.BasicAuthUserConfig{
+											{
+												User: "user1",
+												Password: &config.CredentialConfig{
+													Value: "pass1",
+												},
+											},
+										},
+									},
+								},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:        "HEAD",
+			inputURL:           "http://localhost/mount/folder1/test.txt",
+			inputBasicUser:     "user1",
+			inputBasicPassword: "pass1",
+			expectedCode:       200,
+			expectedEmptyBody:  true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				// "Content-Type":  "text/plain; charset=utf-8", // Testing implementation don't support it...
+			},
+		},
+		{
+			name: "HEAD a file with success in case of whitelist",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					AuthProviders: &config.AuthProviderConfig{
+						Basic: map[string]*config.BasicAuthConfig{
+							"provider1": {
+								Realm: "realm1",
+							},
+						},
+					},
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Resources: []*config.Resource{
+								{
+									Path:      "/mount/folder1/test.txt",
+									Methods:   []string{"HEAD"},
+									WhiteList: &trueValue,
+								},
+								{
+									Path:     "/mount/folder1/*",
+									Methods:  []string{"HEAD"},
+									Provider: "provider1",
+									Basic: &config.ResourceBasic{
+										Credentials: []*config.BasicAuthUserConfig{
+											{
+												User: "user1",
+												Password: &config.CredentialConfig{
+													Value: "pass1",
+												},
+											},
+										},
+									},
+								},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/test.txt",
+			expectedCode:      200,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				// "Content-Type":  "text/plain; charset=utf-8", // Testing implementation don't support it...
+			},
+		},
+		{
+			name: "HEAD a file with success with space in path",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder0/test%20with%20space%20and%20special%20(1).txt",
+			expectedCode:      200,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				// "Content-Type":  "text/plain; charset=utf-8", // Testing implementation don't support it...
+			},
+		},
+		{
+			name: "HEAD a file with success with custom headers (general helpers)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+								GET: &config.GetActionConfig{
+									Enabled: true,
+									Config: &config.GetActionConfigConfig{
+										StreamedFileHeaders: map[string]string{
+											"Fake": "{{ index .StreamFile.Metadata \"M1-Key\" }}",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder3/test.txt",
+			expectedCode:      200,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				// "Content-Type":  "text/plain; charset=utf-8", // Testing implementation don't support it...
+				"Fake": "v1",
+			},
+		},
+		{
+			name: "HEAD a file with success with custom headers (target helpers)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Templates: &config.TargetTemplateConfig{
+								Helpers: []*config.TargetHelperConfigItem{{
+									InBucket: false,
+									Path:     "../../../templates/_helpers.tpl",
+								}},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{
+									Enabled: true,
+									Config: &config.GetActionConfigConfig{
+										StreamedFileHeaders: map[string]string{
+											"Fake": "{{ index .StreamFile.Metadata \"M1-Key\" }}",
+										},
+									},
+								},
+								HEAD: &config.HeadActionConfig{Enabled: true},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder3/test.txt",
+			expectedCode:      200,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				// "Content-Type":  "text/plain; charset=utf-8", // Testing implementation don't support it...
+				"Fake": "v1",
+			},
+		},
+		{
+			name: "HEAD a folder list with another status code and another content (general templates)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates: &config.TemplateConfig{
+						Helpers:             testsDefaultHelpersTemplateConfig,
+						FolderList:          testsDefaultNotFoundErrorTemplateConfig,
+						TargetList:          testsDefaultTargetListTemplateConfig,
+						BadRequestError:     testsDefaultBadRequestErrorTemplateConfig,
+						NotFoundError:       testsDefaultNotFoundErrorTemplateConfig,
+						InternalServerError: testsDefaultInternalServerErrorTemplateConfig,
+						UnauthorizedError:   testsDefaultUnauthorizedErrorTemplateConfig,
+						ForbiddenError:      testsDefaultForbiddenErrorTemplateConfig,
+					},
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{
+									Enabled: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/",
+			expectedCode:      404,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "HEAD a folder list with another status code and another content (target override)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{
+									Enabled: true,
+								},
+							},
+							Templates: &config.TargetTemplateConfig{
+								FolderList: &config.TargetTemplateConfigItem{
+									Path: "../../../templates/not-found-error.tpl",
+									Headers: map[string]string{
+										"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+									},
+									Status: "404",
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/",
+			expectedCode:      404,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "HEAD a folder list with disable listing enabled",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{Enabled: true},
+								GET: &config.GetActionConfig{
+									Enabled: true,
+									Config:  &config.GetActionConfigConfig{DisableListing: true},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/",
+			expectedCode:      200,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "HEAD a folder list with disable listing enabled, another status code and another content (general templates)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates: &config.TemplateConfig{
+						Helpers:             testsDefaultHelpersTemplateConfig,
+						FolderList:          testsDefaultNotFoundErrorTemplateConfig,
+						TargetList:          testsDefaultTargetListTemplateConfig,
+						BadRequestError:     testsDefaultBadRequestErrorTemplateConfig,
+						NotFoundError:       testsDefaultNotFoundErrorTemplateConfig,
+						InternalServerError: testsDefaultInternalServerErrorTemplateConfig,
+						UnauthorizedError:   testsDefaultUnauthorizedErrorTemplateConfig,
+						ForbiddenError:      testsDefaultForbiddenErrorTemplateConfig,
+					},
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{
+									Enabled: true,
+								},
+								GET: &config.GetActionConfig{
+									Enabled: true,
+									Config:  &config.GetActionConfigConfig{DisableListing: true},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/",
+			expectedCode:      404,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
+			name: "HEAD a folder list with disable listing enabled, another status code and another content (target override)",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								HEAD: &config.HeadActionConfig{
+									Enabled: true,
+								},
+							},
+							Templates: &config.TargetTemplateConfig{
+								FolderList: &config.TargetTemplateConfigItem{
+									Path: "../../../templates/not-found-error.tpl",
+									Headers: map[string]string{
+										"Content-Type": "{{ template \"main.headers.contentType\" . }}",
+									},
+									Status: "404",
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:       "HEAD",
+			inputURL:          "http://localhost/mount/folder1/",
+			expectedCode:      404,
+			expectedEmptyBody: true,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
 		{
 			name: "GET a not found path",
 			args: args{
@@ -3800,6 +5324,12 @@ func TestPublicRouter(t *testing.T) {
 			if tt.notExpectedBody != "" {
 				body := w.Body.String()
 				assert.NotEqual(t, tt.notExpectedBody, body)
+			}
+
+			if tt.expectedEmptyBody {
+				body := w.Body.String()
+
+				assert.Empty(t, body)
 			}
 
 			if tt.expectedHeaders != nil {

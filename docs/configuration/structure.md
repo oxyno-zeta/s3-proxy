@@ -231,9 +231,23 @@ See more information [here](../feature-guide/key-rewrite.md).
 
 | Key    | Type                                                    | Required | Default | Description                                        |
 | ------ | ------------------------------------------------------- | -------- | ------- | -------------------------------------------------- |
+| HEAD   | [HeadActionConfiguration](#headactionconfiguration)     | No       | None    | Action configuration for HEAD requests on target   |
 | GET    | [GetActionConfiguration](#getactionconfiguration)       | No       | None    | Action configuration for GET requests on target    |
 | PUT    | [PutActionConfiguration](#putactionconfiguration)       | No       | None    | Action configuration for PUT requests on target    |
 | DELETE | [DeleteActionConfiguration](#deleteactionconfiguration) | No       | None    | Action configuration for DELETE requests on target |
+
+## HeadActionConfiguration
+
+| Key     | Type                                                              | Required | Default | Description                     |
+| ------- | ----------------------------------------------------------------- | -------- | ------- | ------------------------------- |
+| enabled | Boolean                                                           | No       | `false` | Will allow HEAD requests        |
+| config  | [HeadActionConfigConfiguration](#deleteactionconfigconfiguration) | No       | None    | Configuration for HEAD requests |
+
+## HeadActionConfigConfiguration
+
+| Key      | Type                                            | Required | Default | Description                                                          |
+| -------- | ----------------------------------------------- | -------- | ------- | -------------------------------------------------------------------- |
+| webhooks | [[WebhookConfiguration](#webhookconfiguration)] | No       | `nil`   | Webhooks configuration list to call when a HEAD request is performed |
 
 ## GetActionConfiguration
 

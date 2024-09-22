@@ -22,6 +22,8 @@ var ErrRemovalFolder = errors.New("can't remove folder")
 type Client interface {
 	// Get allow to GET what's inside a request path
 	Get(ctx context.Context, input *GetInput)
+	// Head allow to HEAD what's inside a request path
+	Head(ctx context.Context, input *GetInput)
 	// Put will put a file following input
 	Put(ctx context.Context, inp *PutInput)
 	// Delete will delete file on request path

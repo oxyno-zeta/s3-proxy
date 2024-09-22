@@ -1389,6 +1389,7 @@ func Test_requestContext_Put(t *testing.T) {
 				HeadObject(ctx, tt.s3ClientHeadObjectMockResult.input2).
 				Return(
 					tt.s3ClientHeadObjectMockResult.res,
+					nil,
 					tt.s3ClientHeadObjectMockResult.err,
 				).
 				Times(tt.s3ClientHeadObjectMockResult.times)
@@ -1630,8 +1631,10 @@ func Test_requestContext_Get(t *testing.T) {
 					Key: "/folder/index.html",
 				},
 				res: &s3client.GetOutput{
-					Body:        body,
-					ContentType: "text/html; charset=utf-8",
+					Body: body,
+					BaseFileOutput: &s3client.BaseFileOutput{
+						ContentType: "text/html; charset=utf-8",
+					},
 				},
 				res2: &s3client.ResultInfo{
 					Bucket:     "bucket",
@@ -1943,9 +1946,11 @@ func Test_requestContext_Get(t *testing.T) {
 					Key: "/folder/index.html",
 				},
 				res: &s3client.GetOutput{
-					Body:               body,
-					ContentDisposition: "disposition",
-					ContentType:        "type",
+					Body: body,
+					BaseFileOutput: &s3client.BaseFileOutput{
+						ContentDisposition: "disposition",
+						ContentType:        "type",
+					},
 				},
 				res2: &s3client.ResultInfo{
 					Bucket:     "bucket",
@@ -2111,9 +2116,11 @@ func Test_requestContext_Get(t *testing.T) {
 					Key: "/fake/fake.html",
 				},
 				res: &s3client.GetOutput{
-					Body:            body,
-					ContentType:     "type",
-					ContentEncoding: "encoding",
+					Body: body,
+					BaseFileOutput: &s3client.BaseFileOutput{
+						ContentType:     "type",
+						ContentEncoding: "encoding",
+					},
 				},
 				res2: &s3client.ResultInfo{
 					Bucket:     "bucket",
@@ -2225,6 +2232,7 @@ func Test_requestContext_Get(t *testing.T) {
 				HeadObject(ctx, tt.s3ClientHeadObjectMockResult.input2).
 				Return(
 					tt.s3ClientHeadObjectMockResult.res,
+					nil,
 					tt.s3ClientHeadObjectMockResult.err,
 				).
 				Times(tt.s3ClientHeadObjectMockResult.times)

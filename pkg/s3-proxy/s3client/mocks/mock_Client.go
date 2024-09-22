@@ -88,12 +88,13 @@ func (mr *MockClientMockRecorder) GetObjectSignedURL(arg0, arg1, arg2 any) *gomo
 }
 
 // HeadObject mocks base method.
-func (m *MockClient) HeadObject(arg0 context.Context, arg1 string) (*s3client.HeadOutput, error) {
+func (m *MockClient) HeadObject(arg0 context.Context, arg1 string) (*s3client.HeadOutput, *s3client.ResultInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HeadObject", arg0, arg1)
 	ret0, _ := ret[0].(*s3client.HeadOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(*s3client.ResultInfo)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // HeadObject indicates an expected call of HeadObject.

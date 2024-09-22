@@ -381,9 +381,21 @@ type TargetTemplateConfigItem struct {
 
 // ActionsConfig is dedicated to actions configuration in a target.
 type ActionsConfig struct {
+	HEAD   *HeadActionConfig   `json:"HEAD"   mapstructure:"HEAD"`
 	GET    *GetActionConfig    `json:"GET"    mapstructure:"GET"`
 	PUT    *PutActionConfig    `json:"PUT"    mapstructure:"PUT"`
 	DELETE *DeleteActionConfig `json:"DELETE" mapstructure:"DELETE"`
+}
+
+// HeadActionConfig Head action configuration.
+type HeadActionConfig struct {
+	Config  *HeadActionConfigConfig `json:"config"  mapstructure:"config"`
+	Enabled bool                    `json:"enabled" mapstructure:"enabled"`
+}
+
+// HeadActionConfigConfig Head action configuration object configuration.
+type HeadActionConfigConfig struct {
+	Webhooks []*WebhookConfig `json:"webhooks" mapstructure:"webhooks" validate:"dive"`
 }
 
 // DeleteActionConfig Delete action configuration.

@@ -13,10 +13,15 @@ import (
 )
 
 type handler struct {
-	req        *http.Request
-	res        http.ResponseWriter
-	cfgManager config.Manager
-	targetKey  string
+	req            *http.Request
+	res            http.ResponseWriter
+	cfgManager     config.Manager
+	targetKey      string
+	headAnswerMode bool
+}
+
+func (h *handler) EnableHeadAnswerMode() {
+	h.headAnswerMode = true
 }
 
 func (h *handler) GetRequest() *http.Request {
@@ -231,10 +236,16 @@ func (h *handler) StreamFile(
 	// Set headers from object
 	setHeadersFromObjectOutput(h.res, input)
 
-	// Copy data stream to output stream
-	_, err := io.Copy(h.res, input.Body)
+	// Check if we aren't in head answer mode
+	if !h.headAnswerMode {
+		// Copy data stream to output stream
+		_, err := io.Copy(h.res, input.Body)
 
-	return errors.WithStack(err)
+		return errors.WithStack(err)
+	}
+
+	// Default
+	return nil
 }
 
 func (h *handler) FoldersFilesList(

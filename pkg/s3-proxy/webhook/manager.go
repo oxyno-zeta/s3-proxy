@@ -27,6 +27,7 @@ type manager struct {
 
 type hooksCfgStorage struct {
 	Get    []*hookStorage
+	Head   []*hookStorage
 	Put    []*hookStorage
 	Delete []*hookStorage
 }
@@ -51,6 +52,7 @@ func (m *manager) Load() error {
 		// Create storage structure
 		entry := &hooksCfgStorage{
 			Get:    []*hookStorage{},
+			Head:   []*hookStorage{},
 			Put:    []*hookStorage{},
 			Delete: []*hookStorage{},
 		}
@@ -67,6 +69,18 @@ func (m *manager) Load() error {
 				}
 				// Store
 				entry.Get = list
+			}
+
+			// Check if HEAD action is present and have a config
+			if targetCfg.Actions.HEAD != nil && targetCfg.Actions.HEAD.Config != nil {
+				// Create list
+				list, err := m.createRestClients(targetCfg.Actions.HEAD.Config.Webhooks)
+				// Check error
+				if err != nil {
+					return err
+				}
+				// Store
+				entry.Head = list
 			}
 
 			// Check if PUT action is present and have a config
@@ -343,6 +357,73 @@ func (m *manager) manageGETHooksInternal(
 		inputMetadata,
 		outputMetadata,
 		GETAction,
+		targetKey,
+		hookClients,
+	)
+}
+
+func (m *manager) ManageHEADHooks(
+	ctx context.Context,
+	targetKey, requestPath string,
+	metadata *HeadInputMetadata,
+	s3Metadata *S3Metadata,
+) {
+	// Separate functions to test logic without routine
+	go m.manageHEADHooksInternal(ctx, targetKey, requestPath, metadata, s3Metadata)
+}
+
+func (m *manager) manageHEADHooksInternal(
+	ctx context.Context,
+	targetKey, requestPath string,
+	metadata *HeadInputMetadata,
+	s3Metadata *S3Metadata,
+) {
+	// Get logger
+	logger := log.GetLoggerFromContext(ctx)
+
+	// Get target storage
+	sto := m.storageMap[targetKey]
+
+	// Check if storage is empty
+	if sto == nil || len(sto.Head) == 0 {
+		// Stop here
+		logger.Debugf("No HEAD hook declared for target %s", targetKey)
+
+		return
+	}
+
+	// Get hooks declared
+	hookClients := sto.Head
+
+	// Create input metadata
+	inputMetadata := &HeadInputMetadataHookBody{
+		IfMatch:     metadata.IfMatch,
+		IfNoneMatch: metadata.IfNoneMatch,
+	}
+	// Manage if modified since
+	if metadata.IfModifiedSince != nil {
+		inputMetadata.IfModifiedSince = metadata.IfModifiedSince.Format(time.RFC3339)
+	}
+	// Manage if unmodified since
+	if metadata.IfUnmodifiedSince != nil {
+		inputMetadata.IfUnmodifiedSince = metadata.IfUnmodifiedSince.Format(time.RFC3339)
+	}
+
+	// Create output metadata
+	outputMetadata := &OutputMetadataHookBody{
+		Bucket:     s3Metadata.Bucket,
+		Region:     s3Metadata.Region,
+		S3Endpoint: s3Metadata.S3Endpoint,
+		Key:        s3Metadata.Key,
+	}
+
+	// Run hooks
+	m.runHooks(
+		ctx,
+		requestPath,
+		inputMetadata,
+		outputMetadata,
+		HEADAction,
 		targetKey,
 		hookClients,
 	)

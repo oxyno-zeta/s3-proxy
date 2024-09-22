@@ -2,6 +2,7 @@ package webhook
 
 const (
 	GETAction    = "GET"
+	HEADAction   = "HEAD"
 	PUTAction    = "PUT"
 	DELETEAction = "DELETE"
 )
@@ -26,6 +27,13 @@ type GetInputMetadataHookBody struct {
 	IfNoneMatch       string `json:"ifNoneMatch"`
 	IfUnmodifiedSince string `json:"ifUnmodifiedSince"`
 	Range             string `json:"range"`
+}
+
+type HeadInputMetadataHookBody struct {
+	IfModifiedSince   string `json:"ifModifiedSince"`
+	IfMatch           string `json:"ifMatch"`
+	IfNoneMatch       string `json:"ifNoneMatch"`
+	IfUnmodifiedSince string `json:"ifUnmodifiedSince"`
 }
 
 type OutputMetadataHookBody struct {

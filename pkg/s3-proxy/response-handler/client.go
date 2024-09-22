@@ -120,9 +120,10 @@ type ResponseHandler interface {
 // NewHandler will return a new response handler object.
 func NewHandler(req *http.Request, res http.ResponseWriter, cfgManager config.Manager, targetKey string) ResponseHandler {
 	return &handler{
-		req:        req,
-		res:        res,
-		cfgManager: cfgManager,
-		targetKey:  targetKey,
+		req:            req,
+		res:            res,
+		cfgManager:     cfgManager,
+		targetKey:      targetKey,
+		headAnswerMode: req.Method == http.MethodHead,
 	}
 }

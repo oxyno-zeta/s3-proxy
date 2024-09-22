@@ -28,7 +28,7 @@ type Client interface {
 	// ListFilesAndDirectories will list files and directories in S3.
 	ListFilesAndDirectories(ctx context.Context, key string) ([]*ListElementOutput, *ResultInfo, error)
 	// HeadObject will head a key.
-	HeadObject(ctx context.Context, key string) (*HeadOutput, error)
+	HeadObject(ctx context.Context, key string) (*HeadOutput, *ResultInfo, error)
 	// GetObject will get an object.
 	GetObject(ctx context.Context, input *GetInput) (*GetOutput, *ResultInfo, error)
 	// PutObject will put an object.
@@ -63,8 +63,22 @@ type ListElementOutput struct {
 	Size         int64
 }
 
+type BaseFileOutput struct {
+	LastModified       time.Time
+	Metadata           map[string]string
+	CacheControl       string
+	Expires            string
+	ContentDisposition string
+	ContentEncoding    string
+	ContentLanguage    string
+	ContentType        string
+	ETag               string
+	ContentLength      int64
+}
+
 // HeadOutput represents output of Head.
 type HeadOutput struct {
+	*BaseFileOutput
 	Type string
 	Key  string
 }
@@ -90,18 +104,9 @@ type GetInput struct {
 
 // GetOutput Object output for S3 get object.
 type GetOutput struct {
-	LastModified       time.Time
-	Body               io.ReadCloser
-	Metadata           map[string]string
-	CacheControl       string
-	Expires            string
-	ContentDisposition string
-	ContentEncoding    string
-	ContentLanguage    string
-	ContentRange       string
-	ContentType        string
-	ETag               string
-	ContentLength      int64
+	*BaseFileOutput
+	Body         io.ReadCloser
+	ContentRange string
 }
 
 // PutInput Put input object for PUT request.

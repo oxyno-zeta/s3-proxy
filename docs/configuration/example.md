@@ -358,6 +358,14 @@ targets:
     #         url: http://localhost:8181/v1/data/example/authz/allowed
     # ## Actions
     # actions:
+    #   # Action for HEAD requests on target
+    #   HEAD:
+    #     # Will allow HEAD requests
+    #     enabled: true
+    #     # Configuration for HEAD requests
+    #     config:
+    #       # Webhooks
+    #       webhooks: []
     #   # Action for GET requests on target
     #   GET:
     #     # Will allow GET requests

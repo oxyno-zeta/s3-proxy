@@ -325,7 +325,8 @@ func (s3cl *s3client) GetObject(ctx context.Context, input *GetInput) (*GetOutpu
 	}
 	// Build output
 	output := &GetOutput{
-		Body: obj.Body,
+		BaseFileOutput: &BaseFileOutput{},
+		Body:           obj.Body,
 	}
 
 	// Metadata transformation
@@ -496,7 +497,7 @@ func (s3cl *s3client) PutObject(ctx context.Context, input *PutInput) (*ResultIn
 	return info, nil
 }
 
-func (s3cl *s3client) HeadObject(ctx context.Context, key string) (*HeadOutput, error) {
+func (s3cl *s3client) HeadObject(ctx context.Context, key string) (*HeadOutput, *ResultInfo, error) {
 	// Get trace
 	parentTrace := tracing.GetTraceFromContext(ctx)
 	// Create child trace
@@ -528,7 +529,7 @@ func (s3cl *s3client) HeadObject(ctx context.Context, key string) (*HeadOutput, 
 	}
 
 	// Head object in bucket
-	_, err := s3cl.svcClient.HeadObjectWithContext(
+	obj, err := s3cl.svcClient.HeadObjectWithContext(
 		ctx,
 		&s3.HeadObjectInput{
 			Bucket: aws.String(s3cl.target.Bucket.Name),
@@ -546,23 +547,73 @@ func (s3cl *s3client) HeadObject(ctx context.Context, key string) (*HeadOutput, 
 		if ok {
 			// Issue not fixed: https://github.com/aws/aws-sdk-go/issues/1208
 			if aerr.Code() == "NotFound" {
-				return nil, ErrNotFound
+				return nil, nil, ErrNotFound
 			}
 		}
 
-		return nil, errors.WithStack(err)
+		return nil, nil, errors.WithStack(err)
 	}
 	// Generate output
 	output := &HeadOutput{
-		Type: FileType,
-		Key:  key,
+		BaseFileOutput: &BaseFileOutput{},
+		Type:           FileType,
+		Key:            key,
+	}
+
+	// Metadata transformation
+	if obj.Metadata != nil {
+		output.Metadata = aws.StringValueMap(obj.Metadata)
+	}
+
+	if obj.CacheControl != nil {
+		output.CacheControl = *obj.CacheControl
+	}
+
+	if obj.Expires != nil {
+		output.Expires = *obj.Expires
+	}
+
+	if obj.ContentDisposition != nil {
+		output.ContentDisposition = *obj.ContentDisposition
+	}
+
+	if obj.ContentEncoding != nil {
+		output.ContentEncoding = *obj.ContentEncoding
+	}
+
+	if obj.ContentLanguage != nil {
+		output.ContentLanguage = *obj.ContentLanguage
+	}
+
+	if obj.ContentLength != nil {
+		output.ContentLength = *obj.ContentLength
+	}
+
+	if obj.ContentType != nil {
+		output.ContentType = *obj.ContentType
+	}
+
+	if obj.ETag != nil {
+		output.ETag = *obj.ETag
+	}
+
+	if obj.LastModified != nil {
+		output.LastModified = *obj.LastModified
+	}
+
+	// Create info
+	info := &ResultInfo{
+		Bucket:     s3cl.target.Bucket.Name,
+		S3Endpoint: s3cl.target.Bucket.S3Endpoint,
+		Region:     s3cl.target.Bucket.Region,
+		Key:        key,
 	}
 
 	// Log
 	logger.Debugf("Head object done with success")
 
 	// Return output
-	return output, nil
+	return output, info, nil
 }
 
 func (s3cl *s3client) DeleteObject(ctx context.Context, key string) (*ResultInfo, error) {

@@ -78,6 +78,18 @@ func (mr *MockManagerMockRecorder) ManageGETHooks(arg0, arg1, arg2, arg3, arg4 a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ManageGETHooks", reflect.TypeOf((*MockManager)(nil).ManageGETHooks), arg0, arg1, arg2, arg3, arg4)
 }
 
+// ManageHEADHooks mocks base method.
+func (m *MockManager) ManageHEADHooks(arg0 context.Context, arg1, arg2 string, arg3 *webhook.HeadInputMetadata, arg4 *webhook.S3Metadata) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "ManageHEADHooks", arg0, arg1, arg2, arg3, arg4)
+}
+
+// ManageHEADHooks indicates an expected call of ManageHEADHooks.
+func (mr *MockManagerMockRecorder) ManageHEADHooks(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ManageHEADHooks", reflect.TypeOf((*MockManager)(nil).ManageHEADHooks), arg0, arg1, arg2, arg3, arg4)
+}
+
 // ManagePUTHooks mocks base method.
 func (m *MockManager) ManagePUTHooks(arg0 context.Context, arg1, arg2 string, arg3 *webhook.PutInputMetadata, arg4 *webhook.S3Metadata) {
 	m.ctrl.T.Helper()

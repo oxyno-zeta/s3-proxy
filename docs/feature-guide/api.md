@@ -11,6 +11,12 @@ There is 2 different management cases:
 
 - If path doesn't end with a slash, the backend will consider this as a file request. Example: `GET /file.pdf`
 
+## HEAD
+
+Those kind of requests is similar to `GET` ones but won't provide any result body.
+
+There are working the same way for management cases for directories (eg: `HEAD /dir1/`) or files (eg: `HEAD /file.pdf`).
+
 ## PUT
 
 This kind of requests will allow to send file in directory (so to upload a file in S3).

@@ -88,11 +88,14 @@ func (h *handler) send(bodyBuf io.WriterTo, headers map[string]string, status in
 	// Set status code
 	h.res.WriteHeader(status)
 
-	// Write to response
-	_, err := bodyBuf.WriteTo(h.res)
-	// Check if error exists
-	if err != nil {
-		return errors.WithStack(err)
+	// Check if we aren't in head answer
+	if !h.headAnswerMode {
+		// Write to response
+		_, err := bodyBuf.WriteTo(h.res)
+		// Check if error exists
+		if err != nil {
+			return errors.WithStack(err)
+		}
 	}
 
 	return nil

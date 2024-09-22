@@ -139,8 +139,17 @@ func (bri *bucketReqImpl) manageKeyRewrite(ctx context.Context, key string) (str
 	return key, nil
 }
 
-// Get proxy GET requests.
+// Proxy GET requests.
 func (bri *bucketReqImpl) Get(ctx context.Context, input *GetInput) {
+	bri.internalGetOrHead(ctx, input, false)
+}
+
+// Proxy HEAD requests.
+func (bri *bucketReqImpl) Head(ctx context.Context, input *GetInput) {
+	bri.internalGetOrHead(ctx, input, true)
+}
+
+func (bri *bucketReqImpl) internalGetOrHead(ctx context.Context, input *GetInput, isHeadReq bool) {
 	// Get response handler
 	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
@@ -157,15 +166,15 @@ func (bri *bucketReqImpl) Get(ctx context.Context, input *GetInput) {
 
 	// Check that the path ends with a / for a directory listing or the main path special case (empty path)
 	if strings.HasSuffix(input.RequestPath, "/") || input.RequestPath == "" {
-		bri.manageGetFolder(ctx, key, input)
+		bri.manageGetFolder(ctx, key, input, isHeadReq)
 		// Stop
 		return
 	}
 
-	// Get object case
+	// Get or Head object case
 
-	// Check if it is asked to redirect to signed url
-	if bri.targetCfg.Actions != nil &&
+	// Check if it is a HEAD request or if it is asked to redirect to signed url
+	if isHeadReq || bri.targetCfg.Actions != nil &&
 		bri.targetCfg.Actions.GET != nil &&
 		bri.targetCfg.Actions.GET.Config != nil &&
 		bri.targetCfg.Actions.GET.Config.RedirectToSignedURL {
@@ -173,15 +182,20 @@ func (bri *bucketReqImpl) Get(ctx context.Context, input *GetInput) {
 		s3cl := bri.s3ClientManager.
 			GetClientForTarget(bri.targetCfg.Name)
 		// Head file in bucket
-		headOutput, err2 := s3cl.HeadObject(ctx, key)
+		headOutput, hInfo, err2 := s3cl.HeadObject(ctx, key)
 		// Check if there is an error
 		if err2 != nil {
 			// Save error
 			err = err2
 		} else if headOutput != nil {
 			// File found
-			// Redirect to signed url
-			err = bri.redirectToSignedURL(ctx, key, input)
+			// Check head request
+			if isHeadReq {
+				err = bri.answerHead(ctx, input, headOutput, hInfo)
+			} else {
+				// Redirect to signed url
+				err = bri.redirectToSignedURL(ctx, key, input)
+			}
 		}
 	} else {
 		// Stream object
@@ -225,7 +239,7 @@ func (bri *bucketReqImpl) Get(ctx context.Context, input *GetInput) {
 	}
 }
 
-func (bri *bucketReqImpl) manageGetFolder(ctx context.Context, key string, input *GetInput) {
+func (bri *bucketReqImpl) manageGetFolder(ctx context.Context, key string, input *GetInput, isHeadReq bool) {
 	// Get response handler
 	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
@@ -236,7 +250,7 @@ func (bri *bucketReqImpl) manageGetFolder(ctx context.Context, key string, input
 		// Create index key path
 		indexKey := path.Join(key, bri.targetCfg.Actions.GET.Config.IndexDocument)
 		// Head index file in bucket
-		headOutput, err := bri.s3ClientManager.
+		headOutput, hInfo, err := bri.s3ClientManager.
 			GetClientForTarget(bri.targetCfg.Name).
 			HeadObject(ctx, indexKey)
 		// Check if error exists and not a not found error
@@ -248,8 +262,11 @@ func (bri *bucketReqImpl) manageGetFolder(ctx context.Context, key string, input
 		}
 		// Check that we found the file
 		if headOutput != nil {
-			// Check if it is asked to redirect to signed url
-			if bri.targetCfg.Actions.GET.Config.RedirectToSignedURL {
+			// Check if it is head request
+			if isHeadReq { //nolint:gocritic // Ignore this
+				// Answer with head
+				err = bri.answerHead(ctx, input, headOutput, hInfo)
+			} else if bri.targetCfg.Actions.GET.Config.RedirectToSignedURL { // Check if it is asked to redirect to signed url
 				// Redirect to signed url
 				err = bri.redirectToSignedURL(ctx, indexKey, input)
 			} else {
@@ -311,25 +328,46 @@ func (bri *bucketReqImpl) manageGetFolder(ctx context.Context, key string, input
 		return
 	}
 
-	// Send hook
-	bri.webhookManager.ManageGETHooks(
-		ctx,
-		bri.targetCfg.Name,
-		input.RequestPath,
-		&webhook.GetInputMetadata{
-			IfModifiedSince:   input.IfModifiedSince,
-			IfMatch:           input.IfMatch,
-			IfNoneMatch:       input.IfNoneMatch,
-			IfUnmodifiedSince: input.IfUnmodifiedSince,
-			Range:             input.Range,
-		},
-		&webhook.S3Metadata{
-			Bucket:     info.Bucket,
-			Region:     info.Region,
-			S3Endpoint: info.S3Endpoint,
-			Key:        info.Key,
-		},
-	)
+	if isHeadReq {
+		// Send hook
+		bri.webhookManager.ManageHEADHooks(
+			ctx,
+			bri.targetCfg.Name,
+			input.RequestPath,
+			&webhook.HeadInputMetadata{
+				IfModifiedSince:   input.IfModifiedSince,
+				IfMatch:           input.IfMatch,
+				IfNoneMatch:       input.IfNoneMatch,
+				IfUnmodifiedSince: input.IfUnmodifiedSince,
+			},
+			&webhook.S3Metadata{
+				Bucket:     info.Bucket,
+				Region:     info.Region,
+				S3Endpoint: info.S3Endpoint,
+				Key:        info.Key,
+			},
+		)
+	} else {
+		// Send hook
+		bri.webhookManager.ManageGETHooks(
+			ctx,
+			bri.targetCfg.Name,
+			input.RequestPath,
+			&webhook.GetInputMetadata{
+				IfModifiedSince:   input.IfModifiedSince,
+				IfMatch:           input.IfMatch,
+				IfNoneMatch:       input.IfNoneMatch,
+				IfUnmodifiedSince: input.IfUnmodifiedSince,
+				Range:             input.Range,
+			},
+			&webhook.S3Metadata{
+				Bucket:     info.Bucket,
+				Region:     info.Region,
+				S3Endpoint: info.S3Endpoint,
+				Key:        info.Key,
+			},
+		)
+	}
 
 	// Transform entries in entry with path objects
 	bucketRootPrefixKey := bri.targetCfg.Bucket.GetRootPrefix()
@@ -513,7 +551,7 @@ func (bri *bucketReqImpl) Put(ctx context.Context, inp *PutInput) {
 		// Check if allow override is enabled
 		if !bri.targetCfg.Actions.PUT.Config.AllowOverride {
 			// Need to check if file already exists
-			headOutput, err2 := bri.s3ClientManager.
+			headOutput, _, err2 := bri.s3ClientManager.
 				GetClientForTarget(bri.targetCfg.Name).
 				HeadObject(ctx, key)
 			// Check if error is not found if exists
@@ -738,6 +776,52 @@ func (bri *bucketReqImpl) redirectToSignedURL(ctx context.Context, key string, i
 	resHan.RedirectTo(url)
 
 	return nil
+}
+
+func (bri *bucketReqImpl) answerHead(
+	ctx context.Context,
+	input *GetInput,
+	hOutput *s3client.HeadOutput,
+	info *s3client.ResultInfo,
+) error {
+	// Get response handler from context
+	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
+
+	// Send hook
+	bri.webhookManager.ManageHEADHooks(
+		ctx,
+		bri.targetCfg.Name,
+		input.RequestPath,
+		&webhook.HeadInputMetadata{
+			IfModifiedSince:   input.IfModifiedSince,
+			IfMatch:           input.IfMatch,
+			IfNoneMatch:       input.IfNoneMatch,
+			IfUnmodifiedSince: input.IfUnmodifiedSince,
+		},
+		&webhook.S3Metadata{
+			Bucket:     info.Bucket,
+			Region:     info.Region,
+			S3Endpoint: info.S3Endpoint,
+			Key:        info.Key,
+		},
+	)
+
+	// Transform input
+	inp := &responsehandler.StreamInput{
+		CacheControl:       hOutput.CacheControl,
+		Expires:            hOutput.Expires,
+		ContentDisposition: hOutput.ContentDisposition,
+		ContentEncoding:    hOutput.ContentEncoding,
+		ContentLanguage:    hOutput.ContentLanguage,
+		ContentLength:      hOutput.ContentLength,
+		ContentType:        hOutput.ContentType,
+		ETag:               hOutput.ETag,
+		LastModified:       hOutput.LastModified,
+		Metadata:           hOutput.Metadata,
+	}
+
+	// Stream
+	return resHan.StreamFile(bri.LoadFileContent, inp)
 }
 
 func (bri *bucketReqImpl) streamFileForResponse(ctx context.Context, key string, input *GetInput) error {

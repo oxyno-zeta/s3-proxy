@@ -64,6 +64,18 @@ func (mr *MockClientMockRecorder) Get(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), arg0, arg1)
 }
 
+// Head mocks base method.
+func (m *MockClient) Head(arg0 context.Context, arg1 *bucket.GetInput) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Head", arg0, arg1)
+}
+
+// Head indicates an expected call of Head.
+func (mr *MockClientMockRecorder) Head(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Head", reflect.TypeOf((*MockClient)(nil).Head), arg0, arg1)
+}
+
 // LoadFileContent mocks base method.
 func (m *MockClient) LoadFileContent(arg0 context.Context, arg1 string) (string, error) {
 	m.ctrl.T.Helper()

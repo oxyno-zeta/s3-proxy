@@ -406,6 +406,7 @@ func TestInternalServer_config_endpoint(t *testing.T) {
         "mount": { "host": "", "path": ["/test/"] },
         "actions": {
           "GET": { "config": null, "enabled": true },
+          "HEAD": null,
           "PUT": null,
           "DELETE": null
         },

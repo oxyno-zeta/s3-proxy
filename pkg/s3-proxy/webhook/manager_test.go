@@ -2390,3 +2390,711 @@ func Test_manager_manageGETHooksInternal(t *testing.T) {
 		})
 	}
 }
+
+func Test_manager_manageHEADHooksInternal(t *testing.T) {
+	type responseMock struct {
+		statusCode int
+		body       string
+	}
+	type requestResult struct {
+		method  string
+		body    string
+		headers map[string]string
+	}
+	type args struct {
+		targetKey   string
+		requestPath string
+		metadata    *HeadInputMetadata
+		s3Metadata  *S3Metadata
+	}
+	type metricsIncXWebhooksMockResult struct {
+		input1 string
+		input2 string
+		times  int
+	}
+	tests := []struct {
+		name                                string
+		args                                args
+		cfg                                 *config.Config
+		injectMockServers                   bool
+		metricsIncFailedWebhooksMockResult  metricsIncXWebhooksMockResult
+		metricsIncSucceedWebhooksMockResult metricsIncXWebhooksMockResult
+		responseMockList                    []responseMock
+		requestResult                       []requestResult
+	}{
+		{
+			name: "no storage for target",
+			cfg:  &config.Config{},
+			args: args{targetKey: "tgt1"},
+		},
+		{
+			name: "empty storage for target",
+			cfg: &config.Config{
+				Targets: map[string]*config.TargetConfig{
+					"tgt1": {},
+				},
+			},
+			args: args{targetKey: "tgt1"},
+		},
+		{
+			name: "should fail to call url",
+			cfg: &config.Config{
+				Targets: map[string]*config.TargetConfig{
+					"tgt1": {
+						Actions: &config.ActionsConfig{
+							HEAD: &config.HeadActionConfig{
+								Config: &config.HeadActionConfigConfig{
+									Webhooks: []*config.WebhookConfig{
+										{
+											Method: "POST",
+											URL:    "http://not-an-url",
+											SecretHeaders: map[string]*config.CredentialConfig{
+												"authorization": {
+													Value: "secret",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			args: args{
+				targetKey:   "tgt1",
+				requestPath: "/fake",
+				s3Metadata: &S3Metadata{
+					Bucket:     "bucket",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+					Key:        "key",
+				},
+				metadata: &HeadInputMetadata{
+					IfMatch:     "ifmatch",
+					IfNoneMatch: "ifnonematch",
+				},
+			},
+			injectMockServers: false,
+			metricsIncFailedWebhooksMockResult: metricsIncXWebhooksMockResult{
+				input1: "tgt1",
+				input2: "HEAD",
+				times:  1,
+			},
+		},
+		{
+			name: "should fail when bad request is present",
+			cfg: &config.Config{
+				Targets: map[string]*config.TargetConfig{
+					"tgt1": {
+						Actions: &config.ActionsConfig{
+							HEAD: &config.HeadActionConfig{
+								Config: &config.HeadActionConfigConfig{
+									Webhooks: []*config.WebhookConfig{
+										{
+											Method: "POST",
+											SecretHeaders: map[string]*config.CredentialConfig{
+												"authorization": {
+													Value: "secret",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			args: args{
+				targetKey:   "tgt1",
+				requestPath: "/fake",
+				s3Metadata: &S3Metadata{
+					Bucket:     "bucket",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+					Key:        "key",
+				},
+				metadata: &HeadInputMetadata{
+					IfMatch:     "ifmatch",
+					IfNoneMatch: "ifnonematch",
+				},
+			},
+			injectMockServers: true,
+			metricsIncFailedWebhooksMockResult: metricsIncXWebhooksMockResult{
+				input1: "tgt1",
+				input2: "HEAD",
+				times:  1,
+			},
+			responseMockList: []responseMock{
+				{
+					body:       `{"error":true}`,
+					statusCode: 400,
+				},
+			},
+			requestResult: []requestResult{
+				{
+					method: "POST",
+					body: `
+				{
+					"action":"HEAD",
+					"requestPath":"/fake",
+					"outputMetadata":{
+						"bucket":"bucket",
+						"region":"region",
+						"s3Endpoint":"s3endpoint",
+						"key":"key"
+					},
+					"inputMetadata":{
+						"ifMatch":"ifmatch",
+						"ifModifiedSince":"",
+						"ifNoneMatch":"ifnonematch",
+						"ifUnmodifiedSince":""
+					},
+					"target": {"name":"tgt1"}
+				}
+									`,
+					headers: map[string]string{
+						"Authorization": "secret",
+						"Content-Type":  "application/json",
+					},
+				},
+			},
+		},
+		{
+			name: "should fail when internal server is present",
+			cfg: &config.Config{
+				Targets: map[string]*config.TargetConfig{
+					"tgt1": {
+						Actions: &config.ActionsConfig{
+							HEAD: &config.HeadActionConfig{
+								Config: &config.HeadActionConfigConfig{
+									Webhooks: []*config.WebhookConfig{
+										{
+											Method: "POST",
+											SecretHeaders: map[string]*config.CredentialConfig{
+												"authorization": {
+													Value: "secret",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			args: args{
+				targetKey:   "tgt1",
+				requestPath: "/fake",
+				s3Metadata: &S3Metadata{
+					Bucket:     "bucket",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+					Key:        "key",
+				},
+				metadata: &HeadInputMetadata{
+					IfMatch:     "ifmatch",
+					IfNoneMatch: "ifnonematch",
+				},
+			},
+			injectMockServers: true,
+			metricsIncFailedWebhooksMockResult: metricsIncXWebhooksMockResult{
+				input1: "tgt1",
+				input2: "HEAD",
+				times:  1,
+			},
+			responseMockList: []responseMock{
+				{
+					body:       `{"error":true}`,
+					statusCode: 500,
+				},
+			},
+			requestResult: []requestResult{
+				{
+					method: "POST",
+					body: `
+				{
+					"action":"HEAD",
+					"requestPath":"/fake",
+					"outputMetadata":{
+						"bucket":"bucket",
+						"region":"region",
+						"s3Endpoint":"s3endpoint",
+						"key":"key"
+					},
+					"inputMetadata":{
+						"ifMatch":"ifmatch",
+						"ifModifiedSince":"",
+						"ifNoneMatch":"ifnonematch",
+						"ifUnmodifiedSince":""
+					},
+					"target": {"name":"tgt1"}
+				}
+									`,
+					headers: map[string]string{
+						"Authorization": "secret",
+						"Content-Type":  "application/json",
+					},
+				},
+			},
+		},
+		{
+			name: "should fail when internal server and a method not allowed error are present",
+			cfg: &config.Config{
+				Targets: map[string]*config.TargetConfig{
+					"tgt1": {
+						Actions: &config.ActionsConfig{
+							HEAD: &config.HeadActionConfig{
+								Config: &config.HeadActionConfigConfig{
+									Webhooks: []*config.WebhookConfig{
+										{
+											Method: "POST",
+											SecretHeaders: map[string]*config.CredentialConfig{
+												"authorization": {
+													Value: "secret",
+												},
+											},
+										},
+										{
+											Method: "POST",
+											SecretHeaders: map[string]*config.CredentialConfig{
+												"authorization": {
+													Value: "secret2",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			args: args{
+				targetKey:   "tgt1",
+				requestPath: "/fake",
+				s3Metadata: &S3Metadata{
+					Bucket:     "bucket",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+					Key:        "key",
+				},
+				metadata: &HeadInputMetadata{
+					IfMatch:     "ifmatch",
+					IfNoneMatch: "ifnonematch",
+				},
+			},
+			injectMockServers: true,
+			metricsIncFailedWebhooksMockResult: metricsIncXWebhooksMockResult{
+				input1: "tgt1",
+				input2: "HEAD",
+				times:  2,
+			},
+			responseMockList: []responseMock{
+				{
+					body:       `{"error":true}`,
+					statusCode: 500,
+				}, {
+					body:       `{"error":"method not allowed"}`,
+					statusCode: 405,
+				},
+			},
+			requestResult: []requestResult{
+				{
+					method: "POST",
+					body: `
+		{
+			"action":"HEAD",
+			"requestPath":"/fake",
+			"outputMetadata":{
+				"bucket":"bucket",
+				"region":"region",
+				"s3Endpoint":"s3endpoint",
+				"key":"key"
+			},
+			"inputMetadata":{
+				"ifMatch":"ifmatch",
+				"ifModifiedSince":"",
+				"ifNoneMatch":"ifnonematch",
+				"ifUnmodifiedSince":""
+			},
+			"target": {"name":"tgt1"}
+		}
+							`,
+					headers: map[string]string{
+						"Authorization": "secret",
+						"Content-Type":  "application/json",
+					},
+				}, {
+					method: "POST",
+					body: `
+		{
+			"action":"HEAD",
+			"requestPath":"/fake",
+			"outputMetadata":{
+				"bucket":"bucket",
+				"region":"region",
+				"s3Endpoint":"s3endpoint",
+				"key":"key"
+			},
+			"inputMetadata":{
+				"ifMatch":"ifmatch",
+				"ifModifiedSince":"",
+				"ifNoneMatch":"ifnonematch",
+				"ifUnmodifiedSince":""
+			},
+			"target": {"name":"tgt1"}
+		}
+							`,
+					headers: map[string]string{
+						"Authorization": "secret2",
+						"Content-Type":  "application/json",
+					},
+				},
+			},
+		},
+		{
+			name: "should be ok with 2 success",
+			cfg: &config.Config{
+				Targets: map[string]*config.TargetConfig{
+					"tgt1": {
+						Actions: &config.ActionsConfig{
+							HEAD: &config.HeadActionConfig{
+								Config: &config.HeadActionConfigConfig{
+									Webhooks: []*config.WebhookConfig{
+										{
+											Method: "POST",
+											SecretHeaders: map[string]*config.CredentialConfig{
+												"authorization": {
+													Value: "secret",
+												},
+											},
+											Headers: map[string]string{
+												"h1": "v1",
+											},
+										},
+										{
+											Method: "POST",
+											SecretHeaders: map[string]*config.CredentialConfig{
+												"authorization": {
+													Value: "secret2",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			args: args{
+				targetKey:   "tgt1",
+				requestPath: "/fake",
+				s3Metadata: &S3Metadata{
+					Bucket:     "bucket",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+					Key:        "key",
+				},
+				metadata: &HeadInputMetadata{
+					IfMatch:     "ifmatch",
+					IfNoneMatch: "ifnonematch",
+				},
+			},
+			injectMockServers: true,
+			metricsIncSucceedWebhooksMockResult: metricsIncXWebhooksMockResult{
+				input1: "tgt1",
+				input2: "HEAD",
+				times:  2,
+			},
+			responseMockList: []responseMock{
+				{
+					body:       `{}`,
+					statusCode: 200,
+				}, {
+					body:       `{}`,
+					statusCode: 201,
+				},
+			},
+			requestResult: []requestResult{
+				{
+					method: "POST",
+					body: `
+		{
+			"action":"HEAD",
+			"requestPath":"/fake",
+			"outputMetadata":{
+				"bucket":"bucket",
+				"region":"region",
+				"s3Endpoint":"s3endpoint",
+				"key":"key"
+			},
+			"inputMetadata":{
+				"ifMatch":"ifmatch",
+				"ifModifiedSince":"",
+				"ifNoneMatch":"ifnonematch",
+				"ifUnmodifiedSince":""
+			},
+			"target": {"name":"tgt1"}
+		}
+							`,
+					headers: map[string]string{
+						"Authorization": "secret",
+						"Content-Type":  "application/json",
+						"h1":            "v1",
+					},
+				}, {
+					method: "POST",
+					body: `
+		{
+			"action":"HEAD",
+			"requestPath":"/fake",
+			"outputMetadata":{
+				"bucket":"bucket",
+				"region":"region",
+				"s3Endpoint":"s3endpoint",
+				"key":"key"
+			},
+			"inputMetadata":{
+				"ifMatch":"ifmatch",
+				"ifModifiedSince":"",
+				"ifNoneMatch":"ifnonematch",
+				"ifUnmodifiedSince":""
+			},
+			"target": {"name":"tgt1"}
+		}
+							`,
+					headers: map[string]string{
+						"Authorization": "secret2",
+						"Content-Type":  "application/json",
+					},
+				},
+			},
+		},
+		{
+			name: "should be ok with 1 success and 1 fail",
+			cfg: &config.Config{
+				Targets: map[string]*config.TargetConfig{
+					"tgt1": {
+						Actions: &config.ActionsConfig{
+							HEAD: &config.HeadActionConfig{
+								Config: &config.HeadActionConfigConfig{
+									Webhooks: []*config.WebhookConfig{
+										{
+											Method: "POST",
+											SecretHeaders: map[string]*config.CredentialConfig{
+												"authorization": {
+													Value: "secret",
+												},
+											},
+										},
+										{
+											Method: "POST",
+											SecretHeaders: map[string]*config.CredentialConfig{
+												"authorization": {
+													Value: "secret2",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			args: args{
+				targetKey:   "tgt1",
+				requestPath: "/fake",
+				s3Metadata: &S3Metadata{
+					Bucket:     "bucket",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+					Key:        "key",
+				},
+				metadata: &HeadInputMetadata{
+					IfMatch:     "ifmatch",
+					IfNoneMatch: "ifnonematch",
+				},
+			},
+			injectMockServers: true,
+			metricsIncSucceedWebhooksMockResult: metricsIncXWebhooksMockResult{
+				input1: "tgt1",
+				input2: "HEAD",
+				times:  1,
+			},
+			metricsIncFailedWebhooksMockResult: metricsIncXWebhooksMockResult{
+				input1: "tgt1",
+				input2: "HEAD",
+				times:  1,
+			},
+			responseMockList: []responseMock{
+				{
+					body:       `{"error":"forbidden"}`,
+					statusCode: 403,
+				}, {
+					body:       `{}`,
+					statusCode: 201,
+				},
+			},
+			requestResult: []requestResult{
+				{
+					method: "POST",
+					body: `
+		{
+			"action":"HEAD",
+			"requestPath":"/fake",
+			"outputMetadata":{
+				"bucket":"bucket",
+				"region":"region",
+				"s3Endpoint":"s3endpoint",
+				"key":"key"
+			},
+			"inputMetadata":{
+				"ifMatch":"ifmatch",
+				"ifModifiedSince":"",
+				"ifNoneMatch":"ifnonematch",
+				"ifUnmodifiedSince":""
+			},
+			"target": {"name":"tgt1"}
+		}
+							`,
+					headers: map[string]string{
+						"Authorization": "secret",
+						"Content-Type":  "application/json",
+					},
+				}, {
+					method: "POST",
+					body: `
+		{
+			"action":"HEAD",
+			"requestPath":"/fake",
+			"outputMetadata":{
+				"bucket":"bucket",
+				"region":"region",
+				"s3Endpoint":"s3endpoint",
+				"key":"key"
+			},
+			"inputMetadata":{
+				"ifMatch":"ifmatch",
+				"ifModifiedSince":"",
+				"ifNoneMatch":"ifnonematch",
+				"ifUnmodifiedSince":""
+			},
+			"target": {"name":"tgt1"}
+		}
+							`,
+					headers: map[string]string{
+						"Authorization": "secret2",
+						"Content-Type":  "application/json",
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+
+			cfgManagerMock := cmocks.NewMockManager(ctrl)
+			metricsSvcMock := mmocks.NewMockClient(ctrl)
+
+			cfgManagerMock.EXPECT().GetConfig().Return(tt.cfg)
+
+			metricsSvcMock.EXPECT().IncFailedWebhooks(
+				tt.metricsIncFailedWebhooksMockResult.input1,
+				tt.metricsIncFailedWebhooksMockResult.input2,
+			).Times(
+				tt.metricsIncFailedWebhooksMockResult.times,
+			)
+
+			metricsSvcMock.EXPECT().IncSucceedWebhooks(
+				tt.metricsIncSucceedWebhooksMockResult.input1,
+				tt.metricsIncSucceedWebhooksMockResult.input2,
+			).Times(
+				tt.metricsIncSucceedWebhooksMockResult.times,
+			)
+
+			m := &manager{
+				cfgManager: cfgManagerMock,
+				metricsSvc: metricsSvcMock,
+				storageMap: map[string]*hooksCfgStorage{},
+			}
+
+			// Create ctx
+			ctx := context.TODO()
+			ctx = log.SetLoggerInContext(ctx, log.NewLogger())
+			ctx = opentracing.ContextWithSpan(ctx, opentracing.StartSpan("fake"))
+
+			// Save request
+			reqs := make([]*struct {
+				Body    string
+				Method  string
+				Headers http.Header
+			}, 0)
+
+			if tt.injectMockServers {
+				// Create mock servers
+				for _, v := range tt.cfg.Targets {
+					for i, v2 := range v.Actions.HEAD.Config.Webhooks {
+						// Get mock
+						m := tt.responseMockList[i]
+
+						s := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+							by, err := io.ReadAll(r.Body)
+							assert.NoError(t, err)
+
+							reqs = append(reqs, &struct {
+								Body    string
+								Method  string
+								Headers http.Header
+							}{
+								Method:  r.Method,
+								Headers: r.Header,
+								Body:    string(by),
+							})
+
+							rw.WriteHeader(m.statusCode)
+							rw.Write([]byte(m.body))
+						}))
+
+						defer s.Close()
+
+						v2.URL = s.URL
+					}
+				}
+			}
+
+			// Load clients
+			err := m.Load()
+			assert.NoError(t, err)
+
+			m.manageHEADHooksInternal(
+				ctx,
+				tt.args.targetKey,
+				tt.args.requestPath,
+				tt.args.metadata,
+				tt.args.s3Metadata,
+			)
+
+			// Test
+			assert.Len(t, reqs, len(tt.requestResult))
+			for i, v := range tt.requestResult {
+				if i < len(reqs) {
+					assert.JSONEq(t, v.body, reqs[i].Body)
+
+					assert.Equal(t, v.method, reqs[i].Method)
+
+					for key, val := range v.headers {
+						assert.Equal(t, val, reqs[i].Headers.Get(key))
+					}
+				} else {
+					assert.Fail(t, "No test results found for incoming request")
+				}
+			}
+		})
+	}
+}

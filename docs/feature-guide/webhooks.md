@@ -27,6 +27,7 @@ The main body is called the [HookBody](#hookbody).
 Here are all cased for input metadata:
 
 - GET: [GetInputMetadataHookBody](#getinputmetadatahookbody)
+- HEAD: [HeadInputMetadataHookBody](#headinputmetadatahookbody)
 - PUT: [PutInputMetadataHookBody](#putinputmetadatahookbody)
 - DELETE: [DeleteInputMetadataHookBody](#deleteinputmetadatahookbody)
 
@@ -54,6 +55,15 @@ Here are all cased for input metadata:
 | Field | Type   | Description                      |
 | ----- | ------ | -------------------------------- |
 | name  | String | Target name matching the request |
+
+### HeadInputMetadataHookBody
+
+| Field             | Type   | Description                        |
+| ----------------- | ------ | ---------------------------------- |
+| ifModifiedSince   | String | `If-Modified-Since` header value   |
+| ifMatch           | String | `If-Match` header value            |
+| ifNoneMatch       | String | `If-None-Match` header value       |
+| ifUnmodifiedSince | String | `If-Unmodified-Since` header value |
 
 ### GetInputMetadataHookBody
 

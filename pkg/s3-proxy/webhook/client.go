@@ -18,10 +18,18 @@ type PutInputMetadata struct {
 // GetInputMetadata Get input metadata.
 type GetInputMetadata struct {
 	IfModifiedSince   *time.Time
+	IfUnmodifiedSince *time.Time
 	IfMatch           string
 	IfNoneMatch       string
-	IfUnmodifiedSince *time.Time
 	Range             string
+}
+
+// HeadInputMetadata Get input metadata.
+type HeadInputMetadata struct {
+	IfModifiedSince   *time.Time
+	IfUnmodifiedSince *time.Time
+	IfMatch           string
+	IfNoneMatch       string
 }
 
 // S3Metadata S3 Metadata.
@@ -38,6 +46,8 @@ type S3Metadata struct {
 type Manager interface {
 	// ManageGETHooks will manage GET hooks.
 	ManageGETHooks(ctx context.Context, targetKey, requestPath string, inputMetadata *GetInputMetadata, s3Metadata *S3Metadata)
+	// ManageHEADHooks will manage GET hooks.
+	ManageHEADHooks(ctx context.Context, targetKey, requestPath string, inputMetadata *HeadInputMetadata, s3Metadata *S3Metadata)
 	// ManageGETHooks will manage PUT hooks.
 	ManagePUTHooks(ctx context.Context, targetKey, requestPath string, inputMetadata *PutInputMetadata, s3Metadata *S3Metadata)
 	// ManageGETHooks will manage DELETE hooks.

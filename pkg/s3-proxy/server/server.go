@@ -287,8 +287,88 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 				// Add authorization middleware to router
 				rt2.Use(authorization.Middleware(svr.cfgManager, svr.metricsCl))
 
+				// Check if HEAD action is enabled
+				if tgt.Actions.HEAD != nil && tgt.Actions.HEAD.Enabled { //nolint:dupl
+					rt2.Head("/*", func(_ http.ResponseWriter, req *http.Request) {
+						// Get bucket request context
+						brctx := bucket.GetBucketRequestContextFromContext(req.Context())
+						// Get response handler
+						resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
+
+						// Get request path
+						requestPath := chi.URLParam(req, "*")
+
+						// Unescape it
+						// Found a bug where sometimes the request path isn't unescaped
+						requestPath, err := url.PathUnescape(requestPath)
+						// Check error
+						if err != nil {
+							resHan.InternalServerError(brctx.LoadFileContent, errors.WithStack(err))
+
+							return
+						}
+
+						// Get ETag headers
+
+						// Get If-Modified-Since as string
+						ifModifiedSinceStr := req.Header.Get("If-Modified-Since")
+						// Create result
+						var ifModifiedSince *time.Time
+						// Check if content exists
+						if ifModifiedSinceStr != "" {
+							// Parse time
+							ifModifiedSinceTime, err := http.ParseTime(ifModifiedSinceStr)
+							// Check error
+							if err != nil {
+								resHan.BadRequestError(brctx.LoadFileContent, errors.WithStack(err))
+
+								return
+							}
+							// Save result
+							ifModifiedSince = &ifModifiedSinceTime
+						}
+
+						// Get Range
+						byteRange := req.Header.Get("Range")
+
+						// Get If-Match
+						ifMatch := req.Header.Get("If-Match")
+
+						// Get If-None-Match
+						ifNoneMatch := req.Header.Get("If-None-Match")
+
+						// Get If-Unmodified-Since as string
+						ifUnmodifiedSinceStr := req.Header.Get("If-Unmodified-Since")
+						// Create result
+						var ifUnmodifiedSince *time.Time
+						// Check if content exists
+						if ifUnmodifiedSinceStr != "" {
+							// Parse time
+							ifUnmodifiedSinceTime, err := http.ParseTime(ifUnmodifiedSinceStr)
+							// Check error
+							if err != nil {
+								resHan.BadRequestError(brctx.LoadFileContent, errors.WithStack(err))
+
+								return
+							}
+							// Save result
+							ifUnmodifiedSince = &ifUnmodifiedSinceTime
+						}
+
+						// Proxy GET Request
+						brctx.Head(req.Context(), &bucket.GetInput{
+							RequestPath:       requestPath,
+							IfModifiedSince:   ifModifiedSince,
+							IfMatch:           ifMatch,
+							IfNoneMatch:       ifNoneMatch,
+							IfUnmodifiedSince: ifUnmodifiedSince,
+							Range:             byteRange,
+						})
+					})
+				}
+
 				// Check if GET action is enabled
-				if tgt.Actions.GET != nil && tgt.Actions.GET.Enabled {
+				if tgt.Actions.GET != nil && tgt.Actions.GET.Enabled { //nolint:dupl
 					// Add GET method to router
 					rt2.Get("/*", func(_ http.ResponseWriter, req *http.Request) {
 						// Get bucket request context
