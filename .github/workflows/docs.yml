@@ -8,7 +8,7 @@ env:
   # renovate: datasource=docker depName=squidfunk/mkdocs-material
   MKDOCS_MATERIAL_VERSION: "9.5.36"
   # renovate: datasource=pypi depName=mkdocs-awesome-pages-plugin
-  MKDOCS_AWESOME_PAGES_PLUGIN_VERSION: "2.8.0"
+  MKDOCS_AWESOME_PAGES_PLUGIN_VERSION: "2.9.3"
 jobs:
   changes:
     runs-on: ubuntu-latest
