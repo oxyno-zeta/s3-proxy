@@ -4,6 +4,11 @@ on:
     branches-ignore:
       - "github-pages"
   pull_request: {}
+env:
+  # renovate: datasource=docker depName=squidfunk/mkdocs-material
+  MKDOCS_MATERIAL_VERSION: "9.5.15"
+  # renovate: datasource=pypi depName=mkdocs-awesome-pages-plugin
+  MKDOCS_AWESOME_PAGES_PLUGIN_VERSION: "2.8.0"
 jobs:
   changes:
     runs-on: ubuntu-latest
@@ -34,8 +39,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - run: pip install mkdocs-material==9.5.15
-      - run: pip install mkdocs-awesome-pages-plugin==2.8.0
+      - run: pip install mkdocs-material==${{ env.MKDOCS_MATERIAL_VERSION }}
+      - run: pip install mkdocs-awesome-pages-plugin==${{ env.MKDOCS_AWESOME_PAGES_PLUGIN_VERSION }}
       - run: mkdocs build
   docs-deploy:
     needs:
@@ -50,6 +55,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - run: pip install mkdocs-material==9.5.15
-      - run: pip install mkdocs-awesome-pages-plugin==2.8.0
+      - run: pip install mkdocs-material==${{ env.MKDOCS_MATERIAL_VERSION }}
+      - run: pip install mkdocs-awesome-pages-plugin==${{ env.MKDOCS_AWESOME_PAGES_PLUGIN_VERSION }}
       - run: mkdocs gh-deploy --force
