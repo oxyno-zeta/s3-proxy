@@ -34,6 +34,15 @@ HAS_MOCKGEN:=$(shell command -v mockgen;)
 HAS_GOTESTSUM:=$(shell command -v gotestsum;)
 HAS_FIELDALIGNMENT:=$(shell command -v fieldalignment;)
 
+#
+## Tool versions
+#
+
+# ? Note: Go install versions are inline because renovate can manage them like that.
+
+# renovate: datasource=github-tags depName=golangci/golangci-lint
+GOLANGCI_LINT_VERSION := "v1.60.3"
+
 .DEFAULT_GOAL := code/lint
 
 #############
@@ -175,7 +184,7 @@ ifndef HAS_GOLANGCI_LINT
 ifndef HAS_CURL
 	$(error You must install curl)
 endif
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.60.3
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
 endif
 ifndef HAS_GIT
 	$(error You must install Git)
