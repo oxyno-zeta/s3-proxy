@@ -2,7 +2,7 @@
 # with their default values.
 # options for analysis running
 run:
-  go: "1.22"
+  go: "1.23"
   # default concurrency is a available CPU number
   concurrency: 4
   # timeout for analysis, e.g. 30s, 5m, default is 1m
