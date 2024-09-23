@@ -1,21 +1,25 @@
 # Add Dockerfile label
 dockerfile:
-  - Dockerfile*
+  - changed-files:
+      - any-glob-to-any-file:
+          - Dockerfile*
 
 # Add test label
 tests:
-  - pkg/**/*_test.go
+  - changed-files:
+      - any-glob-to-any-file:
+          - pkg/**/*_test.go
 
 # Add actions label
 actions:
-  - .github/**/*
-  - .github/*
-
-# Add ci label
-ci:
-  - .circleci/*
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/**/*
+          - .github/*
 
 # Add documentation label
 documentation:
-  - "**/*.md"
-  - "*.md"
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "*.md"
