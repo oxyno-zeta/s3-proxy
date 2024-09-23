@@ -124,10 +124,15 @@ func TestPublicRouter(t *testing.T) {
 			inputMethod:  "GET",
 			inputURL:     "http://localhost/not-found/",
 			expectedCode: 404,
-			expectedBody: "404 page not found\n",
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /not-found/</h1>
+  </body>
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
-				"Content-Type":  "text/plain; charset=utf-8",
+				"Content-Type":  "text/html; charset=utf-8",
 			},
 		},
 		{
@@ -3912,10 +3917,15 @@ func TestTracing(t *testing.T) {
 			inputMethod:  "GET",
 			inputURL:     "http://localhost/not-found/",
 			expectedCode: 404,
-			expectedBody: "404 page not found\n",
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /not-found/</h1>
+  </body>
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
-				"Content-Type":  "text/plain; charset=utf-8",
+				"Content-Type":  "text/html; charset=utf-8",
 			},
 		},
 		{
@@ -3936,10 +3946,15 @@ func TestTracing(t *testing.T) {
 			inputMethod:  "GET",
 			inputURL:     "http://localhost/not-found/",
 			expectedCode: 404,
-			expectedBody: "404 page not found\n",
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /not-found/</h1>
+  </body>
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
-				"Content-Type":  "text/plain; charset=utf-8",
+				"Content-Type":  "text/html; charset=utf-8",
 			},
 		},
 	}
@@ -5015,10 +5030,15 @@ func TestCORS(t *testing.T) {
 				"Host":   "localhost",
 			},
 			expectedCode: 404,
-			expectedBody: "404 page not found\n",
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /not-found/</h1>
+  </body>
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
-				"Content-Type":  "text/plain; charset=utf-8",
+				"Content-Type":  "text/html; charset=utf-8",
 			},
 		},
 		{
@@ -5050,10 +5070,15 @@ func TestCORS(t *testing.T) {
 				"Host":   "localhost",
 			},
 			expectedCode: 404,
-			expectedBody: "404 page not found\n",
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /not-found/</h1>
+  </body>
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control":               "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
-				"Content-Type":                "text/plain; charset=utf-8",
+				"Content-Type":                "text/html; charset=utf-8",
 				"Access-Control-Allow-Origin": "*",
 			},
 		},
@@ -5088,10 +5113,15 @@ func TestCORS(t *testing.T) {
 				"Host":   "localhost",
 			},
 			expectedCode: 404,
-			expectedBody: "404 page not found\n",
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /not-found/</h1>
+  </body>
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control":               "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
-				"Content-Type":                "text/plain; charset=utf-8",
+				"Content-Type":                "text/html; charset=utf-8",
 				"Access-Control-Allow-Origin": "https://test.fake",
 			},
 		},
@@ -5126,10 +5156,15 @@ func TestCORS(t *testing.T) {
 				"Host":   "localhost",
 			},
 			expectedCode: 404,
-			expectedBody: "404 page not found\n",
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /not-found/</h1>
+  </body>
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control":               "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
-				"Content-Type":                "text/plain; charset=utf-8",
+				"Content-Type":                "text/html; charset=utf-8",
 				"Access-Control-Allow-Origin": "",
 			},
 		},
@@ -5164,10 +5199,15 @@ func TestCORS(t *testing.T) {
 				"Host":   "localhost",
 			},
 			expectedCode: 404,
-			expectedBody: "404 page not found\n",
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /not-found/</h1>
+  </body>
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control":               "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
-				"Content-Type":                "text/plain; charset=utf-8",
+				"Content-Type":                "text/html; charset=utf-8",
 				"Access-Control-Allow-Origin": "https://test.fake",
 			},
 		},
@@ -5202,10 +5242,15 @@ func TestCORS(t *testing.T) {
 				"Host":   "localhost",
 			},
 			expectedCode: 404,
-			expectedBody: "404 page not found\n",
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /not-found/</h1>
+  </body>
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control":               "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
-				"Content-Type":                "text/plain; charset=utf-8",
+				"Content-Type":                "text/html; charset=utf-8",
 				"Access-Control-Allow-Origin": "",
 			},
 		},
@@ -5240,10 +5285,15 @@ func TestCORS(t *testing.T) {
 				"Host":   "localhost",
 			},
 			expectedCode: 404,
-			expectedBody: "404 page not found\n",
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Not Found /not-found/</h1>
+  </body>
+</html>`,
 			expectedHeaders: map[string]string{
 				"Cache-Control":               "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
-				"Content-Type":                "text/plain; charset=utf-8",
+				"Content-Type":                "text/html; charset=utf-8",
 				"Access-Control-Allow-Origin": "",
 			},
 		},

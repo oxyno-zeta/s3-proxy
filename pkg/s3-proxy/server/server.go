@@ -268,6 +268,9 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 		if rt == nil {
 			// Create a new router
 			rt = chi.NewRouter()
+
+			// Add not found
+			rt.NotFound(notFoundHandler)
 		}
 		// Loop over path list
 		funk.ForEach(tgt.Mount.Path, func(path string) {
