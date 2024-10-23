@@ -7,42 +7,59 @@
     ":semanticCommitScope(deps)"
   ],
   "configMigration": true,
-  "labels": ["renovate"],
+  "labels": [
+    "renovate"
+  ],
   "pre-commit": {
     "enabled": true
   },
   "vulnerabilityAlerts": {
     "enabled": true,
-    "labels": ["vulnerability-alert"]
+    "labels": [
+      "vulnerability-alert"
+    ]
   },
   "packageRules": [
     {
       "groupName": "mkdocs",
       "groupSlug": "mkdocs",
-      "matchPackageNames": ["mkdocs-material", "squidfunk/mkdocs-material"]
+      "matchPackageNames": [
+        "mkdocs-material",
+        "squidfunk/mkdocs-material"
+      ]
     },
     {
       "groupName": "golangci/golangci-lint",
       "groupSlug": "golangci_golangci_lint",
-      "matchPackageNames": ["golangci/golangci-lint"]
+      "matchPackageNames": [
+        "golangci/golangci-lint"
+      ]
     }
   ],
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["^Makefile$", "^.github/workflows/.*\\.yml"],
+      "fileMatch": [
+        "^Makefile$",
+        "^.github/workflows/.*\\.yml"
+      ],
       "matchStrings": [
         "#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s.*?_VERSION\\s*[:=]+\\s*\"(?<currentValue>.*)\"\\s"
       ],
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
     },
     {
-      "fileMatch": ["^Makefile$"],
+      "customType": "regex",
+      "fileMatch": [
+        "^Makefile$"
+      ],
       "matchStrings": [
         "go install (?<depName>[^@]+?)@(?<currentValue>[0-9.-a-zA-Z]+)"
       ],
       "datasourceTemplate": "go"
     }
   ],
-  "ignoreDeps": ["github.com/aws/aws-sdk-go"]
+  "ignoreDeps": [
+    "github.com/aws/aws-sdk-go"
+  ]
 }
