@@ -373,7 +373,10 @@ func loadAllCredentials(out *Config) ([]*CredentialConfig, error) {
 			}
 		}
 		// Load credentials for access key and secret key
-		if item.Bucket.Credentials != nil && item.Bucket.Credentials.AccessKey != nil && item.Bucket.Credentials.SecretKey != nil {
+		if item.Bucket != nil &&
+			item.Bucket.Credentials != nil &&
+			item.Bucket.Credentials.AccessKey != nil &&
+			item.Bucket.Credentials.SecretKey != nil {
 			// Manage access key
 			err := loadCredential(item.Bucket.Credentials.AccessKey)
 			if err != nil {
