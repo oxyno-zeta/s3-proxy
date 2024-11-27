@@ -41,7 +41,7 @@ HAS_FIELDALIGNMENT:=$(shell command -v fieldalignment;)
 # ? Note: Go install versions are inline because renovate can manage them like that.
 
 # renovate: datasource=github-tags depName=golangci/golangci-lint
-GOLANGCI_LINT_VERSION := "v1.61.0"
+GOLANGCI_LINT_VERSION := "v1.62.2"
 
 .DEFAULT_GOAL := code/lint
 
