@@ -1,4 +1,4 @@
-FROM alpine:3.20
+FROM alpine:3.21
 
 ENV USER=proxy
 ENV UID=1000
