@@ -10,7 +10,7 @@ require (
 	github.com/dimiro1/health v0.0.0-20231118160444-e388c68d7d7e
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fsnotify/fsnotify v1.8.0
-	github.com/go-chi/chi/v5 v5.1.0
+	github.com/go-chi/chi/v5 v5.2.0
 	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/httptracer v0.3.0
 	github.com/go-playground/validator/v10 v10.23.0
