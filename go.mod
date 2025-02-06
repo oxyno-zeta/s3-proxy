@@ -29,7 +29,7 @@ require (
 	go.uber.org/mock v0.5.0
 	golang.org/x/net v0.33.0
 	golang.org/x/oauth2 v0.24.0
-	golang.org/x/sync v0.10.0
+	golang.org/x/sync v0.11.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
