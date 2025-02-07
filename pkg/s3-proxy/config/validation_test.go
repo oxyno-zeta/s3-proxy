@@ -79,7 +79,7 @@ func Test_validateResource(t *testing.T) {
 				mountPathList: []string{"/"},
 			},
 			wantErr:     true,
-			errorString: "begin error must have a HTTP method in GET, PUT or DELETE",
+			errorString: "begin error must have a HTTP method in HEAD, GET, PUT or DELETE",
 		},
 		{
 			name: "Resource don't have a valid http method (2)",
@@ -92,7 +92,7 @@ func Test_validateResource(t *testing.T) {
 				mountPathList: []string{"/"},
 			},
 			wantErr:     true,
-			errorString: "begin error must have a HTTP method in GET, PUT or DELETE",
+			errorString: "begin error must have a HTTP method in HEAD, GET, PUT or DELETE",
 		},
 		{
 			name: "Resource don't have any whitelist or authentication settings",

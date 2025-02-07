@@ -255,7 +255,7 @@ metrics:
 #   resource:
 #     # A Path must be declared for a resource filtering
 #     path: /
-#     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
+#     # HTTP Methods authorized (Must be in HEAD, GET, PUT or DELETE)
 #     methods:
 #       - GET
 #       - PUT
@@ -299,7 +299,7 @@ targets:
     #     whiteList: true
     #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /specific_doc/*
-    #     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
+    #     # HTTP Methods authorized (Must be in HEAD, GET, PUT or DELETE)
     #     methods:
     #       - GET
     #       - PUT
@@ -313,7 +313,7 @@ targets:
     #         - group: specific_users
     #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /directory1/*
-    #     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
+    #     # HTTP Methods authorized (Must be in HEAD, GET, PUT or DELETE)
     #     methods:
     #       - GET
     #       - PUT
@@ -336,7 +336,7 @@ targets:
     #         url: http://localhost:8181/v1/data/example/authz/allowed
     #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
     #   - path: /specific_doc/*
-    #     # HTTP Methods authorized (Must be in GET, PUT or DELETE)
+    #     # HTTP Methods authorized (Must be in HEAD, GET, PUT or DELETE)
     #     methods:
     #       - GET
     #       - PUT

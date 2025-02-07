@@ -145,11 +145,11 @@ func validateResource(beginErrorMessage string, res *Resource, authProviders *Au
 	// Check resource http methods
 	// Filter http methods that are not supported
 	filtered := funk.FilterString(res.Methods, func(s string) bool {
-		return s != http.MethodGet && s != http.MethodPut && s != http.MethodDelete
+		return s != http.MethodGet && s != http.MethodPut && s != http.MethodDelete && s != http.MethodHead
 	})
 	// Check if size is > 0
 	if len(filtered) > 0 {
-		return errors.New(beginErrorMessage + " must have a HTTP method in GET, PUT or DELETE")
+		return errors.New(beginErrorMessage + " must have a HTTP method in HEAD, GET, PUT or DELETE")
 	}
 	// Check resource not valid
 	if res.WhiteList == nil && res.Basic == nil && res.OIDC == nil && res.Header == nil {
