@@ -416,6 +416,7 @@ This authentication method should be used only with a software like [Oauth2-prox
 | Key       | Type                                      | Required                                    | Default | Description                                                  |
 | --------- | ----------------------------------------- | ------------------------------------------- | ------- | ------------------------------------------------------------ |
 | path      | String                                    | Yes                                         | None    | Path or matching path (e.g.: `/*`)                           |
+| provider  | String                                    | Yes                                         | None    | Provider key reference                                       |
 | methods   | [String]                                  | No                                          | `[GET]` | HTTP methods allowed (Allowed values `GET`, `PUT`, `DELETE`) |
 | whiteList | Boolean                                   | Required without oidc or basic              | None    | Is this path in white list ? E.g.: No authentication         |
 | basic     | [ResourceBasic](#resourcebasic)           | Required without whitelist, oidc or header  | None    | Basic auth configuration                                     |
