@@ -5,7 +5,7 @@ default_install_hook_types:
   - commit-msg
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.1.1
+    rev: v4.2.0
     hooks:
       - id: commitizen
         stages: [commit-msg]
@@ -13,38 +13,38 @@ repos:
     rev: v5.0.0
     hooks:
       - id: check-json
-        stages: [commit]
+        stages: [pre-commit]
       - id: check-merge-conflict
-        stages: [commit]
+        stages: [pre-commit]
       - id: trailing-whitespace
-        stages: [commit]
+        stages: [pre-commit]
       - id: end-of-file-fixer
-        stages: [commit]
+        stages: [pre-commit]
       - id: check-yaml
-        stages: [commit]
+        stages: [pre-commit]
       - id: check-added-large-files
-        stages: [commit]
+        stages: [pre-commit]
       - id: check-executables-have-shebangs
-        stages: [commit]
+        stages: [pre-commit]
       - id: detect-aws-credentials
-        stages: [commit]
+        stages: [pre-commit]
       - id: detect-private-key
-        stages: [commit]
+        stages: [pre-commit]
   - repo: https://github.com/pre-commit/mirrors-prettier
     # Use the sha or branch you want to point at
     rev: v3.1.0
     hooks:
       - id: prettier
-        stages: [commit]
+        stages: [pre-commit]
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1
     hooks:
       - id: shellcheck
-        stages: [commit]
+        stages: [pre-commit]
   - repo: local
     hooks:
       - id: backend-lint
-        stages: [commit]
+        stages: [pre-commit]
         files: \.go$
         name: Backend Lint
         entry: make
