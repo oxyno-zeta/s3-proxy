@@ -41,7 +41,7 @@ HAS_FIELDALIGNMENT:=$(shell command -v fieldalignment;)
 # ? Note: Go install versions are inline because renovate can manage them like that.
 
 # renovate: datasource=github-tags depName=golangci/golangci-lint
-GOLANGCI_LINT_VERSION := "v1.62.2"
+GOLANGCI_LINT_VERSION := "v1.63.4"
 
 .DEFAULT_GOAL := code/lint
 
@@ -191,15 +191,15 @@ ifndef HAS_GIT
 endif
 ifndef HAS_MOCKGEN
 	@echo "=> Installing mockgen tool"
-	go install go.uber.org/mock/mockgen@v0.4.0
+	go install go.uber.org/mock/mockgen@v0.5.0
 endif
 ifndef HAS_GOTESTSUM
 	@echo "=> Installing gotestsum tool"
-	go install gotest.tools/gotestsum@v1.11.0
+	go install gotest.tools/gotestsum@v1.12.0
 endif
 ifndef HAS_FIELDALIGNMENT
 	@echo "=> Installing fieldalignment tool"
-	$(GO) install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.23.0
+	$(GO) install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.29.0
 endif
 	go mod download all
 	go mod tidy
