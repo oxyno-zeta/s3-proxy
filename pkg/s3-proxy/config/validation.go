@@ -156,7 +156,7 @@ func validateResource(beginErrorMessage string, res *Resource, authProviders *Au
 		return errors.New(beginErrorMessage + " must have whitelist, basic, header or oidc configuration")
 	}
 	// Check if provider exists
-	if res.WhiteList != nil && !*res.WhiteList && res.Provider == "" {
+	if res.Provider == "" && (res.WhiteList == nil || (res.WhiteList != nil && !*res.WhiteList)) {
 		return errors.New(beginErrorMessage + " must have a provider")
 	}
 	// Check auth logins are provided in case of no whitelist

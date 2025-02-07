@@ -108,7 +108,22 @@ func Test_validateResource(t *testing.T) {
 			errorString: "begin error must have whitelist, basic, header or oidc configuration",
 		},
 		{
-			name: "Resource don't have any whitelist and no provider is set",
+			name: "Resource don't have any whitelist, no provider is set, an authorization system is set and path",
+			args: args{
+				beginErrorMessage: "begin error",
+				res: &Resource{
+					Path:    "/",
+					Methods: []string{"GET"},
+					Header:  &ResourceHeaderOIDC{AuthorizationAccesses: []*HeaderOIDCAuthorizationAccess{}},
+				},
+				authProviders: &AuthProviderConfig{},
+				mountPathList: []string{"/"},
+			},
+			wantErr:     true,
+			errorString: "begin error must have a provider",
+		},
+		{
+			name: "Resource don't have false whitelist and no provider is set",
 			args: args{
 				beginErrorMessage: "begin error",
 				res: &Resource{
