@@ -30,16 +30,22 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["^Makefile$", "^.github/workflows/.*\\.yml"],
+      "fileMatch": [
+        "^Makefile$",
+        "^Dockerfile.*",
+        "^.mise.toml",
+        "^.github/workflows/.*\\.yml"
+      ],
       "matchStrings": [
-        "#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s.*?_VERSION\\s*[:=]+\\s*\"(?<currentValue>.*)\"\\s"
+        "#\\s*renovate:\\s*datasource=(?<datasource>.*?)( depName=(?<depName>.*?))?( versioning=(?<versioning>.*?))?( registryUrl=(?<registryUrl>.*?))?\\s.*\\s*[ :=]+\\s*[\"'](?<currentValue>.*)[\"']\\s"
       ],
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
     },
     {
       "fileMatch": ["^Makefile$"],
       "matchStrings": [
-        "go install (?<depName>[^@]+?)@(?<currentValue>[0-9.-a-zA-Z]+)"
+        "go install (?<depName>[^@]+?)@(?<currentValue>[0-9.a-zA-Z-]+)",
+        "\\$\\(GO\\) install (?<depName>[^@]+?)@(?<currentValue>[0-9.a-zA-Z-]+)"
       ],
       "datasourceTemplate": "go"
     }
