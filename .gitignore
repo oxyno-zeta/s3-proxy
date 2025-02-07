@@ -140,3 +140,4 @@ coverage.html
 bundle.tar.gz
 *.log
 junit.xml
+.vscode/settings.json
