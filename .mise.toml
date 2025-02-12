@@ -2,7 +2,7 @@
 
 [tools]
 go = '1.23.6'
-golangci-lint = "1.64.2"
+golangci-lint = "1.64.3"
 # renovate: datasource=github-tags depName=gotestyourself/gotestsum
 gotestsum = "v1.12.0"
 # renovate: datasource=go depName=go.uber.org/mock/mockgen
