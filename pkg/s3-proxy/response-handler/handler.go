@@ -7,8 +7,10 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
+	authxmodels "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models/converter"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/templateutils"
 )
 
@@ -45,7 +47,7 @@ func (h *handler) NotModified() {
 
 func (h *handler) Put(
 	loadFileContent func(ctx context.Context, path string) (string, error),
-	input *PutInput,
+	input *models.PutInput,
 ) {
 	// Get configuration
 	cfg := h.cfgManager.GetConfig()
@@ -71,9 +73,9 @@ func (h *handler) Put(
 	}
 
 	// Create data
-	data := &putData{
-		Request: h.req,
-		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
+	data := &models.PutData{
+		Request: converter.ConvertAndSanitizeHTTPRequest(h.req),
+		User:    authxmodels.GetAuthenticatedUserFromContext(h.req.Context()),
 		PutData: input,
 	}
 
@@ -90,7 +92,7 @@ func (h *handler) Put(
 
 func (h *handler) Delete(
 	loadFileContent func(ctx context.Context, path string) (string, error),
-	input *DeleteInput,
+	input *models.DeleteInput,
 ) {
 	// Get configuration
 	cfg := h.cfgManager.GetConfig()
@@ -116,9 +118,9 @@ func (h *handler) Delete(
 	}
 
 	// Create data
-	data := &deleteData{
-		Request:    h.req,
-		User:       models.GetAuthenticatedUserFromContext(h.req.Context()),
+	data := &models.DeleteData{
+		Request:    converter.ConvertAndSanitizeHTTPRequest(h.req),
+		User:       authxmodels.GetAuthenticatedUserFromContext(h.req.Context()),
 		DeleteData: input,
 	}
 
@@ -144,9 +146,9 @@ func (h *handler) TargetList() {
 	}
 
 	// Create data structure
-	data := targetListData{
-		Request: h.req,
-		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
+	data := &models.TargetListData{
+		Request: converter.ConvertAndSanitizeHTTPRequest(h.req),
+		User:    authxmodels.GetAuthenticatedUserFromContext(h.req.Context()),
 		Targets: targets,
 	}
 
@@ -182,7 +184,7 @@ func (h *handler) RedirectWithTrailingSlash() {
 
 func (h *handler) StreamFile(
 	loadFileContent func(ctx context.Context, path string) (string, error),
-	input *StreamInput,
+	input *models.StreamInput,
 ) error {
 	// Get configuration
 	cfg := h.cfgManager.GetConfig()
@@ -214,9 +216,9 @@ func (h *handler) StreamFile(
 		}
 
 		// Create data structure
-		data := &streamFileHeaderData{
-			Request:    h.req,
-			User:       models.GetAuthenticatedUserFromContext(h.req.Context()),
+		data := &models.StreamFileHeaderData{
+			Request:    converter.ConvertAndSanitizeHTTPRequest(h.req),
+			User:       authxmodels.GetAuthenticatedUserFromContext(h.req.Context()),
 			StreamFile: input,
 		}
 		// Manage headers
@@ -250,7 +252,7 @@ func (h *handler) StreamFile(
 
 func (h *handler) FoldersFilesList(
 	loadFileContent func(ctx context.Context, path string) (string, error),
-	entries []*Entry,
+	entries []*models.Entry,
 ) {
 	// Get config
 	cfg := h.cfgManager.GetConfig()
@@ -272,9 +274,9 @@ func (h *handler) FoldersFilesList(
 	}
 
 	// Create bucket list data for templating
-	data := &folderListingData{
-		Request:    h.req,
-		User:       models.GetAuthenticatedUserFromContext(h.req.Context()),
+	data := &models.FolderListingData{
+		Request:    converter.ConvertAndSanitizeHTTPRequest(h.req),
+		User:       authxmodels.GetAuthenticatedUserFromContext(h.req.Context()),
 		Entries:    entries,
 		BucketName: targetCfg.Bucket.Name,
 		Name:       targetCfg.Name,

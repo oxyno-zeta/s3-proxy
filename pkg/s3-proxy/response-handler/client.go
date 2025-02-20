@@ -2,54 +2,11 @@ package responsehandler
 
 import (
 	"context"
-	"io"
 	"net/http"
-	"time"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
 )
-
-// Entry Entry with path for internal use (template).
-type Entry struct {
-	LastModified time.Time
-	Type         string
-	ETag         string
-	Name         string
-	Key          string
-	Path         string
-	Size         int64
-}
-
-// StreamInput represents a stream input file.
-type StreamInput struct {
-	LastModified       time.Time
-	Body               io.ReadCloser
-	Metadata           map[string]string
-	CacheControl       string
-	Expires            string
-	ContentDisposition string
-	ContentEncoding    string
-	ContentLanguage    string
-	ContentRange       string
-	ContentType        string
-	ETag               string
-	ContentLength      int64
-}
-
-// PutInput represents a put input.
-type PutInput struct {
-	Metadata     map[string]string
-	Key          string
-	ContentType  string
-	StorageClass string
-	Filename     string
-	ContentSize  int64
-}
-
-// DeleteInput represents a delete input.
-type DeleteInput struct {
-	Key string
-}
 
 // ResponseHandler will handle responses.
 //
@@ -60,12 +17,12 @@ type ResponseHandler interface {
 	// Put will answer for the put response.
 	Put(
 		loadFileContent func(ctx context.Context, path string) (string, error),
-		input *PutInput,
+		input *models.PutInput,
 	)
 	// Delete will answer for the delete response.
 	Delete(
 		loadFileContent func(ctx context.Context, path string) (string, error),
-		input *DeleteInput,
+		input *models.DeleteInput,
 	)
 	// NotModified will answer with a Not Modified status code.
 	NotModified()
@@ -79,12 +36,12 @@ type ResponseHandler interface {
 	// Error will be managed outside of this function because of the workflow in the caller function.
 	StreamFile(
 		loadFileContent func(ctx context.Context, path string) (string, error),
-		input *StreamInput,
+		input *models.StreamInput,
 	) error
 	// FoldersFilesList will answer with the folder list output coming from template.
 	FoldersFilesList(
 		loadFileContent func(ctx context.Context, path string) (string, error),
-		entries []*Entry,
+		entries []*models.Entry,
 	)
 	// NotFoundError will answer for not found error.
 	NotFoundError(

@@ -7,9 +7,11 @@ import (
 	"net/http"
 
 	"emperror.dev/errors"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
+	authxmodels "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models/converter"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/templateutils"
 )
 
@@ -243,9 +245,9 @@ func (h *handler) handleGenericErrorTemplate(
 	logger.Error(err)
 
 	// Create data
-	data := &errorData{
-		Request: h.req,
-		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
+	data := &models.ErrorData{
+		Request: converter.ConvertAndSanitizeHTTPRequest(h.req),
+		User:    authxmodels.GetAuthenticatedUserFromContext(h.req.Context()),
 		Error:   err,
 	}
 
@@ -303,9 +305,9 @@ func (h *handler) InternalServerError(
 		cfg.Templates.Helpers,
 	)
 	// Create data
-	data := errorData{
-		Request: h.req,
-		User:    models.GetAuthenticatedUserFromContext(h.req.Context()),
+	data := &models.ErrorData{
+		Request: converter.ConvertAndSanitizeHTTPRequest(h.req),
+		User:    authxmodels.GetAuthenticatedUserFromContext(h.req.Context()),
 		Error:   err,
 	}
 

@@ -14,6 +14,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
+	responsehandlermodels "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/templateutils"
@@ -310,7 +311,7 @@ func (bri *bucketReqImpl) manageGetFolder(ctx context.Context, key string, input
 		// Answer directly
 		resHan.FoldersFilesList(
 			bri.LoadFileContent,
-			make([]*responsehandler.Entry, 0),
+			make([]*responsehandlermodels.Entry, 0),
 		)
 
 		// Stop
@@ -604,7 +605,7 @@ func (bri *bucketReqImpl) Put(ctx context.Context, inp *PutInput) {
 	// Answer
 	resHan.Put(
 		bri.LoadFileContent,
-		&responsehandler.PutInput{
+		&responsehandlermodels.PutInput{
 			Key:          key,
 			ContentType:  inp.ContentType,
 			ContentSize:  inp.ContentSize,
@@ -692,7 +693,7 @@ func (bri *bucketReqImpl) Delete(ctx context.Context, requestPath string) {
 	// Answer
 	resHan.Delete(
 		bri.LoadFileContent,
-		&responsehandler.DeleteInput{
+		&responsehandlermodels.DeleteInput{
 			Key: key,
 		},
 	)
@@ -702,9 +703,9 @@ func transformS3Entries(
 	s3Entries []*s3client.ListElementOutput,
 	rctx *bucketReqImpl,
 	bucketRootPrefixKey string,
-) []*responsehandler.Entry {
+) []*responsehandlermodels.Entry {
 	// Prepare result
-	entries := make([]*responsehandler.Entry, 0)
+	entries := make([]*responsehandlermodels.Entry, 0)
 	// Loop over s3 entries
 	for _, item := range s3Entries {
 		// Store path
@@ -715,7 +716,7 @@ func transformS3Entries(
 			ePath += "/"
 		}
 		// Save new entry
-		entries = append(entries, &responsehandler.Entry{
+		entries = append(entries, &responsehandlermodels.Entry{
 			Type:         item.Type,
 			ETag:         item.ETag,
 			Name:         item.Name,
@@ -807,7 +808,7 @@ func (bri *bucketReqImpl) answerHead(
 	)
 
 	// Transform input
-	inp := &responsehandler.StreamInput{
+	inp := &responsehandlermodels.StreamInput{
 		CacheControl:       hOutput.CacheControl,
 		Expires:            hOutput.Expires,
 		ContentDisposition: hOutput.ContentDisposition,
@@ -848,7 +849,7 @@ func (bri *bucketReqImpl) streamFileForResponse(ctx context.Context, key string,
 	defer objOutput.Body.Close()
 
 	// Transform input
-	inp := &responsehandler.StreamInput{
+	inp := &responsehandlermodels.StreamInput{
 		Body:               objOutput.Body,
 		CacheControl:       objOutput.CacheControl,
 		Expires:            objOutput.Expires,

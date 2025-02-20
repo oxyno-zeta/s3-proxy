@@ -433,6 +433,9 @@ issues:
         - tagliatelle
         - lll
       path: pkg/.*/config/config\.go
+    - linters:
+        - dupl
+      path: pkg/.*/response-handler/handler\.go
   # issues:
   #   # List of regexps of issue texts to exclude, empty list by default.
   #   # But independently from this option we use default exclude patterns,

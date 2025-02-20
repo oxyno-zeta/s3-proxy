@@ -33,6 +33,7 @@ HAS_CURL:=$(shell command -v curl;)
 HAS_MOCKGEN:=$(shell command -v mockgen;)
 HAS_GOTESTSUM:=$(shell command -v gotestsum;)
 HAS_FIELDALIGNMENT:=$(shell command -v fieldalignment;)
+HAS_GOVERTER := $(shell command -v goverter;)
 
 #
 ## Tool versions
@@ -200,6 +201,10 @@ endif
 ifndef HAS_FIELDALIGNMENT
 	@echo "=> Installing fieldalignment tool"
 	$(GO) install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.30.0
+endif
+ifndef HAS_GOVERTER
+	@echo "=> Installing goverter tool"
+	$(GO) install github.com/jmattheis/goverter/cmd/goverter@v1.7.0
 endif
 	go mod download all
 	go mod tidy

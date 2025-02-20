@@ -11,6 +11,8 @@ import (
 	"github.com/Masterminds/sprig/v3"
 	"github.com/dustin/go-humanize"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models/converter"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 )
 
@@ -140,11 +142,20 @@ func s3ProxyFuncMap(t *template.Template) template.FuncMap {
 		return humanize.Bytes(uint64(fmt))
 	}
 	// Add request URI function
-	funcMap["requestURI"] = generalutils.GetRequestURI
+	funcMap["requestURI"] = func(input *models.LightSanitizedRequest) string {
+		// Convert light sanitized http request to http request to use generic functions
+		return generalutils.GetRequestURI(converter.ConvertSanitizedToHTTPRequest(input))
+	}
 	// Add request scheme function
-	funcMap["requestScheme"] = generalutils.GetRequestScheme
+	funcMap["requestScheme"] = func(input *models.LightSanitizedRequest) string {
+		// Convert light sanitized http request to http request to use generic functions
+		return generalutils.GetRequestScheme(converter.ConvertSanitizedToHTTPRequest(input))
+	}
 	// Add request host function
-	funcMap["requestHost"] = generalutils.GetRequestHost
+	funcMap["requestHost"] = func(input *models.LightSanitizedRequest) string {
+		// Convert light sanitized http request to http request to use generic functions
+		return generalutils.GetRequestHost(converter.ConvertSanitizedToHTTPRequest(input))
+	}
 	// Add the 'include' function here so we can close over t.
 	// Copied from Helm: https://github.com/helm/helm/blob/3d1bc72827e4edef273fb3d8d8ded2a25fa6f39d/pkg/engine/engine.go#L112
 	funcMap["include"] = func(name string, data interface{}) (string, error) {
@@ -185,3 +196,5 @@ func s3ProxyFuncMap(t *template.Template) template.FuncMap {
 	// Return result
 	return template.FuncMap(funcMap)
 }
+
+// func lightSanitizedRequestToHttpRequest()

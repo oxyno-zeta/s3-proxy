@@ -10,6 +10,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
 	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/templateutils"
 )
@@ -101,7 +102,7 @@ func (h *handler) send(bodyBuf io.WriterTo, headers map[string]string, status in
 	return nil
 }
 
-func setHeadersFromObjectOutput(w http.ResponseWriter, obj *StreamInput) {
+func setHeadersFromObjectOutput(w http.ResponseWriter, obj *models.StreamInput) {
 	setStrHeader(w, "Cache-Control", obj.CacheControl)
 	setStrHeader(w, "Expires", obj.Expires)
 	setStrHeader(w, "Content-Disposition", obj.ContentDisposition)
@@ -118,7 +119,7 @@ func setHeadersFromObjectOutput(w http.ResponseWriter, obj *StreamInput) {
 	w.WriteHeader(httpStatus)
 }
 
-func determineHTTPStatus(obj *StreamInput) int {
+func determineHTTPStatus(obj *models.StreamInput) int {
 	contentRangeIsGiven := len(obj.ContentRange) > 0
 	// Check if content will be partial
 	if contentRangeIsGiven {
@@ -132,7 +133,7 @@ func determineHTTPStatus(obj *StreamInput) int {
 	return http.StatusOK
 }
 
-func totalFileSizeEqualToContentRange(obj *StreamInput) bool {
+func totalFileSizeEqualToContentRange(obj *models.StreamInput) bool {
 	totalSizeIsEqualToContentRange := false
 	// Calculate total file size
 	totalSize, err := strconv.ParseInt(getFileSizeAsString(obj), 10, 64)
@@ -149,7 +150,7 @@ func totalFileSizeEqualToContentRange(obj *StreamInput) bool {
 *
 See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range
 */
-func getFileSizeAsString(obj *StreamInput) string {
+func getFileSizeAsString(obj *models.StreamInput) string {
 	s := strings.Split(obj.ContentRange, "/")
 	totalSizeString := s[1]
 	totalSizeString = strings.TrimSpace(totalSizeString)

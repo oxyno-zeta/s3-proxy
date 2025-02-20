@@ -14,7 +14,7 @@ import (
 	http "net/http"
 	reflect "reflect"
 
-	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
+	models "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -22,6 +22,7 @@ import (
 type MockResponseHandler struct {
 	ctrl     *gomock.Controller
 	recorder *MockResponseHandlerMockRecorder
+	isgomock struct{}
 }
 
 // MockResponseHandlerMockRecorder is the mock recorder for MockResponseHandler.
@@ -42,51 +43,51 @@ func (m *MockResponseHandler) EXPECT() *MockResponseHandlerMockRecorder {
 }
 
 // BadRequestError mocks base method.
-func (m *MockResponseHandler) BadRequestError(arg0 func(context.Context, string) (string, error), arg1 error) {
+func (m *MockResponseHandler) BadRequestError(loadFileContent func(context.Context, string) (string, error), err error) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "BadRequestError", arg0, arg1)
+	m.ctrl.Call(m, "BadRequestError", loadFileContent, err)
 }
 
 // BadRequestError indicates an expected call of BadRequestError.
-func (mr *MockResponseHandlerMockRecorder) BadRequestError(arg0, arg1 any) *gomock.Call {
+func (mr *MockResponseHandlerMockRecorder) BadRequestError(loadFileContent, err any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BadRequestError", reflect.TypeOf((*MockResponseHandler)(nil).BadRequestError), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BadRequestError", reflect.TypeOf((*MockResponseHandler)(nil).BadRequestError), loadFileContent, err)
 }
 
 // Delete mocks base method.
-func (m *MockResponseHandler) Delete(arg0 func(context.Context, string) (string, error), arg1 *responsehandler.DeleteInput) {
+func (m *MockResponseHandler) Delete(loadFileContent func(context.Context, string) (string, error), input *models.DeleteInput) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Delete", arg0, arg1)
+	m.ctrl.Call(m, "Delete", loadFileContent, input)
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockResponseHandlerMockRecorder) Delete(arg0, arg1 any) *gomock.Call {
+func (mr *MockResponseHandlerMockRecorder) Delete(loadFileContent, input any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockResponseHandler)(nil).Delete), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockResponseHandler)(nil).Delete), loadFileContent, input)
 }
 
 // FoldersFilesList mocks base method.
-func (m *MockResponseHandler) FoldersFilesList(arg0 func(context.Context, string) (string, error), arg1 []*responsehandler.Entry) {
+func (m *MockResponseHandler) FoldersFilesList(loadFileContent func(context.Context, string) (string, error), entries []*models.Entry) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "FoldersFilesList", arg0, arg1)
+	m.ctrl.Call(m, "FoldersFilesList", loadFileContent, entries)
 }
 
 // FoldersFilesList indicates an expected call of FoldersFilesList.
-func (mr *MockResponseHandlerMockRecorder) FoldersFilesList(arg0, arg1 any) *gomock.Call {
+func (mr *MockResponseHandlerMockRecorder) FoldersFilesList(loadFileContent, entries any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FoldersFilesList", reflect.TypeOf((*MockResponseHandler)(nil).FoldersFilesList), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FoldersFilesList", reflect.TypeOf((*MockResponseHandler)(nil).FoldersFilesList), loadFileContent, entries)
 }
 
 // ForbiddenError mocks base method.
-func (m *MockResponseHandler) ForbiddenError(arg0 func(context.Context, string) (string, error), arg1 error) {
+func (m *MockResponseHandler) ForbiddenError(loadFileContent func(context.Context, string) (string, error), err error) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "ForbiddenError", arg0, arg1)
+	m.ctrl.Call(m, "ForbiddenError", loadFileContent, err)
 }
 
 // ForbiddenError indicates an expected call of ForbiddenError.
-func (mr *MockResponseHandlerMockRecorder) ForbiddenError(arg0, arg1 any) *gomock.Call {
+func (mr *MockResponseHandlerMockRecorder) ForbiddenError(loadFileContent, err any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForbiddenError", reflect.TypeOf((*MockResponseHandler)(nil).ForbiddenError), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForbiddenError", reflect.TypeOf((*MockResponseHandler)(nil).ForbiddenError), loadFileContent, err)
 }
 
 // GetRequest mocks base method.
@@ -104,27 +105,27 @@ func (mr *MockResponseHandlerMockRecorder) GetRequest() *gomock.Call {
 }
 
 // InternalServerError mocks base method.
-func (m *MockResponseHandler) InternalServerError(arg0 func(context.Context, string) (string, error), arg1 error) {
+func (m *MockResponseHandler) InternalServerError(loadFileContent func(context.Context, string) (string, error), err error) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "InternalServerError", arg0, arg1)
+	m.ctrl.Call(m, "InternalServerError", loadFileContent, err)
 }
 
 // InternalServerError indicates an expected call of InternalServerError.
-func (mr *MockResponseHandlerMockRecorder) InternalServerError(arg0, arg1 any) *gomock.Call {
+func (mr *MockResponseHandlerMockRecorder) InternalServerError(loadFileContent, err any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InternalServerError", reflect.TypeOf((*MockResponseHandler)(nil).InternalServerError), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InternalServerError", reflect.TypeOf((*MockResponseHandler)(nil).InternalServerError), loadFileContent, err)
 }
 
 // NotFoundError mocks base method.
-func (m *MockResponseHandler) NotFoundError(arg0 func(context.Context, string) (string, error)) {
+func (m *MockResponseHandler) NotFoundError(loadFileContent func(context.Context, string) (string, error)) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "NotFoundError", arg0)
+	m.ctrl.Call(m, "NotFoundError", loadFileContent)
 }
 
 // NotFoundError indicates an expected call of NotFoundError.
-func (mr *MockResponseHandlerMockRecorder) NotFoundError(arg0 any) *gomock.Call {
+func (mr *MockResponseHandlerMockRecorder) NotFoundError(loadFileContent any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotFoundError", reflect.TypeOf((*MockResponseHandler)(nil).NotFoundError), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotFoundError", reflect.TypeOf((*MockResponseHandler)(nil).NotFoundError), loadFileContent)
 }
 
 // NotModified mocks base method.
@@ -152,27 +153,27 @@ func (mr *MockResponseHandlerMockRecorder) PreconditionFailed() *gomock.Call {
 }
 
 // Put mocks base method.
-func (m *MockResponseHandler) Put(arg0 func(context.Context, string) (string, error), arg1 *responsehandler.PutInput) {
+func (m *MockResponseHandler) Put(loadFileContent func(context.Context, string) (string, error), input *models.PutInput) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Put", arg0, arg1)
+	m.ctrl.Call(m, "Put", loadFileContent, input)
 }
 
 // Put indicates an expected call of Put.
-func (mr *MockResponseHandlerMockRecorder) Put(arg0, arg1 any) *gomock.Call {
+func (mr *MockResponseHandlerMockRecorder) Put(loadFileContent, input any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockResponseHandler)(nil).Put), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockResponseHandler)(nil).Put), loadFileContent, input)
 }
 
 // RedirectTo mocks base method.
-func (m *MockResponseHandler) RedirectTo(arg0 string) {
+func (m *MockResponseHandler) RedirectTo(url string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "RedirectTo", arg0)
+	m.ctrl.Call(m, "RedirectTo", url)
 }
 
 // RedirectTo indicates an expected call of RedirectTo.
-func (mr *MockResponseHandlerMockRecorder) RedirectTo(arg0 any) *gomock.Call {
+func (mr *MockResponseHandlerMockRecorder) RedirectTo(url any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RedirectTo", reflect.TypeOf((*MockResponseHandler)(nil).RedirectTo), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RedirectTo", reflect.TypeOf((*MockResponseHandler)(nil).RedirectTo), url)
 }
 
 // RedirectWithTrailingSlash mocks base method.
@@ -188,17 +189,17 @@ func (mr *MockResponseHandlerMockRecorder) RedirectWithTrailingSlash() *gomock.C
 }
 
 // StreamFile mocks base method.
-func (m *MockResponseHandler) StreamFile(arg0 func(context.Context, string) (string, error), arg1 *responsehandler.StreamInput) error {
+func (m *MockResponseHandler) StreamFile(loadFileContent func(context.Context, string) (string, error), input *models.StreamInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StreamFile", arg0, arg1)
+	ret := m.ctrl.Call(m, "StreamFile", loadFileContent, input)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // StreamFile indicates an expected call of StreamFile.
-func (mr *MockResponseHandlerMockRecorder) StreamFile(arg0, arg1 any) *gomock.Call {
+func (mr *MockResponseHandlerMockRecorder) StreamFile(loadFileContent, input any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StreamFile", reflect.TypeOf((*MockResponseHandler)(nil).StreamFile), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StreamFile", reflect.TypeOf((*MockResponseHandler)(nil).StreamFile), loadFileContent, input)
 }
 
 // TargetList mocks base method.
@@ -214,25 +215,25 @@ func (mr *MockResponseHandlerMockRecorder) TargetList() *gomock.Call {
 }
 
 // UnauthorizedError mocks base method.
-func (m *MockResponseHandler) UnauthorizedError(arg0 func(context.Context, string) (string, error), arg1 error) {
+func (m *MockResponseHandler) UnauthorizedError(loadFileContent func(context.Context, string) (string, error), err error) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "UnauthorizedError", arg0, arg1)
+	m.ctrl.Call(m, "UnauthorizedError", loadFileContent, err)
 }
 
 // UnauthorizedError indicates an expected call of UnauthorizedError.
-func (mr *MockResponseHandlerMockRecorder) UnauthorizedError(arg0, arg1 any) *gomock.Call {
+func (mr *MockResponseHandlerMockRecorder) UnauthorizedError(loadFileContent, err any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnauthorizedError", reflect.TypeOf((*MockResponseHandler)(nil).UnauthorizedError), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnauthorizedError", reflect.TypeOf((*MockResponseHandler)(nil).UnauthorizedError), loadFileContent, err)
 }
 
 // UpdateRequestAndResponse mocks base method.
-func (m *MockResponseHandler) UpdateRequestAndResponse(arg0 *http.Request, arg1 http.ResponseWriter) {
+func (m *MockResponseHandler) UpdateRequestAndResponse(req *http.Request, res http.ResponseWriter) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "UpdateRequestAndResponse", arg0, arg1)
+	m.ctrl.Call(m, "UpdateRequestAndResponse", req, res)
 }
 
 // UpdateRequestAndResponse indicates an expected call of UpdateRequestAndResponse.
-func (mr *MockResponseHandlerMockRecorder) UpdateRequestAndResponse(arg0, arg1 any) *gomock.Call {
+func (mr *MockResponseHandlerMockRecorder) UpdateRequestAndResponse(req, res any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRequestAndResponse", reflect.TypeOf((*MockResponseHandler)(nil).UpdateRequestAndResponse), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRequestAndResponse", reflect.TypeOf((*MockResponseHandler)(nil).UpdateRequestAndResponse), req, res)
 }

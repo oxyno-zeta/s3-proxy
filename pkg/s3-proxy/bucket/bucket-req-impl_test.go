@@ -18,6 +18,7 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	responsehandlermocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/mocks"
+	responsehandlermodels "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	s3clientmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client/mocks"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
@@ -36,7 +37,7 @@ func Test_transformS3Entries(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []*responsehandler.Entry
+		want []*responsehandlermodels.Entry
 	}{
 		{
 			name: "Empty list",
@@ -45,7 +46,7 @@ func Test_transformS3Entries(t *testing.T) {
 				rctx:                &bucketReqImpl{},
 				bucketRootPrefixKey: "prefix/",
 			},
-			want: []*responsehandler.Entry{},
+			want: []*responsehandlermodels.Entry{},
 		},
 		{
 			name: "List",
@@ -65,7 +66,7 @@ func Test_transformS3Entries(t *testing.T) {
 				},
 				bucketRootPrefixKey: "prefix/",
 			},
-			want: []*responsehandler.Entry{
+			want: []*responsehandlermodels.Entry{
 				{
 					Type:         s3client.FileType,
 					ETag:         "etag",
@@ -95,7 +96,7 @@ func Test_transformS3Entries(t *testing.T) {
 				},
 				bucketRootPrefixKey: "/",
 			},
-			want: []*responsehandler.Entry{
+			want: []*responsehandlermodels.Entry{
 				{
 					Type:         s3client.FileType,
 					ETag:         "etag",
@@ -125,7 +126,7 @@ func Test_transformS3Entries(t *testing.T) {
 				},
 				bucketRootPrefixKey: "/",
 			},
-			want: []*responsehandler.Entry{
+			want: []*responsehandlermodels.Entry{
 				{
 					Type:         s3client.FileType,
 					ETag:         "etag",
@@ -155,7 +156,7 @@ func Test_transformS3Entries(t *testing.T) {
 				},
 				bucketRootPrefixKey: "/",
 			},
-			want: []*responsehandler.Entry{
+			want: []*responsehandlermodels.Entry{
 				{
 					Type:         s3client.FileType,
 					ETag:         "etag",
@@ -185,7 +186,7 @@ func Test_transformS3Entries(t *testing.T) {
 				},
 				bucketRootPrefixKey: "/",
 			},
-			want: []*responsehandler.Entry{
+			want: []*responsehandlermodels.Entry{
 				{
 					Type:         s3client.FolderType,
 					ETag:         "etag",
@@ -215,7 +216,7 @@ func Test_transformS3Entries(t *testing.T) {
 				},
 				bucketRootPrefixKey: "/",
 			},
-			want: []*responsehandler.Entry{
+			want: []*responsehandlermodels.Entry{
 				{
 					Type:         s3client.FolderType,
 					ETag:         "etag",
@@ -239,7 +240,7 @@ func Test_transformS3Entries(t *testing.T) {
 
 func Test_requestContext_Delete(t *testing.T) {
 	type responseHandlerDeleteMockResult struct {
-		input *responsehandler.DeleteInput
+		input *responsehandlermodels.DeleteInput
 		times int
 	}
 	type responseHandlerInternalServerErrorMockResult struct {
@@ -357,7 +358,7 @@ func Test_requestContext_Delete(t *testing.T) {
 				times: 1,
 			},
 			responseHandlerDeleteMockResultTimes: responseHandlerDeleteMockResult{
-				input: &responsehandler.DeleteInput{Key: "/file"},
+				input: &responsehandlermodels.DeleteInput{Key: "/file"},
 				times: 1,
 			},
 		},
@@ -399,7 +400,7 @@ func Test_requestContext_Delete(t *testing.T) {
 				times: 1,
 			},
 			responseHandlerDeleteMockResultTimes: responseHandlerDeleteMockResult{
-				input: &responsehandler.DeleteInput{Key: "/fake/file2"},
+				input: &responsehandlermodels.DeleteInput{Key: "/fake/file2"},
 				times: 1,
 			},
 		},
@@ -467,7 +468,7 @@ func Test_requestContext_Delete(t *testing.T) {
 
 func Test_requestContext_Put(t *testing.T) {
 	type responseHandlerPutMockResult struct {
-		input *responsehandler.PutInput
+		input *responsehandlermodels.PutInput
 		times int
 	}
 	type responseHandlerErrorsMockResult struct {
@@ -651,7 +652,7 @@ func Test_requestContext_Put(t *testing.T) {
 			},
 			s3clManagerClientForTargetMockInput: "name",
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
-				input: &responsehandler.PutInput{
+				input: &responsehandlermodels.PutInput{
 					Key:          "/test/file",
 					Filename:     "file",
 					ContentType:  "content-type",
@@ -787,7 +788,7 @@ func Test_requestContext_Put(t *testing.T) {
 			},
 			s3clManagerClientForTargetMockInput: "name",
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
-				input: &responsehandler.PutInput{
+				input: &responsehandlermodels.PutInput{
 					Key:         "/test/file",
 					Filename:    "file",
 					ContentType: "content-type",
@@ -865,7 +866,7 @@ func Test_requestContext_Put(t *testing.T) {
 			},
 			s3clManagerClientForTargetMockInput: "name",
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
-				input: &responsehandler.PutInput{
+				input: &responsehandlermodels.PutInput{
 					Key:          "/test1/test2/file",
 					Filename:     "file",
 					ContentType:  "content-type",
@@ -944,7 +945,7 @@ func Test_requestContext_Put(t *testing.T) {
 			},
 			s3clManagerClientForTargetMockInput: "name",
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
-				input: &responsehandler.PutInput{
+				input: &responsehandlermodels.PutInput{
 					Key:         "/test/file",
 					Filename:    "file",
 					ContentType: "content-type",
@@ -1024,7 +1025,7 @@ func Test_requestContext_Put(t *testing.T) {
 			},
 			s3clManagerClientForTargetMockInput: "name",
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
-				input: &responsehandler.PutInput{
+				input: &responsehandlermodels.PutInput{
 					Key:         "/test/file",
 					Filename:    "file",
 					ContentType: "content-type",
@@ -1107,7 +1108,7 @@ func Test_requestContext_Put(t *testing.T) {
 			},
 			s3clManagerClientForTargetMockInput: "name",
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
-				input: &responsehandler.PutInput{
+				input: &responsehandlermodels.PutInput{
 					Key:         "/test/file",
 					Filename:    "file",
 					ContentType: "content-type",
@@ -1186,7 +1187,7 @@ func Test_requestContext_Put(t *testing.T) {
 			},
 			s3clManagerClientForTargetMockInput: "name",
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
-				input: &responsehandler.PutInput{
+				input: &responsehandlermodels.PutInput{
 					Key:         "/test/file",
 					Filename:    "file",
 					ContentType: "content-type",
@@ -1263,7 +1264,7 @@ func Test_requestContext_Put(t *testing.T) {
 			},
 			s3clManagerClientForTargetMockInput: "name",
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
-				input: &responsehandler.PutInput{
+				input: &responsehandlermodels.PutInput{
 					Key:         "/test/file",
 					Filename:    "file",
 					ContentType: "content-type",
@@ -1341,7 +1342,7 @@ func Test_requestContext_Put(t *testing.T) {
 			},
 			s3clManagerClientForTargetMockInput: "name",
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
-				input: &responsehandler.PutInput{
+				input: &responsehandlermodels.PutInput{
 					Key:         "/test/file",
 					Filename:    "file",
 					ContentType: "content-type",
@@ -1438,12 +1439,12 @@ func Test_requestContext_Get(t *testing.T) {
 		times  int
 	}
 	type responseHandlerStreamFileMockResult struct {
-		input *responsehandler.StreamInput
+		input *responsehandlermodels.StreamInput
 		err   error
 		times int
 	}
 	type responseHandlerFoldersFilesListMockResult struct {
-		input2 []*responsehandler.Entry
+		input2 []*responsehandlermodels.Entry
 		times  int
 	}
 	type s3ClientListFilesAndDirectoriesMockResult struct {
@@ -1587,7 +1588,7 @@ func Test_requestContext_Get(t *testing.T) {
 				times: 1,
 			},
 			responseHandlerFoldersFilesListMockResult: responseHandlerFoldersFilesListMockResult{
-				input2: []*responsehandler.Entry{{
+				input2: []*responsehandlermodels.Entry{{
 					Type:         "FILE",
 					ETag:         "etag",
 					LastModified: fakeDate,
@@ -1657,7 +1658,7 @@ func Test_requestContext_Get(t *testing.T) {
 				times: 1,
 			},
 			responseHandlerStreamFileMockResult: responseHandlerStreamFileMockResult{
-				input: &responsehandler.StreamInput{
+				input: &responsehandlermodels.StreamInput{
 					Body:        body,
 					ContentType: "text/html; charset=utf-8",
 				},
@@ -1805,7 +1806,7 @@ func Test_requestContext_Get(t *testing.T) {
 				times:  1,
 			},
 			responseHandlerFoldersFilesListMockResult: responseHandlerFoldersFilesListMockResult{
-				input2: []*responsehandler.Entry{{
+				input2: []*responsehandlermodels.Entry{{
 					Type:         "FILE",
 					ETag:         "etag",
 					LastModified: fakeDate,
@@ -1973,7 +1974,7 @@ func Test_requestContext_Get(t *testing.T) {
 				times: 1,
 			},
 			responseHandlerStreamFileMockResult: responseHandlerStreamFileMockResult{
-				input: &responsehandler.StreamInput{
+				input: &responsehandlermodels.StreamInput{
 					Body:               body,
 					ContentDisposition: "disposition",
 					ContentType:        "type",
@@ -2143,7 +2144,7 @@ func Test_requestContext_Get(t *testing.T) {
 				times: 1,
 			},
 			responseHandlerStreamFileMockResult: responseHandlerStreamFileMockResult{
-				input: &responsehandler.StreamInput{
+				input: &responsehandlermodels.StreamInput{
 					Body:            body,
 					ContentEncoding: "encoding",
 					ContentType:     "type",
@@ -2181,7 +2182,7 @@ func Test_requestContext_Get(t *testing.T) {
 			},
 			responseHandlerFoldersFilesListMockResult: responseHandlerFoldersFilesListMockResult{
 				times:  1,
-				input2: []*responsehandler.Entry{},
+				input2: []*responsehandlermodels.Entry{},
 			},
 		},
 	}

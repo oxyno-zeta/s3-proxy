@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
+	responsehandlermodels "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -182,7 +183,7 @@ func Test_setHeadersFromObjectOutput(t *testing.T) {
 	headerPartialInput.Add("Last-Modified", now.UTC().Format(http.TimeFormat))
 	// Structures
 	type args struct {
-		obj *StreamInput
+		obj *responsehandlermodels.StreamInput
 	}
 	tests := []struct {
 		name            string
@@ -193,7 +194,7 @@ func Test_setHeadersFromObjectOutput(t *testing.T) {
 		{
 			name: "Empty input",
 			args: args{
-				obj: &StreamInput{},
+				obj: &responsehandlermodels.StreamInput{},
 			},
 			expectedHeaders: headerEmpty,
 			expectedCode:    http.StatusOK,
@@ -201,7 +202,7 @@ func Test_setHeadersFromObjectOutput(t *testing.T) {
 		{
 			name: "Full input",
 			args: args{
-				obj: &StreamInput{
+				obj: &responsehandlermodels.StreamInput{
 					CacheControl:       "cachecontrol",
 					Expires:            "expires",
 					ContentDisposition: "contentdisposition",
@@ -220,7 +221,7 @@ func Test_setHeadersFromObjectOutput(t *testing.T) {
 		{
 			name: "Partial input",
 			args: args{
-				obj: &StreamInput{
+				obj: &responsehandlermodels.StreamInput{
 					CacheControl:       "cachecontrol",
 					Expires:            "expires",
 					ContentDisposition: "contentdisposition",
