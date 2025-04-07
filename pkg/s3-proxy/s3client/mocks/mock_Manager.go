@@ -20,6 +20,7 @@ import (
 type MockManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockManagerMockRecorder
+	isgomock struct{}
 }
 
 // MockManagerMockRecorder is the mock recorder for MockManager.
@@ -40,17 +41,17 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 }
 
 // GetClientForTarget mocks base method.
-func (m *MockManager) GetClientForTarget(arg0 string) s3client.Client {
+func (m *MockManager) GetClientForTarget(name string) s3client.Client {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetClientForTarget", arg0)
+	ret := m.ctrl.Call(m, "GetClientForTarget", name)
 	ret0, _ := ret[0].(s3client.Client)
 	return ret0
 }
 
 // GetClientForTarget indicates an expected call of GetClientForTarget.
-func (mr *MockManagerMockRecorder) GetClientForTarget(arg0 any) *gomock.Call {
+func (mr *MockManagerMockRecorder) GetClientForTarget(name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClientForTarget", reflect.TypeOf((*MockManager)(nil).GetClientForTarget), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClientForTarget", reflect.TypeOf((*MockManager)(nil).GetClientForTarget), name)
 }
 
 // Load mocks base method.

@@ -10,17 +10,18 @@
 package mocks
 
 import (
-	context "context"
 	reflect "reflect"
 
 	bucket "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
 	gomock "go.uber.org/mock/gomock"
+	context "golang.org/x/net/context"
 )
 
 // MockClient is a mock of Client interface.
 type MockClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockClientMockRecorder
+	isgomock struct{}
 }
 
 // MockClientMockRecorder is the mock recorder for MockClient.
@@ -41,64 +42,64 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // Delete mocks base method.
-func (m *MockClient) Delete(arg0 context.Context, arg1 string) {
+func (m *MockClient) Delete(ctx context.Context, requestPath string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Delete", arg0, arg1)
+	m.ctrl.Call(m, "Delete", ctx, requestPath)
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockClientMockRecorder) Delete(arg0, arg1 any) *gomock.Call {
+func (mr *MockClientMockRecorder) Delete(ctx, requestPath any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockClient)(nil).Delete), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockClient)(nil).Delete), ctx, requestPath)
 }
 
 // Get mocks base method.
-func (m *MockClient) Get(arg0 context.Context, arg1 *bucket.GetInput) {
+func (m *MockClient) Get(ctx context.Context, input *bucket.GetInput) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Get", arg0, arg1)
+	m.ctrl.Call(m, "Get", ctx, input)
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockClientMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+func (mr *MockClientMockRecorder) Get(ctx, input any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), ctx, input)
 }
 
 // Head mocks base method.
-func (m *MockClient) Head(arg0 context.Context, arg1 *bucket.GetInput) {
+func (m *MockClient) Head(ctx context.Context, input *bucket.GetInput) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Head", arg0, arg1)
+	m.ctrl.Call(m, "Head", ctx, input)
 }
 
 // Head indicates an expected call of Head.
-func (mr *MockClientMockRecorder) Head(arg0, arg1 any) *gomock.Call {
+func (mr *MockClientMockRecorder) Head(ctx, input any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Head", reflect.TypeOf((*MockClient)(nil).Head), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Head", reflect.TypeOf((*MockClient)(nil).Head), ctx, input)
 }
 
 // LoadFileContent mocks base method.
-func (m *MockClient) LoadFileContent(arg0 context.Context, arg1 string) (string, error) {
+func (m *MockClient) LoadFileContent(ctx context.Context, path string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadFileContent", arg0, arg1)
+	ret := m.ctrl.Call(m, "LoadFileContent", ctx, path)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // LoadFileContent indicates an expected call of LoadFileContent.
-func (mr *MockClientMockRecorder) LoadFileContent(arg0, arg1 any) *gomock.Call {
+func (mr *MockClientMockRecorder) LoadFileContent(ctx, path any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadFileContent", reflect.TypeOf((*MockClient)(nil).LoadFileContent), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadFileContent", reflect.TypeOf((*MockClient)(nil).LoadFileContent), ctx, path)
 }
 
 // Put mocks base method.
-func (m *MockClient) Put(arg0 context.Context, arg1 *bucket.PutInput) {
+func (m *MockClient) Put(ctx context.Context, inp *bucket.PutInput) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Put", arg0, arg1)
+	m.ctrl.Call(m, "Put", ctx, inp)
 }
 
 // Put indicates an expected call of Put.
-func (mr *MockClientMockRecorder) Put(arg0, arg1 any) *gomock.Call {
+func (mr *MockClientMockRecorder) Put(ctx, inp any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockClient)(nil).Put), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockClient)(nil).Put), ctx, inp)
 }

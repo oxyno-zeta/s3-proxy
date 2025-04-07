@@ -21,6 +21,7 @@ import (
 type MockClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockClientMockRecorder
+	isgomock struct{}
 }
 
 // MockClientMockRecorder is the mock recorder for MockClient.
@@ -55,75 +56,75 @@ func (mr *MockClientMockRecorder) GetExposeHandler() *gomock.Call {
 }
 
 // IncAuthenticated mocks base method.
-func (m *MockClient) IncAuthenticated(arg0, arg1 string) {
+func (m *MockClient) IncAuthenticated(providerType, providerName string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "IncAuthenticated", arg0, arg1)
+	m.ctrl.Call(m, "IncAuthenticated", providerType, providerName)
 }
 
 // IncAuthenticated indicates an expected call of IncAuthenticated.
-func (mr *MockClientMockRecorder) IncAuthenticated(arg0, arg1 any) *gomock.Call {
+func (mr *MockClientMockRecorder) IncAuthenticated(providerType, providerName any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncAuthenticated", reflect.TypeOf((*MockClient)(nil).IncAuthenticated), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncAuthenticated", reflect.TypeOf((*MockClient)(nil).IncAuthenticated), providerType, providerName)
 }
 
 // IncAuthorized mocks base method.
-func (m *MockClient) IncAuthorized(arg0 string) {
+func (m *MockClient) IncAuthorized(providerType string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "IncAuthorized", arg0)
+	m.ctrl.Call(m, "IncAuthorized", providerType)
 }
 
 // IncAuthorized indicates an expected call of IncAuthorized.
-func (mr *MockClientMockRecorder) IncAuthorized(arg0 any) *gomock.Call {
+func (mr *MockClientMockRecorder) IncAuthorized(providerType any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncAuthorized", reflect.TypeOf((*MockClient)(nil).IncAuthorized), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncAuthorized", reflect.TypeOf((*MockClient)(nil).IncAuthorized), providerType)
 }
 
 // IncFailedWebhooks mocks base method.
-func (m *MockClient) IncFailedWebhooks(arg0, arg1 string) {
+func (m *MockClient) IncFailedWebhooks(targetName, actionName string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "IncFailedWebhooks", arg0, arg1)
+	m.ctrl.Call(m, "IncFailedWebhooks", targetName, actionName)
 }
 
 // IncFailedWebhooks indicates an expected call of IncFailedWebhooks.
-func (mr *MockClientMockRecorder) IncFailedWebhooks(arg0, arg1 any) *gomock.Call {
+func (mr *MockClientMockRecorder) IncFailedWebhooks(targetName, actionName any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncFailedWebhooks", reflect.TypeOf((*MockClient)(nil).IncFailedWebhooks), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncFailedWebhooks", reflect.TypeOf((*MockClient)(nil).IncFailedWebhooks), targetName, actionName)
 }
 
 // IncS3Operations mocks base method.
-func (m *MockClient) IncS3Operations(arg0, arg1, arg2 string) {
+func (m *MockClient) IncS3Operations(targetName, bucketName, operation string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "IncS3Operations", arg0, arg1, arg2)
+	m.ctrl.Call(m, "IncS3Operations", targetName, bucketName, operation)
 }
 
 // IncS3Operations indicates an expected call of IncS3Operations.
-func (mr *MockClientMockRecorder) IncS3Operations(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockClientMockRecorder) IncS3Operations(targetName, bucketName, operation any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncS3Operations", reflect.TypeOf((*MockClient)(nil).IncS3Operations), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncS3Operations", reflect.TypeOf((*MockClient)(nil).IncS3Operations), targetName, bucketName, operation)
 }
 
 // IncSucceedWebhooks mocks base method.
-func (m *MockClient) IncSucceedWebhooks(arg0, arg1 string) {
+func (m *MockClient) IncSucceedWebhooks(targetName, actionName string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "IncSucceedWebhooks", arg0, arg1)
+	m.ctrl.Call(m, "IncSucceedWebhooks", targetName, actionName)
 }
 
 // IncSucceedWebhooks indicates an expected call of IncSucceedWebhooks.
-func (mr *MockClientMockRecorder) IncSucceedWebhooks(arg0, arg1 any) *gomock.Call {
+func (mr *MockClientMockRecorder) IncSucceedWebhooks(targetName, actionName any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncSucceedWebhooks", reflect.TypeOf((*MockClient)(nil).IncSucceedWebhooks), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncSucceedWebhooks", reflect.TypeOf((*MockClient)(nil).IncSucceedWebhooks), targetName, actionName)
 }
 
 // Instrument mocks base method.
-func (m *MockClient) Instrument(arg0 string, arg1 *config.MetricsConfig) func(http.Handler) http.Handler {
+func (m *MockClient) Instrument(serverLabel string, metricsCfg *config.MetricsConfig) func(http.Handler) http.Handler {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Instrument", arg0, arg1)
+	ret := m.ctrl.Call(m, "Instrument", serverLabel, metricsCfg)
 	ret0, _ := ret[0].(func(http.Handler) http.Handler)
 	return ret0
 }
 
 // Instrument indicates an expected call of Instrument.
-func (mr *MockClientMockRecorder) Instrument(arg0, arg1 any) *gomock.Call {
+func (mr *MockClientMockRecorder) Instrument(serverLabel, metricsCfg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Instrument", reflect.TypeOf((*MockClient)(nil).Instrument), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Instrument", reflect.TypeOf((*MockClient)(nil).Instrument), serverLabel, metricsCfg)
 }

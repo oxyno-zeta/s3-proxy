@@ -20,6 +20,7 @@ import (
 type MockManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockManagerMockRecorder
+	isgomock struct{}
 }
 
 // MockManagerMockRecorder is the mock recorder for MockManager.
@@ -40,15 +41,15 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 }
 
 // AddOnChangeHook mocks base method.
-func (m *MockManager) AddOnChangeHook(arg0 func()) {
+func (m *MockManager) AddOnChangeHook(hook func()) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "AddOnChangeHook", arg0)
+	m.ctrl.Call(m, "AddOnChangeHook", hook)
 }
 
 // AddOnChangeHook indicates an expected call of AddOnChangeHook.
-func (mr *MockManagerMockRecorder) AddOnChangeHook(arg0 any) *gomock.Call {
+func (mr *MockManagerMockRecorder) AddOnChangeHook(hook any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOnChangeHook", reflect.TypeOf((*MockManager)(nil).AddOnChangeHook), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOnChangeHook", reflect.TypeOf((*MockManager)(nil).AddOnChangeHook), hook)
 }
 
 // GetConfig mocks base method.
@@ -66,15 +67,15 @@ func (mr *MockManagerMockRecorder) GetConfig() *gomock.Call {
 }
 
 // Load mocks base method.
-func (m *MockManager) Load(arg0 string) error {
+func (m *MockManager) Load(mainConfDir string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Load", arg0)
+	ret := m.ctrl.Call(m, "Load", mainConfDir)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Load indicates an expected call of Load.
-func (mr *MockManagerMockRecorder) Load(arg0 any) *gomock.Call {
+func (mr *MockManagerMockRecorder) Load(mainConfDir any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Load", reflect.TypeOf((*MockManager)(nil).Load), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Load", reflect.TypeOf((*MockManager)(nil).Load), mainConfDir)
 }

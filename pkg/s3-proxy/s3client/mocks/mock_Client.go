@@ -22,6 +22,7 @@ import (
 type MockClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockClientMockRecorder
+	isgomock struct{}
 }
 
 // MockClientMockRecorder is the mock recorder for MockClient.
@@ -42,24 +43,24 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // DeleteObject mocks base method.
-func (m *MockClient) DeleteObject(arg0 context.Context, arg1 string) (*s3client.ResultInfo, error) {
+func (m *MockClient) DeleteObject(ctx context.Context, key string) (*s3client.ResultInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteObject", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteObject", ctx, key)
 	ret0, _ := ret[0].(*s3client.ResultInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeleteObject indicates an expected call of DeleteObject.
-func (mr *MockClientMockRecorder) DeleteObject(arg0, arg1 any) *gomock.Call {
+func (mr *MockClientMockRecorder) DeleteObject(ctx, key any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteObject", reflect.TypeOf((*MockClient)(nil).DeleteObject), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteObject", reflect.TypeOf((*MockClient)(nil).DeleteObject), ctx, key)
 }
 
 // GetObject mocks base method.
-func (m *MockClient) GetObject(arg0 context.Context, arg1 *s3client.GetInput) (*s3client.GetOutput, *s3client.ResultInfo, error) {
+func (m *MockClient) GetObject(ctx context.Context, input *s3client.GetInput) (*s3client.GetOutput, *s3client.ResultInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetObject", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetObject", ctx, input)
 	ret0, _ := ret[0].(*s3client.GetOutput)
 	ret1, _ := ret[1].(*s3client.ResultInfo)
 	ret2, _ := ret[2].(error)
@@ -67,30 +68,30 @@ func (m *MockClient) GetObject(arg0 context.Context, arg1 *s3client.GetInput) (*
 }
 
 // GetObject indicates an expected call of GetObject.
-func (mr *MockClientMockRecorder) GetObject(arg0, arg1 any) *gomock.Call {
+func (mr *MockClientMockRecorder) GetObject(ctx, input any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObject", reflect.TypeOf((*MockClient)(nil).GetObject), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObject", reflect.TypeOf((*MockClient)(nil).GetObject), ctx, input)
 }
 
 // GetObjectSignedURL mocks base method.
-func (m *MockClient) GetObjectSignedURL(arg0 context.Context, arg1 *s3client.GetInput, arg2 time.Duration) (string, error) {
+func (m *MockClient) GetObjectSignedURL(ctx context.Context, input *s3client.GetInput, expiration time.Duration) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetObjectSignedURL", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetObjectSignedURL", ctx, input, expiration)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetObjectSignedURL indicates an expected call of GetObjectSignedURL.
-func (mr *MockClientMockRecorder) GetObjectSignedURL(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockClientMockRecorder) GetObjectSignedURL(ctx, input, expiration any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObjectSignedURL", reflect.TypeOf((*MockClient)(nil).GetObjectSignedURL), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObjectSignedURL", reflect.TypeOf((*MockClient)(nil).GetObjectSignedURL), ctx, input, expiration)
 }
 
 // HeadObject mocks base method.
-func (m *MockClient) HeadObject(arg0 context.Context, arg1 string) (*s3client.HeadOutput, *s3client.ResultInfo, error) {
+func (m *MockClient) HeadObject(ctx context.Context, key string) (*s3client.HeadOutput, *s3client.ResultInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HeadObject", arg0, arg1)
+	ret := m.ctrl.Call(m, "HeadObject", ctx, key)
 	ret0, _ := ret[0].(*s3client.HeadOutput)
 	ret1, _ := ret[1].(*s3client.ResultInfo)
 	ret2, _ := ret[2].(error)
@@ -98,15 +99,15 @@ func (m *MockClient) HeadObject(arg0 context.Context, arg1 string) (*s3client.He
 }
 
 // HeadObject indicates an expected call of HeadObject.
-func (mr *MockClientMockRecorder) HeadObject(arg0, arg1 any) *gomock.Call {
+func (mr *MockClientMockRecorder) HeadObject(ctx, key any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HeadObject", reflect.TypeOf((*MockClient)(nil).HeadObject), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HeadObject", reflect.TypeOf((*MockClient)(nil).HeadObject), ctx, key)
 }
 
 // ListFilesAndDirectories mocks base method.
-func (m *MockClient) ListFilesAndDirectories(arg0 context.Context, arg1 string) ([]*s3client.ListElementOutput, *s3client.ResultInfo, error) {
+func (m *MockClient) ListFilesAndDirectories(ctx context.Context, key string) ([]*s3client.ListElementOutput, *s3client.ResultInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListFilesAndDirectories", arg0, arg1)
+	ret := m.ctrl.Call(m, "ListFilesAndDirectories", ctx, key)
 	ret0, _ := ret[0].([]*s3client.ListElementOutput)
 	ret1, _ := ret[1].(*s3client.ResultInfo)
 	ret2, _ := ret[2].(error)
@@ -114,22 +115,22 @@ func (m *MockClient) ListFilesAndDirectories(arg0 context.Context, arg1 string) 
 }
 
 // ListFilesAndDirectories indicates an expected call of ListFilesAndDirectories.
-func (mr *MockClientMockRecorder) ListFilesAndDirectories(arg0, arg1 any) *gomock.Call {
+func (mr *MockClientMockRecorder) ListFilesAndDirectories(ctx, key any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFilesAndDirectories", reflect.TypeOf((*MockClient)(nil).ListFilesAndDirectories), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFilesAndDirectories", reflect.TypeOf((*MockClient)(nil).ListFilesAndDirectories), ctx, key)
 }
 
 // PutObject mocks base method.
-func (m *MockClient) PutObject(arg0 context.Context, arg1 *s3client.PutInput) (*s3client.ResultInfo, error) {
+func (m *MockClient) PutObject(ctx context.Context, input *s3client.PutInput) (*s3client.ResultInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PutObject", arg0, arg1)
+	ret := m.ctrl.Call(m, "PutObject", ctx, input)
 	ret0, _ := ret[0].(*s3client.ResultInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // PutObject indicates an expected call of PutObject.
-func (mr *MockClientMockRecorder) PutObject(arg0, arg1 any) *gomock.Call {
+func (mr *MockClientMockRecorder) PutObject(ctx, input any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutObject", reflect.TypeOf((*MockClient)(nil).PutObject), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutObject", reflect.TypeOf((*MockClient)(nil).PutObject), ctx, input)
 }
