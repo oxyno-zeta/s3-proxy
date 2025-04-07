@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"emperror.dev/errors"
-
 	oidc "github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gobwas/glob"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"

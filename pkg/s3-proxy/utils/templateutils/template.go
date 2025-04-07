@@ -113,7 +113,7 @@ func ExecuteTemplate(tplString string, data interface{}) (*bytes.Buffer, error) 
 		Funcs(sprig.TxtFuncMap()).
 		Funcs(s3ProxyFuncMap(tmpl)).
 		Parse(tplString)
-	// Check if error exists
+		// Check if error exists
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

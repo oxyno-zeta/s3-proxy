@@ -141,7 +141,7 @@ func startServer(mainConfDir string) {
 func main() {
 	var configFolder string
 
-	var rootCmd = &cobra.Command{
+	rootCmd := &cobra.Command{
 		Use:   "s3-proxy",
 		Short: "S3 Reverse Proxy",
 		Long:  "S3 Reverse Proxy with GET, PUT and DELETE methods and authentication (OpenID Connect and Basic Auth)",
@@ -150,7 +150,7 @@ func main() {
 		},
 	}
 
-	var versionCmd = &cobra.Command{
+	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "Print the version number of s3-proxy",
 		Run: func(_ *cobra.Command, _ []string) {

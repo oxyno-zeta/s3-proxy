@@ -372,7 +372,6 @@ func getDocumentFromS3(bucket, key string, opts ...GetDocumentFromURLOption) ([]
 	}
 
 	goo, err := s3Client.GetObject(&goi)
-
 	if err != nil {
 		return nil, err
 	}
@@ -401,8 +400,8 @@ func getDocumentFromSecretsManager(docARN *arn.ARN, opts ...GetDocumentFromURLOp
 
 	// Make sure the account ID matches the ARN's account ID.
 	stsClient := sts.New(sess)
-	gcio, err := stsClient.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 
+	gcio, err := stsClient.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to determine current account ID")
 	}
@@ -415,8 +414,8 @@ func getDocumentFromSecretsManager(docARN *arn.ARN, opts ...GetDocumentFromURLOp
 	gsvi := secretsmanager.GetSecretValueInput{
 		SecretId: aws.String(docARN.Resource[len("secret:"):]),
 	}
-	gsvo, err := secretsManagerClient.GetSecretValue(&gsvi)
 
+	gsvo, err := secretsManagerClient.GetSecretValue(&gsvi)
 	if err != nil {
 		return nil, err
 	}
@@ -452,14 +451,18 @@ func getDocumentFromSSM(docARN *arn.ARN, opts ...GetDocumentFromURLOption) ([]by
 
 	// Make sure the account ID matches the ARN's account ID.
 	stsClient := sts.New(sess)
-	gcio, err := stsClient.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 
+	gcio, err := stsClient.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to determine current account ID")
 	}
 
 	if aws.StringValue(gcio.Account) != docARN.AccountID {
-		return nil, errors.Errorf("account ID in ARN does not match current acccount: %s (current account is %s)", docARN.String(), aws.StringValue(gcio.Account))
+		return nil, errors.Errorf(
+			"account ID in ARN does not match current acccount: %s (current account is %s)",
+			docARN.String(),
+			aws.StringValue(gcio.Account),
+		)
 	}
 
 	ssmClient := ssm.New(sess)
@@ -468,8 +471,8 @@ func getDocumentFromSSM(docARN *arn.ARN, opts ...GetDocumentFromURLOption) ([]by
 		Name:           aws.String(docARN.Resource[len("parameter/"):]),
 		WithDecryption: aws.Bool(true),
 	}
-	gpo, err := ssmClient.GetParameter(&gpi)
 
+	gpo, err := ssmClient.GetParameter(&gpi)
 	if err != nil {
 		return nil, err
 	}

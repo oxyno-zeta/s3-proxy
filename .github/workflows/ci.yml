@@ -6,9 +6,9 @@ on:
   pull_request: {}
 env:
   # renovate: datasource=github-tags depName=golangci/golangci-lint
-  GOLANGCI_LINT_VERSION: "v1.64.6"
+  GOLANGCI_LINT_VERSION: "v2.0.2"
   # renovate: datasource=go
-  GOLANG_VERSION: "^1.23.0"
+  GOLANG_VERSION: "^1.24.2"
 jobs:
   changes:
     runs-on: ubuntu-latest

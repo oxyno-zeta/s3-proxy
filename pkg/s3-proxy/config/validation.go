@@ -11,7 +11,6 @@ import (
 
 	"emperror.dev/errors"
 	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
-
 	"github.com/thoas/go-funk"
 )
 
@@ -270,7 +269,6 @@ func validateSSLConfig(serverSSL *ServerSSLConfig, section string) error {
 		err := validateSSLCertificateComponentConfig(
 			cert.Certificate, cert.CertificateURL, cert.CertificateURLConfig,
 			fmt.Sprintf("%s.ssl.certificates[%d].certificate", section, i))
-
 		if err != nil {
 			return err
 		}
@@ -287,7 +285,8 @@ func validateSSLConfig(serverSSL *ServerSSLConfig, section string) error {
 }
 
 func validateSSLCertificateComponentConfig(
-	component *string, componentURL *string, componentURLConfig *SSLURLConfig, componentName string) error {
+	component *string, componentURL *string, componentURLConfig *SSLURLConfig, componentName string,
+) error {
 	if component == nil {
 		if componentURL == nil {
 			return errors.Errorf("either %s or %sUrl must be set", componentName, componentName)

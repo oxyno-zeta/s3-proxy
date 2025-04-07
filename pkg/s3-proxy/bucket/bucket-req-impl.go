@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
@@ -322,7 +321,7 @@ func (bri *bucketReqImpl) manageGetFolder(ctx context.Context, key string, input
 	s3Entries, info, err := bri.s3ClientManager.
 		GetClientForTarget(bri.targetCfg.Name).
 		ListFilesAndDirectories(ctx, key)
-	// Check error
+		// Check error
 	if err != nil {
 		resHan.InternalServerError(bri.LoadFileContent, err)
 		// Stop
@@ -577,7 +576,7 @@ func (bri *bucketReqImpl) Put(ctx context.Context, inp *PutInput) {
 	info, err := bri.s3ClientManager.
 		GetClientForTarget(bri.targetCfg.Name).
 		PutObject(ctx, input)
-	// Check error
+		// Check error
 	if err != nil {
 		resHan.InternalServerError(bri.LoadFileContent, err)
 		// Stop
@@ -623,7 +622,6 @@ func (*bucketReqImpl) tplPutData(ctx context.Context, inp *PutInput, key, tplStr
 		Input: inp,
 		Key:   key,
 	})
-
 	// Check error
 	if err != nil {
 		return "", errors.WithStack(err)
@@ -670,7 +668,7 @@ func (bri *bucketReqImpl) Delete(ctx context.Context, requestPath string) {
 	info, err := bri.s3ClientManager.
 		GetClientForTarget(bri.targetCfg.Name).
 		DeleteObject(ctx, key)
-	// Check if error exists
+		// Check if error exists
 	if err != nil {
 		resHan.InternalServerError(bri.LoadFileContent, err)
 		// Stop
@@ -769,7 +767,7 @@ func (bri *bucketReqImpl) redirectToSignedURL(ctx context.Context, key string, i
 			},
 			bri.targetCfg.Actions.GET.Config.SignedURLExpiration,
 		)
-	// Check error
+		// Check error
 	if err != nil {
 		return err
 	}
@@ -840,7 +838,7 @@ func (bri *bucketReqImpl) streamFileForResponse(ctx context.Context, key string,
 			IfUnmodifiedSince: input.IfUnmodifiedSince,
 			Range:             input.Range,
 		})
-	// Check error
+		// Check error
 	if err != nil {
 		return err
 	}

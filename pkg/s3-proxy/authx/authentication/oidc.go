@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-
 	oidc "github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/chi/v5"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
@@ -17,13 +16,14 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
-
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 )
 
-const redirectQueryKey = "rd"
-const stateRedirectSeparator = ":"
+const (
+	redirectQueryKey       = "rd"
+	stateRedirectSeparator = ":"
+)
 
 // OIDCEndpoints will set OpenID Connect endpoints for authentication and callback.
 func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConfig, mux chi.Router) error {
@@ -484,7 +484,7 @@ func generateOIDCConfig(
 // IsValidRedirect checks whether the redirect URL is whitelisted.
 func isValidRedirect(redirectURLStr, reqURLStr string) (bool, error) {
 	// Check if it isn't forged with complete urls
-	if !(strings.HasPrefix(redirectURLStr, "http://") || strings.HasPrefix(redirectURLStr, "https://")) {
+	if !strings.HasPrefix(redirectURLStr, "http://") && !strings.HasPrefix(redirectURLStr, "https://") {
 		return false, nil
 	}
 

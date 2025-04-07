@@ -141,3 +141,4 @@ bundle.tar.gz
 *.log
 junit.xml
 .vscode/settings.json
+gl-code-quality-report.json

@@ -134,12 +134,16 @@ var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support opti
 var TemplateErrLoadingEnvCredentialEmpty = "error loading credentials, environment variable %s is empty" //nolint: gosec // No credentials here, false positive
 
 // Default Upload configurations.
-const DefaultS3MaxUploadParts = s3manager.MaxUploadParts
-const DefaultS3UploadPartSize int64 = 5
-const DefaultS3UploadConcurrency = s3manager.DefaultUploadConcurrency
+const (
+	DefaultS3MaxUploadParts          = s3manager.MaxUploadParts
+	DefaultS3UploadPartSize    int64 = 5
+	DefaultS3UploadConcurrency       = s3manager.DefaultUploadConcurrency
+)
 
-const oidcLoginPathTemplate = "/auth/%s"
-const oidcCallbackPathTemplate = "/auth/%s/callback"
+const (
+	oidcLoginPathTemplate    = "/auth/%s"
+	oidcCallbackPathTemplate = "/auth/%s/callback"
+)
 
 // Config Application Configuration.
 type Config struct {
@@ -336,12 +340,12 @@ type ServerCorsConfig struct {
 // TargetConfig Bucket instance configuration.
 type TargetConfig struct {
 	Name           string                    `json:"-"              validate:"required"`
-	Bucket         *BucketConfig             `json:"bucket"         mapstructure:"bucket"         validate:"required"`
-	Resources      []*Resource               `json:"resources"      mapstructure:"resources"      validate:"dive"`
-	Mount          *MountConfig              `json:"mount"          mapstructure:"mount"          validate:"required"`
-	Actions        *ActionsConfig            `json:"actions"        mapstructure:"actions"`
-	Templates      *TargetTemplateConfig     `json:"templates"      mapstructure:"templates"`
-	KeyRewriteList []*TargetKeyRewriteConfig `json:"keyRewriteList" mapstructure:"keyRewriteList"`
+	Bucket         *BucketConfig             `json:"bucket"         validate:"required" mapstructure:"bucket"`
+	Resources      []*Resource               `json:"resources"      validate:"dive"     mapstructure:"resources"`
+	Mount          *MountConfig              `json:"mount"          validate:"required" mapstructure:"mount"`
+	Actions        *ActionsConfig            `json:"actions"                            mapstructure:"actions"`
+	Templates      *TargetTemplateConfig     `json:"templates"                          mapstructure:"templates"`
+	KeyRewriteList []*TargetKeyRewriteConfig `json:"keyRewriteList"                     mapstructure:"keyRewriteList"`
 }
 
 // TargetKeyRewriteConfig Target key rewrite configuration.

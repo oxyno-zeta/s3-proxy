@@ -101,7 +101,6 @@ func generateTLSConfig(sslConfig *config.ServerSSLConfig, logger log.Logger) (*t
 	// Add each supplied certificate to the TLS config.
 	for _, certConfig := range sslConfig.Certificates {
 		cert, err := getCertificateFromConfig(certConfig, logger)
-
 		if err != nil {
 			logger.Errorf("unable to load certificate: %v", err)
 
@@ -137,7 +136,6 @@ func getCertificateFromConfig(certConfig *config.ServerSSLCertificate, logger lo
 	// Certificate supplied as a URL.
 	case certConfig.CertificateURL != nil:
 		certificate, err = utils.GetDocumentFromURL(*certConfig.CertificateURL, certificateURLOptions...)
-
 		if err != nil {
 			logger.Errorf("Failed to get certificate from URL %s: %v", *certConfig.CertificateURL, err)
 
@@ -158,7 +156,6 @@ func getCertificateFromConfig(certConfig *config.ServerSSLCertificate, logger lo
 	// Private key supplied as a URL.
 	case certConfig.PrivateKeyURL != nil:
 		privateKey, err = utils.GetDocumentFromURL(*certConfig.PrivateKeyURL, privateKeyURLOptions...)
-
 		if err != nil {
 			logger.Errorf("Failed to get private key from URL %s: %v", *certConfig.PrivateKeyURL, err)
 
@@ -172,7 +169,6 @@ func getCertificateFromConfig(certConfig *config.ServerSSLCertificate, logger lo
 	}
 
 	cert, err := tls.X509KeyPair(certificate, privateKey)
-
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create certificate")
 	}
@@ -194,7 +190,6 @@ func getCertificateFromConfig(certConfig *config.ServerSSLCertificate, logger lo
 // the specified hostnames.
 func generateSelfSignedCertificate(hostnames []string) (tls.Certificate, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
-
 	if err != nil {
 		return tls.Certificate{}, errors.Wrap(err, "failed to generate private key")
 	}
@@ -211,8 +206,8 @@ func generateSelfSignedCertificate(hostnames []string) (tls.Certificate, error) 
 	one := big.NewInt(1)
 	maxSerialNumber := &big.Int{}
 	maxSerialNumber.Lsh(one, certSerialBits)
-	serialNumber, err := rand.Int(rand.Reader, maxSerialNumber)
 
+	serialNumber, err := rand.Int(rand.Reader, maxSerialNumber)
 	if err != nil {
 		return tls.Certificate{}, errors.Wrap(err, "failed to generate serial number")
 	}
@@ -228,7 +223,6 @@ func generateSelfSignedCertificate(hostnames []string) (tls.Certificate, error) 
 	}
 
 	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, privateKey.Public(), privateKey)
-
 	if err != nil {
 		return tls.Certificate{}, errors.Wrap(err, "failed to create self-signed certificate")
 	}

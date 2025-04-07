@@ -13,8 +13,10 @@ type contextKey struct {
 	name string
 }
 
-var userContextKey = &contextKey{name: "USER_CONTEXT_KEY"}
-var resourceContextKey = &contextKey{name: "RESOURCE_CONTEXT_KEY"}
+var (
+	userContextKey     = &contextKey{name: "USER_CONTEXT_KEY"}
+	resourceContextKey = &contextKey{name: "RESOURCE_CONTEXT_KEY"}
+)
 
 func SetAuthenticatedUserInContext(ctx context.Context, user GenericUser) context.Context {
 	// Add value to context
