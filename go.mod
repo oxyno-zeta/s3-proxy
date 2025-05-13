@@ -82,4 +82,4 @@ require (
 	google.golang.org/protobuf v1.36.6 // indirect
 )
 
-replace github.com/imdario/mergo => github.com/imdario/mergo v1.0.1
+replace github.com/imdario/mergo => github.com/imdario/mergo v1.0.2
