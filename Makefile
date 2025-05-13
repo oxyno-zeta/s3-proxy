@@ -200,7 +200,7 @@ ifndef HAS_GOTESTSUM
 endif
 ifndef HAS_FIELDALIGNMENT
 	@echo "=> Installing fieldalignment tool"
-	$(GO) install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.31.0
+	$(GO) install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.33.0
 endif
 ifndef HAS_GOVERTER
 	@echo "=> Installing goverter tool"
