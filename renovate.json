@@ -39,11 +39,11 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": [
-        "^Makefile$",
-        "^Dockerfile.*",
-        "^.mise.toml",
-        "^.github/workflows/.*\\.yml"
+      "managerFilePatterns": [
+        "/^Makefile$/",
+        "/^Dockerfile.*/",
+        "/^.mise.toml/",
+        "/^.github/workflows/.*\\.yml/"
       ],
       "matchStrings": [
         "#\\s*renovate:\\s*datasource=(?<datasource>.*?)( depName=(?<depName>.*?))?( versioning=(?<versioning>.*?))?( registryUrl=(?<registryUrl>.*?))?\\s.*\\s*[ :=]+\\s*[\"'](?<currentValue>.*)[\"']\\s"
@@ -52,8 +52,8 @@
     },
     {
       "customType": "regex",
-      "fileMatch": [
-        "^Makefile$"
+      "managerFilePatterns": [
+        "/^Makefile$/"
       ],
       "matchStrings": [
         "go install (?<depName>[^@]+?)@(?<currentValue>[0-9.a-zA-Z-]+)",
