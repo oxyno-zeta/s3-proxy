@@ -139,7 +139,7 @@ func s3ProxyFuncMap(t *template.Template) template.FuncMap {
 
 	// Add human size function
 	funcMap["humanSize"] = func(fmt int64) string {
-		return humanize.Bytes(uint64(fmt))
+		return humanize.Bytes(uint64(fmt)) //nolint:gosec // Ignore this
 	}
 	// Add request URI function
 	funcMap["requestURI"] = func(input *models.LightSanitizedRequest) string {
