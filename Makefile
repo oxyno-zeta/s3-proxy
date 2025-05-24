@@ -196,7 +196,7 @@ ifndef HAS_MOCKGEN
 endif
 ifndef HAS_GOTESTSUM
 	@echo "=> Installing gotestsum tool"
-	go install gotest.tools/gotestsum@v1.12.1
+	go install gotest.tools/gotestsum@v1.12.2
 endif
 ifndef HAS_FIELDALIGNMENT
 	@echo "=> Installing fieldalignment tool"
