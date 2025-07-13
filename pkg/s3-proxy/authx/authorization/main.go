@@ -102,6 +102,7 @@ func Middleware(
 				// Check if case of opa server
 				if headerOIDCResource.AuthorizationOPAServer != nil {
 					var err error
+
 					authorized, err = isOPAServerAuthorized(r, user, headerOIDCResource)
 					// Check error
 					if err != nil {

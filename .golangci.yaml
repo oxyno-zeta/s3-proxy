@@ -75,7 +75,7 @@ linters:
     - usetesting
     - wastedassign
     - whitespace
-    - wsl
+    - wsl_v5
   disable:
     - depguard
     - err113
@@ -377,12 +377,12 @@ linters:
       - linters:
           - lll
           - nlreturn
-          - wsl
+          - wsl_v5
         path: pkg/s3-proxy/.*/.*/mocks/.*\.go
       - linters:
           - lll
           - nlreturn
-          - wsl
+          - wsl_v5
         path: pkg/s3-proxy/.*/mocks/.*\.go
       - linters:
           - gomoddirectives

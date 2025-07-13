@@ -141,6 +141,7 @@ func (impl *managerimpl) watchInternalFile(filePath string, forceStop chan bool,
 		initWG.Done()   // done initializing the watch in this go routine, so the parent routine can move on...
 		eventsWG.Wait() // now, wait for event loop to end in this go-routine...
 	}()
+
 	initWG.Wait() // make sure that the go routine above fully ended before returning
 }
 
