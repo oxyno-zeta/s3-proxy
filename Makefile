@@ -204,7 +204,7 @@ ifndef HAS_FIELDALIGNMENT
 endif
 ifndef HAS_GOVERTER
 	@echo "=> Installing goverter tool"
-	$(GO) install github.com/jmattheis/goverter/cmd/goverter@v1.9.0
+	$(GO) install github.com/jmattheis/goverter/cmd/goverter@v1.9.1
 endif
 	go mod download all
 	go mod tidy
