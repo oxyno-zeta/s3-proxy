@@ -42,7 +42,7 @@ HAS_GOVERTER := $(shell command -v goverter;)
 # ? Note: Go install versions are inline because renovate can manage them like that.
 
 # renovate: datasource=github-tags depName=golangci/golangci-lint
-GOLANGCI_LINT_VERSION := "v2.2.2"
+GOLANGCI_LINT_VERSION := "v2.4.0"
 
 .DEFAULT_GOAL := code/lint
 
