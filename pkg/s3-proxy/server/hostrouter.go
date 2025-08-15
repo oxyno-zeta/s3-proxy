@@ -7,6 +7,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/gobwas/glob"
+
 	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 )
 

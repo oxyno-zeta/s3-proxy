@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"emperror.dev/errors"
+
 	authxmodels "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"

@@ -8,16 +8,18 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	oidc "github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/chi/v5"
+	"golang.org/x/net/context"
+	"golang.org/x/oauth2"
+
+	oidc "github.com/coreos/go-oidc/v3/oidc"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
 	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
-	"golang.org/x/net/context"
-	"golang.org/x/oauth2"
 )
 
 const (
@@ -183,7 +185,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 			return
 		}
 
-		var resp map[string]interface{}
+		var resp map[string]any
 
 		// Try to open JWT token in order to verify that we can open it
 		err = idToken.Claims(&resp)
@@ -327,7 +329,7 @@ func (s *service) oidcAuthMiddleware(res *config.Resource) func(http.Handler) ht
 			// Check if groups interface exists
 			if groupsInterface != nil {
 				//nolint: forcetypeassert // Ignore this
-				for _, item := range groupsInterface.([]interface{}) {
+				for _, item := range groupsInterface.([]any) {
 					//nolint: forcetypeassert // Ignore this
 					groups = append(groups, item.(string))
 				}
@@ -388,9 +390,9 @@ func parseAndValidateJWTToken(
 	ctx context.Context,
 	jwtContent string,
 	verifier *oidc.IDTokenVerifier,
-) (map[string]interface{}, error) {
+) (map[string]any, error) {
 	// Create result map
-	var res map[string]interface{}
+	var res map[string]any
 
 	// Verify token
 	idToken, err := verifier.Verify(ctx, jwtContent)

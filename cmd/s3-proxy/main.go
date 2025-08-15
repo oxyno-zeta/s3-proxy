@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
@@ -12,8 +15,6 @@ import (
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/version"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
-	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
 // Main package

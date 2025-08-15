@@ -13,7 +13,7 @@ type trace struct {
 	span opentracing.Span
 }
 
-func (t *trace) SetTag(key string, value interface{}) {
+func (t *trace) SetTag(key string, value any) {
 	t.span.SetTag(key, value)
 }
 

@@ -8,8 +8,8 @@ const (
 )
 
 type HookBody struct {
-	InputMetadata  interface{}     `json:"inputMetadata,omitempty"`
-	OutputMetadata interface{}     `json:"outputMetadata,omitempty"`
+	InputMetadata  any             `json:"inputMetadata,omitempty"`
+	OutputMetadata any             `json:"outputMetadata,omitempty"`
 	Target         *TargetHookBody `json:"target"`
 	Action         string          `json:"action"`
 	RequestPath    string          `json:"requestPath"`

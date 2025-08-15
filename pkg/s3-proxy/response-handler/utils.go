@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
 	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
@@ -19,7 +20,7 @@ func (*handler) manageStatus(
 	helpersContent string,
 	tplConfigItem *config.TargetTemplateConfigItem,
 	defaultTpl string,
-	data interface{},
+	data any,
 ) (int, error) {
 	// Create main status content
 	statusContent := helpersContent
@@ -49,7 +50,7 @@ func (*handler) manageStatus(
 	return strconv.Atoi(str)
 }
 
-func (*handler) manageHeaders(helpersContent string, headersTpl map[string]string, hData interface{}) (map[string]string, error) {
+func (*handler) manageHeaders(helpersContent string, headersTpl map[string]string, hData any) (map[string]string, error) {
 	// Store result
 	res := map[string]string{}
 
@@ -158,7 +159,7 @@ func getFileSizeAsString(obj *models.StreamInput) string {
 	return totalSizeString
 }
 
-func setStrHeader(w http.ResponseWriter, key string, value string) {
+func setStrHeader(w http.ResponseWriter, key, value string) {
 	if len(value) > 0 {
 		w.Header().Add(key, value)
 	}

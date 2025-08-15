@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
+
 	logrus "github.com/sirupsen/logrus"
 )
 
@@ -36,7 +37,7 @@ func (ll *loggerIns) GetCorsLogger() CorsLogger {
 	}
 }
 
-func (ll *loggerIns) Configure(level string, format string, filePath string) error {
+func (ll *loggerIns) Configure(level, format, filePath string) error {
 	// Parse log level
 	lvl, err := logrus.ParseLevel(level)
 	// Check error
@@ -79,7 +80,7 @@ func (ll *loggerIns) Configure(level string, format string, filePath string) err
 	return nil
 }
 
-func (ll *loggerIns) WithField(key string, value interface{}) Logger {
+func (ll *loggerIns) WithField(key string, value any) Logger {
 	// Create new field logger
 	fieldL := ll.FieldLogger.WithField(key, value)
 
@@ -88,7 +89,7 @@ func (ll *loggerIns) WithField(key string, value interface{}) Logger {
 	}
 }
 
-func (ll *loggerIns) WithFields(fields map[string]interface{}) Logger {
+func (ll *loggerIns) WithFields(fields map[string]any) Logger {
 	// Transform fields
 	var ff logrus.Fields = fields
 	// Create new field logger
@@ -108,7 +109,7 @@ func (ll *loggerIns) WithError(err error) Logger {
 	}
 }
 
-func (ll *loggerIns) addPotentialWithError(elem interface{}) logrus.FieldLogger {
+func (ll *loggerIns) addPotentialWithError(elem any) logrus.FieldLogger {
 	// Try to cast element to error
 	err, ok := elem.(error)
 	// Check if can be casted to error
@@ -144,7 +145,7 @@ func (ll *loggerIns) addPotentialWithError(elem interface{}) logrus.FieldLogger 
 	return ll.FieldLogger
 }
 
-func (ll *loggerIns) Error(args ...interface{}) {
+func (ll *loggerIns) Error(args ...any) {
 	// Add potential "WithError"
 	l := ll.addPotentialWithError(args[0])
 
@@ -152,7 +153,7 @@ func (ll *loggerIns) Error(args ...interface{}) {
 	l.Error(args...)
 }
 
-func (ll *loggerIns) Fatal(args ...interface{}) {
+func (ll *loggerIns) Fatal(args ...any) {
 	// Add potential "WithError"
 	l := ll.addPotentialWithError(args[0])
 
@@ -160,7 +161,7 @@ func (ll *loggerIns) Fatal(args ...interface{}) {
 	l.Fatal(args...)
 }
 
-func (ll *loggerIns) Errorf(format string, args ...interface{}) {
+func (ll *loggerIns) Errorf(format string, args ...any) {
 	// Create error
 	err := fmt.Errorf(format, args...)
 
@@ -168,7 +169,7 @@ func (ll *loggerIns) Errorf(format string, args ...interface{}) {
 	ll.Error(err)
 }
 
-func (ll *loggerIns) Fatalf(format string, args ...interface{}) {
+func (ll *loggerIns) Fatalf(format string, args ...any) {
 	// Create error
 	err := fmt.Errorf(format, args...)
 
@@ -176,7 +177,7 @@ func (ll *loggerIns) Fatalf(format string, args ...interface{}) {
 	ll.Fatal(err)
 }
 
-func (ll *loggerIns) Errorln(args ...interface{}) {
+func (ll *loggerIns) Errorln(args ...any) {
 	// Add potential "WithError"
 	l := ll.addPotentialWithError(args[0])
 
@@ -184,7 +185,7 @@ func (ll *loggerIns) Errorln(args ...interface{}) {
 	l.Errorln(args...)
 }
 
-func (ll *loggerIns) Fatalln(args ...interface{}) {
+func (ll *loggerIns) Fatalln(args ...any) {
 	// Add potential "WithError"
 	l := ll.addPotentialWithError(args[0])
 

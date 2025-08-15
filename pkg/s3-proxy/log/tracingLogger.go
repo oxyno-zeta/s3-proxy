@@ -8,11 +8,11 @@ func (tl *tracingLogger) Error(msg string) {
 	tl.logger.Errorf(msg)
 }
 
-func (tl *tracingLogger) Infof(msg string, args ...interface{}) {
+func (tl *tracingLogger) Infof(msg string, args ...any) {
 	tl.logger.Infof(msg, args...)
 }
 
 // Debugf logs a message at debug priority.
-func (tl *tracingLogger) Debugf(msg string, args ...interface{}) {
+func (tl *tracingLogger) Debugf(msg string, args ...any) {
 	tl.logger.Debugf(msg, args...)
 }

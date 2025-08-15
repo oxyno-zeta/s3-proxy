@@ -3,10 +3,11 @@ package bucket
 import (
 	"net/http"
 
+	"golang.org/x/net/context"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
-	"golang.org/x/net/context"
 )
 
 // contextKey is a value for use with context.WithValue. It's used as

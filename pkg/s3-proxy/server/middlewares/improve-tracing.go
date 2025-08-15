@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5/middleware"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 )

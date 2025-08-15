@@ -9,11 +9,12 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/go-resty/resty/v2"
+	"github.com/thoas/go-funk"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
-	"github.com/thoas/go-funk"
 )
 
 // HookNumberOfRedirect will contains the number of redirect that a hook can follow.
@@ -432,8 +433,8 @@ func (m *manager) manageHEADHooksInternal(
 func (m *manager) runHooks(
 	ctx context.Context,
 	requestPath string,
-	inputMetadata interface{},
-	outputMetadata interface{},
+	inputMetadata any,
+	outputMetadata any,
 	action, targetName string,
 	hookClients []*hookStorage,
 ) {
@@ -457,7 +458,7 @@ func (m *manager) runHooks(
 	// Need to create an intermediate function to manage defer properly
 	executeOne := func(i int, st *hookStorage) {
 		// Create specific logger
-		spLogger := logger.WithFields(map[string]interface{}{
+		spLogger := logger.WithFields(map[string]any{
 			"webhook_action": action,
 			"webhook_number": i,
 		})

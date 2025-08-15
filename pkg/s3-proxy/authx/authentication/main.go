@@ -5,15 +5,17 @@ import (
 	"net/http"
 
 	"emperror.dev/errors"
-	oidc "github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gobwas/glob"
+	"github.com/thoas/go-funk"
+
+	oidc "github.com/coreos/go-oidc/v3/oidc"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
 	responsehandler "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler"
-	"github.com/thoas/go-funk"
 )
 
 var errAuthenticationMiddlewareNotSupported = errors.New("authentication not supported")
@@ -132,7 +134,7 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 	}
 }
 
-func findResource(resL []*config.Resource, requestURI string, httpMethod string) (*config.Resource, error) {
+func findResource(resL []*config.Resource, requestURI, httpMethod string) (*config.Resource, error) {
 	// Loop over the list
 	for _, res := range resL {
 		// Check if http method is declared in resource

@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/microcosm-cc/bluemonday"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
 )
 

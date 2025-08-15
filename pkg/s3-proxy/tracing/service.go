@@ -5,12 +5,14 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	opentracing "github.com/opentracing/opentracing-go"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/uber/jaeger-client-go"
+
+	opentracing "github.com/opentracing/opentracing-go"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 	jaegerprom "github.com/uber/jaeger-lib/metrics/prometheus"
+
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 )
 
 type service struct {

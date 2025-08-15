@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
-	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 	"github.com/sirupsen/logrus"
+
+	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 )
 
 // HTTPAddLoggerToContextMiddleware HTTP Middleware that will add request logger to request context.
@@ -50,7 +51,7 @@ type StructuredLogger struct {
 // NewLogEntry new log entry.
 func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	entry := &StructuredLoggerEntry{Logger: l.Logger}
-	logFields := map[string]interface{}{}
+	logFields := map[string]any{}
 
 	// Get trace id
 	traceIDStr := l.GetTraceID(r)
@@ -85,7 +86,7 @@ type StructuredLoggerEntry struct {
 }
 
 // Write Write.
-func (l *StructuredLoggerEntry) Write(status, bytes int, _ http.Header, elapsed time.Duration, _ interface{}) {
+func (l *StructuredLoggerEntry) Write(status, bytes int, _ http.Header, elapsed time.Duration, _ any) {
 	l.Logger = l.Logger.WithFields(logrus.Fields{
 		"resp_status":       status,
 		"resp_bytes_length": bytes,
@@ -105,7 +106,7 @@ func (l *StructuredLoggerEntry) Write(status, bytes int, _ http.Header, elapsed 
 }
 
 // Panic panic log.
-func (l *StructuredLoggerEntry) Panic(v interface{}, stack []byte) {
+func (l *StructuredLoggerEntry) Panic(v any, stack []byte) {
 	l.Logger = l.Logger.WithFields(logrus.Fields{
 		"stack": string(stack),
 		"panic": fmt.Sprintf("%+v", v),

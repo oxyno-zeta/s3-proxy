@@ -1,8 +1,9 @@
 package authorization
 
 import (
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/thoas/go-funk"
+
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 )
 
 func isHeaderOIDCAuthorizedBasic(groups []string, email string, authorizationAccesses []*config.HeaderOIDCAuthorizationAccess) bool {

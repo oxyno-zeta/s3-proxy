@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
@@ -17,7 +18,7 @@ type inputOPA struct {
 }
 
 type inputDataOPA struct {
-	User    interface{}       `json:"user"`
+	User    any               `json:"user"`
 	Request *requestDataOPA   `json:"request"`
 	Tags    map[string]string `json:"tags"`
 }
@@ -37,7 +38,7 @@ type opaAnswer struct {
 	Result bool `json:"result"`
 }
 
-func isOPAServerAuthorized(req *http.Request, oidcUser interface{}, resource *config.ResourceHeaderOIDC) (bool, error) {
+func isOPAServerAuthorized(req *http.Request, oidcUser any, resource *config.ResourceHeaderOIDC) (bool, error) {
 	// Get trace from request
 	trace := tracing.GetTraceFromContext(req.Context())
 	// Generate child trace

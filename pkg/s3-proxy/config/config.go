@@ -165,12 +165,12 @@ type MetricsConfig struct {
 
 // TracingConfig represents the Tracing configuration structure.
 type TracingConfig struct {
-	FixedTags     map[string]interface{} `json:"fixedTags"     mapstructure:"fixedTags"`
-	FlushInterval string                 `json:"flushInterval" mapstructure:"flushInterval"`
-	UDPHost       string                 `json:"udpHost"       mapstructure:"udpHost"`
-	QueueSize     int                    `json:"queueSize"     mapstructure:"queueSize"`
-	Enabled       bool                   `json:"enabled"       mapstructure:"enabled"`
-	LogSpan       bool                   `json:"logSpan"       mapstructure:"logSpan"`
+	FixedTags     map[string]any `json:"fixedTags"     mapstructure:"fixedTags"`
+	FlushInterval string         `json:"flushInterval" mapstructure:"flushInterval"`
+	UDPHost       string         `json:"udpHost"       mapstructure:"udpHost"`
+	QueueSize     int            `json:"queueSize"     mapstructure:"queueSize"`
+	Enabled       bool           `json:"enabled"       mapstructure:"enabled"`
+	LogSpan       bool           `json:"logSpan"       mapstructure:"logSpan"`
 }
 
 // ListTargetsConfig List targets configuration.

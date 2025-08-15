@@ -5,9 +5,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 )
 
 type prometheusClient struct {

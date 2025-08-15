@@ -10,6 +10,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/dustin/go-humanize"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models/converter"
@@ -104,7 +105,7 @@ func LoadLocalFileContent(path string) (string, error) {
 	return string(by), nil
 }
 
-func ExecuteTemplate(tplString string, data interface{}) (*bytes.Buffer, error) {
+func ExecuteTemplate(tplString string, data any) (*bytes.Buffer, error) {
 	// Create template
 	tmpl := template.New("template-string-loaded")
 
@@ -135,7 +136,7 @@ func s3ProxyFuncMap(t *template.Template) template.FuncMap {
 	includedNames := make(map[string]int)
 
 	// Result
-	funcMap := map[string]interface{}{}
+	funcMap := map[string]any{}
 
 	// Add human size function
 	funcMap["humanSize"] = func(fmt int64) string {
@@ -158,7 +159,7 @@ func s3ProxyFuncMap(t *template.Template) template.FuncMap {
 	}
 	// Add the 'include' function here so we can close over t.
 	// Copied from Helm: https://github.com/helm/helm/blob/3d1bc72827e4edef273fb3d8d8ded2a25fa6f39d/pkg/engine/engine.go#L112
-	funcMap["include"] = func(name string, data interface{}) (string, error) {
+	funcMap["include"] = func(name string, data any) (string, error) {
 		// Initialize buffer
 		var buf strings.Builder
 
@@ -181,7 +182,7 @@ func s3ProxyFuncMap(t *template.Template) template.FuncMap {
 	funcMap["toYaml"] = toYAML
 	funcMap["toJson"] = toJSON
 	// Inspired from helm
-	funcMap["tpl"] = func(tpl string, data interface{}) (string, error) {
+	funcMap["tpl"] = func(tpl string, data any) (string, error) {
 		// Execute template
 		buf, err := ExecuteTemplate(tpl, data)
 		// Check error

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
+
 	authxmodels "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
@@ -140,7 +141,7 @@ func (h *handler) TargetList() {
 	cfg := h.cfgManager.GetConfig()
 
 	// Create targets map[string]interface{}
-	targets := map[string]interface{}{}
+	targets := map[string]any{}
 	for key, value := range cfg.Targets {
 		targets[key] = value
 	}
@@ -294,7 +295,7 @@ func (h *handler) FoldersFilesList(
 
 func (h *handler) handleGenericAnswer(
 	loadFileContent func(ctx context.Context, path string) (string, error),
-	data interface{},
+	data any,
 	tplCfgItem *config.TargetTemplateConfigItem,
 	helpersTplCfgItems []*config.TargetHelperConfigItem,
 	baseTpl *config.TemplateConfigItem,

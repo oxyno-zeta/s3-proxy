@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	opentracing "github.com/opentracing/opentracing-go"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 )
@@ -19,7 +20,7 @@ type Service interface {
 // Trace object interface.
 type Trace interface {
 	// Set tag on trace.
-	SetTag(key string, value interface{})
+	SetTag(key string, value any)
 	// Get child trace with an operation name.
 	GetChildTrace(operationName string) Trace
 	// Will finish the trace.

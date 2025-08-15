@@ -24,7 +24,7 @@ type ErrorData struct {
 type TargetListData struct {
 	Request *LightSanitizedRequest
 	User    authxmodels.GenericUser
-	Targets map[string]interface{}
+	Targets map[string]any
 }
 
 // streamFileHeaderData represents the structure used by stream file header templating.

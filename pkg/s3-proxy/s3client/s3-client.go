@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics"
@@ -89,7 +90,7 @@ func (s3cl *s3client) GetObjectSignedURL(ctx context.Context, input *GetInput, e
 	// Get logger
 	logger := log.GetLoggerFromContext(ctx)
 	// Build logger
-	logger = logger.WithFields(map[string]interface{}{
+	logger = logger.WithFields(map[string]any{
 		"bucket": s3cl.target.Bucket.Name,
 		"key":    *s3Input.Key,
 		"region": s3cl.target.Bucket.Region,
@@ -166,7 +167,7 @@ func (s3cl *s3client) ListFilesAndDirectories(ctx context.Context, key string) (
 		childTrace.SetTag("s3-proxy.target-name", s3cl.target.Name)
 
 		// Build logger
-		logger = logger.WithFields(map[string]interface{}{
+		logger = logger.WithFields(map[string]any{
 			"bucket":  s3cl.target.Bucket.Name,
 			"key":     key,
 			"region":  s3cl.target.Bucket.Region,
@@ -289,7 +290,7 @@ func (s3cl *s3client) GetObject(ctx context.Context, input *GetInput) (*GetOutpu
 	// Get logger
 	logger := log.GetLoggerFromContext(ctx)
 	// Build logger
-	logger = logger.WithFields(map[string]interface{}{
+	logger = logger.WithFields(map[string]any{
 		"bucket": s3cl.target.Bucket.Name,
 		"key":    *s3Input.Key,
 		"region": s3cl.target.Bucket.Region,
@@ -413,7 +414,7 @@ func (s3cl *s3client) PutObject(ctx context.Context, input *PutInput) (*ResultIn
 	// Get logger
 	logger := log.GetLoggerFromContext(ctx)
 	// Build logger
-	logger = logger.WithFields(map[string]interface{}{
+	logger = logger.WithFields(map[string]any{
 		"bucket": s3cl.target.Bucket.Name,
 		"key":    *inp.Key,
 		"region": s3cl.target.Bucket.Region,
@@ -514,7 +515,7 @@ func (s3cl *s3client) HeadObject(ctx context.Context, key string) (*HeadOutput, 
 	// Get logger
 	logger := log.GetLoggerFromContext(ctx)
 	// Build logger
-	logger = logger.WithFields(map[string]interface{}{
+	logger = logger.WithFields(map[string]any{
 		"bucket": s3cl.target.Bucket.Name,
 		"key":    key,
 		"region": s3cl.target.Bucket.Region,
@@ -633,7 +634,7 @@ func (s3cl *s3client) DeleteObject(ctx context.Context, key string) (*ResultInfo
 	// Get logger
 	logger := log.GetLoggerFromContext(ctx)
 	// Build logger
-	logger = logger.WithFields(map[string]interface{}{
+	logger = logger.WithFields(map[string]any{
 		"bucket": s3cl.target.Bucket.Name,
 		"key":    key,
 		"region": s3cl.target.Bucket.Region,

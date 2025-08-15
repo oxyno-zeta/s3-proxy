@@ -10,8 +10,9 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 	"github.com/thoas/go-funk"
+
+	utils "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/utils/generalutils"
 )
 
 func validateBusinessConfig(out *Config) error {
@@ -219,7 +220,7 @@ func validateResource(beginErrorMessage string, res *Resource, authProviders *Au
 	return nil
 }
 
-func validatePath(beginErrorMessage string, fpath string) error {
+func validatePath(beginErrorMessage, fpath string) error {
 	// Check that path begins with /
 	if !strings.HasPrefix(fpath, "/") {
 		return errors.New(beginErrorMessage + " must starts with /")
@@ -285,7 +286,7 @@ func validateSSLConfig(serverSSL *ServerSSLConfig, section string) error {
 }
 
 func validateSSLCertificateComponentConfig(
-	component *string, componentURL *string, componentURLConfig *SSLURLConfig, componentName string,
+	component, componentURL *string, componentURLConfig *SSLURLConfig, componentName string,
 ) error {
 	if component == nil {
 		if componentURL == nil {
