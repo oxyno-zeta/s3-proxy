@@ -10,4 +10,4 @@ gotestsum = "v1.12.3"
 # renovate: datasource=go depName=golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
 # "go:golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment" = "v0.36.0"
 # renovate: datasource=github-tags depName=jmattheis/goverter
-"go:github.com/jmattheis/goverter/cmd/goverter" = "v1.9.1"
+"go:github.com/jmattheis/goverter/cmd/goverter" = "v1.9.2"
