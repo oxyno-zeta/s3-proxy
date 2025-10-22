@@ -4,7 +4,7 @@
 go = '1.25.3'
 golangci-lint = "2.4.0"
 # renovate: datasource=github-tags depName=gotestyourself/gotestsum
-gotestsum = "v1.12.3"
+gotestsum = "1.13.0"
 # renovate: datasource=go depName=go.uber.org/mock/mockgen
 "go:go.uber.org/mock/mockgen" = "v0.5.2"
 # renovate: datasource=go depName=golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
