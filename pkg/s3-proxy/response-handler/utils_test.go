@@ -237,6 +237,42 @@ func Test_setHeadersFromObjectOutput(t *testing.T) {
 			expectedHeaders: headerPartialInput,
 			expectedCode:    http.StatusPartialContent,
 		},
+		{
+			name: "Full input with Content-Digest",
+			args: args{
+				obj: &responsehandlermodels.StreamInput{
+					CacheControl:       "cachecontrol",
+					Expires:            "expires",
+					ContentDisposition: "contentdisposition",
+					ContentEncoding:    "contentencoding",
+					ContentLanguage:    "contentlanguage",
+					ContentLength:      200,
+					ContentRange:       "bytes 200/200",
+					ContentType:        "contenttype",
+					ContentDigest:      "sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:",
+					ETag:               "etag",
+					LastModified:       now,
+				},
+			},
+			expectedHeaders: func() http.Header {
+				h := http.Header{}
+				h.Add("Cache-Control", "cachecontrol")
+				h.Add("Expires", "expires")
+				h.Add("Content-Disposition", "contentdisposition")
+				h.Add("Content-Encoding", "contentencoding")
+				h.Add("Content-Language", "contentlanguage")
+				h.Add("Content-Length", "200")
+				h.Add("Content-Range", "bytes 200/200")
+				h.Add("Content-Type", "contenttype")
+				h.Add("ETag", "etag")
+				h.Add("Accept-Ranges", "bytes")
+				h.Add("Last-Modified", now.UTC().Format(http.TimeFormat))
+				h.Add("Content-Digest", "sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:")
+				return h
+			}(),
+			expectedCode: http.StatusOK,
+		},
+
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

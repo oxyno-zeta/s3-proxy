@@ -28,6 +28,7 @@ type StreamInput struct {
 	ContentLanguage    string
 	ContentRange       string
 	ContentType        string
+	ContentDigest      string
 	ETag               string
 	ContentLength      int64
 }

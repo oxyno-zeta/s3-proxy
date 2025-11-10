@@ -106,6 +106,7 @@ func (h *handler) send(bodyBuf io.WriterTo, headers map[string]string, status in
 func setHeadersFromObjectOutput(w http.ResponseWriter, obj *models.StreamInput) {
 	setStrHeader(w, "Cache-Control", obj.CacheControl)
 	setStrHeader(w, "Expires", obj.Expires)
+	setStrHeader(w, "Content-Digest", obj.ContentDigest)
 	setStrHeader(w, "Content-Disposition", obj.ContentDisposition)
 	setStrHeader(w, "Content-Encoding", obj.ContentEncoding)
 	setStrHeader(w, "Content-Language", obj.ContentLanguage)

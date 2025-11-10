@@ -291,6 +291,7 @@ These are the properties available:
 | ContentLength      | Integer                                   | Content length value from S3      |
 | ContentRange       | String                                    | Content range value from S3       |
 | ContentType        | String                                    | Content type value from S3        |
+| ContentDigest      | String                                    | Content hash if available         |
 | ETag               | String                                    | ETag value from S3                |
 | LastModified       | [Time](https://golang.org/pkg/time/#Time) | Last modified value from S3       |
 | Metadata           | Map[String]String                         | Metadata value from S3            |

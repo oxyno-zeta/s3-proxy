@@ -17,6 +17,8 @@ Those kind of requests is similar to `GET` ones but won't provide any result bod
 
 There are working the same way for management cases for directories (eg: `HEAD /dir1/`) or files (eg: `HEAD /file.pdf`).
 
+GET and HEAD requests include standard S3 headers (`Cache-Control`, `Content-Type`, `ETag`, `Last-Modified`, etc.) and add a [`Content-Digest`](https://developer.mozilla.org/docs/Web/HTTP/Reference/Headers/Content-Digest) header when the S3 object has a `FULL_OBJECT` checksum of algorithm SHA-256, SHA-1, CRC32C, or CRC32 (but not CRC64NVME or MD5).
+
 ## PUT
 
 This kind of requests will allow to send file in directory (so to upload a file in S3).
