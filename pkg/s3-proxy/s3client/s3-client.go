@@ -44,12 +44,36 @@ const DeleteObjectOperation = "delete-object"
 
 const s3MaxKeys int64 = 1000
 
+func formatContentDigestFromS3Checksums(checksumSHA256, checksumSHA1, checksumCRC32C, checksumCRC32 *string) string {
+	// Only return checksums for FULL_OBJECT type.
+	// COMPOSITE checksums (from multipart uploads) are the checksum of the concatenation of the parts' checksums and
+	// have the format "{base64 hash}-{partcount}" '-' is not a valid base64 character so we can detect this.
+	if checksumSHA256 != nil && !strings.Contains(*checksumSHA256, "-") {
+		return "sha-256=:" + *checksumSHA256 + ":"
+	}
+
+	if checksumSHA1 != nil && !strings.Contains(*checksumSHA1, "-") {
+		return "sha-1=:" + *checksumSHA1 + ":"
+	}
+
+	if checksumCRC32C != nil && !strings.Contains(*checksumCRC32C, "-") {
+		return "crc32c=:" + *checksumCRC32C + ":"
+	}
+
+	if checksumCRC32 != nil && !strings.Contains(*checksumCRC32, "-") {
+		return "crc32=:" + *checksumCRC32 + ":"
+	}
+
+	return ""
+}
+
 func (s3cl *s3client) buildGetObjectInputFromInput(input *GetInput) *s3.GetObjectInput {
 	s3Input := &s3.GetObjectInput{
 		Bucket:            aws.String(s3cl.target.Bucket.Name),
 		Key:               aws.String(input.Key),
 		IfModifiedSince:   input.IfModifiedSince,
 		IfUnmodifiedSince: input.IfUnmodifiedSince,
+		ChecksumMode:      aws.String("ENABLED"),
 	}
 
 	// Add Range if not empty
@@ -375,6 +399,8 @@ func (s3cl *s3client) GetObject(ctx context.Context, input *GetInput) (*GetOutpu
 		output.LastModified = *obj.LastModified
 	}
 
+	output.ContentDigest = formatContentDigestFromS3Checksums(obj.ChecksumSHA256, obj.ChecksumSHA1, obj.ChecksumCRC32C, obj.ChecksumCRC32)
+
 	// Create info
 	info := &ResultInfo{
 		Bucket:     s3cl.target.Bucket.Name,
@@ -533,8 +559,9 @@ func (s3cl *s3client) HeadObject(ctx context.Context, key string) (*HeadOutput, 
 	obj, err := s3cl.svcClient.HeadObjectWithContext(
 		ctx,
 		&s3.HeadObjectInput{
-			Bucket: aws.String(s3cl.target.Bucket.Name),
-			Key:    aws.String(key),
+			Bucket:       aws.String(s3cl.target.Bucket.Name),
+			Key:          aws.String(key),
+			ChecksumMode: aws.String("ENABLED"),
 		},
 		addHeadersToRequest(requestHeaders),
 	)
@@ -601,6 +628,8 @@ func (s3cl *s3client) HeadObject(ctx context.Context, key string) (*HeadOutput, 
 	if obj.LastModified != nil {
 		output.LastModified = *obj.LastModified
 	}
+
+	output.ContentDigest = formatContentDigestFromS3Checksums(obj.ChecksumSHA256, obj.ChecksumSHA1, obj.ChecksumCRC32C, obj.ChecksumCRC32)
 
 	// Create info
 	info := &ResultInfo{

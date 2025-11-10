@@ -69,6 +69,7 @@ type BaseFileOutput struct {
 	CacheControl       string
 	Expires            string
 	ContentDisposition string
+	ContentDigest      string
 	ContentEncoding    string
 	ContentLanguage    string
 	ContentType        string
