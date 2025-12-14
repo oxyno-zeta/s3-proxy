@@ -192,7 +192,7 @@ ifndef HAS_GIT
 endif
 ifndef HAS_MOCKGEN
 	@echo "=> Installing mockgen tool"
-	go install go.uber.org/mock/mockgen@v0.5.2
+	go install go.uber.org/mock/mockgen@v0.6.0
 endif
 ifndef HAS_GOTESTSUM
 	@echo "=> Installing gotestsum tool"
