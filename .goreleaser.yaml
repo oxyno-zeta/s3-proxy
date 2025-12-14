@@ -36,6 +36,12 @@ builds:
     goarm:
       - "6"
       - "7"
+    goarm64:
+      - v9.0
+    goamd64:
+      - v1
+      - v2
+      - v3
     goos:
       - windows
       - darwin
@@ -43,9 +49,12 @@ builds:
     ignore:
       - goos: darwin
         goarch: "386"
+      - goos: windows
+        goarch: arm
 
 archives:
-  - format: tar.gz
+  - formats: ["tar.gz"]
+    allow_different_binary_count: true
     files:
       - LICENSE
       - README.md
@@ -53,7 +62,7 @@ archives:
     # use zip for windows archives
     format_overrides:
       - goos: windows
-        format: zip
+        formats: ["zip"]
 
 changelog:
   sort: asc
@@ -66,7 +75,7 @@ checksum:
   name_template: "checksums.txt"
 
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  version_template: "{{ .Tag }}-next"
 
 release:
   github:
