@@ -4,7 +4,7 @@ run:
   go: "1.25"
   modules-download-mode: readonly
   issues-exit-code: 1
-  tests: false
+  tests: true
   allow-parallel-runners: false
   timeout: 10m
 output:
@@ -75,6 +75,9 @@ linters:
     - wastedassign
     - whitespace
     - wsl_v5
+    - unqueryvet
+    - iotamixing
+    - modernize
   disable:
     - depguard
     - err113
@@ -359,6 +362,15 @@ linters:
     tagalign:
       align: true
       sort: true
+      order:
+        - mapstructure
+        - gorm
+        - validate
+        - binding
+        - json
+        - yaml
+        - yml
+        - toml
     testpackage:
       skip-regexp: _test\.go
   exclusions:

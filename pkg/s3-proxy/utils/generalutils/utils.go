@@ -97,10 +97,10 @@ func GetRequestHost(r *http.Request) string {
 
 func parseForwarded(forwarded string) (proto, host string) {
 	if forwarded == "" {
-		return
+		return proto, host
 	}
 
-	for _, forwardedPair := range strings.Split(forwarded, ";") {
+	for forwardedPair := range strings.SplitSeq(forwarded, ";") {
 		if tv := strings.SplitN(forwardedPair, "=", 2); len(tv) == 2 { //nolint: mnd // No constant for that
 			token, value := tv[0], tv[1]
 			token = strings.TrimSpace(token)
@@ -115,7 +115,7 @@ func parseForwarded(forwarded string) (proto, host string) {
 		}
 	}
 
-	return
+	return proto, host
 }
 
 // ParseCipherSuite parses a cipher suite name into the tls package cipher suite id.

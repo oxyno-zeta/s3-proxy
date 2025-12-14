@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -9,7 +10,6 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/go-chi/chi/v5"
-	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 
 	oidc "github.com/coreos/go-oidc/v3/oidc"

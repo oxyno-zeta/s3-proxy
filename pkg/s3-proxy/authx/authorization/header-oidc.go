@@ -1,6 +1,8 @@
 package authorization
 
 import (
+	"slices"
+
 	"github.com/thoas/go-funk"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
@@ -19,11 +21,8 @@ func isHeaderOIDCAuthorizedBasic(groups []string, email string, authorizationAcc
 			// Regex case
 			// Check group case
 			if item.Group != "" {
-				for _, grp := range groups {
-					// Try matching for group regexp
-					if item.GroupRegexp.MatchString(grp) {
-						return !item.Forbidden
-					}
+				if slices.ContainsFunc(groups, item.GroupRegexp.MatchString) {
+					return !item.Forbidden
 				}
 			}
 

@@ -1,7 +1,9 @@
+//go:build unit
+
 package server
 
 var (
-	// Test certificate, self-signed, for testhost.example.com
+	// Test certificate, self-signed, for testhost.example.com.
 	testCertificate = `-----BEGIN CERTIFICATE-----
 MIIDeDCCAmACCQDbKC6SZoxWRTANBgkqhkiG9w0BAQUFADB9MQswCQYDVQQGEwJV
 UzETMBEGA1UECAwKV2FzaGluZ3RvbjEQMA4GA1UEBwwHU2VhdHRsZTEdMBsGA1UE
@@ -24,6 +26,7 @@ V6sfsRW0PfYOsUxvMglI5LXHGflkM4tRC/WzNUhei6TJKxLhyk8FkSpkRvbsLVQn
 JYwisSNsLosVijV7XU2AlvuoWQlNEkY8bPJx3Q==
 -----END CERTIFICATE-----`
 
+	//nolint:gosec
 	testPrivateKey = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEAv/JBmfZkPG+2iz4INJxZLtgqqU2BXQvZ0AX/1JlaSEzr6/Cu
 XQA/bn5d/pTnS9rxTHZFQLswKeGyYyrd2ny3V9TGz9alWJffQETi0snjs66+FJjT
@@ -55,6 +58,7 @@ csZ8PbpqNkbcznkfy8BDRhwanNsvzsXWyX/0LxU+CdZGQ9jDOZwItyY=
 	emptyCertificate = `-----BEGIN CERTIFICATE-----
 -----END CERTIFICATE-----`
 
+	//nolint:gosec
 	emptyPrivateKey = `-----BEGIN RSA PRIVATE KEY-----
 -----END RSA PRIVATE KEY-----`
 )

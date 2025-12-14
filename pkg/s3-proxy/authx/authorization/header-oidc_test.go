@@ -13,6 +13,7 @@ func Test_isHeaderOIDCAuthorizedBasic(t *testing.T) {
 		email                 string
 		authorizationAccesses []*config.HeaderOIDCAuthorizationAccess
 	}
+
 	tests := []struct {
 		name string
 		args args

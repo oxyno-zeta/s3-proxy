@@ -164,11 +164,9 @@ func (s3cl *s3client) ListFilesAndDirectories(ctx context.Context, key string) (
 	// Loop control
 	loopControl := true
 	// Initialize max keys
-	maxKeys := s3MaxKeys
-	// Check size of max keys
-	if s3cl.target.Bucket.S3ListMaxKeys < maxKeys {
-		maxKeys = s3cl.target.Bucket.S3ListMaxKeys
-	}
+	maxKeys := min(
+		// Check size of max keys
+		s3cl.target.Bucket.S3ListMaxKeys, s3MaxKeys)
 
 	// Get trace
 	parentTrace := tracing.GetTraceFromContext(ctx)
