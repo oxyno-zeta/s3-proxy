@@ -10,11 +10,11 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	bucket "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket"
 	gomock "go.uber.org/mock/gomock"
-	context "golang.org/x/net/context"
 )
 
 // MockClient is a mock of Client interface.
