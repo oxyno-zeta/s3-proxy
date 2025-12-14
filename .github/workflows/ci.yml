@@ -43,7 +43,7 @@ jobs:
       - changes
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GOLANG_VERSION }}
       - uses: golangci/golangci-lint-action@v9
@@ -78,7 +78,7 @@ jobs:
       - lint
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GOLANG_VERSION }}
       - run: make code/build
@@ -96,7 +96,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - uses: actions/checkout@v6
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GOLANG_VERSION }}
       - run: make code/build-cross
@@ -111,7 +111,7 @@ jobs:
       - lint
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GOLANG_VERSION }}
       - run: |
