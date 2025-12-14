@@ -36,7 +36,7 @@ jobs:
       - changes
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.x
       - run: pip install mkdocs-material==${{ env.MKDOCS_MATERIAL_VERSION }}
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.x
       - run: pip install mkdocs-material==${{ env.MKDOCS_MATERIAL_VERSION }}
