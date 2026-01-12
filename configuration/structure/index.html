@@ -1,0 +1,4112 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation website for S3-Proxy">
+      
+      
+        <meta name="author" content="havrileckalexandre@gmail.com">
+      
+      
+        <link rel="canonical" href="https://oxyno-zeta.github.io/s3-proxy/configuration/structure/">
+      
+      
+        <link rel="prev" href="../..">
+      
+      
+        <link rel="next" href="../example/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Structure - S3-Proxy</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#structure" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="S3-Proxy" class="md-header__button md-logo" aria-label="S3-Proxy" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            S3-Proxy
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Structure
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="deep-orange"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/oxyno-zeta/s3-proxy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    oxyno-zeta/s3-proxy
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="S3-Proxy" class="md-nav__button md-logo" aria-label="S3-Proxy" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    S3-Proxy
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/oxyno-zeta/s3-proxy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    oxyno-zeta/s3-proxy
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Configuration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Structure
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#main-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Main structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metricsconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MetricsConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LogConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serverconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#servertimeoutsconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerTimeoutsConfig
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#servercompressconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerCompressConfig
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#servercacheconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerCacheConfig
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#servercorsconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerCorsConfig
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serversslcertificate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerSSLCertificate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serversslconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerSSLConfig
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sslurlconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSLURLConfig
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#templateconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TemplateConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#templateconfigurationitem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TemplateConfigurationItem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#targetconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TargetConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keyrewrite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KeyRewrite
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#targettemplateconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TargetTemplateConfig
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#targethelperconfigitem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TargetHelperConfigItem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#targettemplateconfigitem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TargetTemplateConfigItem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#actionsconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ActionsConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#headactionconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HeadActionConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#headactionconfigconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HeadActionConfigConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getactionconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetActionConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getactionconfigconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetActionConfigConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#putactionconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PutActionConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#putactionconfigconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PutActionConfigConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#putactionconfigsystemmetadataconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PutActionConfigSystemMetadataConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deleteactionconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DeleteActionConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deleteactionconfigconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DeleteActionConfigConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#webhookconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WebhookConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bucketconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BucketConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bucketrequestconfigconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BucketRequestConfigConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bucketcredentialconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BucketCredentialConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#credentialconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CredentialConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authprovidersconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AuthProvidersConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#headerauthconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HeaderAuthConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#oidcauthconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OIDCAuthConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basicauthconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BasicAuthConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resource" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resource
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resourceheaderoidc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ResourceHeaderOIDC
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opaserverauthorization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OPAServerAuthorization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#headeroidcauthorizationaccesses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HeaderOIDCAuthorizationAccesses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resourcebasic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ResourceBasic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basicauthuserconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BasicAuthUserConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mountconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MountConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#listtargetsconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ListTargetsConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Example
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Feature Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feature-guide/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feature-guide/templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feature-guide/authorization-accesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authorization accesses: How it works ?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feature-guide/cache-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cache headers control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feature-guide/internal-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internal API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feature-guide/key-rewrite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Key Rewrite
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feature-guide/opa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open Policy Agent (OPA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feature-guide/prometheus-metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prometheus Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feature-guide/signed-url/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signed URL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feature-guide/webhooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Webhooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/aws-policy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS IAM Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migrate-v3-to-v4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrate from v3 to v4
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CONTRIBUTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#main-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Main structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metricsconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MetricsConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LogConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serverconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#servertimeoutsconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerTimeoutsConfig
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#servercompressconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerCompressConfig
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#servercacheconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerCacheConfig
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#servercorsconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerCorsConfig
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serversslcertificate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerSSLCertificate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serversslconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServerSSLConfig
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sslurlconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSLURLConfig
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#templateconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TemplateConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#templateconfigurationitem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TemplateConfigurationItem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#targetconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TargetConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keyrewrite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KeyRewrite
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#targettemplateconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TargetTemplateConfig
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#targethelperconfigitem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TargetHelperConfigItem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#targettemplateconfigitem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TargetTemplateConfigItem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#actionsconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ActionsConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#headactionconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HeadActionConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#headactionconfigconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HeadActionConfigConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getactionconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetActionConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getactionconfigconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetActionConfigConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#putactionconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PutActionConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#putactionconfigconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PutActionConfigConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#putactionconfigsystemmetadataconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PutActionConfigSystemMetadataConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deleteactionconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DeleteActionConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deleteactionconfigconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DeleteActionConfigConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#webhookconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WebhookConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bucketconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BucketConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bucketrequestconfigconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BucketRequestConfigConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bucketcredentialconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BucketCredentialConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#credentialconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CredentialConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authprovidersconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AuthProvidersConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#headerauthconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HeaderAuthConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#oidcauthconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OIDCAuthConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basicauthconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BasicAuthConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resource" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resource
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resourceheaderoidc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ResourceHeaderOIDC
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opaserverauthorization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OPAServerAuthorization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#headeroidcauthorizationaccesses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HeaderOIDCAuthorizationAccesses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resourcebasic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ResourceBasic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basicauthuserconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BasicAuthUserConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mountconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MountConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#listtargetsconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ListTargetsConfiguration
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="structure">Structure<a class="headerlink" href="#structure" title="Permanent link">&para;</a></h1>
+<p>The configuration must be set in multiple YAML files located in <code>conf/</code> folder from the current working directory.</p>
+<p>You can create multiple files containing different part of the configuration. A global merge will be done across all data in all files.</p>
+<p>Moreover, the configuration files will be watched for modifications.</p>
+<p>You can see a full example in the <a href="../example/">Example section</a></p>
+<h2 id="main-structure">Main structure<a class="headerlink" href="#main-structure" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>log</td>
+<td><a href="#logconfiguration">LogConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Log configurations</td>
+</tr>
+<tr>
+<td>server</td>
+<td><a href="#serverconfiguration">ServerConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Server configurations</td>
+</tr>
+<tr>
+<td>internalServer</td>
+<td><a href="#serverconfiguration">ServerConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Internal Server configurations</td>
+</tr>
+<tr>
+<td>template</td>
+<td><a href="#templateconfiguration">TemplateConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Template configurations</td>
+</tr>
+<tr>
+<td>targets</td>
+<td>Map[String]<a href="#targetconfiguration">targetconfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Targets configuration. Map key will be considered as the target name. (This will used in urls and list of targets.)</td>
+</tr>
+<tr>
+<td>authProviders</td>
+<td><a href="#authprovidersconfiguration">AuthProvidersConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Authentication providers configuration</td>
+</tr>
+<tr>
+<td>listTargets</td>
+<td><a href="#listtargetsconfiguration">ListTargetsConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>List targets feature configuration</td>
+</tr>
+<tr>
+<td>metrics</td>
+<td><a href="#metricsconfiguration">MetricsConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Metrics configurations</td>
+</tr>
+</tbody>
+</table>
+<h2 id="metricsconfiguration">MetricsConfiguration<a class="headerlink" href="#metricsconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>disableRouterPath</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Disable router path exported in metrics.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="logconfiguration">LogConfiguration<a class="headerlink" href="#logconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>level</td>
+<td>String</td>
+<td>No</td>
+<td><code>info</code></td>
+<td>Log level</td>
+</tr>
+<tr>
+<td>format</td>
+<td>String</td>
+<td>No</td>
+<td><code>json</code></td>
+<td>Log format (available values are: <code>json</code> or <code>text</code>)</td>
+</tr>
+<tr>
+<td>filePath</td>
+<td>String</td>
+<td>No</td>
+<td><code>""</code></td>
+<td>Log file path</td>
+</tr>
+</tbody>
+</table>
+<h2 id="serverconfiguration">ServerConfiguration<a class="headerlink" href="#serverconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>listenAddr</td>
+<td>String</td>
+<td>No</td>
+<td><code>""</code></td>
+<td>Listen Address (Important: Cannot be hot reloaded)</td>
+</tr>
+<tr>
+<td>port</td>
+<td>Integer</td>
+<td>No</td>
+<td><code>8080</code></td>
+<td>Listening Port (Important: Cannot be hot reloaded)</td>
+</tr>
+<tr>
+<td>cors</td>
+<td><a href="#servercorsconfig">ServerCorsConfig</a></td>
+<td>No</td>
+<td>None</td>
+<td>CORS configuration</td>
+</tr>
+<tr>
+<td>cache</td>
+<td><a href="#servercacheconfig">ServerCacheConfig</a></td>
+<td>No</td>
+<td>None </td>
+<td>Cache configuration</td>
+</tr>
+<tr>
+<td>ssl</td>
+<td><a href="#serversslconfig">ServerSSLConfig</a></td>
+<td>No</td>
+<td>None</td>
+<td>SSL/TLS configuration (Important: Cannot be hot reloaded)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="servertimeoutsconfig">ServerTimeoutsConfig<a class="headerlink" href="#servertimeoutsconfig" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>readTimeout</td>
+<td>string</td>
+<td>No</td>
+<td><code>""</code></td>
+<td>Server read timeout</td>
+</tr>
+<tr>
+<td>readHeaderTimeout</td>
+<td>string</td>
+<td>No</td>
+<td><code>"60s"</code> (to avoid Slowloris attack)</td>
+<td>Server read header timeout</td>
+</tr>
+<tr>
+<td>writeTimeout</td>
+<td>string</td>
+<td>No</td>
+<td><code>""</code></td>
+<td>Server write timeout</td>
+</tr>
+<tr>
+<td>idleTimeout</td>
+<td>string</td>
+<td>No</td>
+<td><code>""</code></td>
+<td>Server idle timeout</td>
+</tr>
+</tbody>
+</table>
+<h2 id="servercompressconfig">ServerCompressConfig<a class="headerlink" href="#servercompressconfig" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>enabled</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>true</code></td>
+<td> Is the compression enabled ?</td>
+</tr>
+<tr>
+<td>level</td>
+<td>Integer</td>
+<td>No</td>
+<td><code>5</code></td>
+<td>The level of GZip compression</td>
+</tr>
+<tr>
+<td>types</td>
+<td>[String]</td>
+<td>No</td>
+<td><code>["text/html","text/css","text/plain","text/javascript","application/javascript","application/x-javascript","application/json","application/atom+xml","application/rss+xml","image/svg+xml"]</code></td>
+<td>The content type list compressed in output</td>
+</tr>
+</tbody>
+</table>
+<h2 id="servercacheconfig">ServerCacheConfig<a class="headerlink" href="#servercacheconfig" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>noCacheEnabled</td>
+<td>Boolean</td>
+<td>false</td>
+<td><code>false</code></td>
+<td>Force no cache headers on all responses</td>
+</tr>
+<tr>
+<td>expires</td>
+<td>String</td>
+<td>false</td>
+<td><code>""</code></td>
+<td><code>Expires</code> header value</td>
+</tr>
+<tr>
+<td>cacheControl</td>
+<td>String</td>
+<td>false</td>
+<td><code>""</code></td>
+<td><code>Cache-Control</code> header value</td>
+</tr>
+<tr>
+<td>pragma</td>
+<td>String</td>
+<td>false</td>
+<td><code>""</code></td>
+<td><code>Pragma</code> header value</td>
+</tr>
+<tr>
+<td>xAccelExpires</td>
+<td>String</td>
+<td>false</td>
+<td><code>""</code></td>
+<td><code>X-Accel-Expires</code> header value</td>
+</tr>
+</tbody>
+</table>
+<p>See more information <a href="../../feature-guide/cache-control/">here</a>.</p>
+<h2 id="servercorsconfig">ServerCorsConfig<a class="headerlink" href="#servercorsconfig" title="Permanent link">&para;</a></h2>
+<p>This feature is powered by <a href="https://github.com/go-chi/cors">go-chi/cors</a>. You can read more documentation about all field there.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>enabled</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Is CORS support enabled ?</td>
+</tr>
+<tr>
+<td>allowAll</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Allow all CORS requests with all origins, all HTTP methods, etc ?</td>
+</tr>
+<tr>
+<td>allowOrigins</td>
+<td>[String]</td>
+<td>No</td>
+<td>Allow origins array. Example: <a href="https://fake.com">https://fake.com</a>. This support stars in origins.</td>
+<td></td>
+</tr>
+<tr>
+<td>allowMethods</td>
+<td>[String]</td>
+<td>No</td>
+<td>Allow HTTP Methods</td>
+<td></td>
+</tr>
+<tr>
+<td>allowHeaders</td>
+<td>[String]</td>
+<td>No</td>
+<td>Allow headers</td>
+<td></td>
+</tr>
+<tr>
+<td>exposeHeaders</td>
+<td>[String]</td>
+<td>No</td>
+<td>Expose headers</td>
+<td></td>
+</tr>
+<tr>
+<td>maxAge</td>
+<td>Integer</td>
+<td>No</td>
+<td>Max age. 300 is the maximum value not ignored by any of major browsers.</td>
+<td></td>
+</tr>
+<tr>
+<td>allowCredentials</td>
+<td>Boolean</td>
+<td>No</td>
+<td>Allow credentials</td>
+<td></td>
+</tr>
+<tr>
+<td>debug</td>
+<td>Boolean</td>
+<td>No</td>
+<td>Debug mode for <a href="https://github.com/go-chi/cors">go-chi/cors</a></td>
+<td></td>
+</tr>
+<tr>
+<td>optionsPassthrough</td>
+<td>Boolean</td>
+<td>No</td>
+<td>OPTIONS method Passthrough</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="serversslcertificate">ServerSSLCertificate<a class="headerlink" href="#serversslcertificate" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>certificate</td>
+<td>String</td>
+<td>Yes[1]</td>
+<td>None</td>
+<td>The PEM encoded certificate.</td>
+</tr>
+<tr>
+<td>certificateUrl</td>
+<td>String</td>
+<td>Yes[1]</td>
+<td>None</td>
+<td>The URL of a resource containing the certificate.</td>
+</tr>
+<tr>
+<td>certificateUrlConfig</td>
+<td><a href="#sslurlconfig">SSLURLConfig</a></td>
+<td>No</td>
+<td>None</td>
+<td>Additional URL configuration if certificateUrl is an S3 URL.</td>
+</tr>
+<tr>
+<td>privateKey</td>
+<td>String</td>
+<td>Yes[2]</td>
+<td>None</td>
+<td>The PEM encoded private key.</td>
+</tr>
+<tr>
+<td>privateKeyUrl</td>
+<td>String</td>
+<td>Yes[2]</td>
+<td>None</td>
+<td>The URL of a resource containing the private key.</td>
+</tr>
+<tr>
+<td>privateKeyUrlConfig</td>
+<td><a href="#sslurlconfig">SSLURLConfig</a></td>
+<td>No</td>
+<td>None</td>
+<td>Additional URL configuration if privateKeyUrl is an S3 URL.</td>
+</tr>
+</tbody>
+</table>
+<p>Notes:</p>
+<ul>
+<li>[1] Exactly one of <code>certificate</code> or <code>certificateUrl</code> must be specified.</li>
+<li>[2] Exactly one of <code>privateKey</code> or <code>privateKeyUrl</code> must be specified.</li>
+</ul>
+<p>Allowed URL types are:</p>
+<ul>
+<li>Local files, in <code>file:///<i>absolute</i>/<i>path</i>/<i>filename</i></code>, <code>file://<i>relative</i>/<i>path</i>/<i>filename</i></code>, <code>/<i>absolute</i>/<i>path</i>/<i>filename</i></code>, or <code><i>relative</i>/<i>path</i>/<i>filename</i></code> form.</li>
+<li>HTTP/HTTPS URLs in <code>https://<i>host</i>[:<i>port</i>]/<i>path</i></code> form.</li>
+<li>AWS S3 URLs in either <code>s3://<i>bucket</i>/<i>key</i></code> or <code>arn:<i>partition</i>:s3:::<i>bucket</i>/<i>key</i></code> form.</li>
+<li>AWS Secrets Manager ARNs in <code>arn:<i>partition</i>:secretsmanager:<i>region</i>:<i>account-id</i>:secret/<i>secret-name</i></code> form.</li>
+<li>AWS Systems Manager parameter ARNs in <code>arn:<i>partition</i>:ssm:<i>region</i>:<i>account-id</i>:parameter/<i>path</i>/<i>name</i></code> form.</li>
+</ul>
+<h2 id="serversslconfig">ServerSSLConfig<a class="headerlink" href="#serversslconfig" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>enabled</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Whether SSL support should be enabled.</td>
+</tr>
+<tr>
+<td>certificates</td>
+<td>[<a href="#serversslcertificate">ServerSSLCertificate</a>]</td>
+<td>No</td>
+<td>[]</td>
+<td>Certificates to serve when connected.</td>
+</tr>
+<tr>
+<td>selfSignedHostnames</td>
+<td>[String]</td>
+<td>No</td>
+<td>[]</td>
+<td>List of hostnames to generate self-signed certificates for.</td>
+</tr>
+<tr>
+<td>minTLSVersion</td>
+<td>String</td>
+<td>No</td>
+<td><code>"TLSv1.2"</code></td>
+<td>The minimum TLS version to allow when a client connects.</td>
+</tr>
+<tr>
+<td>maxTLSVersion</td>
+<td>String</td>
+<td>No</td>
+<td>None</td>
+<td>The maximum TLS version to allow when a client connects.</td>
+</tr>
+<tr>
+<td>cipherSuites</td>
+<td>[String]</td>
+<td>No</td>
+<td>See below</td>
+<td>The TLS ciphers to enable.</td>
+</tr>
+</tbody>
+</table>
+<p>The values for <code>cipherSuites</code> are the constant names in the Go <a href="https://pkg.go.dev/crypto/tls#pkg-constants">crypto/tls</a> package,
+starting with <code>TLS_</code>. The default ciphers are the recommended cipher suites from <a href="https://ciphersuite.info/cs/?security=recommended">ciphersuite.info</a> supported by Go:</p>
+<ul>
+<li><code>TLS_AES_128_GCM_SHA256</code></li>
+<li><code>TLS_AES_256_GCM_SHA384</code></li>
+<li><code>TLS_CHACHA20_POLY1305_SHA256</code></li>
+<li><code>TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256</code></li>
+<li><code>TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</code></li>
+<li><code>TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</code></li>
+</ul>
+<h2 id="sslurlconfig">SSLURLConfig<a class="headerlink" href="#sslurlconfig" title="Permanent link">&para;</a></h2>
+<p>This is a subset/modification of the configuration available from <a href="#bucketconfiguration">BucketConfiguration</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>httpTimeout</td>
+<td>String (duration)</td>
+<td>No</td>
+<td>None</td>
+<td>Timeout for HTTP connections (including AWS calls) to get SSL certificate/keys.</td>
+</tr>
+<tr>
+<td>awsRegion</td>
+<td>String</td>
+<td>No</td>
+<td><code>us-east-1</code></td>
+<td>AWS region for S3/SSM/Secrets Manager-stored documents.</td>
+</tr>
+<tr>
+<td>awsEndpoint</td>
+<td>String</td>
+<td>No</td>
+<td>None</td>
+<td>Custom endpoint for S3/SSM/Secrets Manager API calls.</td>
+</tr>
+<tr>
+<td>awsCredentials</td>
+<td><a href="#bucketcredentialconfiguration">BucketCredentialConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Credentials to access AWS-based documents</td>
+</tr>
+<tr>
+<td>awsDisableSSL</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Disable SSL for AWS API calls. This does not affect <code>https</code> URLs.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="templateconfiguration">TemplateConfiguration<a class="headerlink" href="#templateconfiguration" title="Permanent link">&para;</a></h2>
+<!-- prettier-ignore-start -->
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Override headers will remove the default value containing the <code>Content-Type</code> header. Why ? Because it was though that it was better to know why it is override and not have magical values coming from nowhere.</p>
+</div>
+<!-- prettier-ignore-end -->
+
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>helpers</td>
+<td>[String]</td>
+<td>No</td>
+<td><code>[templates/_helpers.tpl]</code> </td>
+<td>Template Golang helpers</td>
+</tr>
+<tr>
+<td>targetList</td>
+<td><a href="#templateconfigurationitem">TemplateConfigurationItem</a></td>
+<td>No</td>
+<td><code>targetList: { path: "templates/target-list.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" }, status: "200" }</code></td>
+<td>Target list template configuration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>folderList</td>
+<td><a href="#templateconfigurationitem">TemplateConfigurationItem</a></td>
+<td>No</td>
+<td><code>folderList: { path: "templates/folder-list.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" }, status: "200" }</code></td>
+<td>Folder list template configuration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>notFoundError</td>
+<td><a href="#templateconfigurationitem">TemplateConfigurationItem</a></td>
+<td>No</td>
+<td><code>notFoundError: { path: "templates/not-found-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" }, status: "404" }</code></td>
+<td>Not found template configuration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>unauthorizedError</td>
+<td><a href="#templateconfigurationitem">TemplateConfigurationItem</a></td>
+<td>No</td>
+<td><code>unauthorizedError: { path: "templates/unauthorized-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" }, status: "401" }</code></td>
+<td>Unauthorized template configuration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>forbiddenError</td>
+<td><a href="#templateconfigurationitem">TemplateConfigurationItem</a></td>
+<td>No</td>
+<td><code>forbiddenError: { path: "templates/forbidden-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" }, status: "403" }</code></td>
+<td>Forbidden template configuration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>badRequestError</td>
+<td><a href="#templateconfigurationitem">TemplateConfigurationItem</a></td>
+<td>No</td>
+<td><code>badRequestError: { path: "templates/bad-request-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" }, status: "400" }</code></td>
+<td>Bad Request template configuration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>internalServerError</td>
+<td><a href="#templateconfigurationitem">TemplateConfigurationItem</a></td>
+<td>No</td>
+<td><code>internalServerError: { path: "templates/internal-server-error.tpl", headers: { "Content-Type": "{{ template \"main.headers.contentType\" . }}" }, status: "500" }</code></td>
+<td>Internal server error template configuration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>put</td>
+<td><a href="#templateconfigurationitem">TemplateConfigurationItem</a></td>
+<td>No</td>
+<td><code>put: { path: "templates/put.tpl", headers: {}, status: "204" }</code></td>
+<td>PUT response template configuration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>delete</td>
+<td><a href="#templateconfigurationitem">TemplateConfigurationItem</a></td>
+<td>No</td>
+<td><code>delete: { path: "templates/put.tpl", headers: {}, status: "204" }</code></td>
+<td>DELETE response template configuration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="templateconfigurationitem">TemplateConfigurationItem<a class="headerlink" href="#templateconfigurationitem" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>path</td>
+<td>String</td>
+<td>True</td>
+<td><code>""</code></td>
+<td>File path to template file</td>
+</tr>
+<tr>
+<td>headers</td>
+<td>Map[String]String</td>
+<td>False</td>
+<td>None</td>
+<td>Headers containing templates. Key corresponds to header and value to the template. If templated value is empty, the header won't be added to answer. More information <a href="../../feature-guide/templates/#generic-case">here</a>.</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>False</td>
+<td><code>""</code></td>
+<td>Status code template. It will be parsed to get an integer.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="targetconfiguration">TargetConfiguration<a class="headerlink" href="#targetconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bucket</td>
+<td><a href="#bucketconfiguration">BucketConfiguration</a></td>
+<td>Yes</td>
+<td>None</td>
+<td>Bucket configuration</td>
+</tr>
+<tr>
+<td>resources</td>
+<td><a href="#resource">[Resource]</a></td>
+<td>No</td>
+<td>None</td>
+<td>Resources declaration for path whitelist or specific authentication on path list. WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /* otherwise, it will be public.</td>
+</tr>
+<tr>
+<td>mount</td>
+<td><a href="#mountconfiguration">MountConfiguration</a></td>
+<td>Yes</td>
+<td>None</td>
+<td>Mount point configuration</td>
+</tr>
+<tr>
+<td>actions</td>
+<td><a href="#actionsconfiguration">ActionsConfiguration</a></td>
+<td>No</td>
+<td>GET action enabled</td>
+<td>Actions allowed on target (GET, PUT or DELETE)</td>
+</tr>
+<tr>
+<td>keyRewriteList</td>
+<td><a href="#keyrewrite">[KeyRewrite]</a></td>
+<td>No</td>
+<td>None</td>
+<td>Key rewrite list is here to allow rewriting keys before sending request to S3 (See more information <a href="../../feature-guide/key-rewrite/">here</a>)</td>
+</tr>
+<tr>
+<td>templates</td>
+<td><a href="#targettemplateconfig">TargetTemplateConfig</a></td>
+<td>No</td>
+<td>None</td>
+<td>Custom target templates from files on local filesystem or in bucket</td>
+</tr>
+</tbody>
+</table>
+<h2 id="keyrewrite">KeyRewrite<a class="headerlink" href="#keyrewrite" title="Permanent link">&para;</a></h2>
+<p>See more information <a href="../../feature-guide/key-rewrite/">here</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>source</td>
+<td>String</td>
+<td>Required</td>
+<td>None</td>
+<td>Source regexp matcher with golang group naming support.</td>
+</tr>
+<tr>
+<td>targetType</td>
+<td>String</td>
+<td>No</td>
+<td><code>REGEX</code></td>
+<td>Possible values are <code>REGEX</code> or <code>TEMPLATE</code>.</td>
+</tr>
+<tr>
+<td>target</td>
+<td>String</td>
+<td>Required</td>
+<td>None</td>
+<td>Target template for new key send to S3.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="targettemplateconfig">TargetTemplateConfig<a class="headerlink" href="#targettemplateconfig" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>helpers</td>
+<td>[<a href="#targethelperconfigitem">TargetHelperConfigItem</a>]</td>
+<td>No</td>
+<td>None</td>
+<td>Helpers list custom template declarations.</td>
+</tr>
+<tr>
+<td>folderList</td>
+<td><a href="#targettemplateconfigitem">TargetTemplateConfigItem</a></td>
+<td>No</td>
+<td>None</td>
+<td>Folder list custom template declaration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>notFoundError</td>
+<td><a href="#targettemplateconfigitem">TargetTemplateConfigItem</a></td>
+<td>No</td>
+<td>None</td>
+<td>Not Found custom template declaration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>internalServerError</td>
+<td><a href="#targettemplateconfigitem">TargetTemplateConfigItem</a></td>
+<td>No</td>
+<td>None</td>
+<td>Internal server error custom template declaration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>forbiddenError</td>
+<td><a href="#targettemplateconfigitem">TargetTemplateConfigItem</a></td>
+<td>No</td>
+<td>None</td>
+<td>Forbidden custom template declaration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>unauthorizedError</td>
+<td><a href="#targettemplateconfigitem">TargetTemplateConfigItem</a></td>
+<td>No</td>
+<td>None</td>
+<td>Unauthorized custom template declaration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>badRequestError</td>
+<td><a href="#targettemplateconfigitem">TargetTemplateConfigItem</a></td>
+<td>No</td>
+<td>None</td>
+<td>Bad Request custom template declaration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>put</td>
+<td><a href="#targettemplateconfigitem">TargetTemplateConfigItem</a></td>
+<td>No</td>
+<td>None</td>
+<td>PUT custom template declaration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+<tr>
+<td>delete</td>
+<td><a href="#targettemplateconfigitem">TargetTemplateConfigItem</a></td>
+<td>No</td>
+<td>None</td>
+<td>DELETE custom template declaration. More information <a href="../../feature-guide/templates/">here</a>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="targethelperconfigitem">TargetHelperConfigItem<a class="headerlink" href="#targethelperconfigitem" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>inBucket</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Is the file in bucket or on local file system ?</td>
+</tr>
+<tr>
+<td>path</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>Path for template file</td>
+</tr>
+</tbody>
+</table>
+<h2 id="targettemplateconfigitem">TargetTemplateConfigItem<a class="headerlink" href="#targettemplateconfigitem" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>inBucket</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Is the file in bucket or on local file system ?</td>
+</tr>
+<tr>
+<td>path</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>Path for template file</td>
+</tr>
+<tr>
+<td>headers</td>
+<td>Map[String]String</td>
+<td>False</td>
+<td>This will be set to corresponding <a href="#templateconfiguration">TemplateConfiguration</a> if empty.</td>
+<td>Headers containing templates. Key corresponds to header and value to the template. If templated value is empty, the header won't be added to answer. More information <a href="../../feature-guide/templates/#generic-case">here</a>.</td>
+</tr>
+<tr>
+<td>status</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>Status code template. It will be parsed to get an integer.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="actionsconfiguration">ActionsConfiguration<a class="headerlink" href="#actionsconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HEAD</td>
+<td><a href="#headactionconfiguration">HeadActionConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Action configuration for HEAD requests on target</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><a href="#getactionconfiguration">GetActionConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Action configuration for GET requests on target</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td><a href="#putactionconfiguration">PutActionConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Action configuration for PUT requests on target</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><a href="#deleteactionconfiguration">DeleteActionConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Action configuration for DELETE requests on target</td>
+</tr>
+</tbody>
+</table>
+<h2 id="headactionconfiguration">HeadActionConfiguration<a class="headerlink" href="#headactionconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>enabled</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Will allow HEAD requests</td>
+</tr>
+<tr>
+<td>config</td>
+<td><a href="#deleteactionconfigconfiguration">HeadActionConfigConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Configuration for HEAD requests</td>
+</tr>
+</tbody>
+</table>
+<h2 id="headactionconfigconfiguration">HeadActionConfigConfiguration<a class="headerlink" href="#headactionconfigconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>webhooks</td>
+<td>[<a href="#webhookconfiguration">WebhookConfiguration</a>]</td>
+<td>No</td>
+<td><code>nil</code></td>
+<td>Webhooks configuration list to call when a HEAD request is performed</td>
+</tr>
+</tbody>
+</table>
+<h2 id="getactionconfiguration">GetActionConfiguration<a class="headerlink" href="#getactionconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>enabled</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Will allow GET requests</td>
+</tr>
+<tr>
+<td>config</td>
+<td><a href="#getactionconfigconfiguration">GetActionConfigConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Configuration for GET requests</td>
+</tr>
+</tbody>
+</table>
+<h2 id="getactionconfigconfiguration">GetActionConfigConfiguration<a class="headerlink" href="#getactionconfigconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>redirectWithTrailingSlashForNotFoundFile</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>This option allow to do a redirect with a trailing slash when a GET request on a file (not a folder) encountered a 404 not found.</td>
+</tr>
+<tr>
+<td>indexDocument</td>
+<td>String</td>
+<td>No</td>
+<td><code>""</code></td>
+<td>The index document name. If this document is found, get it instead of list folder. Example: <code>index.html</code></td>
+</tr>
+<tr>
+<td>streamedFileHeaders</td>
+<td>Map[String]String</td>
+<td>No</td>
+<td><code>nil</code> </td>
+<td> Headers containing templates that will be added to streamed files in this target. Key corresponds to header and value to the template. If templated value is empty, the header won't be added to answer. More information <a href="../../feature-guide/templates/#stream-file-case">here</a>.</td>
+</tr>
+<tr>
+<td>redirectToSignedUrl</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code> </td>
+<td>Instead of streaming the file through S3-Proxy application, it will redirect to a S3 signed URL to perform the actual download.</td>
+</tr>
+<tr>
+<td>signedUrlExpiration</td>
+<td>String</td>
+<td>No</td>
+<td><code>15m</code></td>
+<td>This will allow to set an expiration time on generated signed URL.</td>
+</tr>
+<tr>
+<td>disableListing</td>
+<td>That will disable the listing action. That will display an empty list or you should change the folder list template (general or per target).</td>
+<td>No</td>
+<td><code>false</code></td>
+<td></td>
+</tr>
+<tr>
+<td>webhooks</td>
+<td>[<a href="#webhookconfiguration">WebhookConfiguration</a>]</td>
+<td>No</td>
+<td><code>nil</code></td>
+<td>Webhooks configuration list to call when a GET request is performed</td>
+</tr>
+</tbody>
+</table>
+<h2 id="putactionconfiguration">PutActionConfiguration<a class="headerlink" href="#putactionconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>enabled</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Will allow PUT requests</td>
+</tr>
+<tr>
+<td>config</td>
+<td><a href="#putactionconfigconfiguration">PutActionConfigConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Configuration for PUT requests</td>
+</tr>
+</tbody>
+</table>
+<h2 id="putactionconfigconfiguration">PutActionConfigConfiguration<a class="headerlink" href="#putactionconfigconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>metadata</td>
+<td>Map[String]String</td>
+<td>No</td>
+<td>None</td>
+<td>Metadata key/values that will be put on S3 objects. Map Values can be templated. Empty values will be flushed. See <a href="../../feature-guide/templates/#put-metadata">here</a></td>
+</tr>
+<tr>
+<td>systemMetadata</td>
+<td><a href="#putactionconfigsystemmetadataconfiguration">PutActionConfigSystemMetadataConfiguration</a></td>
+<td>No</td>
+<td><code>nil</code></td>
+<td>This allow to put system metadata values to uploaded objects. Value can be templated. Empty values will be flushed. See <a href="../../feature-guide/templates/#put-metadata">here</a></td>
+</tr>
+<tr>
+<td>storageClass</td>
+<td>String</td>
+<td>No</td>
+<td><code>""</code></td>
+<td>Storage class that will be used for uploaded objects. See storage class here: <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html">https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html</a>. Value can be templated. Empty values will be flushed. See <a href="../../feature-guide/templates/#put-storage-class">here</a></td>
+</tr>
+<tr>
+<td>allowOverride</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Will allow override objects if enabled</td>
+</tr>
+<tr>
+<td>cannedACL</td>
+<td>String</td>
+<td>No</td>
+<td><code>nil</code> </td>
+<td>Canned ACL put on each file uploaded. See official values here <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl">https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl</a>.</td>
+</tr>
+<tr>
+<td>webhooks</td>
+<td>[<a href="#webhookconfiguration">WebhookConfiguration</a>]</td>
+<td>No</td>
+<td><code>nil</code></td>
+<td>Webhooks configuration list to call when a PUT request is performed</td>
+</tr>
+</tbody>
+</table>
+<h2 id="putactionconfigsystemmetadataconfiguration">PutActionConfigSystemMetadataConfiguration<a class="headerlink" href="#putactionconfigsystemmetadataconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cacheControl</td>
+<td>String</td>
+<td><code>""</code></td>
+<td>Cache-Control value. Value can be templated. Empty values will be flushed. See <a href="../../feature-guide/templates/#put-metadata">here</a></td>
+<td></td>
+</tr>
+<tr>
+<td>contentDisposition</td>
+<td>String</td>
+<td><code>""</code></td>
+<td>Content-Disposition value. Value can be templated. Empty values will be flushed. See <a href="../../feature-guide/templates/#put-metadata">here</a></td>
+<td></td>
+</tr>
+<tr>
+<td>contentEncoding</td>
+<td>String</td>
+<td><code>""</code></td>
+<td>Content-Encoding value. Value can be templated. Empty values will be flushed. See <a href="../../feature-guide/templates/#put-metadata">here</a></td>
+<td></td>
+</tr>
+<tr>
+<td>contentLanguage</td>
+<td>String</td>
+<td><code>""</code></td>
+<td>Content-Language value. Value can be templated. Empty values will be flushed. See <a href="../../feature-guide/templates/#put-metadata">here</a></td>
+<td></td>
+</tr>
+<tr>
+<td>expires</td>
+<td>String</td>
+<td><code>""</code></td>
+<td>Expires value This must have the RFC3339 date format at the end. Value can be templated. Empty values will be flushed. See <a href="../../feature-guide/templates/#put-metadata">here</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="deleteactionconfiguration">DeleteActionConfiguration<a class="headerlink" href="#deleteactionconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>enabled</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Will allow DELETE requests</td>
+</tr>
+<tr>
+<td>config</td>
+<td><a href="#deleteactionconfigconfiguration">DeleteActionConfigConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Configuration for DELETE requests</td>
+</tr>
+</tbody>
+</table>
+<h2 id="deleteactionconfigconfiguration">DeleteActionConfigConfiguration<a class="headerlink" href="#deleteactionconfigconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>webhooks</td>
+<td>[<a href="#webhookconfiguration">WebhookConfiguration</a>]</td>
+<td>No</td>
+<td><code>nil</code></td>
+<td>Webhooks configuration list to call when a DELETE request is performed</td>
+</tr>
+</tbody>
+</table>
+<h2 id="webhookconfiguration">WebhookConfiguration<a class="headerlink" href="#webhookconfiguration" title="Permanent link">&para;</a></h2>
+<p>You can found more information <a href="../../feature-guide/webhooks/">here</a> about webhooks and this works in the application.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>method</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>HTTP Method used for webhook call. Can be <code>POST</code>, <code>PUT</code>, <code>DELETE</code> or <code>PATCH</code></td>
+</tr>
+<tr>
+<td>url</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>URL to be called</td>
+</tr>
+<tr>
+<td>headers</td>
+<td>Map[String]String</td>
+<td>No</td>
+<td><code>nil</code></td>
+<td>Fixed headers</td>
+</tr>
+<tr>
+<td>secretHeaders</td>
+<td>Map[String]<a href="#credentialconfiguration">credentialconfiguration</a></td>
+<td>No</td>
+<td><code>nil</code></td>
+<td>Headers coming from secrets (for credentials for example)</td>
+</tr>
+<tr>
+<td>retryCount</td>
+<td>Integer</td>
+<td>No</td>
+<td><code>0</code></td>
+<td>Number of retry in case of error</td>
+</tr>
+<tr>
+<td>defaultWaitTime</td>
+<td>String</td>
+<td>No</td>
+<td><code>""</code></td>
+<td>Default wait time to sleep before retrying request. Default is 100 ms (injected by HTTP client)</td>
+</tr>
+<tr>
+<td>maxWaitTime</td>
+<td>String</td>
+<td>No</td>
+<td><code>""</code></td>
+<td>Max wait time to sleep before retrying request. Default is 2 seconds (injected by HTTP client)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="bucketconfiguration">BucketConfiguration<a class="headerlink" href="#bucketconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>Bucket name in S3 provider</td>
+</tr>
+<tr>
+<td>prefix</td>
+<td>String</td>
+<td>No</td>
+<td>None</td>
+<td>Bucket prefix</td>
+</tr>
+<tr>
+<td>region</td>
+<td>String</td>
+<td>No</td>
+<td><code>us-east-1</code></td>
+<td>Bucket region</td>
+</tr>
+<tr>
+<td>s3Endpoint</td>
+<td>String</td>
+<td>No</td>
+<td>None</td>
+<td>Custom S3 Endpoint for non AWS S3 bucket</td>
+</tr>
+<tr>
+<td>credentials</td>
+<td><a href="#bucketcredentialconfiguration">BucketCredentialConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Credentials to access S3 bucket</td>
+</tr>
+<tr>
+<td>disableSSL</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Disable SSL connection</td>
+</tr>
+<tr>
+<td>s3ListMaxKeys</td>
+<td>Integer</td>
+<td>No</td>
+<td><code>1000</code></td>
+<td>This flag will be used for the max pagination list management of files and "folders" in S3. In S3 list requests, the limit is fixed to 1000 items maximum. S3-Proxy will allow to increase this by making multiple requests to S3. Warning: This will increase the memory and CPU usage.</td>
+</tr>
+<tr>
+<td>requestConfig</td>
+<td><a href="#bucketrequestconfigconfiguration">BucketRequestConfigConfiguration</a></td>
+<td>No</td>
+<td><code>nil</code></td>
+<td>This will allow to customize requests sent to your S3 backend.</td>
+</tr>
+<tr>
+<td>s3MaxUploadParts</td>
+<td>Integer</td>
+<td>No</td>
+<td><code>10000</code></td>
+<td>MaxUploadParts is the max number of parts which will be uploaded to S3.</td>
+</tr>
+<tr>
+<td>s3UploadPartSize</td>
+<td>Integer</td>
+<td>No</td>
+<td><code>5</code></td>
+<td>The buffer size (in megabytes) to use when buffering data into chunks and sending them as parts to S3. The minimum allowed part size is 5MB, and if this value is set to zero, the DefaultUploadPartSize value will be used.</td>
+</tr>
+<tr>
+<td>s3UploadConcurrency</td>
+<td>Integer</td>
+<td>No</td>
+<td><code>5</code></td>
+<td>The number of goroutines to spin up in parallel per call to Upload when sending parts. If this is set to zero, the DefaultUploadConcurrency value will be used.</td>
+</tr>
+<tr>
+<td>s3UploadLeavePartsOnError</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Setting this value to true will cause the SDK to avoid calling AbortMultipartUpload on a failure, leaving all successfully uploaded parts on S3 for manual recovery.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="bucketrequestconfigconfiguration">BucketRequestConfigConfiguration<a class="headerlink" href="#bucketrequestconfigconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>listHeaders</td>
+<td>Map[string]string</td>
+<td>No</td>
+<td><code>nil</code></td>
+<td>Will allow to customize headers made to S3 provider on List requests</td>
+</tr>
+<tr>
+<td>getHeaders</td>
+<td>Map[string]string</td>
+<td>No</td>
+<td><code>nil</code></td>
+<td>Will allow to customize headers made to S3 provider on Get requests</td>
+</tr>
+<tr>
+<td>putHeaders</td>
+<td>Map[string]string</td>
+<td>No</td>
+<td><code>nil</code></td>
+<td>Will allow to customize headers made to S3 provider on Put requests</td>
+</tr>
+<tr>
+<td>deleteHeaders</td>
+<td>Map[string]string</td>
+<td>No</td>
+<td><code>nil</code></td>
+<td>Will allow to customize headers made to S3 provider on Delete requests</td>
+</tr>
+</tbody>
+</table>
+<h2 id="bucketcredentialconfiguration">BucketCredentialConfiguration<a class="headerlink" href="#bucketcredentialconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>accessKey</td>
+<td><a href="#credentialconfiguration">CredentialConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>S3 Access Key ID</td>
+</tr>
+<tr>
+<td>secretKey</td>
+<td><a href="#credentialconfiguration">CredentialConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>S3 Secret Access Key</td>
+</tr>
+</tbody>
+</table>
+<h2 id="credentialconfiguration">CredentialConfiguration<a class="headerlink" href="#credentialconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>path</td>
+<td>String</td>
+<td>Only if env and value are not set</td>
+<td>None</td>
+<td>File path contains credential in (Values loaded will be cleaned from new lines)</td>
+</tr>
+<tr>
+<td>env</td>
+<td>String</td>
+<td>Only if path and value are not set</td>
+<td>None</td>
+<td>Environment variable name to use to load credential</td>
+</tr>
+<tr>
+<td>value</td>
+<td>String</td>
+<td>Only if path and env are not set</td>
+<td>None</td>
+<td>Credential value directly (Not recommended)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="authprovidersconfiguration">AuthProvidersConfiguration<a class="headerlink" href="#authprovidersconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>basic</td>
+<td><a href="#basicauthconfiguration">map[string]BasicAuthConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Basic Auth configuration and key as provider name</td>
+</tr>
+<tr>
+<td>oidc</td>
+<td><a href="#oidcauthconfiguration">map[string]OIDCAuthConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>OIDC Auth configuration and key as provider name</td>
+</tr>
+<tr>
+<td>header</td>
+<td><a href="#headerauthconfiguration">map[string]HeaderAuthConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Header Auth configuration and key as provider name</td>
+</tr>
+</tbody>
+</table>
+<h2 id="headerauthconfiguration">HeaderAuthConfiguration<a class="headerlink" href="#headerauthconfiguration" title="Permanent link">&para;</a></h2>
+<p>This authentication method should be used only with a software like <a href="https://github.com/oauth2-proxy/oauth2-proxy">Oauth2-proxy</a> or an authentication gateway that put headers with user information inside.</p>
+<!-- prettier-ignore-start -->
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>S3-proxy won't validate headers value or anything else. It will take values as they are coming.</p>
+</div>
+<!-- prettier-ignore-end -->
+
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>usernameHeader</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>Username header</td>
+</tr>
+<tr>
+<td>emailHeader</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>Email header</td>
+</tr>
+<tr>
+<td>groupsHeader</td>
+<td>[String]</td>
+<td>No</td>
+<td><code>""</code></td>
+<td>Groups header. Note: Value must be a list of groups separated by comas (<code>,</code>)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="oidcauthconfiguration">OIDCAuthConfiguration<a class="headerlink" href="#oidcauthconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>clientID</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>Client ID</td>
+</tr>
+<tr>
+<td>clientSecret</td>
+<td><a href="#credentialconfiguration">CredentialConfiguration</a></td>
+<td>No</td>
+<td>None</td>
+<td>Client Secret</td>
+</tr>
+<tr>
+<td>issuerUrl</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>Issuer URL (example: <a href="https://fake.com/realm/fake-realm">https://fake.com/realm/fake-realm</a></td>
+</tr>
+<tr>
+<td>redirectUrl</td>
+<td>String</td>
+<td>No</td>
+<td><code>""</code></td>
+<td>Redirect URL (this is the service url). Without this being set, the redirect url will be calculated from input host automatically by S3-Proxy</td>
+</tr>
+<tr>
+<td>scopes</td>
+<td>[String]</td>
+<td>No</td>
+<td><code>["openid", "profile", "email"]</code></td>
+<td>Scopes</td>
+</tr>
+<tr>
+<td>state</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>Random string to have a secure connection with oidc provider</td>
+</tr>
+<tr>
+<td>groupClaim</td>
+<td>String</td>
+<td>No</td>
+<td><code>groups</code></td>
+<td>Groups claim path in token (<code>groups</code> must be a list of strings containing user groups)</td>
+</tr>
+<tr>
+<td>emailVerified</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Check that user email is verified in user token (field <code>email_verified</code>)</td>
+</tr>
+<tr>
+<td>cookieName</td>
+<td>String</td>
+<td>No</td>
+<td><code>oidc</code></td>
+<td>Cookie generated name</td>
+</tr>
+<tr>
+<td>cookieSecure</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Is the cookie generated secure ?</td>
+</tr>
+<tr>
+<td>cookieDomains</td>
+<td>[String]</td>
+<td>No</td>
+<td><code>nil</code></td>
+<td>Cookie domains affected to generated cookie. If request host is matching one of the cookie domains defined, generated cookie will use the matching domain, otherwise, the domain will be the request host.</td>
+</tr>
+<tr>
+<td>loginPath</td>
+<td>String</td>
+<td>No</td>
+<td><code>""</code></td>
+<td>Override login path for authentication. If not defined, <code>/auth/PROVIDER_NAME</code> will be used</td>
+</tr>
+<tr>
+<td>callbackPath</td>
+<td>String</td>
+<td>No</td>
+<td><code>""</code></td>
+<td>Override callback path for authentication callback. If not defined,<code>/auth/PROVIDER_NAME/callback</code> will be used</td>
+</tr>
+</tbody>
+</table>
+<h2 id="basicauthconfiguration">BasicAuthConfiguration<a class="headerlink" href="#basicauthconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>realm</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>Basic Auth Realm</td>
+</tr>
+</tbody>
+</table>
+<h2 id="resource">Resource<a class="headerlink" href="#resource" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>path</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>Path or matching path (e.g.: <code>/*</code>)</td>
+</tr>
+<tr>
+<td>provider</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>Provider key reference</td>
+</tr>
+<tr>
+<td>methods</td>
+<td>[String]</td>
+<td>No</td>
+<td><code>[GET]</code></td>
+<td>HTTP methods allowed (Allowed values <code>HEAD</code>, <code>GET</code>, <code>PUT</code>, <code>DELETE</code>)</td>
+</tr>
+<tr>
+<td>whiteList</td>
+<td>Boolean</td>
+<td>Required without oidc or basic</td>
+<td>None</td>
+<td>Is this path in white list ? E.g.: No authentication</td>
+</tr>
+<tr>
+<td>basic</td>
+<td><a href="#resourcebasic">ResourceBasic</a></td>
+<td>Required without whitelist, oidc or header</td>
+<td>None</td>
+<td>Basic auth configuration</td>
+</tr>
+<tr>
+<td>oidc</td>
+<td><a href="#resourceheaderoidc">ResourceHeaderOIDC</a></td>
+<td>Required without whitelist, basic or header</td>
+<td>None</td>
+<td>OIDC configuration authorization</td>
+</tr>
+<tr>
+<td>header</td>
+<td><a href="#resourceheaderoidc">ResourceHeaderOIDC</a></td>
+<td>Required without whitelist, oidc or basic</td>
+<td>None</td>
+<td>Header configuration authorization</td>
+</tr>
+</tbody>
+</table>
+<h2 id="resourceheaderoidc">ResourceHeaderOIDC<a class="headerlink" href="#resourceheaderoidc" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>authorizationAccesses</td>
+<td><a href="#headeroidcauthorizationaccesses">[HeaderOIDCAuthorizationAccesses]</a></td>
+<td>No</td>
+<td>None</td>
+<td>Authorization accesses matrix by group or email. If not set, authenticated users will be authorized (no group or email validation will be performed if authorizationOPAServer isn't set). This is based on the "OR" principle. Another way to say it is: you are authorized as soon as 1 thing (email or group) is matching. Check the guide <a href="../../feature-guide/authorization-accesses/">here</a> for more details.</td>
+</tr>
+<tr>
+<td>authorizationOPAServer</td>
+<td><a href="#opaserverauthorization">OPAServerAuthorization</a></td>
+<td>No</td>
+<td>None</td>
+<td>Authorization through an OPA (Open Policy Agent) server</td>
+</tr>
+</tbody>
+</table>
+<h2 id="opaserverauthorization">OPAServerAuthorization<a class="headerlink" href="#opaserverauthorization" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>url</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>URL of the OPA server including the data path (see the dedicated section for <a href="../../feature-guide/opa/">OPA</a>)</td>
+</tr>
+<tr>
+<td>tags</td>
+<td>Map[String]String</td>
+<td>No</td>
+<td><code>{}</code></td>
+<td>Data that will be added as tags in the OPA input data (see the dedicated section for <a href="../../feature-guide/opa/">OPA</a>)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="headeroidcauthorizationaccesses">HeaderOIDCAuthorizationAccesses<a class="headerlink" href="#headeroidcauthorizationaccesses" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>group</td>
+<td>String</td>
+<td>Required without email</td>
+<td>None</td>
+<td>Group name</td>
+</tr>
+<tr>
+<td>email</td>
+<td>String</td>
+<td>Required without group</td>
+<td>None</td>
+<td>Email</td>
+</tr>
+<tr>
+<td>regexp</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Consider group or email as regexp for matching</td>
+</tr>
+<tr>
+<td>forbidden</td>
+<td>Boolean</td>
+<td>No</td>
+<td><code>false</code></td>
+<td>This will consider anything matching group or email as a forbidden matching (regex enabled or not). This have been done because there isn't way to do a negative match on regex.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="resourcebasic">ResourceBasic<a class="headerlink" href="#resourcebasic" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>credentials</td>
+<td><a href="#basicauthuserconfiguration">[BasicAuthUserConfiguration]</a></td>
+<td>Yes</td>
+<td>None</td>
+<td>List of authorized user and password</td>
+</tr>
+</tbody>
+</table>
+<h2 id="basicauthuserconfiguration">BasicAuthUserConfiguration<a class="headerlink" href="#basicauthuserconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>user</td>
+<td>String</td>
+<td>Yes</td>
+<td>None</td>
+<td>User name</td>
+</tr>
+<tr>
+<td>password</td>
+<td><a href="#credentialconfiguration">CredentialConfiguration</a></td>
+<td>Yes</td>
+<td>None</td>
+<td>User password</td>
+</tr>
+</tbody>
+</table>
+<h2 id="mountconfiguration">MountConfiguration<a class="headerlink" href="#mountconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>host</td>
+<td>String</td>
+<td>No</td>
+<td><code>""</code></td>
+<td>Host domain requested (eg: localhost:888 or google.fr). Put empty for all domains. Note: Glob patterns for host domains are supported.</td>
+</tr>
+<tr>
+<td>path</td>
+<td>[String]</td>
+<td>Yes</td>
+<td>None</td>
+<td>A path list for mounting point</td>
+</tr>
+</tbody>
+</table>
+<h2 id="listtargetsconfiguration">ListTargetsConfiguration<a class="headerlink" href="#listtargetsconfiguration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>enabled</td>
+<td>Boolean</td>
+<td>Yes</td>
+<td>None</td>
+<td>To enable the list targets feature</td>
+</tr>
+<tr>
+<td>mount</td>
+<td><a href="#mountconfiguration">MountConfiguration</a></td>
+<td>Yes</td>
+<td>None</td>
+<td>Mount point configuration</td>
+</tr>
+<tr>
+<td>resource</td>
+<td><a href="#resource">Resource</a></td>
+<td>No</td>
+<td>None</td>
+<td>Resources declaration for path whitelist or specific authentication on path</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2019 - 2021 Oxyno-zeta
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/oxyno-zeta/s3-proxy" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://hub.docker.com/r/oxynozeta/s3-proxy" target="_blank" rel="noopener" title="hub.docker.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M349.9 236.3h-66.1v-59.4h66.1zm0-204.3h-66.1v60.7h66.1zm78.2 144.8H362v59.4h66.1zm-156.3-72.1h-66.1v60.1h66.1zm78.1 0h-66.1v60.1h66.1zm276.8 100c-14.4-9.7-47.6-13.2-73.1-8.4-3.3-24-16.7-44.9-41.1-63.7l-14-9.3-9.3 14c-18.4 27.8-23.4 73.6-3.7 103.8-8.7 4.7-25.8 11.1-48.4 10.7H2.4c-8.7 50.8 5.8 116.8 44 162.1 37.1 43.9 92.7 66.2 165.4 66.2 157.4 0 273.9-72.5 328.4-204.2 21.4.4 67.6.1 91.3-45.2 1.5-2.5 6.6-13.2 8.5-17.1zm-511.1-27.9h-66v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1zm78.1 0h-66.1v59.4h66.1zm-78.1-72.1h-66.1v60.1h66.1z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
