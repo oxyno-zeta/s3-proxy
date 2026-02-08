@@ -16,7 +16,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/go-resty/resty/v2 v2.17.1
 	github.com/gobwas/glob v0.2.3
-	github.com/johannesboyne/gofakes3 v0.0.0-20240701191259-edd0227ffc37
+	github.com/johannesboyne/gofakes3 v0.0.0-20260208201424-4c385a1f6a73
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/prometheus/client_golang v1.23.2
@@ -70,6 +70,7 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
+	go.shabbyrobe.org/gocovmerge v0.0.0-20230507111327-fa4f82cfbf4d // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
