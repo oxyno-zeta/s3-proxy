@@ -1354,6 +1354,169 @@ func Test_requestContext_Put(t *testing.T) {
 				times: 1,
 			},
 		},
+		{
+			name: "should be ok to do templating on metadata using request headers",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Name:   "name",
+					Bucket: &config.BucketConfig{Prefix: "/"},
+					Actions: &config.ActionsConfig{
+						PUT: &config.PutActionConfig{
+							Config: &config.PutActionConfigConfig{
+								Metadata: map[string]string{
+									"first-header-value-only-key": `{{ .Input.RequestHeaders.Get "X-Custom-Header" }}`,
+									"all-header-values-key":       `{{ join "," (index .Input.RequestHeaders "X-Custom-Header") }}`,
+									"header-normalised-test-key":  `{{ .Input.RequestHeaders.Get "x-CASE-is-NORMALISED" }}`,
+								},
+								AllowOverride: true,
+							},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args: args{
+				inp: &PutInput{
+					RequestPath: "/test",
+					Filename:    "file",
+					Body:        nil,
+					ContentType: "content-type",
+					RequestHeaders: func() http.Header {
+						h := http.Header{}
+						h["X-Custom-Header"] = []string{"first-value", "second-value"}
+						h["X-Case-Is-Normalised"] = []string{"test-value"}
+						return h
+					}(),
+				},
+			},
+			s3ClientHeadObjectMockResult: s3ClientHeadObjectMockResult{
+				times: 0,
+			},
+			s3ClientPutObjectMockResult: s3ClientPutObjectMockResult{
+				input2: &s3client.PutInput{
+					Key:         "/test/file",
+					ContentType: "content-type",
+					Metadata: map[string]string{
+						"first-header-value-only-key": "first-value",
+						"all-header-values-key":       "first-value,second-value",
+						"header-normalised-test-key":  "test-value",
+					},
+				},
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManagePutHooksMockResult: webhookManagerManagePutHooksMockResult{
+				input2: "name",
+				input3: "/test",
+				input4: &webhook.PutInputMetadata{
+					Filename:    "file",
+					ContentType: "content-type",
+				},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			s3clManagerClientForTargetMockInput: "name",
+			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
+				input: &responsehandlermodels.PutInput{
+					Key:         "/test/file",
+					Filename:    "file",
+					ContentType: "content-type",
+					Metadata: map[string]string{
+						"first-header-value-only-key": "first-value",
+						"all-header-values-key":       "first-value,second-value",
+						"header-normalised-test-key":  "test-value",
+					},
+				},
+				times: 1,
+			},
+		},
+		{
+			name: "should be ok to do templating on system metadata using request headers",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Name:   "name",
+					Bucket: &config.BucketConfig{Prefix: "/"},
+					Actions: &config.ActionsConfig{
+						PUT: &config.PutActionConfig{
+							Config: &config.PutActionConfigConfig{
+								SystemMetadata: &config.PutActionConfigSystemMetadataConfig{
+									ContentLanguage: `{{ .Input.RequestHeaders.Get "Content-Language" }}`,
+									ContentDisposition: `{{ .Input.RequestHeaders.Get "X-Content-Disposition" }}`,
+								},
+								AllowOverride: true,
+							},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args: args{
+				inp: &PutInput{
+					RequestPath: "/test",
+					Filename:    "file",
+					Body:        nil,
+					ContentType: "content-type",
+					RequestHeaders: func() http.Header {
+						h := http.Header{}
+						h["Content-Language"] = []string{"en-US"}
+						h["X-Content-Disposition"] = []string{`attachment; filename="file.txt"`}
+						return h
+					}(),
+				},
+			},
+			s3ClientHeadObjectMockResult: s3ClientHeadObjectMockResult{
+				times: 0,
+			},
+			s3ClientPutObjectMockResult: s3ClientPutObjectMockResult{
+				input2: &s3client.PutInput{
+					Key:                "/test/file",
+					ContentType:        "content-type",
+					ContentLanguage:    "en-US",
+					ContentDisposition: `attachment; filename="file.txt"`,
+				},
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManagePutHooksMockResult: webhookManagerManagePutHooksMockResult{
+				input2: "name",
+				input3: "/test",
+				input4: &webhook.PutInputMetadata{
+					Filename:    "file",
+					ContentType: "content-type",
+				},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			s3clManagerClientForTargetMockInput: "name",
+			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
+				input: &responsehandlermodels.PutInput{
+					Key:         "/test/file",
+					Filename:    "file",
+					ContentType: "content-type",
+				},
+				times: 1,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
