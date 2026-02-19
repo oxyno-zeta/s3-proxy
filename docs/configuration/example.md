@@ -397,8 +397,14 @@ targets:
     #       # Values can be templated. Empty values will be flushed.
     #       metadata:
     #         key: value
+    #         # Request headers can be forwarded as S3 object metadata using .Input.RequestHeaders.Get.
+    #         # The header lookup is case-insensitive
+    #         # (e.g. "x-my-header" and "X-My-Header" both work).
+    #         uploaded-by: '{{ .Input.RequestHeaders.Get "X-Uploaded-By" }}'
+    #         correlation-id: '{{ .Input.RequestHeaders.Get "X-Correlation-Id" }}'
     #       # System Metadata cases.
     #       # Values can be templated. Empty values will be flushed.
+    #       # Request headers can also be forwarded using .Input.RequestHeaders.Get.
     #       systemMetadata:
     #         # Cache-Control value (will be put as header after)
     #         cacheControl: ""

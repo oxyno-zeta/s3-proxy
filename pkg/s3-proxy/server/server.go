@@ -500,11 +500,12 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 
 						// Create input for put request
 						inp := &bucket.PutInput{
-							RequestPath: requestPath,
-							Filename:    fileHeader.Filename,
-							Body:        file,
-							ContentType: fileHeader.Header.Get("Content-Type"),
-							ContentSize: fileHeader.Size,
+							RequestPath:    requestPath,
+							Filename:       fileHeader.Filename,
+							Body:           file,
+							ContentType:    fileHeader.Header.Get("Content-Type"),
+							ContentSize:    fileHeader.Size,
+							RequestHeaders: req.Header,
 						}
 						// Action
 						brctx.Put(req.Context(), inp)

@@ -223,9 +223,10 @@ Available for:
 
 ## PUT Metadata and Storage class
 
-### PUT Metadata
+### PUT Metadata and System Metadata
 
-This case will be used for all PUT metadata templates.
+This case will be used for all PUT metadata and system metadata templates
+(`metadata` and `systemMetadata` fields).
 
 Available data:
 
@@ -298,12 +299,13 @@ These are the properties available:
 
 ### PutInput
 
-| Name        | Type    | Description                  |
-| ----------- | ------- | ---------------------------- |
-| RequestPath | String  | Request path                 |
-| Filename    | String  | Filename used for upload     |
-| ContentType | String  | File content type for upload |
-| ContentSize | Integer | File content size for upload |
+| Name           | Type              | Description                  |
+| -------------- | ----------------- | ---------------------------- |
+| RequestPath    | String            | Request path                 |
+| Filename       | String            | Filename used for upload     |
+| ContentType    | String            | File content type for upload |
+| ContentSize    | Integer           | File content size for upload |
+| RequestHeaders | [http.Header](https://golang.org/pkg/net/http/#Header) | Incoming request headers |
 
 ### PutData
 
