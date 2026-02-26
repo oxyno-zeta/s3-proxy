@@ -68,7 +68,7 @@ func (m *manager) Load() error {
 
 func newClient(tgt *config.TargetConfig, metricsCtx metrics.Client) (Client, error) {
 	sessionConfig := &aws.Config{
-		Region: aws.String(tgt.Bucket.Region),
+		Region: new(tgt.Bucket.Region),
 	}
 	// Load credentials if they exists
 	if tgt.Bucket.Credentials != nil && tgt.Bucket.Credentials.AccessKey != nil && tgt.Bucket.Credentials.SecretKey != nil {
@@ -76,12 +76,12 @@ func newClient(tgt *config.TargetConfig, metricsCtx metrics.Client) (Client, err
 	}
 	// Load custom endpoint if it exists
 	if tgt.Bucket.S3Endpoint != "" {
-		sessionConfig.Endpoint = aws.String(tgt.Bucket.S3Endpoint)
-		sessionConfig.S3ForcePathStyle = aws.Bool(true)
+		sessionConfig.Endpoint = new(tgt.Bucket.S3Endpoint)
+		sessionConfig.S3ForcePathStyle = new(true)
 	}
 	// Check if ssl needs to be disabled
 	if tgt.Bucket.DisableSSL {
-		sessionConfig.DisableSSL = aws.Bool(true)
+		sessionConfig.DisableSSL = new(true)
 	}
 	// Create session
 	sess, err := session.NewSession(sessionConfig)

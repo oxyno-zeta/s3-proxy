@@ -45,12 +45,12 @@ type GetInput struct {
 
 // PutInput represents Put input.
 type PutInput struct {
+	Body           io.ReadSeeker
+	RequestHeaders http.Header
 	RequestPath    string
 	Filename       string
-	Body           io.ReadSeeker
 	ContentType    string
 	ContentSize    int64
-	RequestHeaders http.Header
 }
 
 // PutData Put Data represents a put data structure used in put templates rendering.

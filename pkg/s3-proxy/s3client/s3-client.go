@@ -69,26 +69,26 @@ func formatContentDigestFromS3Checksums(checksumSHA256, checksumSHA1, checksumCR
 
 func (s3cl *s3client) buildGetObjectInputFromInput(input *GetInput) *s3.GetObjectInput {
 	s3Input := &s3.GetObjectInput{
-		Bucket:            aws.String(s3cl.target.Bucket.Name),
-		Key:               aws.String(input.Key),
+		Bucket:            new(s3cl.target.Bucket.Name),
+		Key:               new(input.Key),
 		IfModifiedSince:   input.IfModifiedSince,
 		IfUnmodifiedSince: input.IfUnmodifiedSince,
-		ChecksumMode:      aws.String("ENABLED"),
+		ChecksumMode:      new("ENABLED"),
 	}
 
 	// Add Range if not empty
 	if input.Range != "" {
-		s3Input.Range = aws.String(input.Range)
+		s3Input.Range = new(input.Range)
 	}
 
 	// Add If Match if not empty
 	if input.IfMatch != "" {
-		s3Input.IfMatch = aws.String(input.IfMatch)
+		s3Input.IfMatch = new(input.IfMatch)
 	}
 
 	// Add If None Match if not empty
 	if input.IfNoneMatch != "" {
-		s3Input.IfNoneMatch = aws.String(input.IfNoneMatch)
+		s3Input.IfNoneMatch = new(input.IfNoneMatch)
 	}
 
 	return s3Input
@@ -202,10 +202,10 @@ func (s3cl *s3client) ListFilesAndDirectories(ctx context.Context, key string) (
 		err := s3cl.svcClient.ListObjectsV2PagesWithContext(
 			ctx,
 			&s3.ListObjectsV2Input{
-				Bucket:            aws.String(s3cl.target.Bucket.Name),
-				Prefix:            aws.String(key),
-				Delimiter:         aws.String("/"),
-				MaxKeys:           aws.Int64(maxKeys),
+				Bucket:            new(s3cl.target.Bucket.Name),
+				Prefix:            new(key),
+				Delimiter:         new("/"),
+				MaxKeys:           new(maxKeys),
 				ContinuationToken: nextToken,
 			},
 			func(page *s3.ListObjectsV2Output, lastPage bool) bool {
@@ -417,8 +417,8 @@ func (s3cl *s3client) PutObject(ctx context.Context, input *PutInput) (*ResultIn
 	// Build input
 	inp := &s3manager.UploadInput{
 		Body:    input.Body,
-		Bucket:  aws.String(s3cl.target.Bucket.Name),
-		Key:     aws.String(input.Key),
+		Bucket:  new(s3cl.target.Bucket.Name),
+		Key:     new(input.Key),
 		Expires: input.Expires,
 	}
 
@@ -457,23 +457,23 @@ func (s3cl *s3client) PutObject(ctx context.Context, input *PutInput) (*ResultIn
 	}
 	// Manage cache control case
 	if input.CacheControl != "" {
-		inp.CacheControl = aws.String(input.CacheControl)
+		inp.CacheControl = new(input.CacheControl)
 	}
 	// Manage content disposition case
 	if input.ContentDisposition != "" {
-		inp.ContentDisposition = aws.String(input.ContentDisposition)
+		inp.ContentDisposition = new(input.ContentDisposition)
 	}
 	// Manage content encoding case
 	if input.ContentEncoding != "" {
-		inp.ContentEncoding = aws.String(input.ContentEncoding)
+		inp.ContentEncoding = new(input.ContentEncoding)
 	}
 	// Manage content language case
 	if input.ContentLanguage != "" {
-		inp.ContentLanguage = aws.String(input.ContentLanguage)
+		inp.ContentLanguage = new(input.ContentLanguage)
 	}
 	// Manage content type case
 	if input.ContentType != "" {
-		inp.ContentType = aws.String(input.ContentType)
+		inp.ContentType = new(input.ContentType)
 	}
 	// Manage metadata case
 	if input.Metadata != nil {
@@ -481,7 +481,7 @@ func (s3cl *s3client) PutObject(ctx context.Context, input *PutInput) (*ResultIn
 	}
 	// Manage storage class
 	if input.StorageClass != "" {
-		inp.StorageClass = aws.String(input.StorageClass)
+		inp.StorageClass = new(input.StorageClass)
 	}
 
 	// Init & get request headers
@@ -557,9 +557,9 @@ func (s3cl *s3client) HeadObject(ctx context.Context, key string) (*HeadOutput, 
 	obj, err := s3cl.svcClient.HeadObjectWithContext(
 		ctx,
 		&s3.HeadObjectInput{
-			Bucket:       aws.String(s3cl.target.Bucket.Name),
-			Key:          aws.String(key),
-			ChecksumMode: aws.String("ENABLED"),
+			Bucket:       new(s3cl.target.Bucket.Name),
+			Key:          new(key),
+			ChecksumMode: new("ENABLED"),
 		},
 		addHeadersToRequest(requestHeaders),
 	)
@@ -679,8 +679,8 @@ func (s3cl *s3client) DeleteObject(ctx context.Context, key string) (*ResultInfo
 	_, err := s3cl.svcClient.DeleteObjectWithContext(
 		ctx,
 		&s3.DeleteObjectInput{
-			Bucket: aws.String(s3cl.target.Bucket.Name),
-			Key:    aws.String(key),
+			Bucket: new(s3cl.target.Bucket.Name),
+			Key:    new(key),
 		},
 		addHeadersToRequest(requestHeaders),
 	)

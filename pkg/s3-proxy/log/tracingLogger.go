@@ -5,7 +5,7 @@ type tracingLogger struct {
 }
 
 func (tl *tracingLogger) Error(msg string) {
-	tl.logger.Errorf(msg)
+	tl.logger.Error(msg)
 }
 
 func (tl *tracingLogger) Infof(msg string, args ...any) {

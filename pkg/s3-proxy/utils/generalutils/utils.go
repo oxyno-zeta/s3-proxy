@@ -182,7 +182,7 @@ type GetDocumentFromURLOption func(awsCfg *aws.Config, httpClient *http.Client)
 func WithAWSEndpoint(endpoint string) GetDocumentFromURLOption {
 	return func(awsCfg *aws.Config, _ *http.Client) {
 		if awsCfg != nil {
-			awsCfg.Endpoint = aws.String(endpoint)
+			awsCfg.Endpoint = new(endpoint)
 		}
 	}
 }
@@ -191,7 +191,7 @@ func WithAWSEndpoint(endpoint string) GetDocumentFromURLOption {
 func WithAWSRegion(region string) GetDocumentFromURLOption {
 	return func(awsCfg *aws.Config, _ *http.Client) {
 		if awsCfg != nil {
-			awsCfg.Region = aws.String(region)
+			awsCfg.Region = new(region)
 		}
 	}
 }
@@ -200,7 +200,7 @@ func WithAWSRegion(region string) GetDocumentFromURLOption {
 func WithAWSDisableSSL(disableSSL bool) GetDocumentFromURLOption {
 	return func(awsCfg *aws.Config, _ *http.Client) {
 		if awsCfg != nil {
-			awsCfg.DisableSSL = aws.Bool(disableSSL)
+			awsCfg.DisableSSL = new(disableSSL)
 		}
 	}
 }
@@ -354,7 +354,7 @@ func getDocumentFromS3(bucket, key string, opts ...GetDocumentFromURLOption) ([]
 
 		hostIP := net.ParseIP(endpointURL.Hostname())
 		if hostIP != nil {
-			cfg.S3ForcePathStyle = aws.Bool(true)
+			cfg.S3ForcePathStyle = new(true)
 		}
 	}
 
@@ -367,8 +367,8 @@ func getDocumentFromS3(bucket, key string, opts ...GetDocumentFromURLOption) ([]
 	s3Client := s3.New(sess)
 
 	goi := s3.GetObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(key),
+		Bucket: new(bucket),
+		Key:    new(key),
 	}
 
 	goo, err := s3Client.GetObject(&goi)
@@ -387,7 +387,7 @@ func getDocumentFromS3(bucket, key string, opts ...GetDocumentFromURLOption) ([]
 // This requires changes in the server.
 func getDocumentFromSecretsManager(docARN *arn.ARN, opts ...GetDocumentFromURLOption) ([]byte, error) {
 	cfg := aws.NewConfig()
-	cfg.Region = aws.String(docARN.Region)
+	cfg.Region = new(docARN.Region)
 
 	for _, opt := range opts {
 		opt(cfg, nil)
@@ -412,7 +412,7 @@ func getDocumentFromSecretsManager(docARN *arn.ARN, opts ...GetDocumentFromURLOp
 
 	secretsManagerClient := secretsmanager.New(sess)
 	gsvi := secretsmanager.GetSecretValueInput{
-		SecretId: aws.String(docARN.Resource[len("secret:"):]),
+		SecretId: new(docARN.Resource[len("secret:"):]),
 	}
 
 	gsvo, err := secretsManagerClient.GetSecretValue(&gsvi)
@@ -438,7 +438,7 @@ func getDocumentFromSecretsManager(docARN *arn.ARN, opts ...GetDocumentFromURLOp
 // This requires changes in the server.
 func getDocumentFromSSM(docARN *arn.ARN, opts ...GetDocumentFromURLOption) ([]byte, error) {
 	cfg := aws.NewConfig()
-	cfg.Region = aws.String(docARN.Region)
+	cfg.Region = new(docARN.Region)
 
 	for _, opt := range opts {
 		opt(cfg, nil)
@@ -468,8 +468,8 @@ func getDocumentFromSSM(docARN *arn.ARN, opts ...GetDocumentFromURLOption) ([]by
 	ssmClient := ssm.New(sess)
 
 	gpi := ssm.GetParameterInput{
-		Name:           aws.String(docARN.Resource[len("parameter/"):]),
-		WithDecryption: aws.Bool(true),
+		Name:           new(docARN.Resource[len("parameter/"):]),
+		WithDecryption: new(true),
 	}
 
 	gpo, err := ssmClient.GetParameter(&gpi)
