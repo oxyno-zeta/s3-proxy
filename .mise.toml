@@ -1,7 +1,7 @@
 #:schema https://mise.jdx.dev/schema/mise.json
 
 [tools]
-go = '1.25.5'
+go = '1.26.0'
 golangci-lint = "2.8.0"
 # renovate: datasource=github-tags depName=gotestyourself/gotestsum
 gotestsum = "1.13.0"
