@@ -47,6 +47,9 @@ const DefaultBucketRegion = "us-east-1"
 // DefaultBucketS3ListMaxKeys Default bucket S3 list max keys.
 const DefaultBucketS3ListMaxKeys int64 = 1000
 
+// DefaultBucketS3ForcePathStyle Default S3 path-style addresing (virtual-host style)
+var DefaultBucketS3ForcePathStyle = true
+
 // DefaultTemplateFolderListPath Default template folder list path.
 const DefaultTemplateFolderListPath = "templates/folder-list.tpl"
 
@@ -509,6 +512,7 @@ type BucketConfig struct {
 	S3UploadConcurrency       int                     `mapstructure:"s3UploadConcurrency"       validate:"required,gte=1" json:"s3UploadConcurrency"`
 	S3UploadLeavePartsOnError bool                    `mapstructure:"s3UploadLeavePartsOnError"                           json:"s3UploadLeavePartsOnError"`
 	DisableSSL                bool                    `mapstructure:"disableSSL"                                          json:"disableSSL"`
+	S3ForcePathStyle          *bool                   `mapstructure:"s3ForcePathStyle"                                    json:"s3ForcePathStyle"`
 }
 
 // BucketRequestConfig Bucket request configuration.

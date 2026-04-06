@@ -77,7 +77,12 @@ func newClient(tgt *config.TargetConfig, metricsCtx metrics.Client) (Client, err
 	// Load custom endpoint if it exists
 	if tgt.Bucket.S3Endpoint != "" {
 		sessionConfig.Endpoint = new(tgt.Bucket.S3Endpoint)
-		sessionConfig.S3ForcePathStyle = new(true)
+	}
+	// Path-Style: explicit from config, or same default as loadBusinessDefaultValues when unset
+	if tgt.Bucket.S3ForcePathStyle != nil {
+		sessionConfig.S3ForcePathStyle = aws.Bool(*tgt.Bucket.S3ForcePathStyle)
+	} else {
+		sessionConfig.S3ForcePathStyle = aws.Bool(config.DefaultBucketS3ForcePathStyle)
 	}
 	// Check if ssl needs to be disabled
 	if tgt.Bucket.DisableSSL {

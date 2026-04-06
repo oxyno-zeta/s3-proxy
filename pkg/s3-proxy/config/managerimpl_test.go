@@ -311,6 +311,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 							S3MaxUploadParts:    DefaultS3MaxUploadParts,
 							S3UploadPartSize:    DefaultS3UploadPartSize,
 							S3UploadConcurrency: DefaultS3UploadConcurrency,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 						},
 						Templates: &TargetTemplateConfig{},
 					},
@@ -363,6 +364,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 							S3MaxUploadParts:    DefaultS3MaxUploadParts,
 							S3UploadPartSize:    DefaultS3UploadPartSize,
 							S3UploadConcurrency: DefaultS3UploadConcurrency,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 						},
 						Resources: []*Resource{
 							{
