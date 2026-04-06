@@ -514,6 +514,7 @@ targets:
       # s3UploadConcurrency: 5
       # s3UploadLeavePartsOnError: false
       # s3ListMaxKeys: 1000
+      # s3ForcePathStyle: true
       # credentials:
       #   accessKey:
       #     env: AWS_ACCESS_KEY_ID

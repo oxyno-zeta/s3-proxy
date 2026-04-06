@@ -108,6 +108,7 @@ func (s3cl *s3client) GetObjectSignedURL(ctx context.Context, input *GetInput, e
 	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3cl.target.Bucket.S3Endpoint)
 	childTrace.SetTag("s3-bucket.bucket-key", *s3Input.Key)
 	childTrace.SetTag("s3-proxy.target-name", s3cl.target.Name)
+	childTrace.SetTag("s3-bucket.bucket-s3-force-path-style", aws.BoolValue(s3cl.target.Bucket.S3ForcePathStyle))
 
 	defer childTrace.Finish()
 
@@ -187,6 +188,7 @@ func (s3cl *s3client) ListFilesAndDirectories(ctx context.Context, key string) (
 		childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3cl.target.Bucket.S3Endpoint)
 		childTrace.SetTag("s3-bucket.bucket-key", key)
 		childTrace.SetTag("s3-proxy.target-name", s3cl.target.Name)
+		childTrace.SetTag("s3-bucket.bucket-s3-force-path-style", aws.BoolValue(s3cl.target.Bucket.S3ForcePathStyle))
 
 		// Build logger
 		logger = logger.WithFields(map[string]any{
@@ -300,6 +302,7 @@ func (s3cl *s3client) GetObject(ctx context.Context, input *GetInput) (*GetOutpu
 	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3cl.target.Bucket.S3Endpoint)
 	childTrace.SetTag("s3-bucket.bucket-key", *s3Input.Key)
 	childTrace.SetTag("s3-proxy.target-name", s3cl.target.Name)
+	childTrace.SetTag("s3-bucket.bucket-s3-force-path-style", aws.BoolValue(s3cl.target.Bucket.S3ForcePathStyle))
 
 	defer childTrace.Finish()
 
@@ -432,6 +435,7 @@ func (s3cl *s3client) PutObject(ctx context.Context, input *PutInput) (*ResultIn
 	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3cl.target.Bucket.S3Endpoint)
 	childTrace.SetTag("s3-bucket.bucket-key", *inp.Key)
 	childTrace.SetTag("s3-proxy.target-name", s3cl.target.Name)
+	childTrace.SetTag("s3-bucket.bucket-s3-force-path-style", aws.BoolValue(s3cl.target.Bucket.S3ForcePathStyle))
 
 	defer childTrace.Finish()
 
@@ -533,6 +537,7 @@ func (s3cl *s3client) HeadObject(ctx context.Context, key string) (*HeadOutput, 
 	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3cl.target.Bucket.S3Endpoint)
 	childTrace.SetTag("s3-bucket.bucket-key", key)
 	childTrace.SetTag("s3-proxy.target-name", s3cl.target.Name)
+	childTrace.SetTag("s3-bucket.bucket-s3-force-path-style", aws.BoolValue(s3cl.target.Bucket.S3ForcePathStyle))
 
 	defer childTrace.Finish()
 
@@ -655,7 +660,8 @@ func (s3cl *s3client) DeleteObject(ctx context.Context, key string) (*ResultInfo
 	childTrace.SetTag("s3-bucket.bucket-s3-endpoint", s3cl.target.Bucket.S3Endpoint)
 	childTrace.SetTag("s3-bucket.bucket-key", key)
 	childTrace.SetTag("s3-proxy.target-name", s3cl.target.Name)
-
+	childTrace.SetTag("s3-bucket.bucket-s3-force-path-style", aws.BoolValue(s3cl.target.Bucket.S3ForcePathStyle))
+	
 	defer childTrace.Finish()
 
 	// Get logger
