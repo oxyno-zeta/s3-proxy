@@ -606,8 +606,7 @@ func loadBusinessDefaultValues(out *Config) error {
 		}
 		// Manage default s3 path-style addresing (nil = omited in config)
 		if item.Bucket != nil && item.Bucket.S3ForcePathStyle == nil {
-			v := DefaultBucketS3ForcePathStyle
-			item.Bucket.S3ForcePathStyle = &v
+			item.Bucket.S3ForcePathStyle = new(DefaultBucketS3ForcePathStyle)
 		}
 		// Manage default configuration for target actions
 		if item.Actions == nil {
