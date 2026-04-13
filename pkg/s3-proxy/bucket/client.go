@@ -17,6 +17,9 @@ import (
 // ErrRemovalFolder will be raised when end user is trying to delete a folder and not a file.
 var ErrRemovalFolder = errors.New("can't remove folder")
 
+// errUserIsolationForbidden will be raised when user isolation blocks access.
+var errUserIsolationForbidden = errors.New("user isolation: access denied")
+
 // Client represents a client in order to GET, PUT or DELETE file on a bucket with a html output.
 //
 //go:generate mockgen -destination=./mocks/mock_Client.go -package=mocks github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/bucket Client

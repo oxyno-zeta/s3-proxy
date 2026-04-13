@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"path"
+	"slices"
 	"strings"
 	"time"
 
@@ -167,12 +168,29 @@ func (bri *bucketReqImpl) internalGetOrHead(ctx context.Context, input *GetInput
 
 	// Check that the path ends with a / for a directory listing or the main path special case (empty path)
 	if strings.HasSuffix(input.RequestPath, "/") || input.RequestPath == "" {
+		// For directory listings, the filtering happens inside manageGetFolder
+		// but we still block access to other users' subdirectory listings
+		if bri.isUserIsolationEnabled() && input.RequestPath != "" && input.RequestPath != "/" {
+			if !bri.checkUserIsolationAccess(ctx, key) {
+				resHan.ForbiddenError(bri.LoadFileContent, errUserIsolationForbidden)
+
+				return
+			}
+		}
+
 		bri.manageGetFolder(ctx, key, input, isHeadReq)
 		// Stop
 		return
 	}
 
 	// Get or Head object case
+
+	// Enforce user isolation — block direct file access to other users' files
+	if !bri.checkUserIsolationAccess(ctx, key) {
+		resHan.ForbiddenError(bri.LoadFileContent, errUserIsolationForbidden)
+
+		return
+	}
 
 	// Check if it is a HEAD request or if it is asked to redirect to signed url
 	if isHeadReq || bri.targetCfg.Actions != nil &&
@@ -370,6 +388,11 @@ func (bri *bucketReqImpl) manageGetFolder(ctx context.Context, key string, input
 		)
 	}
 
+	// Filter entries by authenticated user if userIsolation is enabled
+	if bri.isUserIsolationEnabled() {
+		s3Entries = filterS3EntriesByUser(ctx, s3Entries, bri.targetCfg.Bucket.GetRootPrefix(), bri.targetCfg.Actions.GET.Config.UserIsolationAdmins)
+	}
+
 	// Transform entries in entry with path objects
 	bucketRootPrefixKey := bri.targetCfg.Bucket.GetRootPrefix()
 	entries := transformS3Entries(s3Entries, bri, bucketRootPrefixKey)
@@ -400,6 +423,13 @@ func (bri *bucketReqImpl) Put(ctx context.Context, inp *PutInput) {
 	if err != nil {
 		resHan.InternalServerError(bri.LoadFileContent, err)
 		// Stop
+		return
+	}
+
+	// Enforce user isolation — block uploads to other users' folders
+	if !bri.checkUserIsolationAccess(ctx, key) {
+		resHan.ForbiddenError(bri.LoadFileContent, errUserIsolationForbidden)
+
 		return
 	}
 
@@ -658,6 +688,13 @@ func (bri *bucketReqImpl) Delete(ctx context.Context, requestPath string) {
 		return
 	}
 
+	// Enforce user isolation — block deletes in other users' folders
+	if !bri.checkUserIsolationAccess(ctx, key) {
+		resHan.ForbiddenError(bri.LoadFileContent, errUserIsolationForbidden)
+
+		return
+	}
+
 	// Check that the path ends with a / for a directory or the main path special case (empty path)
 	if strings.HasSuffix(requestPath, "/") || requestPath == "" {
 		resHan.InternalServerError(bri.LoadFileContent, ErrRemovalFolder)
@@ -696,6 +733,89 @@ func (bri *bucketReqImpl) Delete(ctx context.Context, requestPath string) {
 			Key: key,
 		},
 	)
+}
+
+// isUserIsolationEnabled checks if userIsolation is configured on the GET action.
+func (bri *bucketReqImpl) isUserIsolationEnabled() bool {
+	return bri.targetCfg.Actions != nil && bri.targetCfg.Actions.GET != nil &&
+		bri.targetCfg.Actions.GET.Config != nil &&
+		bri.targetCfg.Actions.GET.Config.UserIsolation
+}
+
+// isUserIsolationAdmin checks if the given username is in the admin list.
+func (bri *bucketReqImpl) isUserIsolationAdmin(username string) bool {
+	if bri.targetCfg.Actions == nil || bri.targetCfg.Actions.GET == nil ||
+		bri.targetCfg.Actions.GET.Config == nil {
+		return false
+	}
+
+	return slices.Contains(bri.targetCfg.Actions.GET.Config.UserIsolationAdmins, username)
+}
+
+// checkUserIsolationAccess enforces per-user folder isolation.
+// Returns true if the request is allowed, false if it should be blocked.
+// When userIsolation is enabled, users can only access S3 keys under their own username prefix.
+func (bri *bucketReqImpl) checkUserIsolationAccess(ctx context.Context, s3Key string) bool {
+	if !bri.isUserIsolationEnabled() {
+		return true
+	}
+
+	user := models.GetAuthenticatedUserFromContext(ctx)
+	if user == nil {
+		return false
+	}
+
+	username := user.GetUsername()
+
+	// Admins bypass isolation
+	if bri.isUserIsolationAdmin(username) {
+		return true
+	}
+
+	// Build the allowed prefix for this user
+	bucketRootPrefixKey := bri.targetCfg.Bucket.GetRootPrefix()
+	userPrefix := bucketRootPrefixKey + username + "/"
+
+	// Allow access only if the S3 key is under the user's prefix
+	return strings.HasPrefix(s3Key, userPrefix)
+}
+
+// filterS3EntriesByUser filters S3 directory listing entries so that
+// each authenticated user only sees entries matching their username prefix.
+// Admin users listed in adminUsers bypass the filter and see all entries.
+func filterS3EntriesByUser(
+	ctx context.Context,
+	s3Entries []*s3client.ListElementOutput,
+	bucketRootPrefixKey string,
+	adminUsers []string,
+) []*s3client.ListElementOutput {
+	// Get authenticated user from context
+	user := models.GetAuthenticatedUserFromContext(ctx)
+	if user == nil {
+		// No authenticated user — return empty to be safe
+		return make([]*s3client.ListElementOutput, 0)
+	}
+
+	username := user.GetUsername()
+
+	// Check if user is an admin — admins see everything
+	if slices.Contains(adminUsers, username) {
+		return s3Entries
+	}
+
+	// Build the prefix this user is allowed to see
+	userPrefix := bucketRootPrefixKey + username + "/"
+
+	filtered := make([]*s3client.ListElementOutput, 0)
+
+	for _, item := range s3Entries {
+		// Allow entries that belong to this user's prefix
+		if strings.HasPrefix(item.Key, userPrefix) {
+			filtered = append(filtered, item)
+		}
+	}
+
+	return filtered
 }
 
 func transformS3Entries(
