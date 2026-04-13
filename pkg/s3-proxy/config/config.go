@@ -454,6 +454,8 @@ type GetActionConfigConfig struct {
 	RedirectWithTrailingSlashForNotFoundFile bool              `mapstructure:"redirectWithTrailingSlashForNotFoundFile" json:"redirectWithTrailingSlashForNotFoundFile"`
 	RedirectToSignedURL                      bool              `mapstructure:"redirectToSignedUrl"                      json:"redirectToSignedUrl"`
 	DisableListing                           bool              `mapstructure:"disableListing"                           json:"disableListing"`
+	UserIsolation                            bool              `mapstructure:"userIsolation"                            json:"userIsolation"`
+	UserIsolationAdmins                      []string          `mapstructure:"userIsolationAdmins"                      json:"userIsolationAdmins"                      validate:"omitempty,dive"`
 }
 
 // WebhookConfig Webhook configuration.
