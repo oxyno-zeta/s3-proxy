@@ -385,6 +385,11 @@ targets:
     #       # Disable listing
     #       # Note: This will return an empty list or you should change the folder list template (in general or in this target)
     #       disableListing: false
+    #       # Enable per-user folder isolation
+    #       # When enabled, each user can only access files under their own username-prefixed folder
+    #       userIsolation: false
+    #       # List of admin users that bypass user isolation
+    #       userIsolationAdmins: []
     #       # Webhooks
     #       webhooks: []
     #   # Action for PUT requests on target
