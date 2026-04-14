@@ -7457,6 +7457,183 @@ func TestGlobSeparatorSingleStar(t *testing.T) {
 	}
 }
 
+func TestPathTraversalPrevention(t *testing.T) {
+	trueValue := true
+
+	accessKey := "YOUR-ACCESSKEYID"
+	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	region := "eu-central-1"
+	bucket := "test-bucket"
+	_, s3server, err := setupFakeS3(accessKey, secretAccessKey, region, bucket)
+	defer s3server.Close()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	cfg := &config.Config{
+		Server: &config.ServerConfig{
+			Compress: &config.ServerCompressConfig{
+				Enabled: &config.DefaultServerCompressEnabled,
+				Level:   config.DefaultServerCompressLevel,
+				Types:   config.DefaultServerCompressTypes,
+			},
+		},
+		ListTargets: &config.ListTargetsConfig{},
+		Tracing:     &config.TracingConfig{},
+		Templates:   testsDefaultGeneralTemplateConfig,
+		AuthProviders: &config.AuthProviderConfig{
+			Basic: map[string]*config.BasicAuthConfig{
+				"provider1": {Realm: "realm1"},
+			},
+		},
+		Targets: map[string]*config.TargetConfig{
+			"target1": {
+				Name: "target1",
+				Bucket: &config.BucketConfig{
+					Name:       bucket,
+					Region:     region,
+					S3Endpoint: s3server.URL,
+					Credentials: &config.BucketCredentialConfig{
+						AccessKey: &config.CredentialConfig{Value: accessKey},
+						SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+					},
+					DisableSSL: true,
+				},
+				Mount: &config.MountConfig{Path: []string{"/"}},
+				Resources: []*config.Resource{
+					{
+						Path:     "/secret/**",
+						Methods:  []string{"GET"},
+						Provider: "provider1",
+						Basic: &config.ResourceBasic{
+							Credentials: []*config.BasicAuthUserConfig{
+								{User: "user1", Password: &config.CredentialConfig{Value: "pass1"}},
+							},
+						},
+					},
+					{
+						Path:      "/public/**",
+						Methods:   []string{"GET"},
+						WhiteList: &trueValue,
+					},
+					{
+						Path:     "/restricted/*/files",
+						Methods:  []string{"GET"},
+						Provider: "provider1",
+						Basic: &config.ResourceBasic{
+							Credentials: []*config.BasicAuthUserConfig{
+								{User: "user1", Password: &config.CredentialConfig{Value: "pass1"}},
+							},
+						},
+					},
+					{
+						Path:      "/open/*/files",
+						Methods:   []string{"GET"},
+						WhiteList: &trueValue,
+					},
+				},
+				Actions: &config.ActionsConfig{
+					GET: &config.GetActionConfig{Enabled: true},
+				},
+			},
+		},
+	}
+
+	ctrl := gomock.NewController(t)
+	cfgManagerMock := cmocks.NewMockManager(ctrl)
+	cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(cfg)
+
+	logger := log.NewLogger()
+	tsvc, err := tracing.New(cfgManagerMock, logger)
+	assert.NoError(t, err)
+
+	s3Manager := s3client.NewManager(cfgManagerMock, metricsCtx)
+	err = s3Manager.Load()
+	assert.NoError(t, err)
+
+	webhookManager := webhook.NewManager(cfgManagerMock, metricsCtx)
+
+	svr := &Server{
+		logger:          logger,
+		cfgManager:      cfgManagerMock,
+		metricsCl:       metricsCtx,
+		tracingSvc:      tsvc,
+		s3clientManager: s3Manager,
+		webhookManager:  webhookManager,
+	}
+
+	router, err := svr.generateRouter()
+	assert.NoError(t, err)
+
+	tests := []struct {
+		name         string
+		url          string
+		expectedCode int
+	}{
+		{
+			name:         "%2E%2E traversal is rejected before auth",
+			url:          "http://localhost/public/%2E%2E/secret/traversal.txt",
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:         ".. traversal is rejected before auth",
+			url:          "http://localhost/public/../secret/traversal.txt",
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:         ".. traversal from /open/*/files is rejected before auth",
+			url:          "http://localhost/open/../restricted/foo/files",
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:         "%2E%2E traversal that escapes all routes is rejected before auth",
+			url:          "http://localhost/open/%2E%2E/files",
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:         ".. traversal that escapes all routes is rejected before auth",
+			url:          "http://localhost/open/../files",
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:         "%2F-based traversal from /public/** is rejected before auth",
+			url:          "http://localhost/public/foo%2F..%2F..%2Fsecret/traversal.txt",
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:         "%2F-based traversal from /open/*/files is rejected before auth",
+			url:          "http://localhost/open/foo%2F..%2F..%2Frestricted%2Fbar/files",
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:         "normal path on /public/** whitelisted resource passes auth",
+			url:          "http://localhost/public/normal.txt",
+			expectedCode: http.StatusNotFound,
+		},
+		{
+			name:         "normal path on /restricted/*/files requires auth",
+			url:          "http://localhost/restricted/foo/files",
+			expectedCode: http.StatusUnauthorized,
+		},
+		{
+			name:         "normal path on /open/*/files whitelisted resource passes auth",
+			url:          "http://localhost/open/foo/files",
+			expectedCode: http.StatusNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(http.MethodGet, tt.url, nil)
+			assert.NoError(t, err)
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+			assert.Equal(t, tt.expectedCode, w.Code)
+		})
+	}
+}
+
 func TestTrailingSlashRedirect(t *testing.T) {
 	accessKey := "YOUR-ACCESSKEYID"
 	secretAccessKey := "YOUR-SECRETACCESSKEY"

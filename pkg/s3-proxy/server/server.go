@@ -185,6 +185,9 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 		r.Use(cc.Handler)
 	}
 
+	// Reject path traversal (dot-segments) before routing and auth.
+	r.Use(middlewares.RejectTraversal(svr.cfgManager))
+
 	// Check if auth if enabled and oidc enabled
 	if cfg.AuthProviders != nil && cfg.AuthProviders.OIDC != nil {
 		for k, v := range cfg.AuthProviders.OIDC {
