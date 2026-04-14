@@ -18,7 +18,7 @@ Example of authorization accesses configuration:
 targets:
   target1:
     resources:
-      - path: /*
+      - path: /**
         provider: provider1
         oidc:
           authorizationAccesses: []
@@ -46,7 +46,7 @@ Example of authorization accesses configuration:
 targets:
   target1:
     resources:
-      - path: /*
+      - path: /**
         provider: provider1
         oidc:
           authorizationAccesses:
@@ -76,7 +76,7 @@ Example of authorization accesses configuration:
 targets:
   target1:
     resources:
-      - path: /*
+      - path: /**
         provider: provider1
         oidc:
           authorizationAccesses:
@@ -106,7 +106,7 @@ Example of authorization accesses configuration:
 targets:
   target1:
     resources:
-      - path: /*
+      - path: /**
         provider: provider1
         oidc:
           authorizationAccesses:
@@ -135,7 +135,7 @@ Example of authorization accesses configuration:
 targets:
   target1:
     resources:
-      - path: /*
+      - path: /**
         provider: provider1
         oidc:
           authorizationAccesses:
@@ -171,7 +171,7 @@ Example of authorization accesses configuration:
 targets:
   target1:
     resources:
-      - path: /*
+      - path: /**
         provider: provider1
         oidc:
           authorizationAccesses:

@@ -291,14 +291,14 @@ targets:
       # A specific host can be added for filtering. Otherwise, all hosts will be accepted
       # host: localhost:8080
     # ## Resources declaration
-    # ## WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /* otherwise, it will be public.
+    # ## WARNING: Think about all path that you want to protect. At the end of the list, you should add a resource filter for /** otherwise, it will be public.
     # resources:
-    #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
+    #   # A Path must be declared for a resource filtering (* matches one path segment, ** matches across path boundaries)
     #   - path: /
     #     # Whitelist
     #     whiteList: true
-    #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
-    #   - path: /specific_doc/*
+    #   # A Path must be declared for a resource filtering (* matches one path segment, ** matches across path boundaries)
+    #   - path: /specific_doc/**
     #     # HTTP Methods authorized (Must be in HEAD, GET, PUT or DELETE)
     #     methods:
     #       - GET
@@ -311,8 +311,8 @@ targets:
     #       # NOTE: This list can be empty ([]) for authentication only and no group filter
     #       authorizationAccesses: # Authorization accesses : groups or email or regexp
     #         - group: specific_users
-    #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
-    #   - path: /directory1/*
+    #   # A Path must be declared for a resource filtering (* matches one path segment, ** matches across path boundaries)
+    #   - path: /directory1/**
     #     # HTTP Methods authorized (Must be in HEAD, GET, PUT or DELETE)
     #     methods:
     #       - GET
@@ -326,16 +326,16 @@ targets:
     #         - user: user1
     #           password:
     #             path: password1-in-file
-    #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
-    #   - path: /opa-protected/*
+    #   # A Path must be declared for a resource filtering (* matches one path segment, ** matches across path boundaries)
+    #   - path: /opa-protected/**
     #     # OIDC section for access filter
     #     oidc:
     #       # Authorization through OPA server configuration
     #       authorizationOPAServer:
     #         # OPA server url with data path
     #         url: http://localhost:8181/v1/data/example/authz/allowed
-    #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
-    #   - path: /specific_doc/*
+    #   # A Path must be declared for a resource filtering (* matches one path segment, ** matches across path boundaries)
+    #   - path: /specific_doc/**
     #     # HTTP Methods authorized (Must be in HEAD, GET, PUT or DELETE)
     #     methods:
     #       - GET
@@ -348,8 +348,8 @@ targets:
     #       # NOTE: This list can be empty ([]) for authentication only and no group filter
     #       authorizationAccesses: # Authorization accesses : groups or email or regexp
     #         - group: specific_users
-    #   # A Path must be declared for a resource filtering (a wildcard can be added to match every sub path)
-    #   - path: /opa-protected/*
+    #   # A Path must be declared for a resource filtering (* matches one path segment, ** matches across path boundaries)
+    #   - path: /opa-protected/**
     #     # Header section for access filter
     #     header:
     #       # Authorization through OPA server configuration

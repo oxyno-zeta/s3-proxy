@@ -416,7 +416,7 @@ This authentication method should be used only with a software like [Oauth2-prox
 
 | Key       | Type                                      | Required                                    | Default | Description                                                          |
 | --------- | ----------------------------------------- | ------------------------------------------- | ------- | -------------------------------------------------------------------- |
-| path      | String                                    | Yes                                         | None    | Path or matching path (e.g.: `/*`)                                   |
+| path      | String                                    | Yes                                         | None    | Path or glob pattern for resource matching. `*` matches exactly one path segment (e.g. `/folder/*` matches `/folder/file.txt` but not `/folder/sub/file.txt`). `**` matches across path boundaries (e.g. `/folder/**` matches any path under `/folder/`). Use `/**` as a catch-all for all paths. |
 | provider  | String                                    | Yes                                         | None    | Provider key reference                                               |
 | methods   | [String]                                  | No                                          | `[GET]` | HTTP methods allowed (Allowed values `HEAD`, `GET`, `PUT`, `DELETE`) |
 | whiteList | Boolean                                   | Required without oidc or basic              | None    | Is this path in white list ? E.g.: No authentication                 |

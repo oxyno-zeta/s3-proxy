@@ -7330,6 +7330,133 @@ func TestFolderWithSubFolders(t *testing.T) {
 
 }
 
+func TestGlobSeparatorSingleStar(t *testing.T) {
+	trueValue := true
+
+	accessKey := "YOUR-ACCESSKEYID"
+	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	region := "eu-central-1"
+	bucket := "test-bucket"
+	_, s3server, err := setupFakeS3(accessKey, secretAccessKey, region, bucket)
+	defer s3server.Close()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	cfg := &config.Config{
+		Server: &config.ServerConfig{
+			Compress: &config.ServerCompressConfig{
+				Enabled: &config.DefaultServerCompressEnabled,
+				Level:   config.DefaultServerCompressLevel,
+				Types:   config.DefaultServerCompressTypes,
+			},
+		},
+		ListTargets: &config.ListTargetsConfig{},
+		Tracing:     &config.TracingConfig{},
+		Templates:   testsDefaultGeneralTemplateConfig,
+		AuthProviders: &config.AuthProviderConfig{
+			Basic: map[string]*config.BasicAuthConfig{
+				"provider1": {Realm: "realm1"},
+			},
+		},
+		Targets: map[string]*config.TargetConfig{
+			"target1": {
+				Name: "target1",
+				Bucket: &config.BucketConfig{
+					Name:       bucket,
+					Region:     region,
+					S3Endpoint: s3server.URL,
+					Credentials: &config.BucketCredentialConfig{
+						AccessKey: &config.CredentialConfig{Value: accessKey},
+						SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+					},
+					DisableSSL: true,
+				},
+				Mount: &config.MountConfig{Path: []string{"/"}},
+				Resources: []*config.Resource{
+					{
+						Path:     "/upload/*/restricted",
+						Methods:  []string{"DELETE"},
+						Provider: "provider1",
+						Basic: &config.ResourceBasic{
+							Credentials: []*config.BasicAuthUserConfig{
+								{User: "user1", Password: &config.CredentialConfig{Value: "pass1"}},
+							},
+						},
+					},
+					{
+						Path:      "/upload/*/open",
+						Methods:   []string{"DELETE"},
+						WhiteList: &trueValue,
+					},
+				},
+				Actions: &config.ActionsConfig{
+					DELETE: &config.DeleteActionConfig{Enabled: true},
+				},
+			},
+		},
+	}
+
+	ctrl := gomock.NewController(t)
+	cfgManagerMock := cmocks.NewMockManager(ctrl)
+	cfgManagerMock.EXPECT().GetConfig().AnyTimes().Return(cfg)
+
+	logger := log.NewLogger()
+	tsvc, err := tracing.New(cfgManagerMock, logger)
+	assert.NoError(t, err)
+
+	s3Manager := s3client.NewManager(cfgManagerMock, metricsCtx)
+	err = s3Manager.Load()
+	assert.NoError(t, err)
+
+	webhookManager := webhook.NewManager(cfgManagerMock, metricsCtx)
+
+	svr := &Server{
+		logger:          logger,
+		cfgManager:      cfgManagerMock,
+		metricsCl:       metricsCtx,
+		tracingSvc:      tsvc,
+		s3clientManager: s3Manager,
+		webhookManager:  webhookManager,
+	}
+
+	router, err := svr.generateRouter()
+	assert.NoError(t, err)
+
+	tests := []struct {
+		name         string
+		url          string
+		expectedCode int
+	}{
+		{
+			name:         "single-segment * matches single path segment",
+			url:          "http://localhost/upload/foo/open",
+			expectedCode: http.StatusNoContent,
+		},
+		{
+			name:         "single-segment * matches single path segment on protected route",
+			url:          "http://localhost/upload/foo/restricted",
+			expectedCode: http.StatusUnauthorized,
+		},
+		{
+			name:         "* does not cross path separator — multi-segment produces 403",
+			url:          "http://localhost/upload/foo/bar/open",
+			expectedCode: http.StatusForbidden,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(http.MethodDelete, tt.url, nil)
+			assert.NoError(t, err)
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+			assert.Equal(t, tt.expectedCode, w.Code)
+		})
+	}
+}
+
 func TestTrailingSlashRedirect(t *testing.T) {
 	accessKey := "YOUR-ACCESSKEYID"
 	secretAccessKey := "YOUR-SECRETACCESSKEY"

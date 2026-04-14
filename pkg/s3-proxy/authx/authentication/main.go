@@ -144,7 +144,7 @@ func findResource(resL []*config.Resource, requestURI, httpMethod string) (*conf
 			continue
 		}
 		// Compile a glob pattern for uri matching
-		g, err := glob.Compile(res.Path)
+		g, err := glob.Compile(res.Path, '/')
 		// Check if error exists
 		if err != nil {
 			return nil, errors.WithStack(err)

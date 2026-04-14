@@ -50,7 +50,25 @@ func Test_findResource(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Should find a valid resource with glob path",
+			name: "Wildcard * at end matches a single segment",
+			args: args{
+				resL: []*config.Resource{
+					{
+						Path:    "/test/*",
+						Methods: []string{"GET"},
+					},
+				},
+				requestURI: "/test/fake",
+				httpMethod: "GET",
+			},
+			want: &config.Resource{
+				Path:    "/test/*",
+				Methods: []string{"GET"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Wildcard * at end does not match multiple segments",
 			args: args{
 				resL: []*config.Resource{
 					{
@@ -61,10 +79,127 @@ func Test_findResource(t *testing.T) {
 				requestURI: "/test/fake/fake",
 				httpMethod: "GET",
 			},
+			want:    nil,
+			wantErr: false,
+		},
+		{
+			name: "Wildcard * between segments matches exactly one segment",
+			args: args{
+				resL: []*config.Resource{
+					{
+						Path:    "/single/*/segment/",
+						Methods: []string{"GET"},
+					},
+				},
+				requestURI: "/single/foo/segment/",
+				httpMethod: "GET",
+			},
 			want: &config.Resource{
-				Path:    "/test/*",
+				Path:    "/single/*/segment/",
 				Methods: []string{"GET"},
 			},
+			wantErr: false,
+		},
+		{
+			name: "Wildcard * between segments does not match multiple segments",
+			args: args{
+				resL: []*config.Resource{
+					{
+						Path:    "/single/*/segment/",
+						Methods: []string{"GET"},
+					},
+				},
+				requestURI: "/single/foo/bar/segment/",
+				httpMethod: "GET",
+			},
+			want:    nil,
+			wantErr: false,
+		},
+		{
+			name: "Wildcard ** at end matches a single segment",
+			args: args{
+				resL: []*config.Resource{
+					{
+						Path:    "/test/**",
+						Methods: []string{"GET"},
+					},
+				},
+				requestURI: "/test/fake",
+				httpMethod: "GET",
+			},
+			want: &config.Resource{
+				Path:    "/test/**",
+				Methods: []string{"GET"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Wildcard ** at end matches multiple segments",
+			args: args{
+				resL: []*config.Resource{
+					{
+						Path:    "/test/**",
+						Methods: []string{"GET"},
+					},
+				},
+				requestURI: "/test/fake/fake",
+				httpMethod: "GET",
+			},
+			want: &config.Resource{
+				Path:    "/test/**",
+				Methods: []string{"GET"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Wildcard ** between segments matches a single intermediate segment",
+			args: args{
+				resL: []*config.Resource{
+					{
+						Path:    "/multiple/**/segments/",
+						Methods: []string{"GET"},
+					},
+				},
+				requestURI: "/multiple/foo/segments/",
+				httpMethod: "GET",
+			},
+			want: &config.Resource{
+				Path:    "/multiple/**/segments/",
+				Methods: []string{"GET"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Wildcard ** between segments matches multiple intermediate segments",
+			args: args{
+				resL: []*config.Resource{
+					{
+						Path:    "/multiple/**/segments/",
+						Methods: []string{"GET"},
+					},
+				},
+				requestURI: "/multiple/foo/bar/segments/",
+				httpMethod: "GET",
+			},
+			want: &config.Resource{
+				Path:    "/multiple/**/segments/",
+				Methods: []string{"GET"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Wildcard ** between segments does not match when suffix differs",
+			args: args{
+				resL: []*config.Resource{
+					{
+						Path:    "/multiple/**/segments/",
+						Methods: []string{"GET"},
+					},
+				},
+				requestURI: "/multiple/foo/other/",
+				httpMethod: "GET",
+			},
+			want:    nil,
 			wantErr: false,
 		},
 		{
@@ -76,7 +211,7 @@ func Test_findResource(t *testing.T) {
 						Methods: []string{"GET", "PUT"},
 					},
 				},
-				requestURI: "/test/fake/fake",
+				requestURI: "/test/fake",
 				httpMethod: "POST",
 			},
 			want:    nil,
