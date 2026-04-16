@@ -14,6 +14,8 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 	type args struct {
 		out *Config
 	}
+	trueValue := true
+	falseValue := false
 	tests := []struct {
 		name    string
 		args    args
@@ -379,6 +381,90 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 									},
 								},
 							},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+				ListTargets: &ListTargetsConfig{Enabled: false},
+				Tracing:     &TracingConfig{Enabled: false},
+				Metrics:     &MetricsConfig{DisableRouterPath: false},
+			},
+		},
+		{
+			name: "Load default values for targets preserves explicit S3ForcePathStyle true",
+			args: args{
+				out: &Config{
+					Targets: map[string]*TargetConfig{
+						"test": {
+							Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
+							Bucket: &BucketConfig{
+								Region:              DefaultBucketRegion,
+								S3ListMaxKeys:       DefaultBucketS3ListMaxKeys,
+								S3MaxUploadParts:    DefaultS3MaxUploadParts,
+								S3UploadPartSize:    DefaultS3UploadPartSize,
+								S3UploadConcurrency: DefaultS3UploadConcurrency,
+								S3ForcePathStyle:    &trueValue,
+							},
+							Templates: &TargetTemplateConfig{},
+						},
+					},
+				},
+			},
+			wantErr: false,
+			result: &Config{
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name:    "test",
+						Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
+						Bucket: &BucketConfig{
+							Region:              DefaultBucketRegion,
+							S3ListMaxKeys:       DefaultBucketS3ListMaxKeys,
+							S3MaxUploadParts:    DefaultS3MaxUploadParts,
+							S3UploadPartSize:    DefaultS3UploadPartSize,
+							S3UploadConcurrency: DefaultS3UploadConcurrency,
+							S3ForcePathStyle:    &trueValue,
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+				ListTargets: &ListTargetsConfig{Enabled: false},
+				Tracing:     &TracingConfig{Enabled: false},
+				Metrics:     &MetricsConfig{DisableRouterPath: false},
+			},
+		},
+		{
+			name: "Load default values for targets preserves explicit S3ForcePathStyle false",
+			args: args{
+				out: &Config{
+					Targets: map[string]*TargetConfig{
+						"test": {
+							Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
+							Bucket: &BucketConfig{
+								Region:              DefaultBucketRegion,
+								S3ListMaxKeys:       DefaultBucketS3ListMaxKeys,
+								S3MaxUploadParts:    DefaultS3MaxUploadParts,
+								S3UploadPartSize:    DefaultS3UploadPartSize,
+								S3UploadConcurrency: DefaultS3UploadConcurrency,
+								S3ForcePathStyle:    &falseValue,
+							},
+							Templates: &TargetTemplateConfig{},
+						},
+					},
+				},
+			},
+			wantErr: false,
+			result: &Config{
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name:    "test",
+						Actions: &ActionsConfig{GET: &GetActionConfig{Enabled: false}},
+						Bucket: &BucketConfig{
+							Region:              DefaultBucketRegion,
+							S3ListMaxKeys:       DefaultBucketS3ListMaxKeys,
+							S3MaxUploadParts:    DefaultS3MaxUploadParts,
+							S3UploadPartSize:    DefaultS3UploadPartSize,
+							S3UploadConcurrency: DefaultS3UploadConcurrency,
+							S3ForcePathStyle:    &falseValue,
 						},
 						Templates: &TargetTemplateConfig{},
 					},

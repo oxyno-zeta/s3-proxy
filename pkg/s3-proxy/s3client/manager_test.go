@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
@@ -83,4 +84,61 @@ func Test_manager_Load_Cleanup(t *testing.T) {
 	}
 
 	assert.Equal(t, []string{"t1"}, funk.Keys(s3Manager.targetClient))
+}
+
+func Test_newClient_S3ForcePathStyleDefaultAndOverrides(t *testing.T) {
+	trueValue := true
+	falseValue := false
+
+	tests := []struct {
+		name         string
+		forcePath    *bool
+		expectedPath bool
+	}{
+		{
+			name:         "uses default when omitted",
+			forcePath:    nil,
+			expectedPath: config.DefaultBucketS3ForcePathStyle,
+		},
+		{
+			name:         "keeps explicit true",
+			forcePath:    &trueValue,
+			expectedPath: true,
+		},
+		{
+			name:         "keeps explicit false",
+			forcePath:    &falseValue,
+			expectedPath: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cl, err := newClient(&config.TargetConfig{
+				Bucket: &config.BucketConfig{
+					Name:                "bucket1",
+					Region:              "us-east-1",
+					S3MaxUploadParts:    config.DefaultS3MaxUploadParts,
+					S3UploadPartSize:    config.DefaultS3UploadPartSize,
+					S3UploadConcurrency: config.DefaultS3UploadConcurrency,
+					S3ForcePathStyle:    tt.forcePath,
+				},
+			}, nil)
+			if !assert.NoError(t, err) {
+				return
+			}
+
+			s3cl, ok := cl.(*s3client)
+			if !assert.True(t, ok) {
+				return
+			}
+			svc, ok := s3cl.svcClient.(*s3.S3)
+			if !assert.True(t, ok) {
+				return
+			}
+
+			assert.NotNil(t, svc.Config.S3ForcePathStyle)
+			assert.Equal(t, tt.expectedPath, *svc.Config.S3ForcePathStyle)
+		})
+	}
 }
