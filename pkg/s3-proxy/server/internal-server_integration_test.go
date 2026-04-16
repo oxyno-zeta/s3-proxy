@@ -292,6 +292,7 @@ func TestInternalServer_config_endpoint(t *testing.T) {
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &config.DefaultBucketS3ForcePathStyle,
 							Credentials: &config.BucketCredentialConfig{
 								AccessKey: &config.CredentialConfig{
 									Env:   "FAKE",
@@ -396,6 +397,7 @@ func TestInternalServer_config_endpoint(t *testing.T) {
           "s3UploadPartSize": 5,
           "s3UploadConcurrency": 5,
           "s3UploadLeavePartsOnError": false,
+		  "s3ForcePathStyle": true,
           "disableSSL": false,
 		  "credentials": {
 		  	"accessKey": {"env": "FAKE","path":""},

@@ -218,6 +218,7 @@ targets:
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
@@ -284,6 +285,7 @@ targets:
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
@@ -357,6 +359,7 @@ targets:
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
@@ -375,6 +378,7 @@ targets:
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
@@ -439,6 +443,7 @@ targets:
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
@@ -515,6 +520,7 @@ targets:
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
@@ -697,6 +703,7 @@ targets:
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 						},
 						Actions: &ActionsConfig{
 							GET: &GetActionConfig{Enabled: true},
@@ -838,6 +845,7 @@ targets:
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Env:   "ENV1",
@@ -953,6 +961,7 @@ targets:
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Path:  secret1Filename,
@@ -1028,6 +1037,7 @@ VALUE1
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Path:  secretWithNewLineFilename,
@@ -1132,6 +1142,7 @@ targets:
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Value: "VALUE1",
@@ -1216,6 +1227,7 @@ targets:
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Value: "value1",
@@ -1296,6 +1308,7 @@ targets:
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Value: "value1",
@@ -1373,6 +1386,7 @@ targets:
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Value: "value1",
@@ -1456,6 +1470,7 @@ targets:
 							S3MaxUploadParts:    10000,
 							S3UploadPartSize:    5,
 							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 							Credentials: &BucketCredentialConfig{
 								AccessKey: &CredentialConfig{
 									Value: "value1",
@@ -1646,6 +1661,7 @@ targets:
 					S3MaxUploadParts:    10000,
 					S3UploadPartSize:    5,
 					S3UploadConcurrency: 5,
+					S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 					Credentials: &BucketCredentialConfig{
 						AccessKey: &CredentialConfig{
 							Value: "VALUE1",
@@ -1718,6 +1734,7 @@ log:
 						S3MaxUploadParts:    10000,
 						S3UploadPartSize:    5,
 						S3UploadConcurrency: 5,
+						S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 						Credentials: &BucketCredentialConfig{
 							AccessKey: &CredentialConfig{
 								Value: "VALUE1",
@@ -1848,6 +1865,7 @@ targets:
 					S3MaxUploadParts:    10000,
 					S3UploadPartSize:    5,
 					S3UploadConcurrency: 5,
+					S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 					Credentials: &BucketCredentialConfig{
 						AccessKey: &CredentialConfig{
 							Value: "VALUE1",
@@ -1917,6 +1935,7 @@ targets:
 						S3MaxUploadParts:    10000,
 						S3UploadPartSize:    5,
 						S3UploadConcurrency: 5,
+						S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 						Credentials: &BucketCredentialConfig{
 							AccessKey: &CredentialConfig{
 								Value: "SECRET1",
@@ -2047,6 +2066,7 @@ targets:
 					S3MaxUploadParts:    10000,
 					S3UploadPartSize:    5,
 					S3UploadConcurrency: 5,
+					S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 					Credentials: &BucketCredentialConfig{
 						AccessKey: &CredentialConfig{
 							Value: "VALUE1",
@@ -2119,6 +2139,7 @@ configuration with error
 						S3MaxUploadParts:    10000,
 						S3UploadPartSize:    5,
 						S3UploadConcurrency: 5,
+						S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 						Credentials: &BucketCredentialConfig{
 							AccessKey: &CredentialConfig{
 								Value: "VALUE1",
@@ -2259,6 +2280,7 @@ targets:
 					S3MaxUploadParts:    10000,
 					S3UploadPartSize:    5,
 					S3UploadConcurrency: 5,
+					S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 					Credentials: &BucketCredentialConfig{
 						AccessKey: &CredentialConfig{
 							Value: "VALUE1",
@@ -2337,6 +2359,7 @@ authProviders:
 						S3MaxUploadParts:    10000,
 						S3UploadPartSize:    5,
 						S3UploadConcurrency: 5,
+						S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 						Credentials: &BucketCredentialConfig{
 							AccessKey: &CredentialConfig{
 								Value: "VALUE1",
@@ -2490,6 +2513,7 @@ targets:
 					S3MaxUploadParts:    10000,
 					S3UploadPartSize:    5,
 					S3UploadConcurrency: 5,
+					S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
 					Credentials: &BucketCredentialConfig{
 						AccessKey: &CredentialConfig{
 							Value: "VALUE1",
