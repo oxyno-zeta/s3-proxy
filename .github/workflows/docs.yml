@@ -4,6 +4,10 @@ on:
     branches-ignore:
       - "github-pages"
   pull_request: {}
+
+permissions:
+  contents: read
+
 env:
   # renovate: datasource=docker depName=squidfunk/mkdocs-material
   MKDOCS_MATERIAL_VERSION: "9.7.6"
@@ -49,6 +53,8 @@ jobs:
     if: |
       ((needs.changes.outputs.md == 'true') || (needs.changes.outputs.config == 'true')) &&
       (github.ref == 'refs/heads/master')
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

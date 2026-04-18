@@ -1,5 +1,9 @@
 name: "Add size label"
 on: pull_request
+
+permissions:
+  pull-requests: write
+
 jobs:
   size-label:
     runs-on: ubuntu-latest
