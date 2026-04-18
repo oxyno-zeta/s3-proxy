@@ -47,7 +47,7 @@ const DefaultBucketRegion = "us-east-1"
 // DefaultBucketS3ListMaxKeys Default bucket S3 list max keys.
 const DefaultBucketS3ListMaxKeys int64 = 1000
 
-// DefaultBucketS3ForcePathStyle Default S3 path-style addresing (virtual-host style)
+// DefaultBucketS3ForcePathStyle Default S3 path-style addressing (virtual-host style).
 var DefaultBucketS3ForcePathStyle = true
 
 // DefaultTemplateFolderListPath Default template folder list path.

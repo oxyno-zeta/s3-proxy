@@ -604,7 +604,7 @@ func loadBusinessDefaultValues(out *Config) error {
 		if item.Bucket != nil && item.Bucket.S3UploadConcurrency == 0 {
 			item.Bucket.S3UploadConcurrency = DefaultS3UploadConcurrency
 		}
-		// Manage default s3 path-style addresing (nil = omited in config)
+		// Manage default s3 path-style addressing (nil = omitted in config)
 		if item.Bucket != nil && item.Bucket.S3ForcePathStyle == nil {
 			item.Bucket.S3ForcePathStyle = new(DefaultBucketS3ForcePathStyle)
 		}
