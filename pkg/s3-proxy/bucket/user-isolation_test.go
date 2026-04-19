@@ -128,7 +128,22 @@ func Test_isUserIsolationAdmin(t *testing.T) {
 			want:     false,
 		},
 		{
-			name: "should return true when user is in admin list",
+			name: "should return true for first admin in list",
+			targetCfg: &config.TargetConfig{
+				Actions: &config.ActionsConfig{
+					GET: &config.GetActionConfig{
+						Config: &config.GetActionConfigConfig{
+							UserIsolation:       true,
+							UserIsolationAdmins: []string{"admin1", "admin2"},
+						},
+					},
+				},
+			},
+			username: "admin1",
+			want:     true,
+		},
+		{
+			name: "should return true for second admin in list",
 			targetCfg: &config.TargetConfig{
 				Actions: &config.ActionsConfig{
 					GET: &config.GetActionConfig{
@@ -154,80 +169,76 @@ func Test_isUserIsolationAdmin(t *testing.T) {
 	}
 }
 
-func Test_checkUserIsolationAccess(t *testing.T) {
+// Test_generateStartKey_UserIsolation verifies that S3 keys are built correctly
+// under the transparent-injection model: the authenticated username is inserted
+// after the bucket root prefix for non-admin users; admins get the bare key.
+func Test_generateStartKey_UserIsolation(t *testing.T) {
 	tests := []struct {
-		name      string
-		targetCfg *config.TargetConfig
-		user      models.GenericUser
-		s3Key     string
-		want      bool
+		name        string
+		targetCfg   *config.TargetConfig
+		user        models.GenericUser
+		requestPath string
+		wantKey     string
+		wantErr     bool
 	}{
 		{
-			name: "should allow access when isolation is disabled",
+			name: "should not inject when isolation disabled",
 			targetCfg: &config.TargetConfig{
-				Bucket: &config.BucketConfig{Prefix: "/"},
+				Bucket: &config.BucketConfig{Prefix: "data/"},
+				Actions: &config.ActionsConfig{
+					GET: &config.GetActionConfig{Config: &config.GetActionConfigConfig{}},
+				},
+			},
+			user:        &models.BasicAuthUser{Username: "alice"},
+			requestPath: "/file.txt",
+			wantKey:     "data/file.txt",
+		},
+		{
+			name: "should inject username for non-admin alice",
+			targetCfg: &config.TargetConfig{
+				Bucket: &config.BucketConfig{Prefix: "data/"},
 				Actions: &config.ActionsConfig{
 					GET: &config.GetActionConfig{
-						Config: &config.GetActionConfigConfig{},
+						Config: &config.GetActionConfigConfig{UserIsolation: true},
 					},
 				},
 			},
-			user:  &models.BasicAuthUser{Username: "alice"},
-			s3Key: "/bob/file.txt",
-			want:  true,
+			user:        &models.BasicAuthUser{Username: "alice"},
+			requestPath: "/file.txt",
+			wantKey:     "data/alice/file.txt",
 		},
 		{
-			name: "should deny access when user is nil",
+			name: "should inject username for non-admin bob",
 			targetCfg: &config.TargetConfig{
-				Bucket: &config.BucketConfig{Prefix: "/"},
+				Bucket: &config.BucketConfig{Prefix: "data/"},
 				Actions: &config.ActionsConfig{
 					GET: &config.GetActionConfig{
-						Config: &config.GetActionConfigConfig{
-							UserIsolation: true,
-						},
+						Config: &config.GetActionConfigConfig{UserIsolation: true},
 					},
 				},
 			},
-			user:  nil,
-			s3Key: "/alice/file.txt",
-			want:  false,
+			user:        &models.BasicAuthUser{Username: "bob"},
+			requestPath: "/sub/deep.txt",
+			wantKey:     "data/bob/sub/deep.txt",
 		},
 		{
-			name: "should allow access to own folder",
+			name: "should inject username for non-admin charlie",
 			targetCfg: &config.TargetConfig{
-				Bucket: &config.BucketConfig{Prefix: "/"},
+				Bucket: &config.BucketConfig{Prefix: "data/"},
 				Actions: &config.ActionsConfig{
 					GET: &config.GetActionConfig{
-						Config: &config.GetActionConfigConfig{
-							UserIsolation: true,
-						},
+						Config: &config.GetActionConfigConfig{UserIsolation: true},
 					},
 				},
 			},
-			user:  &models.BasicAuthUser{Username: "alice"},
-			s3Key: "/alice/file.txt",
-			want:  true,
+			user:        &models.BasicAuthUser{Username: "charlie"},
+			requestPath: "/",
+			wantKey:     "data/charlie/",
 		},
 		{
-			name: "should deny access to another user's folder",
+			name: "should not inject username for admin user",
 			targetCfg: &config.TargetConfig{
-				Bucket: &config.BucketConfig{Prefix: "/"},
-				Actions: &config.ActionsConfig{
-					GET: &config.GetActionConfig{
-						Config: &config.GetActionConfigConfig{
-							UserIsolation: true,
-						},
-					},
-				},
-			},
-			user:  &models.BasicAuthUser{Username: "alice"},
-			s3Key: "/bob/file.txt",
-			want:  false,
-		},
-		{
-			name: "should allow admin to access another user's folder",
-			targetCfg: &config.TargetConfig{
-				Bucket: &config.BucketConfig{Prefix: "/"},
+				Bucket: &config.BucketConfig{Prefix: "data/"},
 				Actions: &config.ActionsConfig{
 					GET: &config.GetActionConfig{
 						Config: &config.GetActionConfigConfig{
@@ -237,57 +248,68 @@ func Test_checkUserIsolationAccess(t *testing.T) {
 					},
 				},
 			},
-			user:  &models.BasicAuthUser{Username: "admin"},
-			s3Key: "/bob/file.txt",
-			want:  true,
+			user:        &models.BasicAuthUser{Username: "admin"},
+			requestPath: "/bob/file.txt",
+			wantKey:     "data/bob/file.txt",
 		},
 		{
-			name: "should work with bucket prefix",
+			name: "should not inject for a secondary admin (superuser)",
 			targetCfg: &config.TargetConfig{
-				Bucket: &config.BucketConfig{Prefix: "/data/"},
+				Bucket: &config.BucketConfig{Prefix: "data/"},
 				Actions: &config.ActionsConfig{
 					GET: &config.GetActionConfig{
 						Config: &config.GetActionConfigConfig{
-							UserIsolation: true,
+							UserIsolation:       true,
+							UserIsolationAdmins: []string{"admin", "superuser"},
 						},
 					},
 				},
 			},
-			user:  &models.BasicAuthUser{Username: "alice"},
-			s3Key: "/data/alice/file.txt",
-			want:  true,
+			user:        &models.BasicAuthUser{Username: "superuser"},
+			requestPath: "/alice/secret.txt",
+			wantKey:     "data/alice/secret.txt",
 		},
 		{
-			name: "should deny access with bucket prefix to another user's folder",
+			name: "should work with empty bucket prefix",
 			targetCfg: &config.TargetConfig{
-				Bucket: &config.BucketConfig{Prefix: "/data/"},
+				Bucket: &config.BucketConfig{Prefix: ""},
 				Actions: &config.ActionsConfig{
 					GET: &config.GetActionConfig{
-						Config: &config.GetActionConfigConfig{
-							UserIsolation: true,
-						},
+						Config: &config.GetActionConfigConfig{UserIsolation: true},
 					},
 				},
 			},
-			user:  &models.BasicAuthUser{Username: "alice"},
-			s3Key: "/data/bob/file.txt",
-			want:  false,
+			user:        &models.BasicAuthUser{Username: "alice"},
+			requestPath: "/file.txt",
+			wantKey:     "alice/file.txt",
 		},
 		{
-			name: "should deny access when username is a prefix of folder name",
+			name: "should error when isolation enabled but no user in context",
 			targetCfg: &config.TargetConfig{
-				Bucket: &config.BucketConfig{Prefix: "/"},
+				Bucket: &config.BucketConfig{Prefix: "data/"},
 				Actions: &config.ActionsConfig{
 					GET: &config.GetActionConfig{
-						Config: &config.GetActionConfigConfig{
-							UserIsolation: true,
-						},
+						Config: &config.GetActionConfigConfig{UserIsolation: true},
 					},
 				},
 			},
-			user:  &models.BasicAuthUser{Username: "ali"},
-			s3Key: "/alice/file.txt",
-			want:  false,
+			user:        nil,
+			requestPath: "/file.txt",
+			wantErr:     true,
+		},
+		{
+			name: "should ignore path-traversal-like inputs by still confining under username",
+			targetCfg: &config.TargetConfig{
+				Bucket: &config.BucketConfig{Prefix: "data/"},
+				Actions: &config.ActionsConfig{
+					GET: &config.GetActionConfig{
+						Config: &config.GetActionConfigConfig{UserIsolation: true},
+					},
+				},
+			},
+			user:        &models.BasicAuthUser{Username: "alice"},
+			requestPath: "/bob/../file.txt",
+			wantKey:     "data/alice/bob/../file.txt",
 		},
 	}
 	for _, tt := range tests {
@@ -297,113 +319,96 @@ func Test_checkUserIsolationAccess(t *testing.T) {
 				ctx = models.SetAuthenticatedUserInContext(ctx, tt.user)
 			}
 
-			bri := &bucketReqImpl{
-				targetCfg: tt.targetCfg,
+			bri := &bucketReqImpl{targetCfg: tt.targetCfg}
+			got, err := bri.generateStartKey(ctx, tt.requestPath)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+
+				return
 			}
-			got := bri.checkUserIsolationAccess(ctx, tt.s3Key)
-			assert.Equal(t, tt.want, got)
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.wantKey, got)
 		})
 	}
 }
 
-func Test_filterS3EntriesByUser(t *testing.T) {
-	now := time.Now()
+// Test_displayPrefix_UserIsolation verifies that the prefix used to build
+// user-facing paths hides the injected username for non-admin users while
+// admins see only the bucket prefix stripped.
+func Test_displayPrefix_UserIsolation(t *testing.T) {
 	tests := []struct {
-		name                string
-		user                models.GenericUser
-		s3Entries           []*s3client.ListElementOutput
-		bucketRootPrefixKey string
-		adminUsers          []string
-		want                []*s3client.ListElementOutput
+		name      string
+		targetCfg *config.TargetConfig
+		user      models.GenericUser
+		want      string
 	}{
 		{
-			name:                "should return empty when user is nil",
-			user:                nil,
-			s3Entries:           []*s3client.ListElementOutput{{Key: "/alice/file.txt"}},
-			bucketRootPrefixKey: "/",
-			adminUsers:          nil,
-			want:                []*s3client.ListElementOutput{},
-		},
-		{
-			name: "should filter entries to show only user's files",
+			name: "should return bucket prefix when isolation disabled",
+			targetCfg: &config.TargetConfig{
+				Bucket: &config.BucketConfig{Prefix: "data/"},
+				Actions: &config.ActionsConfig{
+					GET: &config.GetActionConfig{Config: &config.GetActionConfigConfig{}},
+				},
+			},
 			user: &models.BasicAuthUser{Username: "alice"},
-			s3Entries: []*s3client.ListElementOutput{
-				{Key: "/alice/file1.txt", Name: "file1.txt", Type: s3client.FileType, LastModified: now, Size: 100},
-				{Key: "/bob/file2.txt", Name: "file2.txt", Type: s3client.FileType, LastModified: now, Size: 200},
-				{Key: "/alice/file3.txt", Name: "file3.txt", Type: s3client.FileType, LastModified: now, Size: 300},
-			},
-			bucketRootPrefixKey: "/",
-			adminUsers:          nil,
-			want: []*s3client.ListElementOutput{
-				{Key: "/alice/file1.txt", Name: "file1.txt", Type: s3client.FileType, LastModified: now, Size: 100},
-				{Key: "/alice/file3.txt", Name: "file3.txt", Type: s3client.FileType, LastModified: now, Size: 300},
-			},
+			want: "data/",
 		},
 		{
-			name: "should return all entries for admin user",
+			name: "should include username for non-admin alice",
+			targetCfg: &config.TargetConfig{
+				Bucket: &config.BucketConfig{Prefix: "data/"},
+				Actions: &config.ActionsConfig{
+					GET: &config.GetActionConfig{
+						Config: &config.GetActionConfigConfig{UserIsolation: true},
+					},
+				},
+			},
+			user: &models.BasicAuthUser{Username: "alice"},
+			want: "data/alice/",
+		},
+		{
+			name: "should include username for non-admin bob",
+			targetCfg: &config.TargetConfig{
+				Bucket: &config.BucketConfig{Prefix: "data/"},
+				Actions: &config.ActionsConfig{
+					GET: &config.GetActionConfig{
+						Config: &config.GetActionConfigConfig{UserIsolation: true},
+					},
+				},
+			},
+			user: &models.BasicAuthUser{Username: "bob"},
+			want: "data/bob/",
+		},
+		{
+			name: "should not include username for admin",
+			targetCfg: &config.TargetConfig{
+				Bucket: &config.BucketConfig{Prefix: "data/"},
+				Actions: &config.ActionsConfig{
+					GET: &config.GetActionConfig{
+						Config: &config.GetActionConfigConfig{
+							UserIsolation:       true,
+							UserIsolationAdmins: []string{"admin"},
+						},
+					},
+				},
+			},
 			user: &models.BasicAuthUser{Username: "admin"},
-			s3Entries: []*s3client.ListElementOutput{
-				{Key: "/alice/file1.txt", Name: "file1.txt", Type: s3client.FileType, LastModified: now, Size: 100},
-				{Key: "/bob/file2.txt", Name: "file2.txt", Type: s3client.FileType, LastModified: now, Size: 200},
-			},
-			bucketRootPrefixKey: "/",
-			adminUsers:          []string{"admin"},
-			want: []*s3client.ListElementOutput{
-				{Key: "/alice/file1.txt", Name: "file1.txt", Type: s3client.FileType, LastModified: now, Size: 100},
-				{Key: "/bob/file2.txt", Name: "file2.txt", Type: s3client.FileType, LastModified: now, Size: 200},
-			},
+			want: "data/",
 		},
 		{
-			name:                "should return empty when no entries match user prefix",
-			user:                &models.BasicAuthUser{Username: "charlie"},
-			s3Entries:           []*s3client.ListElementOutput{{Key: "/alice/file.txt"}, {Key: "/bob/file.txt"}},
-			bucketRootPrefixKey: "/",
-			adminUsers:          nil,
-			want:                []*s3client.ListElementOutput{},
-		},
-		{
-			name:                "should handle empty entries list",
-			user:                &models.BasicAuthUser{Username: "alice"},
-			s3Entries:           []*s3client.ListElementOutput{},
-			bucketRootPrefixKey: "/",
-			adminUsers:          nil,
-			want:                []*s3client.ListElementOutput{},
-		},
-		{
-			name: "should work with bucket root prefix",
-			user: &models.BasicAuthUser{Username: "alice"},
-			s3Entries: []*s3client.ListElementOutput{
-				{Key: "data/alice/file.txt", Name: "file.txt", Type: s3client.FileType},
-				{Key: "data/bob/file.txt", Name: "file.txt", Type: s3client.FileType},
+			name: "should return bucket prefix when user missing and isolation enabled",
+			targetCfg: &config.TargetConfig{
+				Bucket: &config.BucketConfig{Prefix: "data/"},
+				Actions: &config.ActionsConfig{
+					GET: &config.GetActionConfig{
+						Config: &config.GetActionConfigConfig{UserIsolation: true},
+					},
+				},
 			},
-			bucketRootPrefixKey: "data/",
-			adminUsers:          nil,
-			want: []*s3client.ListElementOutput{
-				{Key: "data/alice/file.txt", Name: "file.txt", Type: s3client.FileType},
-			},
-		},
-		{
-			name: "should not match partial username prefix",
-			user: &models.BasicAuthUser{Username: "ali"},
-			s3Entries: []*s3client.ListElementOutput{
-				{Key: "/alice/file.txt", Name: "file.txt", Type: s3client.FileType},
-			},
-			bucketRootPrefixKey: "/",
-			adminUsers:          nil,
-			want:                []*s3client.ListElementOutput{},
-		},
-		{
-			name: "should include folder entries for user",
-			user: &models.BasicAuthUser{Username: "alice"},
-			s3Entries: []*s3client.ListElementOutput{
-				{Key: "/alice/subfolder/", Name: "subfolder", Type: s3client.FolderType},
-				{Key: "/bob/subfolder/", Name: "subfolder", Type: s3client.FolderType},
-			},
-			bucketRootPrefixKey: "/",
-			adminUsers:          nil,
-			want: []*s3client.ListElementOutput{
-				{Key: "/alice/subfolder/", Name: "subfolder", Type: s3client.FolderType},
-			},
+			user: nil,
+			want: "data/",
 		},
 	}
 	for _, tt := range tests {
@@ -413,12 +418,16 @@ func Test_filterS3EntriesByUser(t *testing.T) {
 				ctx = models.SetAuthenticatedUserInContext(ctx, tt.user)
 			}
 
-			got := filterS3EntriesByUser(ctx, tt.s3Entries, tt.bucketRootPrefixKey, tt.adminUsers)
+			bri := &bucketReqImpl{targetCfg: tt.targetCfg}
+			got := bri.displayPrefix(ctx)
 			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
+// Test_requestContext_Delete_UserIsolation verifies DELETE keys are rewritten
+// transparently so users can only delete files under their own folder, and
+// admins can delete anything.
 func Test_requestContext_Delete_UserIsolation(t *testing.T) {
 	type responseHandlerDeleteMockResult struct {
 		input *responsehandlermodels.DeleteInput
@@ -448,61 +457,36 @@ func Test_requestContext_Delete_UserIsolation(t *testing.T) {
 		requestPath string
 	}
 	tests := []struct {
-		name                                            string
-		fields                                          fields
-		args                                            args
-		user                                            models.GenericUser
-		s3clManagerClientForTargetMockInput             string
-		responseHandlerDeleteMockResultTimes            responseHandlerDeleteMockResult
-		responseHandlerInternalServerErrorMockResult    responseHandlerErrorsMockResult
-		responseHandlerForbiddenErrorMockResult         responseHandlerErrorsMockResult
-		s3ClientDeleteObjectMockResult                  s3ClientDeleteObjectMockResult
-		webhookManagerManageDeleteHooksMockResult       webhookManagerManageDeleteHooksMockResult
+		name                                         string
+		fields                                       fields
+		args                                         args
+		user                                         models.GenericUser
+		s3clManagerClientForTargetMockInput          string
+		responseHandlerDeleteMockResultTimes         responseHandlerDeleteMockResult
+		responseHandlerInternalServerErrorMockResult responseHandlerErrorsMockResult
+		responseHandlerForbiddenErrorMockResult      responseHandlerErrorsMockResult
+		s3ClientDeleteObjectMockResult               s3ClientDeleteObjectMockResult
+		webhookManagerManageDeleteHooksMockResult    webhookManagerManageDeleteHooksMockResult
 	}{
 		{
-			name: "should block delete to another user's file when isolation is enabled",
+			name: "alice should delete only under her own folder via injected key",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
 					Name:   "bucket",
-					Bucket: &config.BucketConfig{Prefix: "/"},
+					Bucket: &config.BucketConfig{Prefix: "data/"},
 					Actions: &config.ActionsConfig{
 						GET: &config.GetActionConfig{
-							Config: &config.GetActionConfigConfig{
-								UserIsolation: true,
-							},
+							Config: &config.GetActionConfigConfig{UserIsolation: true},
 						},
 					},
 				},
 				mountPath: "/mount",
 			},
-			args: args{requestPath: "/bob/file.txt"},
-			user: &models.BasicAuthUser{Username: "alice"},
-			responseHandlerForbiddenErrorMockResult: responseHandlerErrorsMockResult{
-				input2: errUserIsolationForbidden,
-				times:  1,
-			},
-		},
-		{
-			name: "should allow delete to own file when isolation is enabled",
-			fields: fields{
-				targetCfg: &config.TargetConfig{
-					Name:   "bucket",
-					Bucket: &config.BucketConfig{Prefix: "/"},
-					Actions: &config.ActionsConfig{
-						GET: &config.GetActionConfig{
-							Config: &config.GetActionConfigConfig{
-								UserIsolation: true,
-							},
-						},
-					},
-				},
-				mountPath: "/mount",
-			},
-			args:                               args{requestPath: "/alice/file.txt"},
-			user:                               &models.BasicAuthUser{Username: "alice"},
+			args:                                args{requestPath: "/file.txt"},
+			user:                                &models.BasicAuthUser{Username: "alice"},
 			s3clManagerClientForTargetMockInput: "bucket",
 			s3ClientDeleteObjectMockResult: s3ClientDeleteObjectMockResult{
-				input2: "/alice/file.txt",
+				input2: "data/alice/file.txt",
 				res: &s3client.ResultInfo{
 					Bucket:     "bucket",
 					Key:        "key",
@@ -513,7 +497,7 @@ func Test_requestContext_Delete_UserIsolation(t *testing.T) {
 			},
 			webhookManagerManageDeleteHooksMockResult: webhookManagerManageDeleteHooksMockResult{
 				input2: "bucket",
-				input3: "/alice/file.txt",
+				input3: "/file.txt",
 				input4: &webhook.S3Metadata{
 					Bucket:     "bucket",
 					Key:        "key",
@@ -523,16 +507,59 @@ func Test_requestContext_Delete_UserIsolation(t *testing.T) {
 				times: 1,
 			},
 			responseHandlerDeleteMockResultTimes: responseHandlerDeleteMockResult{
-				input: &responsehandlermodels.DeleteInput{Key: "/alice/file.txt"},
+				input: &responsehandlermodels.DeleteInput{Key: "data/alice/file.txt"},
 				times: 1,
 			},
 		},
 		{
-			name: "should allow admin to delete another user's file",
+			name: "bob requesting /charlie/file.txt stays confined to bob's folder",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
 					Name:   "bucket",
-					Bucket: &config.BucketConfig{Prefix: "/"},
+					Bucket: &config.BucketConfig{Prefix: "data/"},
+					Actions: &config.ActionsConfig{
+						GET: &config.GetActionConfig{
+							Config: &config.GetActionConfigConfig{UserIsolation: true},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args:                                args{requestPath: "/charlie/file.txt"},
+			user:                                &models.BasicAuthUser{Username: "bob"},
+			s3clManagerClientForTargetMockInput: "bucket",
+			s3ClientDeleteObjectMockResult: s3ClientDeleteObjectMockResult{
+				input2: "data/bob/charlie/file.txt",
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManageDeleteHooksMockResult: webhookManagerManageDeleteHooksMockResult{
+				input2: "bucket",
+				input3: "/charlie/file.txt",
+				input4: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			responseHandlerDeleteMockResultTimes: responseHandlerDeleteMockResult{
+				input: &responsehandlermodels.DeleteInput{Key: "data/bob/charlie/file.txt"},
+				times: 1,
+			},
+		},
+		{
+			name: "admin should delete in bob's folder using the bob-prefixed path",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Name:   "bucket",
+					Bucket: &config.BucketConfig{Prefix: "data/"},
 					Actions: &config.ActionsConfig{
 						GET: &config.GetActionConfig{
 							Config: &config.GetActionConfigConfig{
@@ -544,11 +571,11 @@ func Test_requestContext_Delete_UserIsolation(t *testing.T) {
 				},
 				mountPath: "/mount",
 			},
-			args:                               args{requestPath: "/bob/file.txt"},
-			user:                               &models.BasicAuthUser{Username: "admin"},
+			args:                                args{requestPath: "/bob/file.txt"},
+			user:                                &models.BasicAuthUser{Username: "admin"},
 			s3clManagerClientForTargetMockInput: "bucket",
 			s3ClientDeleteObjectMockResult: s3ClientDeleteObjectMockResult{
-				input2: "/bob/file.txt",
+				input2: "data/bob/file.txt",
 				res: &s3client.ResultInfo{
 					Bucket:     "bucket",
 					Key:        "key",
@@ -569,32 +596,44 @@ func Test_requestContext_Delete_UserIsolation(t *testing.T) {
 				times: 1,
 			},
 			responseHandlerDeleteMockResultTimes: responseHandlerDeleteMockResult{
-				input: &responsehandlermodels.DeleteInput{Key: "/bob/file.txt"},
+				input: &responsehandlermodels.DeleteInput{Key: "data/bob/file.txt"},
 				times: 1,
+			},
+		},
+		{
+			name: "should forbid delete when isolation is on and no user is set",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Name:   "bucket",
+					Bucket: &config.BucketConfig{Prefix: "data/"},
+					Actions: &config.ActionsConfig{
+						GET: &config.GetActionConfig{
+							Config: &config.GetActionConfigConfig{UserIsolation: true},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args: args{requestPath: "/file.txt"},
+			user: nil,
+			responseHandlerForbiddenErrorMockResult: responseHandlerErrorsMockResult{
+				input2: errUserIsolationForbidden,
+				times:  1,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create go mock controller
 			ctrl := gomock.NewController(t)
 
-			// Create mocks
 			resHandlerMock := responsehandlermocks.NewMockResponseHandler(ctrl)
 			webhookManagerMock := wmocks.NewMockManager(ctrl)
 			s3ClientMock := s3clientmocks.NewMockClient(ctrl)
 			s3clManagerMock := s3clientmocks.NewMockManager(ctrl)
 
-			// Create context
 			ctx := context.TODO()
-
-			// Add response handler to context
 			ctx = responsehandler.SetResponseHandlerInContext(ctx, resHandlerMock)
-
-			// Add logger to context
 			ctx = log.SetLoggerInContext(ctx, log.NewLogger())
-
-			// Add user to context
 			if tt.user != nil {
 				ctx = models.SetAuthenticatedUserInContext(ctx, tt.user)
 			}
@@ -612,10 +651,7 @@ func Test_requestContext_Delete_UserIsolation(t *testing.T) {
 
 			s3ClientMock.EXPECT().
 				DeleteObject(ctx, tt.s3ClientDeleteObjectMockResult.input2).
-				Return(
-					tt.s3ClientDeleteObjectMockResult.res,
-					tt.s3ClientDeleteObjectMockResult.err,
-				).
+				Return(tt.s3ClientDeleteObjectMockResult.res, tt.s3ClientDeleteObjectMockResult.err).
 				Times(tt.s3ClientDeleteObjectMockResult.times)
 
 			s3clManagerMock.EXPECT().
@@ -643,6 +679,8 @@ func Test_requestContext_Delete_UserIsolation(t *testing.T) {
 	}
 }
 
+// Test_requestContext_Put_UserIsolation verifies PUT uploads go to the
+// injected user folder transparently and that admins keep bucket-wide access.
 func Test_requestContext_Put_UserIsolation(t *testing.T) {
 	type responseHandlerPutMockResult struct {
 		input *responsehandlermodels.PutInput
@@ -673,10 +711,10 @@ func Test_requestContext_Put_UserIsolation(t *testing.T) {
 		inp *PutInput
 	}
 	tests := []struct {
-		name                                        string
-		fields                                      fields
-		args                                        args
-		user                                        models.GenericUser
+		name                                         string
+		fields                                       fields
+		args                                         args
+		user                                         models.GenericUser
 		responseHandlerInternalServerErrorMockResult responseHandlerErrorsMockResult
 		responseHandlerForbiddenErrorMockResult      responseHandlerErrorsMockResult
 		responseHandlerPutMockResultTimes            responseHandlerPutMockResult
@@ -685,16 +723,14 @@ func Test_requestContext_Put_UserIsolation(t *testing.T) {
 		webhookManagerManagePutHooksMockResult       webhookManagerManagePutHooksMockResult
 	}{
 		{
-			name: "should block put to another user's folder when isolation is enabled",
+			name: "alice PUT at root should be stored under data/alice/",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
 					Name:   "target",
-					Bucket: &config.BucketConfig{Prefix: "/"},
+					Bucket: &config.BucketConfig{Prefix: "data/"},
 					Actions: &config.ActionsConfig{
 						GET: &config.GetActionConfig{
-							Config: &config.GetActionConfigConfig{
-								UserIsolation: true,
-							},
+							Config: &config.GetActionConfigConfig{UserIsolation: true},
 						},
 					},
 				},
@@ -702,27 +738,121 @@ func Test_requestContext_Put_UserIsolation(t *testing.T) {
 			},
 			args: args{
 				inp: &PutInput{
-					RequestPath: "/bob",
+					RequestPath: "/",
 					Filename:    "file.txt",
 					ContentType: "text/plain",
 				},
 			},
-			user: &models.BasicAuthUser{Username: "alice"},
-			responseHandlerForbiddenErrorMockResult: responseHandlerErrorsMockResult{
-				input2: errUserIsolationForbidden,
-				times:  1,
+			user:                                &models.BasicAuthUser{Username: "alice"},
+			s3clManagerClientForTargetMockInput: "target",
+			s3ClientPutObjectMockResult: s3ClientPutObjectMockResult{
+				input2: &s3client.PutInput{
+					Key:         "data/alice/file.txt",
+					ContentType: "text/plain",
+				},
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManagePutHooksMockResult: webhookManagerManagePutHooksMockResult{
+				input2: "target",
+				input3: "/",
+				input4: &webhook.PutInputMetadata{
+					Filename:    "file.txt",
+					ContentType: "text/plain",
+				},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
+				input: &responsehandlermodels.PutInput{
+					Key:         "data/alice/file.txt",
+					Filename:    "file.txt",
+					ContentType: "text/plain",
+				},
+				times: 1,
 			},
 		},
 		{
-			name: "should allow put to own folder when isolation is enabled",
+			name: "bob PUT with sub-path /charlie should land under data/bob/charlie/",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
 					Name:   "target",
-					Bucket: &config.BucketConfig{Prefix: "/"},
+					Bucket: &config.BucketConfig{Prefix: "data/"},
+					Actions: &config.ActionsConfig{
+						GET: &config.GetActionConfig{
+							Config: &config.GetActionConfigConfig{UserIsolation: true},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args: args{
+				inp: &PutInput{
+					RequestPath: "/charlie",
+					Filename:    "file.txt",
+					ContentType: "text/plain",
+				},
+			},
+			user:                                &models.BasicAuthUser{Username: "bob"},
+			s3clManagerClientForTargetMockInput: "target",
+			s3ClientPutObjectMockResult: s3ClientPutObjectMockResult{
+				input2: &s3client.PutInput{
+					Key:         "data/bob/charlie/file.txt",
+					ContentType: "text/plain",
+				},
+				res: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManagePutHooksMockResult: webhookManagerManagePutHooksMockResult{
+				input2: "target",
+				input3: "/charlie",
+				input4: &webhook.PutInputMetadata{
+					Filename:    "file.txt",
+					ContentType: "text/plain",
+				},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
+				input: &responsehandlermodels.PutInput{
+					Key:         "data/bob/charlie/file.txt",
+					Filename:    "file.txt",
+					ContentType: "text/plain",
+				},
+				times: 1,
+			},
+		},
+		{
+			name: "admin PUT under /alice should hit data/alice/ unchanged",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Name:   "target",
+					Bucket: &config.BucketConfig{Prefix: "data/"},
 					Actions: &config.ActionsConfig{
 						GET: &config.GetActionConfig{
 							Config: &config.GetActionConfigConfig{
-								UserIsolation: true,
+								UserIsolation:       true,
+								UserIsolationAdmins: []string{"admin"},
 							},
 						},
 					},
@@ -736,11 +866,11 @@ func Test_requestContext_Put_UserIsolation(t *testing.T) {
 					ContentType: "text/plain",
 				},
 			},
-			user:                               &models.BasicAuthUser{Username: "alice"},
+			user:                                &models.BasicAuthUser{Username: "admin"},
 			s3clManagerClientForTargetMockInput: "target",
 			s3ClientPutObjectMockResult: s3ClientPutObjectMockResult{
 				input2: &s3client.PutInput{
-					Key:         "/alice/file.txt",
+					Key:         "data/alice/file.txt",
 					ContentType: "text/plain",
 				},
 				res: &s3client.ResultInfo{
@@ -768,35 +898,53 @@ func Test_requestContext_Put_UserIsolation(t *testing.T) {
 			},
 			responseHandlerPutMockResultTimes: responseHandlerPutMockResult{
 				input: &responsehandlermodels.PutInput{
-					Key:         "/alice/file.txt",
+					Key:         "data/alice/file.txt",
 					Filename:    "file.txt",
 					ContentType: "text/plain",
 				},
 				times: 1,
 			},
 		},
+		{
+			name: "should forbid PUT when isolation is on and no user is set",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Name:   "target",
+					Bucket: &config.BucketConfig{Prefix: "data/"},
+					Actions: &config.ActionsConfig{
+						GET: &config.GetActionConfig{
+							Config: &config.GetActionConfigConfig{UserIsolation: true},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args: args{
+				inp: &PutInput{
+					RequestPath: "/",
+					Filename:    "file.txt",
+					ContentType: "text/plain",
+				},
+			},
+			user: nil,
+			responseHandlerForbiddenErrorMockResult: responseHandlerErrorsMockResult{
+				input2: errUserIsolationForbidden,
+				times:  1,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create go mock controller
 			ctrl := gomock.NewController(t)
 
-			// Create mocks
 			resHandlerMock := responsehandlermocks.NewMockResponseHandler(ctrl)
 			s3ClientMock := s3clientmocks.NewMockClient(ctrl)
 			s3clManagerMock := s3clientmocks.NewMockManager(ctrl)
 			webhookManagerMock := wmocks.NewMockManager(ctrl)
 
-			// Create context
 			ctx := context.TODO()
-
-			// Add response handler to context
 			ctx = responsehandler.SetResponseHandlerInContext(ctx, resHandlerMock)
-
-			// Add logger to context
 			ctx = log.SetLoggerInContext(ctx, log.NewLogger())
-
-			// Add user to context
 			if tt.user != nil {
 				ctx = models.SetAuthenticatedUserInContext(ctx, tt.user)
 			}
@@ -818,10 +966,7 @@ func Test_requestContext_Put_UserIsolation(t *testing.T) {
 				AnyTimes()
 			s3ClientMock.EXPECT().
 				PutObject(ctx, tt.s3ClientPutObjectMockResult.input2).
-				Return(
-					tt.s3ClientPutObjectMockResult.res,
-					tt.s3ClientPutObjectMockResult.err,
-				).
+				Return(tt.s3ClientPutObjectMockResult.res, tt.s3ClientPutObjectMockResult.err).
 				Times(tt.s3ClientPutObjectMockResult.times)
 
 			s3clManagerMock.EXPECT().
@@ -837,9 +982,7 @@ func Test_requestContext_Put_UserIsolation(t *testing.T) {
 					tt.webhookManagerManagePutHooksMockResult.input4,
 					tt.webhookManagerManagePutHooksMockResult.input5,
 				).
-				Times(
-					tt.webhookManagerManagePutHooksMockResult.times,
-				)
+				Times(tt.webhookManagerManagePutHooksMockResult.times)
 
 			rctx := &bucketReqImpl{
 				s3ClientManager: s3clManagerMock,
@@ -852,6 +995,9 @@ func Test_requestContext_Put_UserIsolation(t *testing.T) {
 	}
 }
 
+// Test_requestContext_Get_UserIsolation covers GET listings and direct-file
+// GETs under user isolation: non-admin users list their own folder with
+// username-free Paths; admins keep bucket-wide access; missing user yields 403.
 func Test_requestContext_Get_UserIsolation(t *testing.T) {
 	fakeDate := time.Date(1990, time.December, 25, 1, 1, 1, 1, time.UTC)
 
@@ -885,10 +1031,10 @@ func Test_requestContext_Get_UserIsolation(t *testing.T) {
 		input *GetInput
 	}
 	tests := []struct {
-		name                                        string
-		fields                                      fields
-		args                                        args
-		user                                        models.GenericUser
+		name                                         string
+		fields                                       fields
+		args                                         args
+		user                                         models.GenericUser
 		responseHandlerInternalServerErrorMockResult responseHandlerErrorsMockResult
 		responseHandlerForbiddenErrorMockResult      responseHandlerErrorsMockResult
 		responseHandlerFoldersFilesListMockResult    responseHandlerFoldersFilesListMockResult
@@ -897,32 +1043,194 @@ func Test_requestContext_Get_UserIsolation(t *testing.T) {
 		webhookManagerManageGetHooksMockResult       webhookManagerManageGetHooksMockResult
 	}{
 		{
-			name: "should filter directory listing to show only user's entries",
+			name: "alice listing / should list data/alice/ and strip username from Path",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
-					Name: "target",
-					Bucket: &config.BucketConfig{
-						Name:   "bucket1",
-						Prefix: "/",
-					},
-					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
-						Config: &config.GetActionConfigConfig{
-							UserIsolation: true,
+					Name:   "target",
+					Bucket: &config.BucketConfig{Name: "bucket1", Prefix: "data/"},
+					Actions: &config.ActionsConfig{
+						GET: &config.GetActionConfig{
+							Config: &config.GetActionConfigConfig{UserIsolation: true},
 						},
-					}},
+					},
 				},
 				mountPath: "/mount",
 			},
-			args: args{
-				input: &GetInput{RequestPath: "/"},
-			},
-			user:                               &models.BasicAuthUser{Username: "alice"},
+			args:                                args{input: &GetInput{RequestPath: "/"}},
+			user:                                &models.BasicAuthUser{Username: "alice"},
 			s3clManagerClientForTargetMockInput: "target",
 			s3ClientListFilesAndDirectoriesMockResult: s3ClientListFilesAndDirectoriesMockResult{
-				input2: "/",
+				input2: "data/alice/",
 				res: []*s3client.ListElementOutput{
-					{Name: "alice", Type: s3client.FolderType, Key: "/alice/", LastModified: fakeDate},
-					{Name: "bob", Type: s3client.FolderType, Key: "/bob/", LastModified: fakeDate},
+					{Name: "file1.txt", Type: s3client.FileType, Key: "data/alice/file1.txt", LastModified: fakeDate},
+					{Name: "sub", Type: s3client.FolderType, Key: "data/alice/sub/", LastModified: fakeDate},
+				},
+				res2: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManageGetHooksMockResult: webhookManagerManageGetHooksMockResult{
+				input2: "target",
+				input3: "/",
+				input4: &webhook.GetInputMetadata{},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			responseHandlerFoldersFilesListMockResult: responseHandlerFoldersFilesListMockResult{
+				input2: []*responsehandlermodels.Entry{
+					{
+						Type:         s3client.FileType,
+						LastModified: fakeDate,
+						Name:         "file1.txt",
+						Key:          "data/alice/file1.txt",
+						Path:         "/mount/file1.txt",
+					},
+					{
+						Type:         s3client.FolderType,
+						LastModified: fakeDate,
+						Name:         "sub",
+						Key:          "data/alice/sub/",
+						Path:         "/mount/sub/",
+					},
+				},
+				times: 1,
+			},
+		},
+		{
+			name: "bob listing /sub/ should list data/bob/sub/ and show Path without username",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Name:   "target",
+					Bucket: &config.BucketConfig{Name: "bucket1", Prefix: "data/"},
+					Actions: &config.ActionsConfig{
+						GET: &config.GetActionConfig{
+							Config: &config.GetActionConfigConfig{UserIsolation: true},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args:                                args{input: &GetInput{RequestPath: "/sub/"}},
+			user:                                &models.BasicAuthUser{Username: "bob"},
+			s3clManagerClientForTargetMockInput: "target",
+			s3ClientListFilesAndDirectoriesMockResult: s3ClientListFilesAndDirectoriesMockResult{
+				input2: "data/bob/sub/",
+				res: []*s3client.ListElementOutput{
+					{Name: "deep.txt", Type: s3client.FileType, Key: "data/bob/sub/deep.txt", LastModified: fakeDate},
+				},
+				res2: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManageGetHooksMockResult: webhookManagerManageGetHooksMockResult{
+				input2: "target",
+				input3: "/sub/",
+				input4: &webhook.GetInputMetadata{},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			responseHandlerFoldersFilesListMockResult: responseHandlerFoldersFilesListMockResult{
+				input2: []*responsehandlermodels.Entry{
+					{
+						Type:         s3client.FileType,
+						LastModified: fakeDate,
+						Name:         "deep.txt",
+						Key:          "data/bob/sub/deep.txt",
+						Path:         "/mount/sub/deep.txt",
+					},
+				},
+				times: 1,
+			},
+		},
+		{
+			name: "charlie listing /alice/ stays confined to data/charlie/alice/ (empty, no leak)",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Name:   "target",
+					Bucket: &config.BucketConfig{Name: "bucket1", Prefix: "data/"},
+					Actions: &config.ActionsConfig{
+						GET: &config.GetActionConfig{
+							Config: &config.GetActionConfigConfig{UserIsolation: true},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args:                                args{input: &GetInput{RequestPath: "/alice/"}},
+			user:                                &models.BasicAuthUser{Username: "charlie"},
+			s3clManagerClientForTargetMockInput: "target",
+			s3ClientListFilesAndDirectoriesMockResult: s3ClientListFilesAndDirectoriesMockResult{
+				input2: "data/charlie/alice/",
+				res:    []*s3client.ListElementOutput{},
+				res2: &s3client.ResultInfo{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			webhookManagerManageGetHooksMockResult: webhookManagerManageGetHooksMockResult{
+				input2: "target",
+				input3: "/alice/",
+				input4: &webhook.GetInputMetadata{},
+				input5: &webhook.S3Metadata{
+					Bucket:     "bucket",
+					Key:        "key",
+					Region:     "region",
+					S3Endpoint: "s3endpoint",
+				},
+				times: 1,
+			},
+			responseHandlerFoldersFilesListMockResult: responseHandlerFoldersFilesListMockResult{
+				input2: []*responsehandlermodels.Entry{},
+				times:  1,
+			},
+		},
+		{
+			name: "admin listing / sees raw bucket and Path stripped of bucket prefix only",
+			fields: fields{
+				targetCfg: &config.TargetConfig{
+					Name:   "target",
+					Bucket: &config.BucketConfig{Name: "bucket1", Prefix: "data/"},
+					Actions: &config.ActionsConfig{
+						GET: &config.GetActionConfig{
+							Config: &config.GetActionConfigConfig{
+								UserIsolation:       true,
+								UserIsolationAdmins: []string{"admin"},
+							},
+						},
+					},
+				},
+				mountPath: "/mount",
+			},
+			args:                                args{input: &GetInput{RequestPath: "/"}},
+			user:                                &models.BasicAuthUser{Username: "admin"},
+			s3clManagerClientForTargetMockInput: "target",
+			s3ClientListFilesAndDirectoriesMockResult: s3ClientListFilesAndDirectoriesMockResult{
+				input2: "data/",
+				res: []*s3client.ListElementOutput{
+					{Name: "alice", Type: s3client.FolderType, Key: "data/alice/", LastModified: fakeDate},
+					{Name: "bob", Type: s3client.FolderType, Key: "data/bob/", LastModified: fakeDate},
+					{Name: "charlie", Type: s3client.FolderType, Key: "data/charlie/", LastModified: fakeDate},
 				},
 				res2: &s3client.ResultInfo{
 					Bucket:     "bucket",
@@ -950,111 +1258,43 @@ func Test_requestContext_Get_UserIsolation(t *testing.T) {
 						Type:         s3client.FolderType,
 						LastModified: fakeDate,
 						Name:         "alice",
-						Key:          "/alice/",
+						Key:          "data/alice/",
 						Path:         "/mount/alice/",
 					},
+					{
+						Type:         s3client.FolderType,
+						LastModified: fakeDate,
+						Name:         "bob",
+						Key:          "data/bob/",
+						Path:         "/mount/bob/",
+					},
+					{
+						Type:         s3client.FolderType,
+						LastModified: fakeDate,
+						Name:         "charlie",
+						Key:          "data/charlie/",
+						Path:         "/mount/charlie/",
+					},
 				},
 				times: 1,
 			},
 		},
 		{
-			name: "should block subdirectory listing to another user's folder",
+			name: "should forbid GET when isolation is on and no user is set",
 			fields: fields{
 				targetCfg: &config.TargetConfig{
-					Name: "target",
-					Bucket: &config.BucketConfig{
-						Name:   "bucket1",
-						Prefix: "/",
-					},
-					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
-						Config: &config.GetActionConfigConfig{
-							UserIsolation: true,
+					Name:   "target",
+					Bucket: &config.BucketConfig{Name: "bucket1", Prefix: "data/"},
+					Actions: &config.ActionsConfig{
+						GET: &config.GetActionConfig{
+							Config: &config.GetActionConfigConfig{UserIsolation: true},
 						},
-					}},
+					},
 				},
 				mountPath: "/mount",
 			},
-			args: args{
-				input: &GetInput{RequestPath: "/bob/subdir/"},
-			},
-			user: &models.BasicAuthUser{Username: "alice"},
-			responseHandlerForbiddenErrorMockResult: responseHandlerErrorsMockResult{
-				input2: errUserIsolationForbidden,
-				times:  1,
-			},
-		},
-		{
-			name: "should allow admin to list another user's subdirectory",
-			fields: fields{
-				targetCfg: &config.TargetConfig{
-					Name: "target",
-					Bucket: &config.BucketConfig{
-						Name:   "bucket1",
-						Prefix: "/",
-					},
-					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
-						Config: &config.GetActionConfigConfig{
-							UserIsolation:       true,
-							UserIsolationAdmins: []string{"admin"},
-						},
-					}},
-				},
-				mountPath: "/mount",
-			},
-			args: args{
-				input: &GetInput{RequestPath: "/bob/subdir/"},
-			},
-			user:                               &models.BasicAuthUser{Username: "admin"},
-			s3clManagerClientForTargetMockInput: "target",
-			s3ClientListFilesAndDirectoriesMockResult: s3ClientListFilesAndDirectoriesMockResult{
-				input2: "/bob/subdir/",
-				res:    []*s3client.ListElementOutput{},
-				res2: &s3client.ResultInfo{
-					Bucket:     "bucket",
-					Key:        "key",
-					Region:     "region",
-					S3Endpoint: "s3endpoint",
-				},
-				times: 1,
-			},
-			webhookManagerManageGetHooksMockResult: webhookManagerManageGetHooksMockResult{
-				input2: "target",
-				input3: "/bob/subdir/",
-				input4: &webhook.GetInputMetadata{},
-				input5: &webhook.S3Metadata{
-					Bucket:     "bucket",
-					Key:        "key",
-					Region:     "region",
-					S3Endpoint: "s3endpoint",
-				},
-				times: 1,
-			},
-			responseHandlerFoldersFilesListMockResult: responseHandlerFoldersFilesListMockResult{
-				input2: []*responsehandlermodels.Entry{},
-				times:  1,
-			},
-		},
-		{
-			name: "should block direct file access to another user's file",
-			fields: fields{
-				targetCfg: &config.TargetConfig{
-					Name: "target",
-					Bucket: &config.BucketConfig{
-						Name:   "bucket1",
-						Prefix: "/",
-					},
-					Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
-						Config: &config.GetActionConfigConfig{
-							UserIsolation: true,
-						},
-					}},
-				},
-				mountPath: "/mount",
-			},
-			args: args{
-				input: &GetInput{RequestPath: "/bob/secret.txt"},
-			},
-			user: &models.BasicAuthUser{Username: "alice"},
+			args: args{input: &GetInput{RequestPath: "/secret.txt"}},
+			user: nil,
 			responseHandlerForbiddenErrorMockResult: responseHandlerErrorsMockResult{
 				input2: errUserIsolationForbidden,
 				times:  1,
@@ -1063,25 +1303,16 @@ func Test_requestContext_Get_UserIsolation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create go mock controller
 			ctrl := gomock.NewController(t)
 
-			// Create mocks
 			resHandlerMock := responsehandlermocks.NewMockResponseHandler(ctrl)
 			s3ClientMock := s3clientmocks.NewMockClient(ctrl)
 			s3clManagerMock := s3clientmocks.NewMockManager(ctrl)
 			webhookManagerMock := wmocks.NewMockManager(ctrl)
 
-			// Create context
 			ctx := context.TODO()
-
-			// Add response handler to context
 			ctx = responsehandler.SetResponseHandlerInContext(ctx, resHandlerMock)
-
-			// Add logger to context
 			ctx = log.SetLoggerInContext(ctx, log.NewLogger())
-
-			// Add user to context
 			if tt.user != nil {
 				ctx = models.SetAuthenticatedUserInContext(ctx, tt.user)
 			}
@@ -1092,31 +1323,16 @@ func Test_requestContext_Get_UserIsolation(t *testing.T) {
 			resHandlerMock.EXPECT().
 				ForbiddenError(gomock.Any(), tt.responseHandlerForbiddenErrorMockResult.input2).
 				Times(tt.responseHandlerForbiddenErrorMockResult.times)
-			resHandlerMock.EXPECT().
-				NotFoundError(gomock.Any()).
-				Times(0)
-			resHandlerMock.EXPECT().
-				StreamFile(gomock.Any(), gomock.Any()).
-				Return(nil).
-				AnyTimes()
-			resHandlerMock.EXPECT().
-				NotModified().
-				Times(0)
-			resHandlerMock.EXPECT().
-				PreconditionFailed().
-				Times(0)
+			resHandlerMock.EXPECT().NotFoundError(gomock.Any()).Times(0)
+			resHandlerMock.EXPECT().StreamFile(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			resHandlerMock.EXPECT().NotModified().Times(0)
+			resHandlerMock.EXPECT().PreconditionFailed().Times(0)
 			resHandlerMock.EXPECT().
 				FoldersFilesList(gomock.Any(), tt.responseHandlerFoldersFilesListMockResult.input2).
 				Times(tt.responseHandlerFoldersFilesListMockResult.times)
 
-			s3ClientMock.EXPECT().
-				HeadObject(ctx, gomock.Any()).
-				Return(nil, nil, nil).
-				AnyTimes()
-			s3ClientMock.EXPECT().
-				GetObject(ctx, gomock.Any()).
-				Return(nil, nil, nil).
-				AnyTimes()
+			s3ClientMock.EXPECT().HeadObject(ctx, gomock.Any()).Return(nil, nil, nil).AnyTimes()
+			s3ClientMock.EXPECT().GetObject(ctx, gomock.Any()).Return(nil, nil, nil).AnyTimes()
 			s3ClientMock.EXPECT().
 				ListFilesAndDirectories(ctx, tt.s3ClientListFilesAndDirectoriesMockResult.input2).
 				Return(
@@ -1139,9 +1355,7 @@ func Test_requestContext_Get_UserIsolation(t *testing.T) {
 					tt.webhookManagerManageGetHooksMockResult.input4,
 					tt.webhookManagerManageGetHooksMockResult.input5,
 				).
-				Times(
-					tt.webhookManagerManageGetHooksMockResult.times,
-				)
+				Times(tt.webhookManagerManageGetHooksMockResult.times)
 
 			rctx := &bucketReqImpl{
 				s3ClientManager: s3clManagerMock,

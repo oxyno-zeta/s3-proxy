@@ -31,15 +31,55 @@ type bucketReqImpl struct {
 	generalHelpers  []string
 }
 
-// generateStartKey will generate start key used in all functions.
-func (bri *bucketReqImpl) generateStartKey(requestPath string) string {
-	bucketRootPrefixKey := bri.targetCfg.Bucket.GetRootPrefix()
-	// Key must begin by bucket prefix
-	key := bucketRootPrefixKey
-	// Trim first / if exists
-	key += strings.TrimPrefix(requestPath, "/")
+// userIsolationSegment returns the "<username>/" segment to splice between the
+// bucket prefix and the request path when userIsolation is enabled for the
+// current request. It returns an empty string for admins or when isolation is
+// off, and errUserIsolationForbidden if isolation is enabled but no user is
+// authenticated.
+func (bri *bucketReqImpl) userIsolationSegment(ctx context.Context) (string, error) {
+	if !bri.isUserIsolationEnabled() {
+		return "", nil
+	}
 
-	return key
+	user := models.GetAuthenticatedUserFromContext(ctx)
+	if user == nil {
+		return "", errUserIsolationForbidden
+	}
+
+	username := user.GetUsername()
+	if bri.isUserIsolationAdmin(username) {
+		return "", nil
+	}
+
+	return username + "/", nil
+}
+
+// generateStartKey will generate start key used in all functions.
+// When userIsolation is enabled, the authenticated username is transparently
+// injected after the bucket prefix (e.g., data/ + alice/ + file.txt) so that
+// non-admin users are structurally confined to their own folder.
+func (bri *bucketReqImpl) generateStartKey(ctx context.Context, requestPath string) (string, error) {
+	seg, err := bri.userIsolationSegment(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	// Trim first / if exists
+	return bri.targetCfg.Bucket.GetRootPrefix() + seg + strings.TrimPrefix(requestPath, "/"), nil
+}
+
+// displayPrefix returns the S3 key prefix that must be stripped from entry
+// keys before they are shown to the caller (listings, navigation links). For
+// non-admin isolated users it includes the injected username so the UI never
+// exposes the isolation folder.
+func (bri *bucketReqImpl) displayPrefix(ctx context.Context) string {
+	// Errors only happen when isolation is on and no user is present — callers
+	// of displayPrefix always run after generateStartKey has already rejected
+	// that case, so we ignore the error here and fall back to the bucket
+	// prefix.
+	seg, _ := bri.userIsolationSegment(ctx)
+
+	return bri.targetCfg.Bucket.GetRootPrefix() + seg
 }
 
 func (bri *bucketReqImpl) manageKeyRewrite(ctx context.Context, key string) (string, error) {
@@ -156,9 +196,21 @@ func (bri *bucketReqImpl) internalGetOrHead(ctx context.Context, input *GetInput
 	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
 	// Generate start key
-	key := bri.generateStartKey(input.RequestPath)
+	key, err := bri.generateStartKey(ctx, input.RequestPath)
+	// Check error
+	if err != nil {
+		if errors.Is(err, errUserIsolationForbidden) {
+			resHan.ForbiddenError(bri.LoadFileContent, err)
+
+			return
+		}
+
+		resHan.InternalServerError(bri.LoadFileContent, err)
+
+		return
+	}
 	// Manage key rewrite
-	key, err := bri.manageKeyRewrite(ctx, key)
+	key, err = bri.manageKeyRewrite(ctx, key)
 	// Check error
 	if err != nil {
 		resHan.InternalServerError(bri.LoadFileContent, err)
@@ -168,27 +220,8 @@ func (bri *bucketReqImpl) internalGetOrHead(ctx context.Context, input *GetInput
 
 	// Check that the path ends with a / for a directory listing or the main path special case (empty path)
 	if strings.HasSuffix(input.RequestPath, "/") || input.RequestPath == "" {
-		// For directory listings, the filtering happens inside manageGetFolder
-		// but we still block access to other users' subdirectory listings
-		if bri.isUserIsolationEnabled() && input.RequestPath != "" && input.RequestPath != "/" {
-			if !bri.checkUserIsolationAccess(ctx, key) {
-				resHan.ForbiddenError(bri.LoadFileContent, errUserIsolationForbidden)
-
-				return
-			}
-		}
-
 		bri.manageGetFolder(ctx, key, input, isHeadReq)
 		// Stop
-		return
-	}
-
-	// Get or Head object case
-
-	// Enforce user isolation — block direct file access to other users' files
-	if !bri.checkUserIsolationAccess(ctx, key) {
-		resHan.ForbiddenError(bri.LoadFileContent, errUserIsolationForbidden)
-
 		return
 	}
 
@@ -388,14 +421,10 @@ func (bri *bucketReqImpl) manageGetFolder(ctx context.Context, key string, input
 		)
 	}
 
-	// Filter entries by authenticated user if userIsolation is enabled
-	if bri.isUserIsolationEnabled() {
-		s3Entries = filterS3EntriesByUser(ctx, s3Entries, bri.targetCfg.Bucket.GetRootPrefix(), bri.targetCfg.Actions.GET.Config.UserIsolationAdmins)
-	}
-
-	// Transform entries in entry with path objects
-	bucketRootPrefixKey := bri.targetCfg.Bucket.GetRootPrefix()
-	entries := transformS3Entries(s3Entries, bri, bucketRootPrefixKey)
+	// Transform entries in entry with path objects.
+	// Use displayPrefix so the user-facing Path hides the injected username
+	// for non-admin users under userIsolation.
+	entries := transformS3Entries(s3Entries, bri, bri.displayPrefix(ctx))
 
 	// Answer
 	resHan.FoldersFilesList(
@@ -410,7 +439,19 @@ func (bri *bucketReqImpl) Put(ctx context.Context, inp *PutInput) {
 	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
 	// Generate start key
-	key := bri.generateStartKey(inp.RequestPath)
+	key, err := bri.generateStartKey(ctx, inp.RequestPath)
+	// Check error
+	if err != nil {
+		if errors.Is(err, errUserIsolationForbidden) {
+			resHan.ForbiddenError(bri.LoadFileContent, err)
+
+			return
+		}
+
+		resHan.InternalServerError(bri.LoadFileContent, err)
+
+		return
+	}
 	// Add / at the end if not present
 	if !strings.HasSuffix(key, "/") {
 		key += "/"
@@ -418,18 +459,11 @@ func (bri *bucketReqImpl) Put(ctx context.Context, inp *PutInput) {
 	// Add filename at the end of key
 	key += inp.Filename
 	// Manage key rewrite
-	key, err := bri.manageKeyRewrite(ctx, key)
+	key, err = bri.manageKeyRewrite(ctx, key)
 	// Check error
 	if err != nil {
 		resHan.InternalServerError(bri.LoadFileContent, err)
 		// Stop
-		return
-	}
-
-	// Enforce user isolation — block uploads to other users' folders
-	if !bri.checkUserIsolationAccess(ctx, key) {
-		resHan.ForbiddenError(bri.LoadFileContent, errUserIsolationForbidden)
-
 		return
 	}
 
@@ -678,20 +712,25 @@ func (bri *bucketReqImpl) Delete(ctx context.Context, requestPath string) {
 	resHan := responsehandler.GetResponseHandlerFromContext(ctx)
 
 	// Generate start key
-	key := bri.generateStartKey(requestPath)
+	key, err := bri.generateStartKey(ctx, requestPath)
+	// Check error
+	if err != nil {
+		if errors.Is(err, errUserIsolationForbidden) {
+			resHan.ForbiddenError(bri.LoadFileContent, err)
+
+			return
+		}
+
+		resHan.InternalServerError(bri.LoadFileContent, err)
+
+		return
+	}
 	// Manage key rewrite
-	key, err := bri.manageKeyRewrite(ctx, key)
+	key, err = bri.manageKeyRewrite(ctx, key)
 	// Check error
 	if err != nil {
 		resHan.InternalServerError(bri.LoadFileContent, err)
 		// Stop
-		return
-	}
-
-	// Enforce user isolation — block deletes in other users' folders
-	if !bri.checkUserIsolationAccess(ctx, key) {
-		resHan.ForbiddenError(bri.LoadFileContent, errUserIsolationForbidden)
-
 		return
 	}
 
@@ -750,72 +789,6 @@ func (bri *bucketReqImpl) isUserIsolationAdmin(username string) bool {
 	}
 
 	return slices.Contains(bri.targetCfg.Actions.GET.Config.UserIsolationAdmins, username)
-}
-
-// checkUserIsolationAccess enforces per-user folder isolation.
-// Returns true if the request is allowed, false if it should be blocked.
-// When userIsolation is enabled, users can only access S3 keys under their own username prefix.
-func (bri *bucketReqImpl) checkUserIsolationAccess(ctx context.Context, s3Key string) bool {
-	if !bri.isUserIsolationEnabled() {
-		return true
-	}
-
-	user := models.GetAuthenticatedUserFromContext(ctx)
-	if user == nil {
-		return false
-	}
-
-	username := user.GetUsername()
-
-	// Admins bypass isolation
-	if bri.isUserIsolationAdmin(username) {
-		return true
-	}
-
-	// Build the allowed prefix for this user
-	bucketRootPrefixKey := bri.targetCfg.Bucket.GetRootPrefix()
-	userPrefix := bucketRootPrefixKey + username + "/"
-
-	// Allow access only if the S3 key is under the user's prefix
-	return strings.HasPrefix(s3Key, userPrefix)
-}
-
-// filterS3EntriesByUser filters S3 directory listing entries so that
-// each authenticated user only sees entries matching their username prefix.
-// Admin users listed in adminUsers bypass the filter and see all entries.
-func filterS3EntriesByUser(
-	ctx context.Context,
-	s3Entries []*s3client.ListElementOutput,
-	bucketRootPrefixKey string,
-	adminUsers []string,
-) []*s3client.ListElementOutput {
-	// Get authenticated user from context
-	user := models.GetAuthenticatedUserFromContext(ctx)
-	if user == nil {
-		// No authenticated user — return empty to be safe
-		return make([]*s3client.ListElementOutput, 0)
-	}
-
-	username := user.GetUsername()
-
-	// Check if user is an admin — admins see everything
-	if slices.Contains(adminUsers, username) {
-		return s3Entries
-	}
-
-	// Build the prefix this user is allowed to see
-	userPrefix := bucketRootPrefixKey + username + "/"
-
-	filtered := make([]*s3client.ListElementOutput, 0)
-
-	for _, item := range s3Entries {
-		// Allow entries that belong to this user's prefix
-		if strings.HasPrefix(item.Key, userPrefix) {
-			filtered = append(filtered, item)
-		}
-	}
-
-	return filtered
 }
 
 func transformS3Entries(

@@ -385,10 +385,14 @@ targets:
     #       # Disable listing
     #       # Note: This will return an empty list or you should change the folder list template (in general or in this target)
     #       disableListing: false
-    #       # Enable per-user folder isolation
-    #       # When enabled, each user can only access files under their own username-prefixed folder
+    #       # Enable per-user folder isolation.
+    #       # When enabled, the proxy transparently prefixes every S3 key with the
+    #       # authenticated <username>/ (e.g. a request for /file.txt is routed to
+    #       # <bucketPrefix>/<username>/file.txt). The username never appears in
+    #       # URLs or in listing links. Applies to GET, HEAD, PUT and DELETE.
     #       userIsolation: false
-    #       # List of admin users that bypass user isolation
+    #       # List of usernames that bypass the injection and access the whole
+    #       # bucket prefix as if isolation were off.
     #       userIsolationAdmins: []
     #       # Webhooks
     #       webhooks: []
