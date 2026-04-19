@@ -40,6 +40,7 @@ I've created this project because I couldn't find any other that allow to proxy 
 - CORS support
 - Prometheus metrics
 - S3 Key Rewrite possibility
+- Per-user folder isolation with transparent username injection
 
 See more information on these features in the "Feature Guide".
 

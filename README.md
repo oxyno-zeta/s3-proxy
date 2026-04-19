@@ -31,6 +31,7 @@
 - Prometheus metrics
 - Allow to publish files on S3 bucket
 - Allow to delete files on S3 bucket
+- Per-user folder isolation with transparent username injection
 
 And many others.
 
