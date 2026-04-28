@@ -62,6 +62,32 @@ func validateBusinessConfig(out *Config) error {
 		if !oneMustBeEnabled {
 			return errors.Errorf("at least one action must be enabled in target %s", key)
 		}
+
+		// When userIsolation is enabled, the target must have at least one
+		// resource that authenticates the caller (basic/OIDC/header).
+		// Otherwise no user identity ever reaches the bucket layer and every
+		// request would 403 — failing fast at config load is friendlier than
+		// shipping a target that can never serve traffic.
+		if target.Actions.GET != nil && target.Actions.GET.Config != nil &&
+			target.Actions.GET.Config.UserIsolation {
+			hasAuthResource := false
+
+			for _, res := range target.Resources {
+				if res.Basic != nil || res.OIDC != nil || res.Header != nil {
+					hasAuthResource = true
+
+					break
+				}
+			}
+
+			if !hasAuthResource {
+				return errors.Errorf(
+					"target %s has userIsolation enabled but no resource with authentication "+
+						"(basic, oidc or header) is declared; isolation requires an authenticated user",
+					key,
+				)
+			}
+		}
 	}
 
 	// Validate list targets object
