@@ -31,9 +31,11 @@ type bucketReqImpl struct {
 	generalHelpers  []string
 }
 
-// userIsolationSegment returns the "<username>/" segment to splice between the
-// bucket prefix and the request path when userIsolation is enabled for the
-// current request. It returns an empty string for admins or when isolation is
+// userIsolationSegment returns the "<identifier>/" segment to splice between
+// the bucket prefix and the request path when userIsolation is enabled for the
+// current request. The identifier comes from GenericUser.GetIdentifier() so
+// OIDC users without a preferred_username claim still get a usable folder
+// (their email). It returns an empty string for admins or when isolation is
 // off, and errUserIsolationForbidden if isolation is enabled but no user is
 // authenticated.
 func (bri *bucketReqImpl) userIsolationSegment(ctx context.Context) (string, error) {
@@ -46,18 +48,19 @@ func (bri *bucketReqImpl) userIsolationSegment(ctx context.Context) (string, err
 		return "", errUserIsolationForbidden
 	}
 
-	username := user.GetUsername()
-	if bri.isUserIsolationAdmin(username) {
+	identifier := user.GetIdentifier()
+	if bri.isUserIsolationAdmin(identifier) {
 		return "", nil
 	}
 
-	return username + "/", nil
+	return identifier + "/", nil
 }
 
 // generateStartKey will generate start key used in all functions.
-// When userIsolation is enabled, the authenticated username is transparently
-// injected after the bucket prefix (e.g., data/ + alice/ + file.txt) so that
-// non-admin users are structurally confined to their own folder.
+// When userIsolation is enabled, the authenticated user identifier is
+// transparently injected after the bucket prefix (e.g., data/ + alice/ +
+// file.txt) so that non-admin users are structurally confined to their own
+// folder.
 func (bri *bucketReqImpl) generateStartKey(ctx context.Context, requestPath string) (string, error) {
 	seg, err := bri.userIsolationSegment(ctx)
 	if err != nil {
@@ -70,16 +73,17 @@ func (bri *bucketReqImpl) generateStartKey(ctx context.Context, requestPath stri
 
 // displayPrefix returns the S3 key prefix that must be stripped from entry
 // keys before they are shown to the caller (listings, navigation links). For
-// non-admin isolated users it includes the injected username so the UI never
-// exposes the isolation folder.
-func (bri *bucketReqImpl) displayPrefix(ctx context.Context) string {
-	// Errors only happen when isolation is on and no user is present — callers
-	// of displayPrefix always run after generateStartKey has already rejected
-	// that case, so we ignore the error here and fall back to the bucket
-	// prefix.
-	seg, _ := bri.userIsolationSegment(ctx)
+// non-admin isolated users it includes the injected identifier so the UI
+// never exposes the isolation folder. The error is propagated rather than
+// swallowed so a future change in call ordering can't silently leak isolated
+// keys into a listing response.
+func (bri *bucketReqImpl) displayPrefix(ctx context.Context) (string, error) {
+	seg, err := bri.userIsolationSegment(ctx)
+	if err != nil {
+		return "", err
+	}
 
-	return bri.targetCfg.Bucket.GetRootPrefix() + seg
+	return bri.targetCfg.Bucket.GetRootPrefix() + seg, nil
 }
 
 func (bri *bucketReqImpl) manageKeyRewrite(ctx context.Context, key string) (string, error) {
@@ -422,9 +426,22 @@ func (bri *bucketReqImpl) manageGetFolder(ctx context.Context, key string, input
 	}
 
 	// Transform entries in entry with path objects.
-	// Use displayPrefix so the user-facing Path hides the injected username
+	// Use displayPrefix so the user-facing Path hides the injected identifier
 	// for non-admin users under userIsolation.
-	entries := transformS3Entries(s3Entries, bri, bri.displayPrefix(ctx))
+	displayPfx, err := bri.displayPrefix(ctx)
+	if err != nil {
+		if errors.Is(err, errUserIsolationForbidden) {
+			resHan.ForbiddenError(bri.LoadFileContent, err)
+
+			return
+		}
+
+		resHan.InternalServerError(bri.LoadFileContent, err)
+
+		return
+	}
+
+	entries := transformS3Entries(s3Entries, bri, displayPfx)
 
 	// Answer
 	resHan.FoldersFilesList(
@@ -781,14 +798,16 @@ func (bri *bucketReqImpl) isUserIsolationEnabled() bool {
 		bri.targetCfg.Actions.GET.Config.UserIsolation
 }
 
-// isUserIsolationAdmin checks if the given username is in the admin list.
-func (bri *bucketReqImpl) isUserIsolationAdmin(username string) bool {
+// isUserIsolationAdmin checks if the given user identifier is in the admin
+// list. The identifier matches what GenericUser.GetIdentifier() returns
+// (username for basic auth, preferred_username or email for OIDC, etc.).
+func (bri *bucketReqImpl) isUserIsolationAdmin(identifier string) bool {
 	if bri.targetCfg.Actions == nil || bri.targetCfg.Actions.GET == nil ||
 		bri.targetCfg.Actions.GET.Config == nil {
 		return false
 	}
 
-	return slices.Contains(bri.targetCfg.Actions.GET.Config.UserIsolationAdmins, username)
+	return slices.Contains(bri.targetCfg.Actions.GET.Config.UserIsolationAdmins, identifier)
 }
 
 func transformS3Entries(

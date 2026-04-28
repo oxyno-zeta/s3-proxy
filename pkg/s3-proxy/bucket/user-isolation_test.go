@@ -7,6 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
@@ -17,14 +21,12 @@ import (
 	s3clientmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client/mocks"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
 	wmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook/mocks"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 )
 
 func Test_isUserIsolationEnabled(t *testing.T) {
 	tests := []struct {
-		name      string
 		targetCfg *config.TargetConfig
+		name      string
 		want      bool
 	}{
 		{
@@ -169,8 +171,91 @@ func Test_isUserIsolationAdmin(t *testing.T) {
 	}
 }
 
+// Test_generateStartKey_UserIsolation_AcrossUserTypes verifies that the
+// folder segment used for isolation is taken from GenericUser.GetIdentifier()
+// across user types — basic auth, OIDC (with and without preferred_username),
+// and header auth — so OIDC users without a preferred_username claim still
+// land in their own (email-keyed) folder instead of an empty one.
+func Test_generateStartKey_UserIsolation_AcrossUserTypes(t *testing.T) {
+	baseCfg := func(admins ...string) *config.TargetConfig {
+		return &config.TargetConfig{
+			Bucket: &config.BucketConfig{Prefix: "data/"},
+			Actions: &config.ActionsConfig{
+				GET: &config.GetActionConfig{
+					Config: &config.GetActionConfigConfig{
+						UserIsolation:       true,
+						UserIsolationAdmins: admins,
+					},
+				},
+			},
+		}
+	}
+
+	tests := []struct {
+		name        string
+		targetCfg   *config.TargetConfig
+		user        models.GenericUser
+		requestPath string
+		wantKey     string
+	}{
+		{
+			name:        "OIDC user with preferred_username uses it as identifier",
+			targetCfg:   baseCfg(),
+			user:        &models.OIDCUser{PreferredUsername: "alice", Email: "alice@example.com"},
+			requestPath: "/file.txt",
+			wantKey:     "data/alice/file.txt",
+		},
+		{
+			name:        "OIDC user without preferred_username falls back to email",
+			targetCfg:   baseCfg(),
+			user:        &models.OIDCUser{PreferredUsername: "", Email: "bob@example.com"},
+			requestPath: "/file.txt",
+			wantKey:     "data/bob@example.com/file.txt",
+		},
+		{
+			name:        "OIDC admin matched by preferred_username is unprefixed",
+			targetCfg:   baseCfg("admin"),
+			user:        &models.OIDCUser{PreferredUsername: "admin", Email: "admin@example.com"},
+			requestPath: "/alice/file.txt",
+			wantKey:     "data/alice/file.txt",
+		},
+		{
+			name:        "OIDC admin matched by email (no preferred_username) is unprefixed",
+			targetCfg:   baseCfg("ops@example.com"),
+			user:        &models.OIDCUser{PreferredUsername: "", Email: "ops@example.com"},
+			requestPath: "/alice/file.txt",
+			wantKey:     "data/alice/file.txt",
+		},
+		{
+			name:        "header user with username uses it as identifier",
+			targetCfg:   baseCfg(),
+			user:        &models.HeaderUser{Username: "carol", Email: "carol@example.com"},
+			requestPath: "/file.txt",
+			wantKey:     "data/carol/file.txt",
+		},
+		{
+			name:        "header user without username falls back to email",
+			targetCfg:   baseCfg(),
+			user:        &models.HeaderUser{Username: "", Email: "dan@example.com"},
+			requestPath: "/file.txt",
+			wantKey:     "data/dan@example.com/file.txt",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := models.SetAuthenticatedUserInContext(context.TODO(), tt.user)
+
+			bri := &bucketReqImpl{targetCfg: tt.targetCfg}
+			got, err := bri.generateStartKey(ctx, tt.requestPath)
+
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantKey, got)
+		})
+	}
+}
+
 // Test_generateStartKey_UserIsolation verifies that S3 keys are built correctly
-// under the transparent-injection model: the authenticated username is inserted
+// under the transparent-injection model: the authenticated identifier is inserted
 // after the bucket root prefix for non-admin users; admins get the bare key.
 func Test_generateStartKey_UserIsolation(t *testing.T) {
 	tests := []struct {
@@ -323,19 +408,19 @@ func Test_generateStartKey_UserIsolation(t *testing.T) {
 			got, err := bri.generateStartKey(ctx, tt.requestPath)
 
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.wantKey, got)
 		})
 	}
 }
 
 // Test_displayPrefix_UserIsolation verifies that the prefix used to build
-// user-facing paths hides the injected username for non-admin users while
+// user-facing paths hides the injected identifier for non-admin users while
 // admins see only the bucket prefix stripped.
 func Test_displayPrefix_UserIsolation(t *testing.T) {
 	tests := []struct {
@@ -343,6 +428,7 @@ func Test_displayPrefix_UserIsolation(t *testing.T) {
 		targetCfg *config.TargetConfig
 		user      models.GenericUser
 		want      string
+		wantErr   bool
 	}{
 		{
 			name: "should return bucket prefix when isolation disabled",
@@ -356,7 +442,7 @@ func Test_displayPrefix_UserIsolation(t *testing.T) {
 			want: "data/",
 		},
 		{
-			name: "should include username for non-admin alice",
+			name: "should include identifier for non-admin alice",
 			targetCfg: &config.TargetConfig{
 				Bucket: &config.BucketConfig{Prefix: "data/"},
 				Actions: &config.ActionsConfig{
@@ -369,7 +455,7 @@ func Test_displayPrefix_UserIsolation(t *testing.T) {
 			want: "data/alice/",
 		},
 		{
-			name: "should include username for non-admin bob",
+			name: "should include identifier for non-admin bob",
 			targetCfg: &config.TargetConfig{
 				Bucket: &config.BucketConfig{Prefix: "data/"},
 				Actions: &config.ActionsConfig{
@@ -382,7 +468,7 @@ func Test_displayPrefix_UserIsolation(t *testing.T) {
 			want: "data/bob/",
 		},
 		{
-			name: "should not include username for admin",
+			name: "should not include identifier for admin",
 			targetCfg: &config.TargetConfig{
 				Bucket: &config.BucketConfig{Prefix: "data/"},
 				Actions: &config.ActionsConfig{
@@ -398,7 +484,7 @@ func Test_displayPrefix_UserIsolation(t *testing.T) {
 			want: "data/",
 		},
 		{
-			name: "should return bucket prefix when user missing and isolation enabled",
+			name: "should error when user missing and isolation enabled",
 			targetCfg: &config.TargetConfig{
 				Bucket: &config.BucketConfig{Prefix: "data/"},
 				Actions: &config.ActionsConfig{
@@ -407,8 +493,8 @@ func Test_displayPrefix_UserIsolation(t *testing.T) {
 					},
 				},
 			},
-			user: nil,
-			want: "data/",
+			user:    nil,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -419,7 +505,15 @@ func Test_displayPrefix_UserIsolation(t *testing.T) {
 			}
 
 			bri := &bucketReqImpl{targetCfg: tt.targetCfg}
-			got := bri.displayPrefix(ctx)
+			got, err := bri.displayPrefix(ctx)
+
+			if tt.wantErr {
+				require.Error(t, err)
+
+				return
+			}
+
+			require.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -433,29 +527,35 @@ func Test_requestContext_Delete_UserIsolation(t *testing.T) {
 		input *responsehandlermodels.DeleteInput
 		times int
 	}
+
 	type responseHandlerErrorsMockResult struct {
 		input2 error
 		times  int
 	}
+
 	type s3ClientDeleteObjectMockResult struct {
-		input2 string
-		res    *s3client.ResultInfo
 		err    error
+		res    *s3client.ResultInfo
+		input2 string
 		times  int
 	}
+
 	type webhookManagerManageDeleteHooksMockResult struct {
+		input4 *webhook.S3Metadata
 		input2 string
 		input3 string
-		input4 *webhook.S3Metadata
 		times  int
 	}
+
 	type fields struct {
 		targetCfg *config.TargetConfig
 		mountPath string
 	}
+
 	type args struct {
 		requestPath string
 	}
+
 	tests := []struct {
 		name                                         string
 		fields                                       fields
@@ -633,6 +733,7 @@ func Test_requestContext_Delete_UserIsolation(t *testing.T) {
 
 			ctx := context.TODO()
 			ctx = responsehandler.SetResponseHandlerInContext(ctx, resHandlerMock)
+
 			ctx = log.SetLoggerInContext(ctx, log.NewLogger())
 			if tt.user != nil {
 				ctx = models.SetAuthenticatedUserInContext(ctx, tt.user)
@@ -686,30 +787,36 @@ func Test_requestContext_Put_UserIsolation(t *testing.T) {
 		input *responsehandlermodels.PutInput
 		times int
 	}
+
 	type responseHandlerErrorsMockResult struct {
 		input2 error
 		times  int
 	}
+
 	type s3ClientPutObjectMockResult struct {
 		input2 *s3client.PutInput
 		res    *s3client.ResultInfo
 		err    error
 		times  int
 	}
+
 	type webhookManagerManagePutHooksMockResult struct {
-		input2 string
-		input3 string
 		input4 *webhook.PutInputMetadata
 		input5 *webhook.S3Metadata
+		input2 string
+		input3 string
 		times  int
 	}
+
 	type fields struct {
 		targetCfg *config.TargetConfig
 		mountPath string
 	}
+
 	type args struct {
 		inp *PutInput
 	}
+
 	tests := []struct {
 		name                                         string
 		fields                                       fields
@@ -944,6 +1051,7 @@ func Test_requestContext_Put_UserIsolation(t *testing.T) {
 
 			ctx := context.TODO()
 			ctx = responsehandler.SetResponseHandlerInContext(ctx, resHandlerMock)
+
 			ctx = log.SetLoggerInContext(ctx, log.NewLogger())
 			if tt.user != nil {
 				ctx = models.SetAuthenticatedUserInContext(ctx, tt.user)
@@ -1005,42 +1113,48 @@ func Test_requestContext_Get_UserIsolation(t *testing.T) {
 		input2 error
 		times  int
 	}
+
 	type responseHandlerFoldersFilesListMockResult struct {
 		input2 []*responsehandlermodels.Entry
 		times  int
 	}
+
 	type s3ClientListFilesAndDirectoriesMockResult struct {
+		err    error
+		res2   *s3client.ResultInfo
 		input2 string
 		res    []*s3client.ListElementOutput
-		res2   *s3client.ResultInfo
-		err    error
 		times  int
 	}
+
 	type webhookManagerManageGetHooksMockResult struct {
-		input2 string
-		input3 string
 		input4 *webhook.GetInputMetadata
 		input5 *webhook.S3Metadata
+		input2 string
+		input3 string
 		times  int
 	}
+
 	type fields struct {
 		targetCfg *config.TargetConfig
 		mountPath string
 	}
+
 	type args struct {
 		input *GetInput
 	}
+
 	tests := []struct {
-		name                                         string
-		fields                                       fields
-		args                                         args
 		user                                         models.GenericUser
+		args                                         args
+		s3ClientListFilesAndDirectoriesMockResult    s3ClientListFilesAndDirectoriesMockResult
+		webhookManagerManageGetHooksMockResult       webhookManagerManageGetHooksMockResult
+		fields                                       fields
 		responseHandlerInternalServerErrorMockResult responseHandlerErrorsMockResult
 		responseHandlerForbiddenErrorMockResult      responseHandlerErrorsMockResult
-		responseHandlerFoldersFilesListMockResult    responseHandlerFoldersFilesListMockResult
-		s3ClientListFilesAndDirectoriesMockResult    s3ClientListFilesAndDirectoriesMockResult
+		name                                         string
 		s3clManagerClientForTargetMockInput          string
-		webhookManagerManageGetHooksMockResult       webhookManagerManageGetHooksMockResult
+		responseHandlerFoldersFilesListMockResult    responseHandlerFoldersFilesListMockResult
 	}{
 		{
 			name: "alice listing / should list data/alice/ and strip username from Path",
@@ -1312,6 +1426,7 @@ func Test_requestContext_Get_UserIsolation(t *testing.T) {
 
 			ctx := context.TODO()
 			ctx = responsehandler.SetResponseHandlerInContext(ctx, resHandlerMock)
+
 			ctx = log.SetLoggerInContext(ctx, log.NewLogger())
 			if tt.user != nil {
 				ctx = models.SetAuthenticatedUserInContext(ctx, tt.user)
