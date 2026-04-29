@@ -127,6 +127,61 @@ targets:
         enabled: true
 ```
 
+### OIDC configuration
+
+When the auth provider is OIDC, the identifier comes from the
+`preferred_username` claim if the IdP emits one, or falls back to
+the user's email address otherwise. List in `userIsolationAdmins`
+exactly the value the IdP sends — `preferred_username` for users
+who have one, or the email address for users who don't.
+
+```yaml
+authProviders:
+  oidc:
+    keycloak:
+      clientId: s3-proxy
+      issuerUrl: https://sso.example.com/auth/realms/internal
+      callbackPath: /auth/oidc/callback
+      # ...credentials...
+targets:
+  shared:
+    bucket:
+      name: my-bucket
+      prefix: internal/
+      # ...credentials...
+    mount:
+      path:
+        - /files/
+    resources:
+      - path: /files/*
+        methods: [GET, PUT, DELETE, HEAD]
+        provider: keycloak
+        oidc: {}
+    actions:
+      GET:
+        enabled: true
+        config:
+          userIsolation: true
+          userIsolationAdmins:
+            # Identifier semantics: this matches preferred_username
+            # if the IdP emits one, otherwise the email claim.
+            - storage-admin
+            - ops@example.com
+      PUT:
+        enabled: true
+      DELETE:
+        enabled: true
+```
+
+In this setup:
+
+- A user with `preferred_username: alice` lands in `internal/alice/`.
+- A user with no `preferred_username` claim and `email: bob@example.com`
+  lands in `internal/bob@example.com/`.
+- `storage-admin` (matched by `preferred_username`) and the user with
+  `email: ops@example.com` (matched when `preferred_username` is empty)
+  bypass isolation and see the full `internal/` prefix.
+
 ### Notes
 
 - Isolation requires an authenticated user. The target must declare

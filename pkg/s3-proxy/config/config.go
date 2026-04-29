@@ -2,6 +2,7 @@ package config
 
 import (
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -456,6 +457,44 @@ type GetActionConfigConfig struct {
 	DisableListing                           bool              `mapstructure:"disableListing"                           json:"disableListing"`
 	UserIsolation                            bool              `mapstructure:"userIsolation"                            json:"userIsolation"`
 	UserIsolationAdmins                      []string          `mapstructure:"userIsolationAdmins"                      json:"userIsolationAdmins"                      validate:"omitempty,dive"`
+	// userIsolationAdminsSet is a derived O(1) lookup set populated at
+	// config validation time. It is not part of the input schema and is
+	// safe for concurrent reads after validation completes.
+	userIsolationAdminsSet map[string]struct{} `json:"-"`
+}
+
+// IsUserIsolationAdmin returns true when identifier is in
+// UserIsolationAdmins. Uses the precomputed set when available
+// (after validation), otherwise falls back to a linear scan so the
+// behaviour is correct even if the config is constructed by hand
+// in tests that bypass validation.
+func (c *GetActionConfigConfig) IsUserIsolationAdmin(identifier string) bool {
+	if c == nil {
+		return false
+	}
+
+	if c.userIsolationAdminsSet != nil {
+		_, ok := c.userIsolationAdminsSet[identifier]
+
+		return ok
+	}
+
+	return slices.Contains(c.UserIsolationAdmins, identifier)
+}
+
+// indexUserIsolationAdmins populates the O(1) lookup set from
+// UserIsolationAdmins. Idempotent and safe to call repeatedly.
+func (c *GetActionConfigConfig) indexUserIsolationAdmins() {
+	if c == nil {
+		return
+	}
+
+	set := make(map[string]struct{}, len(c.UserIsolationAdmins))
+	for _, a := range c.UserIsolationAdmins {
+		set[a] = struct{}{}
+	}
+
+	c.userIsolationAdminsSet = set
 }
 
 // WebhookConfig Webhook configuration.

@@ -8,20 +8,17 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	awssession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/johannesboyne/gofakes3"
-	"github.com/johannesboyne/gofakes3/backend/s3mem"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	cmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config/mocks"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 )
 
 // setupIsolationFakeS3 seeds a gofakes3 instance with a bucket that contains
@@ -29,46 +26,23 @@ import (
 // plus one file in admin's folder. This lets us assert that every access —
 // including deep paths — is structurally confined by the proxy.
 func setupIsolationFakeS3(
+	t *testing.T,
 	accessKey, secretAccessKey, region, bucket string,
 ) (*s3.S3, *httptest.Server, error) {
-	backend := s3mem.New()
-	faker := gofakes3.New(backend)
-	ts := httptest.NewServer(faker.Server())
-
-	s3Config := &aws.Config{
-		Credentials:      credentials.NewStaticCredentials(accessKey, secretAccessKey, ""),
-		Endpoint:         aws.String(ts.URL),
-		Region:           aws.String(region),
-		DisableSSL:       aws.Bool(true),
-		S3ForcePathStyle: aws.Bool(true),
-	}
-	newSession := awssession.New(s3Config)
-
-	s3Client := s3.New(newSession)
-	_, err := s3Client.CreateBucket(&s3.CreateBucketInput{Bucket: aws.String(bucket)})
+	cli, ts, err := newIsolationFakeS3(accessKey, secretAccessKey, region, bucket)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	files := map[string]string{
-		"data/alice/secret.txt":   "alice-secret",
+	seedIsolationFakeS3(t, cli, bucket, map[string]string{
+		"data/alice/secret.txt":     "alice-secret",
 		"data/alice/sub/nested.txt": "alice-nested",
-		"data/bob/secret.txt":     "bob-secret",
-		"data/charlie/secret.txt": "charlie-secret",
-		"data/admin/notes.txt":    "admin-notes",
-	}
-	for k, v := range files {
-		_, err = s3Client.PutObject(&s3.PutObjectInput{
-			Body:   strings.NewReader(v),
-			Bucket: aws.String(bucket),
-			Key:    aws.String(k),
-		})
-		if err != nil {
-			return nil, nil, err
-		}
-	}
+		"data/bob/secret.txt":       "bob-secret",
+		"data/charlie/secret.txt":   "charlie-secret",
+		"data/admin/notes.txt":      "admin-notes",
+	})
 
-	return s3Client, ts, nil
+	return cli, ts, nil
 }
 
 // userIsolationConfig builds a Config with userIsolation enabled and the four
@@ -158,11 +132,11 @@ func buildIsolationRouter(t *testing.T, cfg *config.Config) func(method, url, us
 	logger.Configure("info", "human", "")
 
 	tsvc, err := tracing.New(cfgManagerMock, logger)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	s3Manager := s3client.NewManager(cfgManagerMock, metricsCtx)
 	err = s3Manager.Load()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	webhookManager := webhook.NewManager(cfgManagerMock, metricsCtx)
 
@@ -179,23 +153,29 @@ func buildIsolationRouter(t *testing.T, cfg *config.Config) func(method, url, us
 
 	return func(method, url, user, pass, body, contentType string) *httptest.ResponseRecorder {
 		w := httptest.NewRecorder()
+
 		var reqBody *strings.Reader
 		if body != "" {
 			reqBody = strings.NewReader(body)
 		}
+
 		var req *http.Request
 		if reqBody != nil {
 			req, err = http.NewRequest(method, url, reqBody)
 		} else {
 			req, err = http.NewRequest(method, url, http.NoBody)
 		}
+
 		assert.NoError(t, err)
+
 		if user != "" {
 			req.SetBasicAuth(user, pass)
 		}
+
 		if contentType != "" {
 			req.Header.Set("Content-Type", contentType)
 		}
+
 		router.ServeHTTP(w, req)
 
 		return w
@@ -213,17 +193,12 @@ func TestUserIsolation_CrossUser_AB_AC_BC(t *testing.T) {
 	region := "eu-central-1"
 	bucket := "test-bucket"
 
-	_, s3server, err := setupIsolationFakeS3(accessKey, secretAccessKey, region, bucket)
+	_, s3server, err := setupIsolationFakeS3(t, accessKey, secretAccessKey, region, bucket)
 	assert.NoError(t, err)
+
 	defer s3server.Close()
 
-	svrCfg := &config.ServerConfig{
-		Compress: &config.ServerCompressConfig{
-			Enabled: &config.DefaultServerCompressEnabled,
-			Level:   config.DefaultServerCompressLevel,
-			Types:   config.DefaultServerCompressTypes,
-		},
-	}
+	svrCfg := defaultIsolationServerConfig()
 	cfg := userIsolationConfig(s3server.URL, accessKey, secretAccessKey, region, bucket, svrCfg, &config.TracingConfig{})
 	do := buildIsolationRouter(t, cfg)
 
@@ -277,17 +252,12 @@ func TestUserIsolation_AdminSeesEverything(t *testing.T) {
 	region := "eu-central-1"
 	bucket := "test-bucket"
 
-	_, s3server, err := setupIsolationFakeS3(accessKey, secretAccessKey, region, bucket)
+	_, s3server, err := setupIsolationFakeS3(t, accessKey, secretAccessKey, region, bucket)
 	assert.NoError(t, err)
+
 	defer s3server.Close()
 
-	svrCfg := &config.ServerConfig{
-		Compress: &config.ServerCompressConfig{
-			Enabled: &config.DefaultServerCompressEnabled,
-			Level:   config.DefaultServerCompressLevel,
-			Types:   config.DefaultServerCompressTypes,
-		},
-	}
+	svrCfg := defaultIsolationServerConfig()
 	cfg := userIsolationConfig(s3server.URL, accessKey, secretAccessKey, region, bucket, svrCfg, &config.TracingConfig{})
 	do := buildIsolationRouter(t, cfg)
 
@@ -310,6 +280,7 @@ func TestUserIsolation_AdminSeesEverything(t *testing.T) {
 	// admin listing the root shows every user folder (JSON for deterministic parsing).
 	w := do("GET", "http://localhost/mount/", "admin", "pw-admin", "", "")
 	assert.Equal(t, 200, w.Code)
+
 	body := w.Body.String()
 	for _, u := range []string{"alice", "bob", "charlie", "admin"} {
 		assert.Containsf(t, body, u, "admin listing should include folder %s", u)
@@ -325,17 +296,12 @@ func TestUserIsolation_ListingHidesUsername(t *testing.T) {
 	region := "eu-central-1"
 	bucket := "test-bucket"
 
-	_, s3server, err := setupIsolationFakeS3(accessKey, secretAccessKey, region, bucket)
+	_, s3server, err := setupIsolationFakeS3(t, accessKey, secretAccessKey, region, bucket)
 	assert.NoError(t, err)
+
 	defer s3server.Close()
 
-	svrCfg := &config.ServerConfig{
-		Compress: &config.ServerCompressConfig{
-			Enabled: &config.DefaultServerCompressEnabled,
-			Level:   config.DefaultServerCompressLevel,
-			Types:   config.DefaultServerCompressTypes,
-		},
-	}
+	svrCfg := defaultIsolationServerConfig()
 	cfg := userIsolationConfig(s3server.URL, accessKey, secretAccessKey, region, bucket, svrCfg, &config.TracingConfig{})
 	do := buildIsolationRouter(t, cfg)
 
@@ -361,17 +327,12 @@ func TestUserIsolation_PutUnderOwnFolder(t *testing.T) {
 	region := "eu-central-1"
 	bucket := "test-bucket"
 
-	s3Client, s3server, err := setupIsolationFakeS3(accessKey, secretAccessKey, region, bucket)
+	s3Client, s3server, err := setupIsolationFakeS3(t, accessKey, secretAccessKey, region, bucket)
 	assert.NoError(t, err)
+
 	defer s3server.Close()
 
-	svrCfg := &config.ServerConfig{
-		Compress: &config.ServerCompressConfig{
-			Enabled: &config.DefaultServerCompressEnabled,
-			Level:   config.DefaultServerCompressLevel,
-			Types:   config.DefaultServerCompressTypes,
-		},
-	}
+	svrCfg := defaultIsolationServerConfig()
 	cfg := userIsolationConfig(s3server.URL, accessKey, secretAccessKey, region, bucket, svrCfg, &config.TracingConfig{})
 	do := buildIsolationRouter(t, cfg)
 
@@ -389,10 +350,11 @@ func TestUserIsolation_PutUnderOwnFolder(t *testing.T) {
 	_ = w
 
 	// Verify alice's namespace is untouched.
-	out, err := s3Client.GetObject(&s3.GetObjectInput{Bucket: aws.String(bucket), Key: aws.String("data/alice/upload.txt")})
+	out, err := s3Client.GetObject(&s3.GetObjectInput{Bucket: new(bucket), Key: new("data/alice/upload.txt")})
 	if err == nil {
 		// If the key exists, it must at least not contain bob's content.
 		defer out.Body.Close()
+
 		buf := make([]byte, 64)
 		n, _ := out.Body.Read(buf)
 		assert.NotContainsf(t, string(buf[:n]), "bob-wrote-this",
@@ -400,7 +362,7 @@ func TestUserIsolation_PutUnderOwnFolder(t *testing.T) {
 	}
 	// Verify (if the PUT succeeded) that the object landed under bob's folder.
 	if w.Code == http.StatusNoContent || w.Code == http.StatusOK {
-		out2, err2 := s3Client.GetObject(&s3.GetObjectInput{Bucket: aws.String(bucket), Key: aws.String("data/bob/alice/upload.txt")})
+		out2, err2 := s3Client.GetObject(&s3.GetObjectInput{Bucket: new(bucket), Key: new("data/bob/alice/upload.txt")})
 		if err2 == nil {
 			defer out2.Body.Close()
 		}
@@ -416,17 +378,12 @@ func TestUserIsolation_DeleteInOwnFolderOnly(t *testing.T) {
 	region := "eu-central-1"
 	bucket := "test-bucket"
 
-	s3Client, s3server, err := setupIsolationFakeS3(accessKey, secretAccessKey, region, bucket)
+	s3Client, s3server, err := setupIsolationFakeS3(t, accessKey, secretAccessKey, region, bucket)
 	assert.NoError(t, err)
+
 	defer s3server.Close()
 
-	svrCfg := &config.ServerConfig{
-		Compress: &config.ServerCompressConfig{
-			Enabled: &config.DefaultServerCompressEnabled,
-			Level:   config.DefaultServerCompressLevel,
-			Types:   config.DefaultServerCompressTypes,
-		},
-	}
+	svrCfg := defaultIsolationServerConfig()
 	cfg := userIsolationConfig(s3server.URL, accessKey, secretAccessKey, region, bucket, svrCfg, &config.TracingConfig{})
 	do := buildIsolationRouter(t, cfg)
 
@@ -439,8 +396,9 @@ func TestUserIsolation_DeleteInOwnFolderOnly(t *testing.T) {
 	// remains readable.
 	_ = w
 
-	out, err := s3Client.GetObject(&s3.GetObjectInput{Bucket: aws.String(bucket), Key: aws.String("data/bob/secret.txt")})
+	out, err := s3Client.GetObject(&s3.GetObjectInput{Bucket: new(bucket), Key: new("data/bob/secret.txt")})
 	assert.NoError(t, err, "bob's file must still exist after alice's DELETE attempt")
+
 	if err == nil {
 		defer out.Body.Close()
 	}
@@ -449,7 +407,7 @@ func TestUserIsolation_DeleteInOwnFolderOnly(t *testing.T) {
 	w = do("DELETE", "http://localhost/mount/secret.txt", "alice", "pw-alice", "", "")
 	assert.Contains(t, []int{200, 204}, w.Code, "alice should delete her own file; got %d", w.Code)
 
-	_, err = s3Client.HeadObject(&s3.HeadObjectInput{Bucket: aws.String(bucket), Key: aws.String("data/alice/secret.txt")})
+	_, err = s3Client.HeadObject(&s3.HeadObjectInput{Bucket: new(bucket), Key: new("data/alice/secret.txt")})
 	assert.Error(t, err, "data/alice/secret.txt must be gone after alice's DELETE")
 }
 
@@ -462,17 +420,12 @@ func TestUserIsolation_UnauthenticatedForbidden(t *testing.T) {
 	region := "eu-central-1"
 	bucket := "test-bucket"
 
-	_, s3server, err := setupIsolationFakeS3(accessKey, secretAccessKey, region, bucket)
+	_, s3server, err := setupIsolationFakeS3(t, accessKey, secretAccessKey, region, bucket)
 	assert.NoError(t, err)
+
 	defer s3server.Close()
 
-	svrCfg := &config.ServerConfig{
-		Compress: &config.ServerCompressConfig{
-			Enabled: &config.DefaultServerCompressEnabled,
-			Level:   config.DefaultServerCompressLevel,
-			Types:   config.DefaultServerCompressTypes,
-		},
-	}
+	svrCfg := defaultIsolationServerConfig()
 	// Config without any resource → no auth enforced, but isolation is on.
 	cfg := &config.Config{
 		Server:      svrCfg,
@@ -497,7 +450,7 @@ func TestUserIsolation_UnauthenticatedForbidden(t *testing.T) {
 				Actions: &config.ActionsConfig{
 					GET: &config.GetActionConfig{
 						Enabled: true,
-						Config: &config.GetActionConfigConfig{UserIsolation: true},
+						Config:  &config.GetActionConfigConfig{UserIsolation: true},
 					},
 				},
 			},

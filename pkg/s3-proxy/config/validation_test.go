@@ -1531,6 +1531,133 @@ func Test_validateSSL(t *testing.T) {
 	}
 }
 
+// Test_GetActionConfigConfig_IsUserIsolationAdmin covers the indexed-set fast
+// path, the linear-scan fallback (when validation has not run), the nil
+// receiver, and the empty-list cases. This is the per-request hot path so
+// every branch matters.
+func Test_GetActionConfigConfig_IsUserIsolationAdmin(t *testing.T) {
+	t.Run("nil receiver returns false", func(t *testing.T) {
+		var c *GetActionConfigConfig
+		if c.IsUserIsolationAdmin("anyone") {
+			t.Fatal("nil receiver must return false")
+		}
+	})
+
+	t.Run("empty admin list returns false", func(t *testing.T) {
+		c := &GetActionConfigConfig{}
+		if c.IsUserIsolationAdmin("admin") {
+			t.Fatal("empty admin list must return false")
+		}
+	})
+
+	t.Run("linear-scan fallback before indexing", func(t *testing.T) {
+		c := &GetActionConfigConfig{
+			UserIsolationAdmins: []string{"primary-admin", "secondary-admin"},
+		}
+		if !c.IsUserIsolationAdmin("primary-admin") {
+			t.Fatal("primary-admin must be recognized via linear scan")
+		}
+
+		if !c.IsUserIsolationAdmin("secondary-admin") {
+			t.Fatal("secondary-admin must be recognized via linear scan")
+		}
+
+		if c.IsUserIsolationAdmin("alice") {
+			t.Fatal("non-admin must not be recognized")
+		}
+	})
+
+	t.Run("indexed lookup after indexing", func(t *testing.T) {
+		c := &GetActionConfigConfig{
+			UserIsolationAdmins: []string{"primary-admin", "secondary-admin"},
+		}
+		c.indexUserIsolationAdmins()
+
+		if !c.IsUserIsolationAdmin("primary-admin") {
+			t.Fatal("primary-admin must be recognized via indexed lookup")
+		}
+
+		if !c.IsUserIsolationAdmin("secondary-admin") {
+			t.Fatal("secondary-admin must be recognized via indexed lookup")
+		}
+
+		if c.IsUserIsolationAdmin("alice") {
+			t.Fatal("non-admin must not be recognized")
+		}
+	})
+
+	t.Run("indexUserIsolationAdmins is idempotent", func(t *testing.T) {
+		c := &GetActionConfigConfig{
+			UserIsolationAdmins: []string{"a"},
+		}
+		c.indexUserIsolationAdmins()
+		c.indexUserIsolationAdmins()
+
+		if !c.IsUserIsolationAdmin("a") {
+			t.Fatal("repeated indexing must not lose entries")
+		}
+	})
+}
+
+// Test_validateUserIsolation_PopulatesAdminSet verifies that the
+// validation step both rejects misconfigurations AND indexes the admin
+// list as a side effect, so the request-time lookup is O(1) on the
+// validated config.
+func Test_validateUserIsolation_PopulatesAdminSet(t *testing.T) {
+	target := &TargetConfig{
+		Name:  "t1",
+		Mount: &MountConfig{Path: []string{"/m/"}},
+		Resources: []*Resource{
+			{
+				Path:     "/m/*",
+				Methods:  []string{"GET"},
+				Provider: "p1",
+				Basic:    &ResourceBasic{},
+			},
+		},
+		Actions: &ActionsConfig{
+			GET: &GetActionConfig{
+				Enabled: true,
+				Config: &GetActionConfigConfig{
+					UserIsolation:       true,
+					UserIsolationAdmins: []string{"primary-admin", "secondary-admin"},
+				},
+			},
+		},
+	}
+
+	if err := validateUserIsolation("t1", target); err != nil {
+		t.Fatalf("validateUserIsolation must accept a valid target: %v", err)
+	}
+
+	// After validation, both admins must be in the precomputed set.
+	cfg := target.Actions.GET.Config
+	if !cfg.IsUserIsolationAdmin("primary-admin") {
+		t.Fatal("primary-admin must be in the indexed set after validation")
+	}
+
+	if !cfg.IsUserIsolationAdmin("secondary-admin") {
+		t.Fatal("secondary-admin must be in the indexed set after validation")
+	}
+}
+
+// Test_validateUserIsolation_NoOpWhenDisabled ensures the validator
+// exits cleanly without indexing admins when userIsolation is off.
+func Test_validateUserIsolation_NoOpWhenDisabled(t *testing.T) {
+	target := &TargetConfig{
+		Actions: &ActionsConfig{
+			GET: &GetActionConfig{
+				Enabled: true,
+				Config:  &GetActionConfigConfig{},
+			},
+		},
+	}
+
+	if err := validateUserIsolation("t1", target); err != nil {
+		t.Fatalf("disabled userIsolation must validate cleanly: %v", err)
+	}
+}
+
 var (
 	// Test certificate, self-signed, for testhost.example.com.
 	testCertificate = `-----BEGIN CERTIFICATE-----
