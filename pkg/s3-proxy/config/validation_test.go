@@ -5,8 +5,6 @@ package config
 import (
 	"strings"
 	"testing"
-
-	"github.com/aws/aws-sdk-go/aws"
 )
 
 func Test_validatePath(t *testing.T) {
@@ -14,6 +12,7 @@ func Test_validatePath(t *testing.T) {
 		beginErrorMessage string
 		path              string
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -62,11 +61,12 @@ func Test_validateResource(t *testing.T) {
 		authProviders     *AuthProviderConfig
 		mountPathList     []string
 	}
+
 	tests := []struct {
 		name        string
+		errorString string
 		args        args
 		wantErr     bool
-		errorString string
 	}{
 		{
 			name: "Resource don't have a valid http method",
@@ -315,6 +315,7 @@ func Test_validateResource(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("validateResource() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
 			if err != nil && err.Error() != tt.errorString {
 				t.Errorf("validateResource() error = %v, wantErr %v", err.Error(), tt.errorString)
 			}
@@ -326,11 +327,12 @@ func Test_validateBusinessConfig(t *testing.T) {
 	type args struct {
 		out *Config
 	}
+
 	tests := []struct {
-		name        string
 		args        args
-		wantErr     bool
+		name        string
 		errorString string
+		wantErr     bool
 	}{
 		{
 			name: "Path is invalid in target",
@@ -440,6 +442,72 @@ func Test_validateBusinessConfig(t *testing.T) {
 			},
 			wantErr:     true,
 			errorString: "at least one action must be enabled in target test1",
+		},
+		{
+			name: "userIsolation enabled without any auth resource is rejected",
+			args: args{
+				out: &Config{
+					Targets: map[string]*TargetConfig{
+						"test1": {
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1/"},
+							},
+							Resources: nil,
+							Actions: &ActionsConfig{
+								GET: &GetActionConfig{
+									Enabled: true,
+									Config:  &GetActionConfigConfig{UserIsolation: true},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantErr: true,
+			errorString: "target test1 has userIsolation enabled but no resource with authentication " +
+				"(basic, oidc or header) is declared; isolation requires an authenticated user",
+		},
+		{
+			name: "userIsolation enabled with basic auth resource is accepted",
+			args: args{
+				out: &Config{
+					AuthProviders: &AuthProviderConfig{
+						Basic: map[string]*BasicAuthConfig{"provider1": {}},
+					},
+					Targets: map[string]*TargetConfig{
+						"test1": {
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1/"},
+							},
+							Resources: []*Resource{
+								{
+									Path:     "/mount1/*",
+									Methods:  []string{"GET"},
+									Provider: "provider1",
+									Basic:    &ResourceBasic{},
+								},
+							},
+							Actions: &ActionsConfig{
+								GET: &GetActionConfig{
+									Enabled: true,
+									Config:  &GetActionConfigConfig{UserIsolation: true},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
 		},
 		{
 			name: "Configuration is valid without list targets",
@@ -773,6 +841,7 @@ func Test_validateBusinessConfig(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("validateBusinessConfig() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
 			if err != nil && err.Error() != tt.errorString {
 				t.Errorf("validateBusinessConfig() error = %v, wantErr %v", err.Error(), tt.errorString)
 			}
@@ -782,11 +851,11 @@ func Test_validateBusinessConfig(t *testing.T) {
 
 func Test_validateSSL(t *testing.T) {
 	tests := []struct {
-		name                 string
 		serverConfig         *ServerConfig
 		internalServerConfig *ServerConfig
-		wantErr              bool
+		name                 string
 		errorString          string
+		wantErr              bool
 	}{
 		{
 			name: "Valid server config with generated certificate",
@@ -835,8 +904,8 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("s3://bucket/cert.pem"),
-							PrivateKeyURL:  aws.String("arn:aws:s3:::bucket/privkey.pem"),
+							CertificateURL: new("s3://bucket/cert.pem"),
+							PrivateKeyURL:  new("arn:aws:s3:::bucket/privkey.pem"),
 						},
 					},
 				},
@@ -850,8 +919,8 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("s3://bucket/cert.pem"),
-							PrivateKeyURL:  aws.String("arn:aws:s3:::bucket/privkey.pem"),
+							CertificateURL: new("s3://bucket/cert.pem"),
+							PrivateKeyURL:  new("arn:aws:s3:::bucket/privkey.pem"),
 							CertificateURLConfig: &SSLURLConfig{
 								HTTPTimeout: "30s",
 								AWSEndpoint: "https://example.com",
@@ -874,8 +943,8 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("arn:aws:ssm:us-west-2:123456789012:parameter/certificate"),
-							PrivateKeyURL:  aws.String("arn:aws:secretsmanager:us-east-1:123456789012:secret:privateKey"),
+							CertificateURL: new("arn:aws:ssm:us-west-2:123456789012:parameter/certificate"),
+							PrivateKeyURL:  new("arn:aws:secretsmanager:us-east-1:123456789012:secret:privateKey"),
 						},
 					},
 				},
@@ -889,8 +958,8 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("/etc/cert.pem"),
-							PrivateKeyURL:  aws.String("file:///etc/pki/privatekey.pem"),
+							CertificateURL: new("/etc/cert.pem"),
+							PrivateKeyURL:  new("file:///etc/pki/privatekey.pem"),
 						},
 					},
 				},
@@ -904,8 +973,8 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("http://example.com/certservice.cgi?certid=123"),
-							PrivateKeyURL:  aws.String("https://example.com:1234/path/to/%23privkey.pem"),
+							CertificateURL: new("http://example.com/certservice.cgi?certid=123"),
+							PrivateKeyURL:  new("https://example.com:1234/path/to/%23privkey.pem"),
 							PrivateKeyURLConfig: &SSLURLConfig{
 								HTTPTimeout: "10s",
 							},
@@ -938,7 +1007,7 @@ func Test_validateSSL(t *testing.T) {
 							PrivateKey:  &testPrivateKey,
 						},
 					},
-					MinTLSVersion: aws.String("ssl3.0"),
+					MinTLSVersion: new("ssl3.0"),
 				},
 			},
 			wantErr:     true,
@@ -955,8 +1024,8 @@ func Test_validateSSL(t *testing.T) {
 							PrivateKey:  &testPrivateKey,
 						},
 					},
-					MinTLSVersion: aws.String("tls1.2"),
-					MaxTLSVersion: aws.String("ssl3.0"),
+					MinTLSVersion: new("tls1.2"),
+					MaxTLSVersion: new("ssl3.0"),
 				},
 			},
 			wantErr:     true,
@@ -973,8 +1042,8 @@ func Test_validateSSL(t *testing.T) {
 							PrivateKey:  &testPrivateKey,
 						},
 					},
-					MinTLSVersion: aws.String("tls1.2"),
-					MaxTLSVersion: aws.String("tls1.3"),
+					MinTLSVersion: new("tls1.2"),
+					MaxTLSVersion: new("tls1.3"),
 					CipherSuites:  []string{"TLS_NOT_A_VALID_CIPHER"},
 				},
 			},
@@ -1035,7 +1104,7 @@ func Test_validateSSL(t *testing.T) {
 					Certificates: []*ServerSSLCertificate{
 						{
 							Certificate:    &testCertificate,
-							CertificateURL: aws.String("s3://test/test.crt"),
+							CertificateURL: new("s3://test/test.crt"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1053,7 +1122,7 @@ func Test_validateSSL(t *testing.T) {
 						{
 							Certificate:   &testCertificate,
 							PrivateKey:    &testPrivateKey,
-							PrivateKeyURL: aws.String("s3://test/test.crt"),
+							PrivateKeyURL: new("s3://test/test.crt"),
 						},
 					},
 				},
@@ -1100,7 +1169,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("ftp://ftp.example.com"),
+							CertificateURL: new("ftp://ftp.example.com"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1116,7 +1185,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String(":r&qwer+asdf"),
+							CertificateURL: new(":r&qwer+asdf"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1132,7 +1201,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("arn:aws:iam::123456789012:role/testRole"),
+							CertificateURL: new("arn:aws:iam::123456789012:role/testRole"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1148,8 +1217,8 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("s3://bucket/cert.pem"),
-							PrivateKeyURL:  aws.String("arn:aws:s3:us-east-7::bucket/privkey.pem"),
+							CertificateURL: new("s3://bucket/cert.pem"),
+							PrivateKeyURL:  new("arn:aws:s3:us-east-7::bucket/privkey.pem"),
 						},
 					},
 				},
@@ -1164,8 +1233,8 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("s3://bucket/cert.pem"),
-							PrivateKeyURL:  aws.String("arn:aws:s3::123456789012:bucket/privkey.pem"),
+							CertificateURL: new("s3://bucket/cert.pem"),
+							PrivateKeyURL:  new("arn:aws:s3::123456789012:bucket/privkey.pem"),
 						},
 					},
 				},
@@ -1180,8 +1249,8 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("s3://bucket/cert.pem"),
-							PrivateKeyURL:  aws.String("arn:aws:s3:::bucket"),
+							CertificateURL: new("s3://bucket/cert.pem"),
+							PrivateKeyURL:  new("arn:aws:s3:::bucket"),
 						},
 					},
 				},
@@ -1196,7 +1265,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("arn:aws:ssm::123456789012:parameter/certificate"),
+							CertificateURL: new("arn:aws:ssm::123456789012:parameter/certificate"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1212,7 +1281,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("arn:aws:ssm:eu-central-1::parameter/certificate"),
+							CertificateURL: new("arn:aws:ssm:eu-central-1::parameter/certificate"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1228,7 +1297,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("arn:aws:ssm:eu-central-1:123456789012:document/certificate"),
+							CertificateURL: new("arn:aws:ssm:eu-central-1:123456789012:document/certificate"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1244,7 +1313,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("arn:aws:secretsmanager::123456789012:secret/certificate"),
+							CertificateURL: new("arn:aws:secretsmanager::123456789012:secret/certificate"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1260,7 +1329,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("arn:aws:secretsmanager:eu-central-1::secret/certificate"),
+							CertificateURL: new("arn:aws:secretsmanager:eu-central-1::secret/certificate"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1276,7 +1345,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("arn:aws:secretsmanager:eu-central-1:123456789012:parameter/certificate"),
+							CertificateURL: new("arn:aws:secretsmanager:eu-central-1:123456789012:parameter/certificate"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1292,7 +1361,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("s3://bucket/key?startToken=foo"),
+							CertificateURL: new("s3://bucket/key?startToken=foo"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1308,7 +1377,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("s3://bucket/key#foo"),
+							CertificateURL: new("s3://bucket/key#foo"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1324,7 +1393,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("file:///tmp/filename?query"),
+							CertificateURL: new("file:///tmp/filename?query"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1340,7 +1409,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("file:///tmp/filename#fragment"),
+							CertificateURL: new("file:///tmp/filename#fragment"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1356,7 +1425,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("/tmp/a_weird?#looking_filename"),
+							CertificateURL: new("/tmp/a_weird?#looking_filename"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1370,8 +1439,8 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("http://example.com/certificate.pem"),
-							PrivateKeyURL:  aws.String("http://exmaple.com/privateKey.pem"),
+							CertificateURL: new("http://example.com/certificate.pem"),
+							PrivateKeyURL:  new("http://exmaple.com/privateKey.pem"),
 							CertificateURLConfig: &SSLURLConfig{
 								HTTPTimeout: "qwerty",
 							},
@@ -1389,8 +1458,8 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("http://example.com/certificate.pem"),
-							PrivateKeyURL:  aws.String("http://exmaple.com/privateKey.pem"),
+							CertificateURL: new("http://example.com/certificate.pem"),
+							PrivateKeyURL:  new("http://exmaple.com/privateKey.pem"),
 							CertificateURLConfig: &SSLURLConfig{
 								HTTPTimeout: "-1s",
 							},
@@ -1408,8 +1477,8 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("http://example.com/certificate.pem"),
-							PrivateKeyURL:  aws.String("http://exmaple.com/privateKey.pem"),
+							CertificateURL: new("http://example.com/certificate.pem"),
+							PrivateKeyURL:  new("http://exmaple.com/privateKey.pem"),
 							CertificateURLConfig: &SSLURLConfig{
 								AWSEndpoint: "https://example.com/",
 							},
@@ -1427,7 +1496,7 @@ func Test_validateSSL(t *testing.T) {
 					Enabled: true,
 					Certificates: []*ServerSSLCertificate{
 						{
-							CertificateURL: aws.String("arn:aws:the-end"),
+							CertificateURL: new("arn:aws:the-end"),
 							PrivateKey:     &testPrivateKey,
 						},
 					},
@@ -1444,14 +1513,17 @@ func Test_validateSSL(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			cfg := &Config{
 				Server:         tt.serverConfig,
 				InternalServer: tt.internalServerConfig,
 			}
+
 			err := validateBusinessConfig(cfg)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("%s validateBusinessConfig() error = %v, wantErr %v", tt.name, err, tt.wantErr)
 			}
+
 			if err != nil && !strings.HasPrefix(err.Error(), tt.errorString) {
 				t.Errorf("validateBusinessConfig() error = %v, wantErr %v", err.Error(), tt.errorString)
 			}
@@ -1459,8 +1531,135 @@ func Test_validateSSL(t *testing.T) {
 	}
 }
 
+// Test_GetActionConfigConfig_IsUserIsolationAdmin covers the indexed-set fast
+// path, the linear-scan fallback (when validation has not run), the nil
+// receiver, and the empty-list cases. This is the per-request hot path so
+// every branch matters.
+func Test_GetActionConfigConfig_IsUserIsolationAdmin(t *testing.T) {
+	t.Run("nil receiver returns false", func(t *testing.T) {
+		var c *GetActionConfigConfig
+		if c.IsUserIsolationAdmin("anyone") {
+			t.Fatal("nil receiver must return false")
+		}
+	})
+
+	t.Run("empty admin list returns false", func(t *testing.T) {
+		c := &GetActionConfigConfig{}
+		if c.IsUserIsolationAdmin("admin") {
+			t.Fatal("empty admin list must return false")
+		}
+	})
+
+	t.Run("linear-scan fallback before indexing", func(t *testing.T) {
+		c := &GetActionConfigConfig{
+			UserIsolationAdmins: []string{"primary-admin", "secondary-admin"},
+		}
+		if !c.IsUserIsolationAdmin("primary-admin") {
+			t.Fatal("primary-admin must be recognized via linear scan")
+		}
+
+		if !c.IsUserIsolationAdmin("secondary-admin") {
+			t.Fatal("secondary-admin must be recognized via linear scan")
+		}
+
+		if c.IsUserIsolationAdmin("alice") {
+			t.Fatal("non-admin must not be recognized")
+		}
+	})
+
+	t.Run("indexed lookup after indexing", func(t *testing.T) {
+		c := &GetActionConfigConfig{
+			UserIsolationAdmins: []string{"primary-admin", "secondary-admin"},
+		}
+		c.indexUserIsolationAdmins()
+
+		if !c.IsUserIsolationAdmin("primary-admin") {
+			t.Fatal("primary-admin must be recognized via indexed lookup")
+		}
+
+		if !c.IsUserIsolationAdmin("secondary-admin") {
+			t.Fatal("secondary-admin must be recognized via indexed lookup")
+		}
+
+		if c.IsUserIsolationAdmin("alice") {
+			t.Fatal("non-admin must not be recognized")
+		}
+	})
+
+	t.Run("indexUserIsolationAdmins is idempotent", func(t *testing.T) {
+		c := &GetActionConfigConfig{
+			UserIsolationAdmins: []string{"a"},
+		}
+		c.indexUserIsolationAdmins()
+		c.indexUserIsolationAdmins()
+
+		if !c.IsUserIsolationAdmin("a") {
+			t.Fatal("repeated indexing must not lose entries")
+		}
+	})
+}
+
+// Test_validateUserIsolation_PopulatesAdminSet verifies that the
+// validation step both rejects misconfigurations AND indexes the admin
+// list as a side effect, so the request-time lookup is O(1) on the
+// validated config.
+func Test_validateUserIsolation_PopulatesAdminSet(t *testing.T) {
+	target := &TargetConfig{
+		Name:  "t1",
+		Mount: &MountConfig{Path: []string{"/m/"}},
+		Resources: []*Resource{
+			{
+				Path:     "/m/*",
+				Methods:  []string{"GET"},
+				Provider: "p1",
+				Basic:    &ResourceBasic{},
+			},
+		},
+		Actions: &ActionsConfig{
+			GET: &GetActionConfig{
+				Enabled: true,
+				Config: &GetActionConfigConfig{
+					UserIsolation:       true,
+					UserIsolationAdmins: []string{"primary-admin", "secondary-admin"},
+				},
+			},
+		},
+	}
+
+	if err := validateUserIsolation("t1", target); err != nil {
+		t.Fatalf("validateUserIsolation must accept a valid target: %v", err)
+	}
+
+	// After validation, both admins must be in the precomputed set.
+	cfg := target.Actions.GET.Config
+	if !cfg.IsUserIsolationAdmin("primary-admin") {
+		t.Fatal("primary-admin must be in the indexed set after validation")
+	}
+
+	if !cfg.IsUserIsolationAdmin("secondary-admin") {
+		t.Fatal("secondary-admin must be in the indexed set after validation")
+	}
+}
+
+// Test_validateUserIsolation_NoOpWhenDisabled ensures the validator
+// exits cleanly without indexing admins when userIsolation is off.
+func Test_validateUserIsolation_NoOpWhenDisabled(t *testing.T) {
+	target := &TargetConfig{
+		Actions: &ActionsConfig{
+			GET: &GetActionConfig{
+				Enabled: true,
+				Config:  &GetActionConfigConfig{},
+			},
+		},
+	}
+
+	if err := validateUserIsolation("t1", target); err != nil {
+		t.Fatalf("disabled userIsolation must validate cleanly: %v", err)
+	}
+}
+
 var (
-	// Test certificate, self-signed, for testhost.example.com
+	// Test certificate, self-signed, for testhost.example.com.
 	testCertificate = `-----BEGIN CERTIFICATE-----
 MIIDeDCCAmACCQDbKC6SZoxWRTANBgkqhkiG9w0BAQUFADB9MQswCQYDVQQGEwJV
 UzETMBEGA1UECAwKV2FzaGluZ3RvbjEQMA4GA1UEBwwHU2VhdHRsZTEdMBsGA1UE

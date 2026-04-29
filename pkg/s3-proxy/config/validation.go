@@ -62,6 +62,10 @@ func validateBusinessConfig(out *Config) error {
 		if !oneMustBeEnabled {
 			return errors.Errorf("at least one action must be enabled in target %s", key)
 		}
+
+		if err := validateUserIsolation(key, target); err != nil {
+			return err
+		}
 	}
 
 	// Validate list targets object
@@ -137,6 +141,45 @@ func validateBusinessConfig(out *Config) error {
 			return err
 		}
 	}
+
+	return nil
+}
+
+// validateUserIsolation enforces the wiring rules for the userIsolation
+// feature on a target and indexes the admin list into the O(1) lookup
+// set used at request time. Run only when userIsolation is enabled.
+//
+// Rule: the target must declare at least one resource with basic, OIDC
+// or header authentication. Without an authenticated identity, the
+// proxy could never tell who the request belongs to and every call
+// would 403; failing fast at config load is friendlier than shipping
+// a target that can never serve traffic.
+func validateUserIsolation(targetKey string, target *TargetConfig) error {
+	if target.Actions == nil || target.Actions.GET == nil ||
+		target.Actions.GET.Config == nil || !target.Actions.GET.Config.UserIsolation {
+		return nil
+	}
+
+	hasAuthResource := false
+
+	for _, res := range target.Resources {
+		if res.Basic != nil || res.OIDC != nil || res.Header != nil {
+			hasAuthResource = true
+
+			break
+		}
+	}
+
+	if !hasAuthResource {
+		return errors.Errorf(
+			"target %s has userIsolation enabled but no resource with authentication "+
+				"(basic, oidc or header) is declared; isolation requires an authenticated user",
+			targetKey,
+		)
+	}
+
+	// Precompute admin lookup set so request-time checks are O(1).
+	target.Actions.GET.Config.indexUserIsolationAdmins()
 
 	return nil
 }
