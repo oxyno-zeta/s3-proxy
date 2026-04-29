@@ -1,6 +1,6 @@
 # User Isolation
 
-## What is user isolation ?
+## What is user isolation
 
 User isolation is a per-target feature that transparently confines
 every authenticated user to their own folder inside the configured
@@ -39,7 +39,7 @@ Administrators listed in `userIsolationAdmins` bypass the rewrite
 and see the full bucket prefix. They are the only identities that
 can address another user's folder through the proxy.
 
-## How this is working ?
+## How this is working
 
 Consider a target with bucket prefix `internal/` mounted at
 `/files/` and user isolation enabled.
@@ -70,7 +70,7 @@ normal operation only real users own folders under the prefix.
 Key rewrite rules (see [Key Rewrite](./key-rewrite.md)) run after
 the username injection and receive the already-prefixed key.
 
-## For which situations ?
+## For which situations
 
 This feature is useful when a single bucket is shared between
 multiple authenticated users and each user must only see and
