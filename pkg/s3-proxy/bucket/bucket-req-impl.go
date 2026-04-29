@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"path"
-	"slices"
 	"strings"
 	"time"
 
@@ -84,6 +83,26 @@ func (bri *bucketReqImpl) displayPrefix(ctx context.Context) (string, error) {
 	}
 
 	return bri.targetCfg.Bucket.GetRootPrefix() + seg, nil
+}
+
+// respondToUserIsolationError maps an error from generateStartKey or
+// displayPrefix to the right HTTP response on resHan. Returns true when
+// it wrote a response (caller should return early), false otherwise.
+// Centralising this keeps the four request-handling entry points
+// (Get/Put/Delete/listing) in lockstep on what errUserIsolationForbidden
+// means at the HTTP layer.
+func (bri *bucketReqImpl) respondToUserIsolationError(resHan responsehandler.ResponseHandler, err error) bool {
+	if err == nil {
+		return false
+	}
+
+	if errors.Is(err, errUserIsolationForbidden) {
+		resHan.ForbiddenError(bri.LoadFileContent, err)
+	} else {
+		resHan.InternalServerError(bri.LoadFileContent, err)
+	}
+
+	return true
 }
 
 func (bri *bucketReqImpl) manageKeyRewrite(ctx context.Context, key string) (string, error) {
@@ -201,16 +220,7 @@ func (bri *bucketReqImpl) internalGetOrHead(ctx context.Context, input *GetInput
 
 	// Generate start key
 	key, err := bri.generateStartKey(ctx, input.RequestPath)
-	// Check error
-	if err != nil {
-		if errors.Is(err, errUserIsolationForbidden) {
-			resHan.ForbiddenError(bri.LoadFileContent, err)
-
-			return
-		}
-
-		resHan.InternalServerError(bri.LoadFileContent, err)
-
+	if bri.respondToUserIsolationError(resHan, err) {
 		return
 	}
 	// Manage key rewrite
@@ -429,15 +439,7 @@ func (bri *bucketReqImpl) manageGetFolder(ctx context.Context, key string, input
 	// Use displayPrefix so the user-facing Path hides the injected identifier
 	// for non-admin users under userIsolation.
 	displayPfx, err := bri.displayPrefix(ctx)
-	if err != nil {
-		if errors.Is(err, errUserIsolationForbidden) {
-			resHan.ForbiddenError(bri.LoadFileContent, err)
-
-			return
-		}
-
-		resHan.InternalServerError(bri.LoadFileContent, err)
-
+	if bri.respondToUserIsolationError(resHan, err) {
 		return
 	}
 
@@ -457,16 +459,7 @@ func (bri *bucketReqImpl) Put(ctx context.Context, inp *PutInput) {
 
 	// Generate start key
 	key, err := bri.generateStartKey(ctx, inp.RequestPath)
-	// Check error
-	if err != nil {
-		if errors.Is(err, errUserIsolationForbidden) {
-			resHan.ForbiddenError(bri.LoadFileContent, err)
-
-			return
-		}
-
-		resHan.InternalServerError(bri.LoadFileContent, err)
-
+	if bri.respondToUserIsolationError(resHan, err) {
 		return
 	}
 	// Add / at the end if not present
@@ -730,16 +723,7 @@ func (bri *bucketReqImpl) Delete(ctx context.Context, requestPath string) {
 
 	// Generate start key
 	key, err := bri.generateStartKey(ctx, requestPath)
-	// Check error
-	if err != nil {
-		if errors.Is(err, errUserIsolationForbidden) {
-			resHan.ForbiddenError(bri.LoadFileContent, err)
-
-			return
-		}
-
-		resHan.InternalServerError(bri.LoadFileContent, err)
-
+	if bri.respondToUserIsolationError(resHan, err) {
 		return
 	}
 	// Manage key rewrite
@@ -791,23 +775,35 @@ func (bri *bucketReqImpl) Delete(ctx context.Context, requestPath string) {
 	)
 }
 
+// userIsolationCfg returns the GET-action config that owns the userIsolation
+// fields, or nil when the chain is incomplete. Centralising the nil walk
+// keeps the two consumers below as one-liners.
+func (bri *bucketReqImpl) userIsolationCfg() *config.GetActionConfigConfig {
+	if bri.targetCfg.Actions == nil || bri.targetCfg.Actions.GET == nil {
+		return nil
+	}
+
+	return bri.targetCfg.Actions.GET.Config
+}
+
 // isUserIsolationEnabled checks if userIsolation is configured on the GET action.
 func (bri *bucketReqImpl) isUserIsolationEnabled() bool {
-	return bri.targetCfg.Actions != nil && bri.targetCfg.Actions.GET != nil &&
-		bri.targetCfg.Actions.GET.Config != nil &&
-		bri.targetCfg.Actions.GET.Config.UserIsolation
+	cfg := bri.userIsolationCfg()
+
+	return cfg != nil && cfg.UserIsolation
 }
 
 // isUserIsolationAdmin checks if the given user identifier is in the admin
 // list. The identifier matches what GenericUser.GetIdentifier() returns
 // (username for basic auth, preferred_username or email for OIDC, etc.).
+// Lookup is O(1) via the precomputed admin set populated at config validation.
 func (bri *bucketReqImpl) isUserIsolationAdmin(identifier string) bool {
-	if bri.targetCfg.Actions == nil || bri.targetCfg.Actions.GET == nil ||
-		bri.targetCfg.Actions.GET.Config == nil {
+	cfg := bri.userIsolationCfg()
+	if cfg == nil {
 		return false
 	}
 
-	return slices.Contains(bri.targetCfg.Actions.GET.Config.UserIsolationAdmins, identifier)
+	return cfg.IsUserIsolationAdmin(identifier)
 }
 
 func transformS3Entries(

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -1479,6 +1480,121 @@ func Test_requestContext_Get_UserIsolation(t *testing.T) {
 				mountPath:       tt.fields.mountPath,
 			}
 			rctx.Get(ctx, tt.args.input)
+		})
+	}
+}
+
+// Test_respondToUserIsolationError covers the error→HTTP-response mapping
+// extracted out of the four request entry points. The contract is:
+//
+//   - nil err  → no response, returns false (caller continues normally)
+//   - errUserIsolationForbidden → ForbiddenError, returns true
+//   - any other err → InternalServerError, returns true
+func Test_respondToUserIsolationError(t *testing.T) {
+	t.Run("nil error writes nothing and returns false", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		resHan := responsehandlermocks.NewMockResponseHandler(ctrl)
+		// No EXPECT() — any call would fail the test.
+
+		bri := &bucketReqImpl{}
+		if bri.respondToUserIsolationError(resHan, nil) {
+			t.Fatal("nil error must return false")
+		}
+	})
+
+	t.Run("errUserIsolationForbidden maps to ForbiddenError", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		resHan := responsehandlermocks.NewMockResponseHandler(ctrl)
+		resHan.EXPECT().
+			ForbiddenError(gomock.Any(), errUserIsolationForbidden).
+			Times(1)
+
+		bri := &bucketReqImpl{}
+		if !bri.respondToUserIsolationError(resHan, errUserIsolationForbidden) {
+			t.Fatal("isolation error must return true")
+		}
+	})
+
+	t.Run("wrapped errUserIsolationForbidden also maps to ForbiddenError", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		resHan := responsehandlermocks.NewMockResponseHandler(ctrl)
+		wrapped := errors.Wrap(errUserIsolationForbidden, "while building start key")
+		resHan.EXPECT().
+			ForbiddenError(gomock.Any(), wrapped).
+			Times(1)
+
+		bri := &bucketReqImpl{}
+		if !bri.respondToUserIsolationError(resHan, wrapped) {
+			t.Fatal("wrapped isolation error must return true")
+		}
+	})
+
+	t.Run("other errors map to InternalServerError", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		resHan := responsehandlermocks.NewMockResponseHandler(ctrl)
+		other := errors.New("template execution failed")
+		resHan.EXPECT().
+			InternalServerError(gomock.Any(), other).
+			Times(1)
+
+		bri := &bucketReqImpl{}
+		if !bri.respondToUserIsolationError(resHan, other) {
+			t.Fatal("non-isolation error must return true")
+		}
+	})
+}
+
+// Test_userIsolationCfg covers the centralised nil walk: every level of the
+// Actions / GET / Config chain that can be missing must produce a clean nil
+// rather than a panic, so the consumers (isUserIsolationEnabled and
+// isUserIsolationAdmin) can be one-liners.
+func Test_userIsolationCfg(t *testing.T) {
+	tests := []struct {
+		target  *config.TargetConfig
+		name    string
+		wantNil bool
+	}{
+		{
+			name:    "nil Actions returns nil",
+			target:  &config.TargetConfig{},
+			wantNil: true,
+		},
+		{
+			name: "nil GET returns nil",
+			target: &config.TargetConfig{
+				Actions: &config.ActionsConfig{},
+			},
+			wantNil: true,
+		},
+		{
+			name: "nil Config still walks (returns the nil pointer)",
+			target: &config.TargetConfig{
+				Actions: &config.ActionsConfig{
+					GET: &config.GetActionConfig{},
+				},
+			},
+			wantNil: true,
+		},
+		{
+			name: "fully populated returns the config pointer",
+			target: &config.TargetConfig{
+				Actions: &config.ActionsConfig{
+					GET: &config.GetActionConfig{
+						Config: &config.GetActionConfigConfig{UserIsolation: true},
+					},
+				},
+			},
+			wantNil: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bri := &bucketReqImpl{targetCfg: tt.target}
+			got := bri.userIsolationCfg()
+
+			if tt.wantNil != (got == nil) {
+				t.Fatalf("userIsolationCfg returned %v, wantNil=%v", got, tt.wantNil)
+			}
 		})
 	}
 }

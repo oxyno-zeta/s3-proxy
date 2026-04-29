@@ -4,19 +4,12 @@ package server
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/johannesboyne/gofakes3"
-	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	awssession "github.com/aws/aws-sdk-go/aws/session"
 
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 )
@@ -186,24 +179,6 @@ func baseSharedStorageConfig(
 	}
 }
 
-func sharedStorageFakeS3(accessKey, secretAccessKey, region, bucket string) (*s3.S3, *httptest.Server, error) {
-	backend := s3mem.New()
-	faker := gofakes3.New(backend)
-	ts := httptest.NewServer(faker.Server())
-
-	cfg := &aws.Config{
-		Credentials:      credentials.NewStaticCredentials(accessKey, secretAccessKey, ""),
-		Endpoint:         aws.String(ts.URL),
-		Region:           aws.String(region),
-		DisableSSL:       aws.Bool(true),
-		S3ForcePathStyle: aws.Bool(true),
-	}
-	cli := s3.New(awssession.New(cfg))
-	_, err := cli.CreateBucket(&s3.CreateBucketInput{Bucket: aws.String(bucket)})
-
-	return cli, ts, err
-}
-
 // TestUserIsolation_PerUserResourcePaths_RootUploadDenied documents the
 // failure mode of the per-user-paths layout under transparent-injection
 // userIsolation: a non-admin uploading to the mount root URL hits the
@@ -214,18 +189,12 @@ func TestUserIsolation_PerUserResourcePaths_RootUploadDenied(t *testing.T) {
 	region := "eu-central-1"
 	bucket := "test-bucket"
 
-	_, s3server, err := sharedStorageFakeS3(accessKey, secretAccessKey, region, bucket)
+	_, s3server, err := newIsolationFakeS3(accessKey, secretAccessKey, region, bucket)
 	require.NoError(t, err)
 
 	defer s3server.Close()
 
-	svrCfg := &config.ServerConfig{
-		Compress: &config.ServerCompressConfig{
-			Enabled: &config.DefaultServerCompressEnabled,
-			Level:   config.DefaultServerCompressLevel,
-			Types:   config.DefaultServerCompressTypes,
-		},
-	}
+	svrCfg := defaultIsolationServerConfig()
 	cfg := perUserPathsConfig(s3server.URL, accessKey, secretAccessKey, region, bucket, svrCfg,
 		[]string{"alice"}, []string{"admin"})
 	do := buildIsolationRouter(t, cfg)
@@ -259,18 +228,12 @@ func TestUserIsolation_FlatResourcePaths_RootUploadAllowed(t *testing.T) {
 	region := "eu-central-1"
 	bucket := "test-bucket"
 
-	s3Client, s3server, err := sharedStorageFakeS3(accessKey, secretAccessKey, region, bucket)
+	s3Client, s3server, err := newIsolationFakeS3(accessKey, secretAccessKey, region, bucket)
 	require.NoError(t, err)
 
 	defer s3server.Close()
 
-	svrCfg := &config.ServerConfig{
-		Compress: &config.ServerCompressConfig{
-			Enabled: &config.DefaultServerCompressEnabled,
-			Level:   config.DefaultServerCompressLevel,
-			Types:   config.DefaultServerCompressTypes,
-		},
-	}
+	svrCfg := defaultIsolationServerConfig()
 	cfg := flatPathsConfig(s3server.URL, accessKey, secretAccessKey, region, bucket, svrCfg,
 		[]string{"alice"}, []string{"admin"})
 	do := buildIsolationRouter(t, cfg)
@@ -285,8 +248,8 @@ func TestUserIsolation_FlatResourcePaths_RootUploadAllowed(t *testing.T) {
 	// Object lands at data/alice/upload.txt — the proxy did the prefixing,
 	// alice never had to put "alice/" in the URL.
 	out, err := s3Client.GetObject(&s3.GetObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String("data/alice/upload.txt"),
+		Bucket: new(bucket),
+		Key:    new("data/alice/upload.txt"),
 	})
 	require.NoError(t, err, "uploaded object must land at data/alice/upload.txt")
 
@@ -319,7 +282,7 @@ func TestUserIsolation_FlatResourcePaths_MultipleAdminsBypassIsolation(t *testin
 	region := "eu-central-1"
 	bucket := "test-bucket"
 
-	s3Client, s3server, err := sharedStorageFakeS3(accessKey, secretAccessKey, region, bucket)
+	s3Client, s3server, err := newIsolationFakeS3(accessKey, secretAccessKey, region, bucket)
 	require.NoError(t, err)
 
 	defer s3server.Close()
@@ -329,19 +292,13 @@ func TestUserIsolation_FlatResourcePaths_MultipleAdminsBypassIsolation(t *testin
 	for _, k := range []string{"data/alice/secret.txt", "data/bob/secret.txt"} {
 		_, err = s3Client.PutObject(&s3.PutObjectInput{
 			Body:   strings.NewReader("seed-" + k),
-			Bucket: aws.String(bucket),
-			Key:    aws.String(k),
+			Bucket: new(bucket),
+			Key:    new(k),
 		})
 		require.NoError(t, err)
 	}
 
-	svrCfg := &config.ServerConfig{
-		Compress: &config.ServerCompressConfig{
-			Enabled: &config.DefaultServerCompressEnabled,
-			Level:   config.DefaultServerCompressLevel,
-			Types:   config.DefaultServerCompressTypes,
-		},
-	}
+	svrCfg := defaultIsolationServerConfig()
 	clients := []string{"alice", "bob"}
 	admins := []string{"primary-admin", "secondary-admin"}
 	cfg := flatPathsConfig(s3server.URL, accessKey, secretAccessKey, region, bucket, svrCfg, clients, admins)
@@ -362,8 +319,8 @@ func TestUserIsolation_FlatResourcePaths_MultipleAdminsBypassIsolation(t *testin
 		assert.Equalf(t, http.StatusNoContent, w.Code, "admin %q PUT into bob/ must succeed", a)
 
 		out, getErr := s3Client.GetObject(&s3.GetObjectInput{
-			Bucket: aws.String(bucket),
-			Key:    aws.String("data/bob/" + a + "-note.txt"),
+			Bucket: new(bucket),
+			Key:    new("data/bob/" + a + "-note.txt"),
 		})
 		require.NoErrorf(t, getErr, "admin %q upload must land at data/bob/%s-note.txt", a, a)
 
@@ -379,8 +336,8 @@ func TestUserIsolation_FlatResourcePaths_MultipleAdminsBypassIsolation(t *testin
 		"primary-admin must be able to DELETE secondary-admin's file in bob/")
 
 	_, getErr := s3Client.GetObject(&s3.GetObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String("data/bob/secondary-admin-note.txt"),
+		Bucket: new(bucket),
+		Key:    new("data/bob/secondary-admin-note.txt"),
 	})
 	require.Error(t, getErr, "secondary-admin's file must be gone after primary-admin's DELETE")
 
@@ -389,8 +346,8 @@ func TestUserIsolation_FlatResourcePaths_MultipleAdminsBypassIsolation(t *testin
 		"secondary-admin must be able to DELETE alice's seeded file")
 
 	_, getErr = s3Client.GetObject(&s3.GetObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String("data/alice/secret.txt"),
+		Bucket: new(bucket),
+		Key:    new("data/alice/secret.txt"),
 	})
 	require.Error(t, getErr, "alice's seeded file must be gone after secondary-admin's DELETE")
 
@@ -417,8 +374,8 @@ func TestUserIsolation_FlatResourcePaths_MultipleAdminsBypassIsolation(t *testin
 		assert.Equalf(t, http.StatusNoContent, w.Code, "client %q PUT to /mount/ must succeed", c)
 
 		out, getErr := s3Client.GetObject(&s3.GetObjectInput{
-			Bucket: aws.String(bucket),
-			Key:    aws.String("data/" + c + "/" + c + "-own.txt"),
+			Bucket: new(bucket),
+			Key:    new("data/" + c + "/" + c + "-own.txt"),
 		})
 		require.NoErrorf(t, getErr, "client %q upload must land at data/%s/%s-own.txt", c, c, c)
 
