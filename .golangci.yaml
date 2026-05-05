@@ -34,13 +34,12 @@ linters:
     - forcetypeassert
     - gochecknoinits
     - gochecksumtype
-    - goconst
     - gocritic
     - godot
     - godox
     - goheader
     - gomoddirectives
-    - gomodguard
+    - gomodguard_v2
     - goprintffuncname
     - gosec
     - gosmopolitan
@@ -97,6 +96,7 @@ linters:
     - noinlineerr
     - lll
     - funcorder
+    - goconst
   settings:
     godox:
       # report any comments starting with keywords, this is useful for TODO or FIXME comments that
