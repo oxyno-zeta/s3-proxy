@@ -18,15 +18,15 @@ import (
 // one admin and several clients, every client confined to their own folder
 // via userIsolation. Two patterns are covered:
 //
-//   - "perUserPaths"  — one resource per client (path "/mount/<user>/*"),
+//   - "perUserPaths"  — one resource per client (path "/mount/<user>/**"),
 //     plus an admin-only catch-all. This mirrors the layout that breaks
 //     under transparent-injection userIsolation: the URL never contains
 //     the username, so client uploads from the mount root never match
 //     the per-user resource and fall through to the admin-only rule,
 //     which returns 401.
 //
-//   - "flatPaths"     — one resource for "/mount/*" GET/PUT/HEAD covering
-//     every authenticated user, and a separate "/mount/*" DELETE rule
+//   - "flatPaths"     — one resource for "/mount/**" GET/PUT/HEAD covering
+//     every authenticated user, and a separate "/mount/**" DELETE rule
 //     restricted to admins. The proxy itself enforces per-user folder
 //     confinement at the bucket-key level, so the resource list does
 //     not need to know any usernames.
@@ -49,7 +49,7 @@ func credsFor(users []string) *config.ResourceBasic {
 }
 
 // perUserPathsConfig builds a target where each client gets its own auth
-// path "/mount/<client>/*" and admins also have a catch-all "/mount/*".
+// path "/mount/<client>/**" and admins also have a catch-all "/mount/**".
 func perUserPathsConfig(
 	s3URL, accessKey, secretAccessKey, region, bucket string,
 	svrCfg *config.ServerConfig,
@@ -69,13 +69,13 @@ func perUserPathsConfig(
 	for _, u := range clients {
 		resources = append(resources,
 			&config.Resource{
-				Path:     "/mount/" + u + "/*",
+				Path:     "/mount/" + u + "/**",
 				Methods:  []string{"GET", "PUT"},
 				Provider: "provider1",
 				Basic:    credsFor(append([]string{u}, admins...)),
 			},
 			&config.Resource{
-				Path:     "/mount/" + u + "/*",
+				Path:     "/mount/" + u + "/**",
 				Methods:  []string{"DELETE"},
 				Provider: "provider1",
 				Basic:    credsFor(admins),
@@ -84,7 +84,7 @@ func perUserPathsConfig(
 	}
 
 	resources = append(resources, &config.Resource{
-		Path:     "/mount/*",
+		Path:     "/mount/**",
 		Methods:  []string{"GET", "PUT", "DELETE"},
 		Provider: "provider1",
 		Basic:    credsFor(admins),
@@ -94,7 +94,7 @@ func perUserPathsConfig(
 }
 
 // flatPathsConfig is the recommended layout under transparent-injection
-// userIsolation: a single "/mount/*" rule for every authenticated user,
+// userIsolation: a single "/mount/**" rule for every authenticated user,
 // and a separate admin-only DELETE rule. The proxy injects the user's
 // identifier between the bucket prefix and the request path, so per-user
 // paths in the resource list are unnecessary.
@@ -114,13 +114,13 @@ func flatPathsConfig(
 			Basic:    credsFor(allUsers),
 		},
 		{
-			Path:     "/mount/*",
+			Path:     "/mount/**",
 			Methods:  []string{"GET", "PUT", "HEAD"},
 			Provider: "provider1",
 			Basic:    credsFor(allUsers),
 		},
 		{
-			Path:     "/mount/*",
+			Path:     "/mount/**",
 			Methods:  []string{"DELETE"},
 			Provider: "provider1",
 			Basic:    credsFor(admins),
@@ -201,7 +201,7 @@ func TestUserIsolation_PerUserResourcePaths_RootUploadDenied(t *testing.T) {
 
 	// Client uploads to mount root — what the React UI does when the user
 	// has not navigated into a subfolder. URL is /mount/, no username.
-	// The only resource that matches the URL is /mount/* (admin-only),
+	// The only resource that matches the URL is /mount/** (admin-only),
 	// so basic auth fails alice's credentials and the proxy returns 401.
 	w := do("PUT", "http://localhost/mount/", "alice", "pw-alice",
 		multipartBody(t, "upload.txt", "alice-wrote-this"), multipartContentType())
@@ -218,7 +218,7 @@ func TestUserIsolation_PerUserResourcePaths_RootUploadDenied(t *testing.T) {
 }
 
 // TestUserIsolation_FlatResourcePaths_RootUploadAllowed validates the
-// recommended layout: a single /mount/* rule covers every auth user.
+// recommended layout: a single /mount/** rule covers every auth user.
 // Transparent injection puts each non-admin's writes under their own
 // folder regardless of URL shape, and a separate admin-only DELETE
 // rule keeps destructive ops gated.
@@ -238,7 +238,7 @@ func TestUserIsolation_FlatResourcePaths_RootUploadAllowed(t *testing.T) {
 		[]string{"alice"}, []string{"admin"})
 	do := buildIsolationRouter(t, cfg)
 
-	// Client uploads to /mount/ (no folder in URL). The flat /mount/*
+	// Client uploads to /mount/ (no folder in URL). The flat /mount/**
 	// rule passes auth and the proxy injects alice/ before the bucket key.
 	w := do("PUT", "http://localhost/mount/", "alice", "pw-alice",
 		multipartBody(t, "upload.txt", "alice-wrote-this"), multipartContentType())

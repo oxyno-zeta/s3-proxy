@@ -88,7 +88,7 @@ func userIsolationConfig(
 				Mount: &config.MountConfig{Path: []string{"/mount/"}},
 				Resources: []*config.Resource{
 					{
-						Path:     "/mount/*",
+						Path:     "/mount/**",
 						Methods:  []string{"GET", "PUT", "DELETE", "HEAD"},
 						Provider: "provider1",
 						Basic: &config.ResourceBasic{
