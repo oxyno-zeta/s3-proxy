@@ -113,6 +113,9 @@ const DefaultTemplateStatusInternalServerError = "500"
 // DefaultOIDCScopes Default OIDC Scopes.
 var DefaultOIDCScopes = []string{"openid", "profile", "email"}
 
+// DefaultOIDCUidClaim Default OIDC identifier claim.
+const DefaultOIDCUidClaim = "preferred_username"
+
 // DefaultOIDCGroupClaim Default OIDC group claim.
 const DefaultOIDCGroupClaim = "groups"
 
@@ -200,6 +203,7 @@ type AuthProviderConfig struct {
 // OIDCAuthConfig OpenID Connect authentication configurations.
 type OIDCAuthConfig struct {
 	ClientSecret  *CredentialConfig `mapstructure:"clientSecret"  validate:"omitempty"     json:"clientSecret"`
+	UidClaim      string            `mapstructure:"uidClaim"                               json:"uidClaim"`
 	GroupClaim    string            `mapstructure:"groupClaim"                             json:"groupClaim"`
 	IssuerURL     string            `mapstructure:"issuerUrl"     validate:"required,url"  json:"issuerUrl"`
 	RedirectURL   string            `mapstructure:"redirectUrl"   validate:"omitempty,url" json:"redirectUrl"`

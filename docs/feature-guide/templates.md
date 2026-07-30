@@ -259,7 +259,7 @@ These are the properties available:
 | Name            | Type     | Description                                                                      |
 | --------------- | -------- | -------------------------------------------------------------------------------- |
 | GetType         | String   | Get type of user (OIDC or BASIC)                                                 |
-| GetIdentifier   | String   | Get identifier (Username for basic auth user or Username or email for OIDC user) |
+| GetIdentifier   | String   | Get identifier (Username for basic auth user, configured uid claim for OIDC user with fallbacks, or Username/email for HEADER user) |
 | GetUsername     | String   | Get username                                                                     |
 | GetName         | String   | Get name (only available for OIDC user)                                          |
 | GetGroups       | [String] | Get groups (only available for OIDC user)                                        |
