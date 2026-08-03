@@ -111,7 +111,9 @@ func (svr *InternalServer) generateInternalRouter() http.Handler {
 	}
 
 	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
+	r.Use(middleware.ClientIPFromXFF())
+	r.Use(middleware.ClientIPFromRemoteAddr)
+	r.Use(middleware.ClientIPFromHeader("X-Real-IP"))
 	r.Use(log.NewStructuredLogger(
 		svr.logger,
 		tracing.GetTraceIDFromRequest,

@@ -155,7 +155,9 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	}
 
 	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
+	r.Use(middleware.ClientIPFromXFF())
+	r.Use(middleware.ClientIPFromRemoteAddr)
+	r.Use(middleware.ClientIPFromHeader("X-Real-IP"))
 	// Manage tracing
 	// Create http tracer configuration
 	httptraCfg := httptracer.Config{
