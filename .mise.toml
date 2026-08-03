@@ -1,7 +1,7 @@
 #:schema https://mise.jdx.dev/schema/mise.json
 
 [tools]
-"node" = "26.1.0"
+"node" = "26.6.0"
 "npm:oxfmt" = "0.62.0"
 pre-commit = '4.6.1'
 go = '1.26.5'
