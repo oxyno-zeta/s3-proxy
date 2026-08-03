@@ -12,12 +12,13 @@ Pull requests are the best way to propose changes to the codebase. We actively
 welcome your pull requests:
 
 1. Fork the repo and create your branch from `master`.
-2. If you've added code that should be tested, add tests.
-3. If you've added code that need documentation, update the documentation.
-4. Make sure your code follows the [effective go](https://golang.org/doc/effective_go.html) guidelines as much as possible.
-5. Be sure to test your modifications.
-6. Write a good commit message following the [conventionalcommits](https://www.conventionalcommits.org/en/v1.0.0/) with the Angular convention.
-7. Issue that pull request!
+2. Install [mise](https://mise.jdx.dev/) and install dependencies with it (`mise install`)
+3. If you've added code that should be tested, add tests.
+4. If you've added code that need documentation, update the documentation.
+5. Make sure your code follows the [effective go](https://golang.org/doc/effective_go.html) guidelines as much as possible.
+6. Be sure to test your modifications.
+7. Write a good commit message following the [conventionalcommits](https://www.conventionalcommits.org/en/v1.0.0/) with the Angular convention.
+8. Issue that pull request!
 
 ## Code of conduct
 
