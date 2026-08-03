@@ -10,7 +10,7 @@ permissions:
 
 env:
   # renovate: datasource=docker depName=squidfunk/mkdocs-material
-  MKDOCS_MATERIAL_VERSION: "9.7.6"
+  MKDOCS_MATERIAL_VERSION: "9.7.7"
   # renovate: datasource=pypi depName=mkdocs-awesome-pages-plugin
   MKDOCS_AWESOME_PAGES_PLUGIN_VERSION: "2.10.1"
 jobs:
