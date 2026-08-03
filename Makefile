@@ -185,7 +185,7 @@ ifndef HAS_GOLANGCI_LINT
 ifndef HAS_CURL
 	$(error You must install curl)
 endif
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
+	curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
 endif
 ifndef HAS_GIT
 	$(error You must install Git)
