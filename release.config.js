@@ -73,13 +73,10 @@ module.exports = {
               if (url) {
                 url = `${url}/issues/`;
                 // Issue URLs.
-                commit.subject = commit.subject.replace(
-                  /#([0-9]+)/g,
-                  (_, issue) => {
-                    issues.push(issue);
-                    return `[#${issue}](${url}${issue})`;
-                  }
-                );
+                commit.subject = commit.subject.replace(/#([0-9]+)/g, (_, issue) => {
+                  issues.push(issue);
+                  return `[#${issue}](${url}${issue})`;
+                });
               }
               if (context.host) {
                 // User URLs.
@@ -91,7 +88,7 @@ module.exports = {
                     }
 
                     return `[@${username}](${context.host}/${username})`;
-                  }
+                  },
                 );
               }
             }

@@ -1,6 +1,9 @@
 #:schema https://mise.jdx.dev/schema/mise.json
 
 [tools]
+"node" = "26.1.0"
+"npm:oxfmt" = "0.51.0"
+pre-commit = '4.6.1'
 go = '1.26.2'
 golangci-lint = "2.12.1"
 # renovate: datasource=github-tags depName=gotestyourself/gotestsum
@@ -11,3 +14,6 @@ gotestsum = "1.13.0"
 # "go:golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment" = "v0.44.0"
 # renovate: datasource=github-tags depName=jmattheis/goverter
 "go:github.com/jmattheis/goverter/cmd/goverter" = "v1.9.4"
+
+[hooks]
+postinstall = "pre-commit install"

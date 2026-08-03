@@ -299,13 +299,13 @@ These are the properties available:
 
 ### PutInput
 
-| Name           | Type              | Description                  |
-| -------------- | ----------------- | ---------------------------- |
-| RequestPath    | String            | Request path                 |
-| Filename       | String            | Filename used for upload     |
-| ContentType    | String            | File content type for upload |
-| ContentSize    | Integer           | File content size for upload |
-| RequestHeaders | [http.Header](https://golang.org/pkg/net/http/#Header) | Incoming request headers |
+| Name           | Type                                                   | Description                  |
+| -------------- | ------------------------------------------------------ | ---------------------------- |
+| RequestPath    | String                                                 | Request path                 |
+| Filename       | String                                                 | Filename used for upload     |
+| ContentType    | String                                                 | File content type for upload |
+| ContentSize    | Integer                                                | File content size for upload |
+| RequestHeaders | [http.Header](https://golang.org/pkg/net/http/#Header) | Incoming request headers     |
 
 ### PutData
 
