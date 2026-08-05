@@ -26,3 +26,5 @@ Run this command:
 ```bash
 docker run -d --name s3-proxy -p 8080:8080 -p 9090:9090 -v $PWD/conf:/proxy/conf oxynozeta/s3-proxy
 ```
+
+The image is also published to GitHub Container Registry as `ghcr.io/oxyno-zeta/s3-proxy`, interchangeable with the Docker Hub image above.
