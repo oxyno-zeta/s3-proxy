@@ -9,6 +9,7 @@
 <p align="center">
   <a href="https://coveralls.io/github/oxyno-zeta/s3-proxy?branch=master" rel="noopener noreferer" target="_blank"><img src="https://coveralls.io/repos/github/oxyno-zeta/s3-proxy/badge.svg?branch=master" alt="Coverage Status" /></a>
   <a href="https://hub.docker.com/r/oxynozeta/s3-proxy" rel="noopener noreferer" target="_blank"><img src="https://img.shields.io/docker/pulls/oxynozeta/s3-proxy.svg" alt="Docker Pulls" /></a>
+  <a href="https://github.com/oxyno-zeta/s3-proxy/pkgs/container/s3-proxy" rel="noopener noreferer" target="_blank"><img src="https://img.shields.io/badge/ghcr.io-s3--proxy-blue.svg" alt="GHCR" /></a>
   <a href="https://github.com/oxyno-zeta/s3-proxy/blob/master/LICENSE" rel="noopener noreferer" target="_blank"><img src="https://img.shields.io/github/license/oxyno-zeta/s3-proxy" alt="GitHub license" /></a>
   <a href="https://github.com/oxyno-zeta/s3-proxy/releases" rel="noopener noreferer" target="_blank"><img src="https://img.shields.io/github/v/release/oxyno-zeta/s3-proxy" alt="GitHub release (latest by date)" /></a>
 </p>

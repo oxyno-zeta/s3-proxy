@@ -89,7 +89,8 @@ dockers:
     ids:
       - s3-proxy
     image_templates:
-      - "oxynozeta/s3-proxy:{{ .Version }}-amd64"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-amd64"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-amd64"
     skip_push: false
     use: buildx
     dockerfile: Dockerfile
@@ -105,7 +106,8 @@ dockers:
     ids:
       - s3-proxy
     image_templates:
-      - "oxynozeta/s3-proxy:{{ .Version }}-armv6"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-armv6"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-armv6"
     skip_push: false
     use: buildx
     dockerfile: Dockerfile
@@ -121,7 +123,8 @@ dockers:
     ids:
       - s3-proxy
     image_templates:
-      - "oxynozeta/s3-proxy:{{ .Version }}-armv7"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-armv7"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-armv7"
     skip_push: false
     use: buildx
     dockerfile: Dockerfile
@@ -136,7 +139,8 @@ dockers:
     ids:
       - s3-proxy
     image_templates:
-      - "oxynozeta/s3-proxy:{{ .Version }}-arm64"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-arm64"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-arm64"
     skip_push: false
     use: buildx
     dockerfile: Dockerfile
@@ -148,27 +152,51 @@ dockers:
       - templates/
 
 docker_manifests:
-  - name_template: oxynozeta/s3-proxy:latest
+  - name_template: "{{ .Env.DOCKERHUB_REPO }}:latest"
     image_templates:
-      - "oxynozeta/s3-proxy:{{ .Version }}-amd64"
-      - "oxynozeta/s3-proxy:{{ .Version }}-arm64"
-      - "oxynozeta/s3-proxy:{{ .Version }}-armv6"
-      - "oxynozeta/s3-proxy:{{ .Version }}-armv7"
-  - name_template: "oxynozeta/s3-proxy:{{ .Version }}"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-amd64"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-arm64"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-armv6"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-armv7"
+  - name_template: "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}"
     image_templates:
-      - "oxynozeta/s3-proxy:{{ .Version }}-amd64"
-      - "oxynozeta/s3-proxy:{{ .Version }}-arm64"
-      - "oxynozeta/s3-proxy:{{ .Version }}-armv6"
-      - "oxynozeta/s3-proxy:{{ .Version }}-armv7"
-  - name_template: "oxynozeta/s3-proxy:{{ .Major }}"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-amd64"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-arm64"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-armv6"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-armv7"
+  - name_template: "{{ .Env.DOCKERHUB_REPO }}:{{ .Major }}"
     image_templates:
-      - "oxynozeta/s3-proxy:{{ .Version }}-amd64"
-      - "oxynozeta/s3-proxy:{{ .Version }}-arm64"
-      - "oxynozeta/s3-proxy:{{ .Version }}-armv6"
-      - "oxynozeta/s3-proxy:{{ .Version }}-armv7"
-  - name_template: "oxynozeta/s3-proxy:{{ .Major }}.{{ .Minor }}"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-amd64"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-arm64"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-armv6"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-armv7"
+  - name_template: "{{ .Env.DOCKERHUB_REPO }}:{{ .Major }}.{{ .Minor }}"
     image_templates:
-      - "oxynozeta/s3-proxy:{{ .Version }}-amd64"
-      - "oxynozeta/s3-proxy:{{ .Version }}-arm64"
-      - "oxynozeta/s3-proxy:{{ .Version }}-armv6"
-      - "oxynozeta/s3-proxy:{{ .Version }}-armv7"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-amd64"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-arm64"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-armv6"
+      - "{{ .Env.DOCKERHUB_REPO }}:{{ .Version }}-armv7"
+  - name_template: "{{ .Env.GHCR_REPO }}:latest"
+    image_templates:
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-amd64"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-arm64"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-armv6"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-armv7"
+  - name_template: "{{ .Env.GHCR_REPO }}:{{ .Version }}"
+    image_templates:
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-amd64"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-arm64"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-armv6"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-armv7"
+  - name_template: "{{ .Env.GHCR_REPO }}:{{ .Major }}"
+    image_templates:
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-amd64"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-arm64"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-armv6"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-armv7"
+  - name_template: "{{ .Env.GHCR_REPO }}:{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-amd64"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-arm64"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-armv6"
+      - "{{ .Env.GHCR_REPO }}:{{ .Version }}-armv7"
