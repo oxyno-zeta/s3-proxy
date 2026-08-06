@@ -26,6 +26,11 @@ LDFLAGS += -X ${PKG}/pkg/${PROJECT_NAME}/version.Version=${BINARY_VERSION}
 LDFLAGS += -X ${PKG}/pkg/${PROJECT_NAME}/version.GitCommit=${GIT_COMMIT}
 LDFLAGS += -X ${PKG}/pkg/${PROJECT_NAME}/version.BuildDate=${DATE}
 
+DOCKERHUB_REPO := oxynozeta/s3-proxy
+GHCR_REPO      := ghcr.io/oxyno-zeta/s3-proxy
+export DOCKERHUB_REPO
+export GHCR_REPO
+
 HAS_GORELEASER := $(shell command -v goreleaser;)
 HAS_GIT := $(shell command -v git;)
 HAS_GOLANGCI_LINT := $(shell command -v golangci-lint;)
