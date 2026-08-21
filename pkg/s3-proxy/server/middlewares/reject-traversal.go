@@ -48,9 +48,19 @@ func RejectTraversal(cfgManager config.Manager) func(http.Handler) http.Handler 
 }
 
 func isPathTraversalAttempt(escapedPath string) (bool, error) {
-	decoded, err := url.PathUnescape(escapedPath)
-	if err != nil {
-		return false, err
+	decoded := escapedPath
+
+	for {
+		unescaped, err := url.PathUnescape(decoded)
+		if err != nil {
+			return false, err
+		}
+
+		if unescaped == decoded {
+			break
+		}
+
+		decoded = unescaped
 	}
 
 	return countSegments(decoded) != countSegments(path.Clean(decoded)), nil

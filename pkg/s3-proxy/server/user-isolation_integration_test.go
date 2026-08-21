@@ -38,6 +38,7 @@ func setupIsolationFakeS3(
 		"data/alice/secret.txt":     "alice-secret",
 		"data/alice/sub/nested.txt": "alice-nested",
 		"data/bob/secret.txt":       "bob-secret",
+		"data/bob/index.html":       "bob-index-canary",
 		"data/charlie/secret.txt":   "charlie-secret",
 		"data/admin/notes.txt":      "admin-notes",
 	})
@@ -241,6 +242,36 @@ func TestUserIsolation_CrossUser_AB_AC_BC(t *testing.T) {
 	w = do("GET", "http://localhost/mount/admin/notes.txt", "bob", "pw-bob", "", "")
 	assert.Equal(t, 404, w.Code, "bob must not read admin's notes via /admin/ path")
 	assert.NotContains(t, w.Body.String(), "admin-notes")
+}
+
+func TestUserIsolation_DoubleEncodedTraversalReadsSiblingIndex(t *testing.T) {
+	accessKey := "YOUR-ACCESSKEYID"
+	secretAccessKey := "YOUR-SECRETACCESSKEY"
+	region := "eu-central-1"
+	bucket := "test-bucket"
+
+	_, s3server, err := setupIsolationFakeS3(
+		t, accessKey, secretAccessKey, region, bucket,
+	)
+	require.NoError(t, err)
+	defer s3server.Close()
+
+	cfg := userIsolationConfig(
+		s3server.URL, accessKey, secretAccessKey, region, bucket,
+		defaultIsolationServerConfig(), &config.TracingConfig{},
+	)
+	cfg.Targets["target1"].Actions.GET.Config.IndexDocument = "index.html"
+
+	do := buildIsolationRouter(t, cfg)
+
+	targetURL := "http://localhost/mount/%252e%252e/bob/"
+	w := do("GET", targetURL, "alice", "pw-alice", "", "")
+
+	assert.NotEqual(t, http.StatusOK, w.Code)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.NotEqual(t, "bob-index-canary", w.Body.String())
+	assert.Contains(t, w.Body.String(), "Bad Request")
+	assert.Contains(t, w.Body.String(), "path traversal detected")
 }
 
 // TestUserIsolation_AdminSeesEverything verifies that admin — being listed in

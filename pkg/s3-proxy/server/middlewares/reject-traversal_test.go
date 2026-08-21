@@ -135,6 +135,11 @@ func TestIsPathTraversalAttempt(t *testing.T) {
 			escapedPath: "/public/dir/",
 			want:        false,
 		},
+		{
+			name:        "double encoded string",
+			escapedPath: "/mount/%252e%252e/bob/",
+			want:        true,
+		},
 	}
 
 	for _, tt := range tests {
