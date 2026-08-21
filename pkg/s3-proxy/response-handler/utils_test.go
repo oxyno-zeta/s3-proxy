@@ -164,7 +164,7 @@ func Test_setHeadersFromObjectOutput(t *testing.T) {
 	headerFullInput.Add("Content-Encoding", "contentencoding")
 	headerFullInput.Add("Content-Language", "contentlanguage")
 	headerFullInput.Add("Content-Length", "200")
-	headerFullInput.Add("Content-Range", "bytes 200/200")
+	headerFullInput.Add("Content-Range", "bytes 0-199/200")
 	headerFullInput.Add("Content-Type", "contenttype")
 	headerFullInput.Add("ETag", "etag")
 	headerFullInput.Add("Accept-Ranges", "bytes")
@@ -209,14 +209,14 @@ func Test_setHeadersFromObjectOutput(t *testing.T) {
 					ContentEncoding:    "contentencoding",
 					ContentLanguage:    "contentlanguage",
 					ContentLength:      200,
-					ContentRange:       "bytes 200/200",
+					ContentRange:       "bytes 0-199/200",
 					ContentType:        "contenttype",
 					ETag:               "etag",
 					LastModified:       now,
 				},
 			},
 			expectedHeaders: headerFullInput,
-			expectedCode:    http.StatusOK,
+			expectedCode:    http.StatusPartialContent,
 		},
 		{
 			name: "Partial input",
@@ -247,7 +247,7 @@ func Test_setHeadersFromObjectOutput(t *testing.T) {
 					ContentEncoding:    "contentencoding",
 					ContentLanguage:    "contentlanguage",
 					ContentLength:      200,
-					ContentRange:       "bytes 200/200",
+					ContentRange:       "bytes 0-199/200",
 					ContentType:        "contenttype",
 					ContentDigest:      "sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:",
 					ETag:               "etag",
@@ -262,7 +262,7 @@ func Test_setHeadersFromObjectOutput(t *testing.T) {
 				h.Add("Content-Encoding", "contentencoding")
 				h.Add("Content-Language", "contentlanguage")
 				h.Add("Content-Length", "200")
-				h.Add("Content-Range", "bytes 200/200")
+				h.Add("Content-Range", "bytes 0-199/200")
 				h.Add("Content-Type", "contenttype")
 				h.Add("ETag", "etag")
 				h.Add("Accept-Ranges", "bytes")
@@ -270,7 +270,7 @@ func Test_setHeadersFromObjectOutput(t *testing.T) {
 				h.Add("Content-Digest", "sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:")
 				return h
 			}(),
-			expectedCode: http.StatusOK,
+			expectedCode: http.StatusPartialContent,
 		},
 
 	}
