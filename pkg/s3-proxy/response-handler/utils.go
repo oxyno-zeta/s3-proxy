@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
-	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -122,42 +121,16 @@ func setHeadersFromObjectOutput(w http.ResponseWriter, obj *models.StreamInput) 
 }
 
 func determineHTTPStatus(obj *models.StreamInput) int {
-	contentRangeIsGiven := len(obj.ContentRange) > 0
-	// Check if content will be partial
-	if contentRangeIsGiven {
-		if !totalFileSizeEqualToContentRange(obj) {
-			// Return partial content
-			return http.StatusPartialContent
-		}
+	// Content-Range is only set when S3 itself answered 206. Mirror that status
+	// even when the range covers the whole object: RFC 9110 forbids Content-Range
+	// on a 200 response, and clients like Safari treat 200 as "ranges unsupported".
+	if len(obj.ContentRange) > 0 {
+		// Return partial content
+		return http.StatusPartialContent
 	}
 
 	// Return ok
 	return http.StatusOK
-}
-
-func totalFileSizeEqualToContentRange(obj *models.StreamInput) bool {
-	totalSizeIsEqualToContentRange := false
-	// Calculate total file size
-	totalSize, err := strconv.ParseInt(getFileSizeAsString(obj), 10, 64)
-	if err == nil {
-		if totalSize == (obj.ContentLength) {
-			totalSizeIsEqualToContentRange = true
-		}
-	}
-	// Return result
-	return totalSizeIsEqualToContentRange
-}
-
-/*
-*
-See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range
-*/
-func getFileSizeAsString(obj *models.StreamInput) string {
-	s := strings.Split(obj.ContentRange, "/")
-	totalSizeString := s[1]
-	totalSizeString = strings.TrimSpace(totalSizeString)
-	// Return result
-	return totalSizeString
 }
 
 func setStrHeader(w http.ResponseWriter, key, value string) {
