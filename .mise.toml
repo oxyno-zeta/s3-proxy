@@ -5,7 +5,7 @@
 "npm:oxfmt" = "0.64.0"
 pre-commit = '4.6.2'
 go = '1.26.5'
-golangci-lint = "2.12.2"
+golangci-lint = "2.13.1"
 # renovate: datasource=github-tags depName=gotestyourself/gotestsum
 gotestsum = "1.13.0"
 # renovate: datasource=go depName=go.uber.org/mock/mockgen
