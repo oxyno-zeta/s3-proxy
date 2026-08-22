@@ -63,6 +63,10 @@ code/generate:
 code/lint: setup/dep/install
 	golangci-lint run ./...
 
+.PHONY: code/format
+code/format: setup/dep/install
+	golangci-lint fmt ./...
+
 .PHONY: code/fieldalignment
 code/fieldalignment: setup/dep/install
 	fieldalignment -fix -test=false ./...
