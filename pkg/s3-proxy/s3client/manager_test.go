@@ -9,11 +9,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
-	cmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/thoas/go-funk"
 	"go.uber.org/mock/gomock"
+
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
+	cmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config/mocks"
 )
 
 func Test_manager_Load_Cleanup(t *testing.T) {

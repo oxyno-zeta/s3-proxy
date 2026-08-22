@@ -9,9 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	responsehandlermodels "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
-	"github.com/stretchr/testify/assert"
 )
 
 func Test_handler_manageHeaders(t *testing.T) {
@@ -272,7 +273,6 @@ func Test_setHeadersFromObjectOutput(t *testing.T) {
 			}(),
 			expectedCode: http.StatusPartialContent,
 		},
-
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

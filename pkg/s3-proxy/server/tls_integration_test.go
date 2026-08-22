@@ -17,14 +17,15 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	cmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config/mocks"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 )
 
 func TestTLSServer(t *testing.T) {

@@ -11,8 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 )
 
 var defaultTemplateCfg = &TemplateConfig{
@@ -1506,7 +1507,7 @@ targets:
 			defer os.RemoveAll(dir) // clean up
 			for k, v := range tt.configs {
 				tmpfn := filepath.Join(dir, k)
-				err = ioutil.WriteFile(tmpfn, []byte(v), 0666)
+				err = ioutil.WriteFile(tmpfn, []byte(v), 0o666)
 				if err != nil {
 					t.Error(err)
 					return
@@ -1522,12 +1523,12 @@ targets:
 			// Create secret files
 			for k, v := range tt.secretFiles {
 				dirToCr := filepath.Dir(k)
-				err = os.MkdirAll(dirToCr, 0666)
+				err = os.MkdirAll(dirToCr, 0o666)
 				if err != nil {
 					t.Error(err)
 					return
 				}
-				err = ioutil.WriteFile(k, []byte(v), 0666)
+				err = ioutil.WriteFile(k, []byte(v), 0o666)
 				if err != nil {
 					t.Error(err)
 					return
@@ -1596,7 +1597,7 @@ targets:
 	defer os.RemoveAll(dir) // clean up
 	for k, v := range configs {
 		tmpfn := filepath.Join(dir, k)
-		err = ioutil.WriteFile(tmpfn, []byte(v), 0666)
+		err = ioutil.WriteFile(tmpfn, []byte(v), 0o666)
 		assert.NoError(t, err)
 	}
 
@@ -1606,9 +1607,9 @@ targets:
 	// Create secret files
 	for k, v := range secretFiles {
 		dirToCr := filepath.Dir(k)
-		err = os.MkdirAll(dirToCr, 0666)
+		err = os.MkdirAll(dirToCr, 0o666)
 		assert.NoError(t, err)
-		err = ioutil.WriteFile(k, []byte(v), 0666)
+		err = ioutil.WriteFile(k, []byte(v), 0o666)
 		assert.NoError(t, err)
 		defer os.Remove(k)
 	}
@@ -1691,7 +1692,7 @@ log:
 	defer os.RemoveAll(dir) // clean up
 	for k, v := range configs {
 		tmpfn := filepath.Join(dir, k)
-		err = ioutil.WriteFile(tmpfn, []byte(v), 0666)
+		err = ioutil.WriteFile(tmpfn, []byte(v), 0o666)
 		assert.NoError(t, err)
 	}
 
@@ -1800,7 +1801,7 @@ targets:
 	defer os.RemoveAll(dir) // clean up
 	for k, v := range configs {
 		tmpfn := filepath.Join(dir, k)
-		err = ioutil.WriteFile(tmpfn, []byte(v), 0666)
+		err = ioutil.WriteFile(tmpfn, []byte(v), 0o666)
 		assert.NoError(t, err)
 	}
 
@@ -1810,9 +1811,9 @@ targets:
 	// Create secret files
 	for k, v := range secretFiles {
 		dirToCr := filepath.Dir(k)
-		err = os.MkdirAll(dirToCr, 0666)
+		err = os.MkdirAll(dirToCr, 0o666)
 		assert.NoError(t, err)
-		err = ioutil.WriteFile(k, []byte(v), 0666)
+		err = ioutil.WriteFile(k, []byte(v), 0o666)
 		assert.NoError(t, err)
 		defer os.Remove(k)
 	}
@@ -1889,9 +1890,9 @@ targets:
 	// Create secret files
 	for k, v := range secretFiles {
 		dirToCr := filepath.Dir(k)
-		err = os.MkdirAll(dirToCr, 0666)
+		err = os.MkdirAll(dirToCr, 0o666)
 		assert.NoError(t, err)
-		err = ioutil.WriteFile(k, []byte(v), 0666)
+		err = ioutil.WriteFile(k, []byte(v), 0o666)
 		assert.NoError(t, err)
 		defer os.Remove(k)
 	}
@@ -2001,7 +2002,7 @@ targets:
 	defer os.RemoveAll(dir) // clean up
 	for k, v := range configs {
 		tmpfn := filepath.Join(dir, k)
-		err = ioutil.WriteFile(tmpfn, []byte(v), 0666)
+		err = ioutil.WriteFile(tmpfn, []byte(v), 0o666)
 		assert.NoError(t, err)
 	}
 
@@ -2011,9 +2012,9 @@ targets:
 	// Create secret files
 	for k, v := range secretFiles {
 		dirToCr := filepath.Dir(k)
-		err = os.MkdirAll(dirToCr, 0666)
+		err = os.MkdirAll(dirToCr, 0o666)
 		assert.NoError(t, err)
-		err = ioutil.WriteFile(k, []byte(v), 0666)
+		err = ioutil.WriteFile(k, []byte(v), 0o666)
 		assert.NoError(t, err)
 		defer os.Remove(k)
 	}
@@ -2093,7 +2094,7 @@ configuration with error
 	defer os.RemoveAll(dir) // clean up
 	for k, v := range configs {
 		tmpfn := filepath.Join(dir, k)
-		err = ioutil.WriteFile(tmpfn, []byte(v), 0666)
+		err = ioutil.WriteFile(tmpfn, []byte(v), 0o666)
 		assert.NoError(t, err)
 	}
 
@@ -2209,7 +2210,7 @@ targets:
 	defer os.RemoveAll(dir) // clean up
 	for k, v := range configs {
 		tmpfn := filepath.Join(dir, k)
-		err = ioutil.WriteFile(tmpfn, []byte(v), 0666)
+		err = ioutil.WriteFile(tmpfn, []byte(v), 0o666)
 		assert.NoError(t, err)
 	}
 
@@ -2219,9 +2220,9 @@ targets:
 	// Create secret files
 	for k, v := range secretFiles {
 		dirToCr := filepath.Dir(k)
-		err = os.MkdirAll(dirToCr, 0666)
+		err = os.MkdirAll(dirToCr, 0o666)
 		assert.NoError(t, err)
-		err = ioutil.WriteFile(k, []byte(v), 0666)
+		err = ioutil.WriteFile(k, []byte(v), 0o666)
 		assert.NoError(t, err)
 		defer os.Remove(k)
 	}
@@ -2311,7 +2312,7 @@ authProviders:
 	defer os.RemoveAll(dir) // clean up
 	for k, v := range configs {
 		tmpfn := filepath.Join(dir, k)
-		err = ioutil.WriteFile(tmpfn, []byte(v), 0666)
+		err = ioutil.WriteFile(tmpfn, []byte(v), 0o666)
 		assert.NoError(t, err)
 	}
 
@@ -2442,7 +2443,7 @@ targets:
 	defer os.RemoveAll(dir) // clean up
 	for k, v := range configs {
 		tmpfn := filepath.Join(dir, k)
-		err = ioutil.WriteFile(tmpfn, []byte(v), 0666)
+		err = ioutil.WriteFile(tmpfn, []byte(v), 0o666)
 		assert.NoError(t, err)
 	}
 
@@ -2452,9 +2453,9 @@ targets:
 	// Create secret files
 	for k, v := range secretFiles {
 		dirToCr := filepath.Dir(k)
-		err = os.MkdirAll(dirToCr, 0666)
+		err = os.MkdirAll(dirToCr, 0o666)
 		assert.NoError(t, err)
-		err = ioutil.WriteFile(k, []byte(v), 0666)
+		err = ioutil.WriteFile(k, []byte(v), 0o666)
 		assert.NoError(t, err)
 		defer os.Remove(k)
 	}

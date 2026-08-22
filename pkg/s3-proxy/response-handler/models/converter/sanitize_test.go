@@ -7,8 +7,9 @@ import (
 	"net/url"
 	"testing"
 
-	models "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
 	"github.com/stretchr/testify/assert"
+
+	models "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/response-handler/models"
 )
 
 func TestConvertAndSanitizeHttpRequest(t *testing.T) {

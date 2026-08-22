@@ -223,7 +223,8 @@ func validateResource(beginErrorMessage string, res *Resource, authProviders *Au
 		// Check basic
 		if res.Basic != nil && authProviders.Basic[res.Provider] == nil {
 			return errors.New(
-				beginErrorMessage + " must use a valid authentication configuration with selected authentication provider: basic auth not allowed")
+				beginErrorMessage + " must use a valid authentication configuration with selected authentication provider: basic auth not allowed",
+			)
 		}
 		// Check oidc
 		if res.OIDC != nil && authProviders.OIDC[res.Provider] == nil {
@@ -286,13 +287,15 @@ func validateSSLConfig(serverSSL *ServerSSLConfig, section string) error {
 	if serverSSL.MinTLSVersion != nil && utils.ParseTLSVersion(*serverSSL.MinTLSVersion) == 0 {
 		return errors.Errorf(
 			"%s.ssl.minTLSVersion %#v must be a valid TLS version: expected \"TLSv1.0\", \"TLSv1.1\", \"TLSv1.2\", or \"TLSv1.3\"",
-			section, *serverSSL.MinTLSVersion)
+			section, *serverSSL.MinTLSVersion,
+		)
 	}
 
 	if serverSSL.MaxTLSVersion != nil && utils.ParseTLSVersion(*serverSSL.MaxTLSVersion) == 0 {
 		return errors.Errorf(
 			"%s.ssl.maxTLSVersion %#v must be a valid TLS version: expected \"TLSv1.0\", \"TLSv1.1\", \"TLSv1.2\", or \"TLSv1.3\"",
-			section, *serverSSL.MaxTLSVersion)
+			section, *serverSSL.MaxTLSVersion,
+		)
 	}
 
 	for _, cipherSuiteName := range serverSSL.CipherSuites {
@@ -305,21 +308,24 @@ func validateSSLConfig(serverSSL *ServerSSLConfig, section string) error {
 
 			return errors.Errorf(
 				"invalid cipher suite %#v in %s.ssl.cipherSuites; expected one of %s", cipherSuiteName, section,
-				strings.Join(cipherSuiteNames, ", "))
+				strings.Join(cipherSuiteNames, ", "),
+			)
 		}
 	}
 
 	for i, cert := range serverSSL.Certificates {
 		err := validateSSLCertificateComponentConfig(
 			cert.Certificate, cert.CertificateURL, cert.CertificateURLConfig,
-			fmt.Sprintf("%s.ssl.certificates[%d].certificate", section, i))
+			fmt.Sprintf("%s.ssl.certificates[%d].certificate", section, i),
+		)
 		if err != nil {
 			return err
 		}
 
 		err = validateSSLCertificateComponentConfig(
 			cert.PrivateKey, cert.PrivateKeyURL, cert.PrivateKeyURLConfig,
-			fmt.Sprintf("%s.ssl.certificates[%d].privateKey", section, i))
+			fmt.Sprintf("%s.ssl.certificates[%d].privateKey", section, i),
+		)
 		if err != nil {
 			return err
 		}

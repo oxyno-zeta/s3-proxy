@@ -80,7 +80,7 @@ linters:
   disable:
     - depguard
     - err113
-    - exhaustruct
+    - exhaustruct_v5
     - funlen
     - gochecknoglobals
     - gocognit

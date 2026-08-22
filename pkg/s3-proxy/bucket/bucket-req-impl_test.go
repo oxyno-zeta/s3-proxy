@@ -13,6 +13,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/authx/models"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
@@ -23,8 +26,6 @@ import (
 	s3clientmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client/mocks"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
 	wmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook/mocks"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 )
 
 func Test_transformS3Entries(t *testing.T) {
@@ -1450,7 +1451,7 @@ func Test_requestContext_Put(t *testing.T) {
 						PUT: &config.PutActionConfig{
 							Config: &config.PutActionConfigConfig{
 								SystemMetadata: &config.PutActionConfigSystemMetadataConfig{
-									ContentLanguage: `{{ .Input.RequestHeaders.Get "Content-Language" }}`,
+									ContentLanguage:    `{{ .Input.RequestHeaders.Get "Content-Language" }}`,
 									ContentDisposition: `{{ .Input.RequestHeaders.Get "X-Content-Disposition" }}`,
 								},
 								AllowOverride: true,

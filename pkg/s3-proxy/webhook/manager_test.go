@@ -12,12 +12,13 @@ import (
 	"time"
 
 	"github.com/opentracing/opentracing-go"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	cmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config/mocks"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	mmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/metrics/mocks"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 )
 
 func Test_manager_createRestClients(t *testing.T) {

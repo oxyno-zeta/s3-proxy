@@ -8,7 +8,7 @@ import (
 
 func Test_toJSON(t *testing.T) {
 	type args struct {
-		v interface{}
+		v any
 	}
 	tests := []struct {
 		name string
@@ -18,7 +18,7 @@ func Test_toJSON(t *testing.T) {
 		{
 			name: "ok",
 			args: args{
-				v: map[string]interface{}{
+				v: map[string]any{
 					"number": 1,
 					"string": "str",
 				},
@@ -37,7 +37,7 @@ func Test_toJSON(t *testing.T) {
 
 func Test_toYAML(t *testing.T) {
 	type args struct {
-		v interface{}
+		v any
 	}
 	tests := []struct {
 		name string
@@ -47,7 +47,7 @@ func Test_toYAML(t *testing.T) {
 		{
 			name: "ok",
 			args: args{
-				v: map[string]interface{}{
+				v: map[string]any{
 					"number": 1,
 					"string": "str",
 				},

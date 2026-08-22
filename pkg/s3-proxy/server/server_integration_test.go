@@ -21,14 +21,15 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	cmocks "github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config/mocks"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/s3client"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/tracing"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/webhook"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 )
 
 func TestPublicRouter(t *testing.T) {
@@ -2107,7 +2108,8 @@ func TestPublicRouter(t *testing.T) {
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 			},
 			expectedHeaderContains: map[string][]string{
-				// Example: http://127.0.0.1:45677/test-bucket/folder1/test.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=YOUR-ACCESSKEYID%2F20221220%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20221220T181313Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host&X-Amz-Signature=d2fb2cd997791dacfa3c3b5a43e327dfb551a78927aad996cc6fde9172fa4114
+				// Example:
+				// http://127.0.0.1:45677/test-bucket/folder1/test.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=YOUR-ACCESSKEYID%2F20221220%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20221220T181313Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host&X-Amz-Signature=d2fb2cd997791dacfa3c3b5a43e327dfb551a78927aad996cc6fde9172fa4114
 				"Location": {
 					s3server.URL,
 					"/folder1/test.txt",
@@ -4054,7 +4056,8 @@ func TestPublicRouter(t *testing.T) {
 				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
 			},
 			expectedHeaderContains: map[string][]string{
-				// Example: http://127.0.0.1:45677/test-bucket/folder1/test.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=YOUR-ACCESSKEYID%2F20221220%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20221220T181313Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host&X-Amz-Signature=d2fb2cd997791dacfa3c3b5a43e327dfb551a78927aad996cc6fde9172fa4114
+				// Example:
+				// http://127.0.0.1:45677/test-bucket/folder1/test.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=YOUR-ACCESSKEYID%2F20221220%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20221220T181313Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host&X-Amz-Signature=d2fb2cd997791dacfa3c3b5a43e327dfb551a78927aad996cc6fde9172fa4114
 				"Location": {
 					s3server.URL,
 					"/folder1/index.html",
@@ -6349,7 +6352,6 @@ func TestOIDCAuthentication(t *testing.T) {
 				Timeout: 10 * time.Second,
 			}
 			resp, err := client.Do(request)
-
 			if err != nil {
 				t.Error(err)
 				return
@@ -6470,7 +6472,6 @@ func TestStartWithOnlyDefaultConfiguration(t *testing.T) {
 		Timeout: 10 * time.Second,
 	}
 	resp, err := client.Do(request)
-
 	if err != nil {
 		t.Error(err)
 		return
@@ -7327,7 +7328,6 @@ func TestFolderWithSubFolders(t *testing.T) {
 	assert.Contains(t, body, "\"/folder4/index.html")
 	assert.Contains(t, body, "\"/folder4/sub1/")
 	assert.Contains(t, body, "\"/folder4/sub2/")
-
 }
 
 func TestGlobSeparatorSingleStar(t *testing.T) {

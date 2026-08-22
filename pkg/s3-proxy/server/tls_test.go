@@ -9,9 +9,10 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/config"
 	"github.com/oxyno-zeta/s3-proxy/pkg/s3-proxy/log"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateTLSConfig(t *testing.T) {
@@ -352,7 +353,6 @@ func TestGenerateTLSConfig(t *testing.T) {
 					// We look *only* at the first certificate (the leaf); others are intermediates.
 					certBytes := tlsConfig.Certificates[certIdx].Certificate[0]
 					cert, err := x509.ParseCertificate(certBytes)
-
 					if err != nil {
 						t.Errorf("error parsing certificates[%d].certificate[0]: %v", certIdx, err)
 						continue
