@@ -113,9 +113,6 @@ const DefaultTemplateStatusInternalServerError = "500"
 // DefaultOIDCScopes Default OIDC Scopes.
 var DefaultOIDCScopes = []string{"openid", "profile", "email"}
 
-// DefaultOIDCUidClaim Default OIDC identifier claim.
-const DefaultOIDCUidClaim = "preferred_username"
-
 // DefaultOIDCGroupClaim Default OIDC group claim.
 const DefaultOIDCGroupClaim = "groups"
 

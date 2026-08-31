@@ -252,7 +252,7 @@ func Test_buildOIDCUID(t *testing.T) {
 		{
 			name: "default claim uses preferred username when present",
 			oidcAuthCfg: &config.OIDCAuthConfig{
-				UidClaim: config.DefaultOIDCUidClaim,
+				UidClaim: "",
 			},
 			claims:            map[string]any{},
 			preferredUsername: "alice",
@@ -262,7 +262,7 @@ func Test_buildOIDCUID(t *testing.T) {
 		{
 			name: "default claim falls back to email when preferred username is empty",
 			oidcAuthCfg: &config.OIDCAuthConfig{
-				UidClaim: config.DefaultOIDCUidClaim,
+				UidClaim: "",
 			},
 			claims:            map[string]any{},
 			preferredUsername: "",

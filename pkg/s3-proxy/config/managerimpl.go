@@ -712,10 +712,6 @@ func loadBusinessDefaultValues(out *Config) error {
 			if len(v.Scopes) == 0 {
 				v.Scopes = DefaultOIDCScopes
 			}
-			// Manage default identifier claim
-			if v.UidClaim == "" {
-				v.UidClaim = DefaultOIDCUidClaim
-			}
 			// Manage default group claim
 			if v.GroupClaim == "" {
 				v.GroupClaim = DefaultOIDCGroupClaim

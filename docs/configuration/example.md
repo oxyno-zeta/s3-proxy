@@ -228,7 +228,7 @@ metrics:
 #         - openid
 #         - email
 #         - profile
-#       # uidClaim: preferred_username # claim used by GetIdentifier and user isolation
+#       # uidClaim: sub # claim used by GetIdentifier and user isolation
 #       groupClaim: groups # path in token
 #       # cookieDomains: [] # Cookie domains matching the request host
 #       # cookieSecure: true # Is the cookie generated secure ?

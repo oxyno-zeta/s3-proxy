@@ -418,7 +418,7 @@ func buildOIDCUID(
 	preferredUsername string,
 	email string,
 ) string {
-	if oidcAuthCfg.UidClaim == config.DefaultOIDCUidClaim {
+	if oidcAuthCfg.UidClaim == "" {
 		if preferredUsername != "" {
 			return preferredUsername
 		}
