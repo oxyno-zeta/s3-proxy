@@ -9,6 +9,7 @@ import (
 
 func TestOIDCUser_GetType(t *testing.T) {
 	type fields struct {
+		Uid               string
 		PreferredUsername string
 		Name              string
 		Groups            []string
@@ -31,6 +32,7 @@ func TestOIDCUser_GetType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := &OIDCUser{
+				Uid:               tt.fields.Uid,
 				PreferredUsername: tt.fields.PreferredUsername,
 				Name:              tt.fields.Name,
 				Groups:            tt.fields.Groups,
@@ -48,6 +50,7 @@ func TestOIDCUser_GetType(t *testing.T) {
 
 func TestOIDCUser_GetIdentifier(t *testing.T) {
 	type fields struct {
+		Uid               string
 		PreferredUsername string
 		Name              string
 		Groups            []string
@@ -62,41 +65,25 @@ func TestOIDCUser_GetIdentifier(t *testing.T) {
 		want   string
 	}{
 		{
-			name: "all empty",
-			fields: fields{
-				PreferredUsername: "",
-				Email:             "",
-			},
-			want: "",
+			name:   "empty uid",
+			fields: fields{Uid: ""},
+			want:   "",
 		},
 		{
-			name: "empty email",
-			fields: fields{
-				PreferredUsername: "username",
-				Email:             "",
-			},
-			want: "username",
+			name:   "uid set",
+			fields: fields{Uid: "alice"},
+			want:   "alice",
 		},
 		{
-			name: "empty username",
-			fields: fields{
-				PreferredUsername: "",
-				Email:             "email",
-			},
-			want: "email",
-		},
-		{
-			name: "all set",
-			fields: fields{
-				PreferredUsername: "username",
-				Email:             "email",
-			},
-			want: "username",
+			name:   "uid takes precedence over preferred_username",
+			fields: fields{Uid: "uid-val", PreferredUsername: "other"},
+			want:   "uid-val",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := &OIDCUser{
+				Uid:               tt.fields.Uid,
 				PreferredUsername: tt.fields.PreferredUsername,
 				Name:              tt.fields.Name,
 				Groups:            tt.fields.Groups,

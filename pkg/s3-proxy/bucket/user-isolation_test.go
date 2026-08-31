@@ -200,30 +200,23 @@ func Test_generateStartKey_UserIsolation_AcrossUserTypes(t *testing.T) {
 		wantKey     string
 	}{
 		{
-			name:        "OIDC user with preferred_username uses it as identifier",
+			name:        "OIDC user with computed uid as identifier",
 			targetCfg:   baseCfg(),
-			user:        &models.OIDCUser{PreferredUsername: "alice", Email: "alice@example.com"},
+			user:        &models.OIDCUser{Uid: "alice"},
 			requestPath: "/file.txt",
 			wantKey:     "data/alice/file.txt",
 		},
 		{
-			name:        "OIDC user without preferred_username falls back to email",
-			targetCfg:   baseCfg(),
-			user:        &models.OIDCUser{PreferredUsername: "", Email: "bob@example.com"},
-			requestPath: "/file.txt",
-			wantKey:     "data/bob@example.com/file.txt",
-		},
-		{
 			name:        "OIDC admin matched by preferred_username is unprefixed",
 			targetCfg:   baseCfg("admin"),
-			user:        &models.OIDCUser{PreferredUsername: "admin", Email: "admin@example.com"},
+			user:        &models.OIDCUser{Uid: "admin"},
 			requestPath: "/alice/file.txt",
 			wantKey:     "data/alice/file.txt",
 		},
 		{
 			name:        "OIDC admin matched by email (no preferred_username) is unprefixed",
 			targetCfg:   baseCfg("ops@example.com"),
-			user:        &models.OIDCUser{PreferredUsername: "", Email: "ops@example.com"},
+			user:        &models.OIDCUser{Uid: "ops@example.com"},
 			requestPath: "/alice/file.txt",
 			wantKey:     "data/alice/file.txt",
 		},

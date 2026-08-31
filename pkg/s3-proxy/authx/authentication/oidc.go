@@ -355,6 +355,8 @@ func (s *service) oidcAuthMiddleware(res *config.Resource) func(http.Handler) ht
 				ouser.PreferredUsername, _ = claims["preferred_username"].(string)
 			}
 
+			ouser.Uid = buildOIDCUID(oidcAuthCfg, claims, ouser.PreferredUsername, ouser.Email)
+
 			// Add user to request context by creating a new context
 			ctx = models.SetAuthenticatedUserInContext(ctx, ouser)
 			// Create new request with new context
@@ -408,6 +410,29 @@ func parseAndValidateJWTToken(
 	}
 
 	return res, nil
+}
+
+func buildOIDCUID(
+	oidcAuthCfg *config.OIDCAuthConfig,
+	claims map[string]any,
+	preferredUsername string,
+	email string,
+) string {
+	if oidcAuthCfg.UidClaim == "" {
+		if preferredUsername != "" {
+			return preferredUsername
+		}
+
+		return email
+	}
+
+	if claims[oidcAuthCfg.UidClaim] != nil {
+		uid, _ := claims[oidcAuthCfg.UidClaim].(string)
+
+		return uid
+	}
+
+	return ""
 }
 
 func getJWTToken(logEntry log.Logger, r *http.Request, cookieName string) (string, error) {
