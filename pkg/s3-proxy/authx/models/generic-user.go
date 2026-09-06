@@ -4,7 +4,7 @@ package models
 type GenericUser interface {
 	// Get type of user (OIDC, HEADER or BASIC).
 	GetType() string
-	// Get identifier (Username for basic auth user or Username or email for OIDC and HEADER user).
+	// Get identifier (Username for basic auth user, configured claim for OIDC user with fallbacks, or Username/email for HEADER user).
 	GetIdentifier() string
 	// Get username.
 	GetUsername() string

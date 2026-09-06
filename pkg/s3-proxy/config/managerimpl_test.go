@@ -142,6 +142,7 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					OIDC: map[string]*OIDCAuthConfig{
 						"provider1": {
 							Scopes:       []string{"test"},
+							UidClaim:     "",
 							GroupClaim:   "test",
 							CookieName:   "test",
 							LoginPath:    "/test",
