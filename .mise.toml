@@ -13,7 +13,7 @@ gotestsum = "1.13.0"
 # renovate: datasource=go depName=golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
 "go:golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment" = "v0.49.0"
 # renovate: datasource=github-tags depName=jmattheis/goverter
-"go:github.com/jmattheis/goverter/cmd/goverter" = "v1.9.4"
+"go:github.com/jmattheis/goverter/cmd/goverter" = "v1.10.0"
 
 [hooks]
 postinstall = "pre-commit install"
