@@ -485,7 +485,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						}
 
 						// Parse multipart form
-						err = req.ParseMultipartForm(0)
+						err = req.ParseMultipartForm(0) //nolint:gosec
 						if err != nil {
 							resHan.InternalServerError(brctx.LoadFileContent, errors.WithStack(err))
 

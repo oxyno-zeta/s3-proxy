@@ -3,7 +3,7 @@ package models
 const OIDCUserType = "OIDC"
 
 type OIDCUser struct {
-	Uid               string   `json:"uid"`
+	UID               string   `json:"uid"`
 	PreferredUsername string   `json:"preferred_username"`
 	Name              string   `json:"name"`
 	GivenName         string   `json:"given_name"`
@@ -18,7 +18,7 @@ func (*OIDCUser) GetType() string {
 }
 
 func (u *OIDCUser) GetIdentifier() string {
-	return u.Uid
+	return u.UID
 }
 
 // Get username.

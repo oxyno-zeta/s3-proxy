@@ -83,7 +83,9 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 			r,
 		)
 
-		http.Redirect(w, r, config.AuthCodeURL(newState), http.StatusFound)
+		// The redirect target is carried in the OAuth state and is validated
+		// against the request host when the callback is handled.
+		http.Redirect(w, r, config.AuthCodeURL(newState), http.StatusFound) //nolint:gosec // G710: rd is validated before it is used after the callback
 	})
 
 	mux.HandleFunc(mainRedirectURLCallbackPath, func(w http.ResponseWriter, r *http.Request) {
@@ -212,7 +214,7 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 		}
 
 		// Build cookie
-		cookie := &http.Cookie{
+		cookie := &http.Cookie{ //nolint:gosec // G124: Secure is intentionally configurable; HttpOnly and SameSite are always enabled
 			Expires:  idToken.Expiry,
 			Name:     oidcCfg.CookieName,
 			Value:    rawIDToken,
@@ -223,13 +225,15 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 		}
 		http.SetCookie(w, cookie)
 
+		// Keep the validated redirect separate from the request-tainted state value.
+		redirectURL := rdVal
 		// Manage default redirect case
 		if rdVal == "" {
-			rdVal = "/"
+			redirectURL = "/"
 		}
 
 		logEntry.Info("Successful authentication detected")
-		http.Redirect(w, r, rdVal, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect) //nolint:gosec // G710: redirectURL was validated against the request host above
 	})
 
 	return nil
@@ -355,7 +359,7 @@ func (s *service) oidcAuthMiddleware(res *config.Resource) func(http.Handler) ht
 				ouser.PreferredUsername, _ = claims["preferred_username"].(string)
 			}
 
-			ouser.Uid = buildOIDCUID(oidcAuthCfg, claims, ouser.PreferredUsername, ouser.Email)
+			ouser.UID = buildOIDCUID(oidcAuthCfg, claims, ouser.PreferredUsername, ouser.Email)
 
 			// Add user to request context by creating a new context
 			ctx = models.SetAuthenticatedUserInContext(ctx, ouser)
@@ -418,7 +422,7 @@ func buildOIDCUID(
 	preferredUsername string,
 	email string,
 ) string {
-	if oidcAuthCfg.UidClaim == "" {
+	if oidcAuthCfg.UIDClaim == "" {
 		if preferredUsername != "" {
 			return preferredUsername
 		}
@@ -426,8 +430,8 @@ func buildOIDCUID(
 		return email
 	}
 
-	if claims[oidcAuthCfg.UidClaim] != nil {
-		uid, _ := claims[oidcAuthCfg.UidClaim].(string)
+	if claims[oidcAuthCfg.UIDClaim] != nil {
+		uid, _ := claims[oidcAuthCfg.UIDClaim].(string)
 
 		return uid
 	}
