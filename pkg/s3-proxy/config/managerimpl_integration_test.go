@@ -867,6 +867,170 @@ targets:
 			},
 		},
 		{
+			name: "Test PUT action form field name default value",
+			configs: map[string]string{
+				"config.yaml": `
+targets:
+ test:
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+  actions:
+    PUT:
+      enabled: true
+`,
+			},
+			wantErr: false,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "info",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port:     8080,
+					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
+				},
+				InternalServer: &ServerConfig{
+					Port:     9090,
+					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
+				},
+				Templates: defaultTemplateCfg,
+				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name: "test",
+						Mount: &MountConfig{
+							Path: []string{"/test/"},
+						},
+						Bucket: &BucketConfig{
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
+						},
+						Actions: &ActionsConfig{
+							PUT: &PutActionConfig{Enabled: true},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+			},
+		},
+		{
+			name: "Test PUT action form field name override",
+			configs: map[string]string{
+				"config.yaml": `
+targets:
+ test:
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+  actions:
+    PUT:
+      enabled: true
+      config:
+        formFieldName: upload
+`,
+			},
+			wantErr: false,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "info",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port:     8080,
+					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
+				},
+				InternalServer: &ServerConfig{
+					Port:     9090,
+					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
+				},
+				Templates: defaultTemplateCfg,
+				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name: "test",
+						Mount: &MountConfig{
+							Path: []string{"/test/"},
+						},
+						Bucket: &BucketConfig{
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
+						},
+						Actions: &ActionsConfig{
+							PUT: &PutActionConfig{Enabled: true, Config: &PutActionConfigConfig{FormFieldName: new("upload")}},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+			},
+		},
+		{
+			name: "Test PUT action form field name validation error",
+			configs: map[string]string{
+				"config.yaml": `
+targets:
+ test:
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+  actions:
+    PUT:
+      enabled: true
+      config:
+        formFieldName: "invalid field"
+`,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Test PUT action empty form field name validation error",
+			configs: map[string]string{
+				"config.yaml": `
+targets:
+ test:
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+  actions:
+    PUT:
+      enabled: true
+      config:
+        formFieldName: ""
+`,
+			},
+			wantErr: true,
+		},
+		{
 			name: "Test secrets from environment variable with empty environment variable",
 			configs: map[string]string{
 				"config.yaml": `
@@ -1552,6 +1716,72 @@ targets:
 			res := ctx.GetConfig()
 
 			assert.Equal(t, tt.expectedResult, res)
+		})
+	}
+}
+
+func Test_managercontext_Load_PUTFormFieldName(t *testing.T) {
+	tests := []struct {
+		name                  string
+		putConfig             string
+		expectedFormFieldName string
+	}{
+		{
+			name:                  "Default form field name without PUT configuration",
+			putConfig:             "",
+			expectedFormFieldName: "file",
+		},
+		{
+			name: "Default form field name with PUT configuration without form field name",
+			putConfig: `
+      config:
+        storageClass: STANDARD`,
+			expectedFormFieldName: "file",
+		},
+		{
+			name: "Configured form field name",
+			putConfig: `
+      config:
+        formFieldName: upload`,
+			expectedFormFieldName: "upload",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+
+			err := os.WriteFile(filepath.Join(dir, "config.yaml"), []byte(`
+targets:
+ test:
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+  actions:
+    PUT:
+      enabled: true`+tt.putConfig+`
+`), 0o600)
+			if err != nil {
+				t.Error(err)
+
+				return
+			}
+
+			ctx := &managerimpl{
+				logger: log.NewLogger(),
+			}
+
+			// Load config
+			err = ctx.Load(dir)
+			if err != nil {
+				t.Errorf("Load() error = %v", err)
+
+				return
+			}
+
+			// Check effective PUT form field name
+			assert.Equal(t, tt.expectedFormFieldName, ctx.GetConfig().Targets["test"].Actions.PUT.Config.GetFormFieldName())
 		})
 	}
 }

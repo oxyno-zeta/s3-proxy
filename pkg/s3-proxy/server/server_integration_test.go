@@ -4639,6 +4639,110 @@ func TestPublicRouter(t *testing.T) {
 			},
 		},
 		{
+			name: "PUT in a path should be ok with a custom form field name",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+								PUT: &config.PutActionConfig{
+									Enabled: true,
+									Config: &config.PutActionConfigConfig{
+										FormFieldName: new("upload"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:   "PUT",
+			inputURL:      "http://localhost/mount/folder1/",
+			inputFileName: "custom-field-name.txt",
+			inputFileKey:  "upload",
+			inputBody:     "Hello custom form field name!",
+			expectedCode:  204,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+			},
+			validateS3Object:    true,
+			expectedS3ObjectKey: "folder1/custom-field-name.txt",
+		},
+		{
+			name: "PUT in a path should fail with default form field name when a custom one is configured",
+			args: args{
+				cfg: &config.Config{
+					Server:      svrCfg,
+					ListTargets: &config.ListTargetsConfig{},
+					Tracing:     tracingConfig,
+					Templates:   testsDefaultGeneralTemplateConfig,
+					Targets: map[string]*config.TargetConfig{
+						"target1": {
+							Name: "target1",
+							Bucket: &config.BucketConfig{
+								Name:       bucket,
+								Region:     region,
+								S3Endpoint: s3server.URL,
+								Credentials: &config.BucketCredentialConfig{
+									AccessKey: &config.CredentialConfig{Value: accessKey},
+									SecretKey: &config.CredentialConfig{Value: secretAccessKey},
+								},
+								DisableSSL: true,
+							},
+							Mount: &config.MountConfig{
+								Path: []string{"/mount/"},
+							},
+							Actions: &config.ActionsConfig{
+								GET: &config.GetActionConfig{Enabled: true},
+								PUT: &config.PutActionConfig{
+									Enabled: true,
+									Config: &config.PutActionConfigConfig{
+										FormFieldName: new("upload"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			inputMethod:   "PUT",
+			inputURL:      "http://localhost/mount/folder1/",
+			inputFileName: "test.txt",
+			inputFileKey:  "file",
+			inputBody:     "Hello test1!",
+			expectedCode:  500,
+			expectedBody: `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Internal Server Error</h1>
+    <p>http: no such file</p>
+  </body>
+</html>`,
+			expectedHeaders: map[string]string{
+				"Cache-Control": "no-cache, no-store, no-transform, must-revalidate, private, max-age=0",
+				"Content-Type":  "text/html; charset=utf-8",
+			},
+		},
+		{
 			name: "PUT with a custom template and status code should be ok",
 			args: args{
 				cfg: &config.Config{
