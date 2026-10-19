@@ -384,6 +384,8 @@ targets:
     #     enabled: true
     #     # Configuration for PUT requests
     #     config:
+    #       # Name of the multipart form field holding the uploaded file
+    #       formFieldName: file
     #       # Metadata key/values that will be put on S3 objects.
     #       # Values can be templated. Empty values will be flushed.
     #       metadata:

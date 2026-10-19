@@ -491,8 +491,13 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 
 							return
 						}
+
+						formFieldName := config.DefaultTargetActionsPUTFormFieldName
+						if tgt.Actions.PUT.Config != nil && tgt.Actions.PUT.Config.FormFieldName != nil {
+							formFieldName = *tgt.Actions.PUT.Config.FormFieldName
+						}
 						// Get file from form
-						file, fileHeader, err := req.FormFile("file")
+						file, fileHeader, err := req.FormFile(formFieldName)
 						if err != nil {
 							resHan.InternalServerError(brctx.LoadFileContent, errors.WithStack(err))
 
