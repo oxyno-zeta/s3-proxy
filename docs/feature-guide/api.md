@@ -23,8 +23,25 @@ GET and HEAD requests include standard S3 headers (`Cache-Control`, `Content-Typ
 
 This kind of requests will allow to send file in directory (so to upload a file in S3).
 
-The PUT request path must be a directory and must be a multipart form with a key named `file` with a file inside.
+The PUT request path must be a directory and must be a multipart form with a key named `file` by default with a file inside.
 Example: `PUT --form file:@file.pdf /dir1/`
+
+The key name can be changed per target with the `formFieldName` option of the
+PUT action configuration (see
+[PutActionConfigConfiguration](../configuration/structure.md#putactionconfigconfiguration)):
+
+```yaml
+targets:
+  target1:
+    actions:
+      PUT:
+        enabled: true
+        config:
+          formFieldName: upload
+```
+
+With this configuration, the request becomes:
+`PUT --form upload:@file.pdf /dir1/`
 
 ## DELETE
 

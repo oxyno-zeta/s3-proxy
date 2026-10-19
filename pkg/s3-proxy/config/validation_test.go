@@ -52,6 +52,43 @@ func Test_validatePath(t *testing.T) {
 	}
 }
 
+func Test_validatePutFormFieldName(t *testing.T) {
+	errWhitespace := "begin must not contain whitespace or non printable characters"
+	errQuoteOrBackslash := "begin must not contain double quote or backslash characters"
+
+	tests := []struct {
+		name          string
+		formFieldName string
+		errorString   string
+	}{
+		{name: "Must fail when empty", formFieldName: "", errorString: "begin must not be empty"},
+		{name: "Must fail with invalid UTF-8", formFieldName: "a\xffb", errorString: "begin must be a valid UTF-8 string"},
+		{name: "Must fail with whitespace", formFieldName: "my file", errorString: errWhitespace},
+		{name: "Must fail with non printable character", formFieldName: "file\x00", errorString: errWhitespace},
+		{name: "Must fail with double quote", formFieldName: `my"file`, errorString: errQuoteOrBackslash},
+		{name: "Must fail with backslash", formFieldName: `my\file`, errorString: errQuoteOrBackslash},
+		{name: "Must be ok with default value", formFieldName: "file"},
+		{name: "Must be ok with array style name", formFieldName: "files[]"},
+		{name: "Must be ok with non ASCII characters", formFieldName: "fichier_téléversé"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validatePutFormFieldName("begin", tt.formFieldName)
+			if tt.errorString == "" {
+				if err != nil {
+					t.Errorf("validatePutFormFieldName() error = %v, want nil", err)
+				}
+
+				return
+			}
+
+			if err == nil || err.Error() != tt.errorString {
+				t.Errorf("validatePutFormFieldName() error = %v, want %v", err, tt.errorString)
+			}
+		})
+	}
+}
+
 func Test_validateResource(t *testing.T) {
 	falseValue := false
 	// trueValue := true
@@ -508,6 +545,30 @@ func Test_validateBusinessConfig(t *testing.T) {
 				},
 			},
 			wantErr: false,
+		},
+		{
+			name: "PUT action form field name is invalid in target",
+			args: args{
+				out: &Config{
+					Targets: map[string]*TargetConfig{
+						"test1": {
+							Name: "test1",
+							Bucket: &BucketConfig{
+								Name:   "bucket1",
+								Region: "region1",
+							},
+							Mount: &MountConfig{
+								Path: []string{"/mount1/"},
+							},
+							Actions: &ActionsConfig{
+								PUT: &PutActionConfig{Enabled: true, Config: &PutActionConfigConfig{FormFieldName: new("my file")}},
+							},
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			errorString: "PUT action form field name in target test1 must not contain whitespace or non printable characters",
 		},
 		{
 			name: "Configuration is valid without list targets",

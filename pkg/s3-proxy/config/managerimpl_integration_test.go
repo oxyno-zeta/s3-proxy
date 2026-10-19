@@ -867,6 +867,170 @@ targets:
 			},
 		},
 		{
+			name: "Test PUT action form field name default value",
+			configs: map[string]string{
+				"config.yaml": `
+targets:
+ test:
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+  actions:
+    PUT:
+      enabled: true
+`,
+			},
+			wantErr: false,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "info",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port:     8080,
+					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
+				},
+				InternalServer: &ServerConfig{
+					Port:     9090,
+					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
+				},
+				Templates: defaultTemplateCfg,
+				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name: "test",
+						Mount: &MountConfig{
+							Path: []string{"/test/"},
+						},
+						Bucket: &BucketConfig{
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
+						},
+						Actions: &ActionsConfig{
+							PUT: &PutActionConfig{Enabled: true},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+			},
+		},
+		{
+			name: "Test PUT action form field name override",
+			configs: map[string]string{
+				"config.yaml": `
+targets:
+ test:
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+  actions:
+    PUT:
+      enabled: true
+      config:
+        formFieldName: upload
+`,
+			},
+			wantErr: false,
+			expectedResult: &Config{
+				Log: &LogConfig{
+					Level:  "info",
+					Format: "json",
+				},
+				Server: &ServerConfig{
+					Port:     8080,
+					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
+				},
+				InternalServer: &ServerConfig{
+					Port:     9090,
+					Compress: svrCompressCfg,
+					Timeouts: svrTimeoutsCfg,
+				},
+				Templates: defaultTemplateCfg,
+				Tracing:   &TracingConfig{Enabled: false},
+				Metrics:   &MetricsConfig{DisableRouterPath: false},
+				ListTargets: &ListTargetsConfig{
+					Enabled: false,
+				},
+				Targets: map[string]*TargetConfig{
+					"test": {
+						Name: "test",
+						Mount: &MountConfig{
+							Path: []string{"/test/"},
+						},
+						Bucket: &BucketConfig{
+							Name:                "bucket1",
+							Region:              "us-east-1",
+							S3ListMaxKeys:       1000,
+							S3MaxUploadParts:    10000,
+							S3UploadPartSize:    5,
+							S3UploadConcurrency: 5,
+							S3ForcePathStyle:    &DefaultBucketS3ForcePathStyle,
+						},
+						Actions: &ActionsConfig{
+							PUT: &PutActionConfig{Enabled: true, Config: &PutActionConfigConfig{FormFieldName: new("upload")}},
+						},
+						Templates: &TargetTemplateConfig{},
+					},
+				},
+			},
+		},
+		{
+			name: "Test PUT action form field name validation error",
+			configs: map[string]string{
+				"config.yaml": `
+targets:
+ test:
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+  actions:
+    PUT:
+      enabled: true
+      config:
+        formFieldName: "invalid field"
+`,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Test PUT action empty form field name validation error",
+			configs: map[string]string{
+				"config.yaml": `
+targets:
+ test:
+  mount:
+    path: /test/
+  bucket:
+    name: bucket1
+    region: us-east-1
+  actions:
+    PUT:
+      enabled: true
+      config:
+        formFieldName: ""
+`,
+			},
+			wantErr: true,
+		},
+		{
 			name: "Test secrets from environment variable with empty environment variable",
 			configs: map[string]string{
 				"config.yaml": `
