@@ -4,7 +4,7 @@
 "node" = "26.8.1"
 "npm:oxfmt" = "0.66.0"
 pre-commit = '4.6.2'
-go = '1.27.1'
+go = '1.27.3'
 golangci-lint = "2.13.2"
 # renovate: datasource=github-tags depName=gotestyourself/gotestsum
 gotestsum = "1.13.0"
