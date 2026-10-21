@@ -492,7 +492,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 							return
 						}
 						// Get file from form
-						file, fileHeader, err := req.FormFile("file")
+						file, fileHeader, err := req.FormFile(tgt.Actions.PUT.Config.GetFormFieldName())
 						if err != nil {
 							resHan.InternalServerError(brctx.LoadFileContent, errors.WithStack(err))
 

@@ -131,6 +131,9 @@ const DefaultServerTimeoutsReadHeaderTimeout = "60s"
 // DefaultTargetActionsGETConfigSignedURLExpiration default signed url expiration.
 const DefaultTargetActionsGETConfigSignedURLExpiration = 15 * time.Minute
 
+// DefaultTargetActionsPUTFormFieldName default form field name holding the uploaded file.
+const DefaultTargetActionsPUTFormFieldName = "file"
+
 // ErrMainBucketPathSupportNotValid Error thrown when main bucket path support option isn't valid.
 var ErrMainBucketPathSupportNotValid = errors.New("main bucket path support option can be enabled only when only one bucket is configured")
 
@@ -429,6 +432,7 @@ type PutActionConfigConfig struct {
 	Metadata       map[string]string                    `mapstructure:"metadata"       json:"metadata"`
 	SystemMetadata *PutActionConfigSystemMetadataConfig `mapstructure:"systemMetadata" json:"systemMetadata"`
 	CannedACL      *string                              `mapstructure:"cannedACL"      json:"cannedACL"`
+	FormFieldName  *string                              `mapstructure:"formFieldName"  json:"formFieldName"`
 	StorageClass   string                               `mapstructure:"storageClass"   json:"storageClass"`
 	Webhooks       []*WebhookConfig                     `mapstructure:"webhooks"       json:"webhooks"       validate:"dive"`
 	AllowOverride  bool                                 `mapstructure:"allowOverride"  json:"allowOverride"`
@@ -594,4 +598,15 @@ func (bcfg *BucketConfig) GetRootPrefix() string {
 	}
 	// Return result
 	return key
+}
+
+// GetFormFieldName Get form field name holding the uploaded file.
+// Safe to call on a nil configuration.
+func (pcfg *PutActionConfigConfig) GetFormFieldName() string {
+	// Check if form field name is set, otherwise use default one
+	if pcfg == nil || pcfg.FormFieldName == nil {
+		return DefaultTargetActionsPUTFormFieldName
+	}
+	// Return result
+	return *pcfg.FormFieldName
 }

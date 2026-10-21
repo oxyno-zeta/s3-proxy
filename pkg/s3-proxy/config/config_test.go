@@ -59,3 +59,34 @@ func TestBucketConfig_GetRootPrefix(t *testing.T) {
 		})
 	}
 }
+
+func TestPutActionConfigConfig_GetFormFieldName(t *testing.T) {
+	tests := []struct {
+		name   string
+		config *PutActionConfigConfig
+		want   string
+	}{
+		{
+			name:   "Must return default form field name when config is not set",
+			config: nil,
+			want:   "file",
+		},
+		{
+			name:   "Must return default form field name when not set",
+			config: &PutActionConfigConfig{StorageClass: "STANDARD"},
+			want:   "file",
+		},
+		{
+			name:   "Must return configured form field name",
+			config: &PutActionConfigConfig{FormFieldName: new("upload")},
+			want:   "upload",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.config.GetFormFieldName(); got != tt.want {
+				t.Errorf("PutActionConfigConfig.GetFormFieldName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

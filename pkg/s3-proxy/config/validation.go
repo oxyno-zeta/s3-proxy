@@ -8,6 +8,8 @@ import (
 	"path"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"emperror.dev/errors"
 	"github.com/thoas/go-funk"
@@ -53,6 +55,14 @@ func validateBusinessConfig(out *Config) error {
 
 		if target.Actions.PUT != nil {
 			oneMustBeEnabled = target.Actions.PUT.Enabled || oneMustBeEnabled
+
+			// Validate PUT form field name if set
+			if target.Actions.PUT.Config != nil && target.Actions.PUT.Config.FormFieldName != nil {
+				err := validatePutFormFieldName("PUT action form field name in target "+key, *target.Actions.PUT.Config.FormFieldName)
+				if err != nil {
+					return err
+				}
+			}
 		}
 
 		if target.Actions.DELETE != nil {
@@ -274,6 +284,27 @@ func validatePath(beginErrorMessage, fpath string) error {
 		return errors.New(beginErrorMessage + " must ends with /")
 	}
 	// Return no error
+	return nil
+}
+
+func validatePutFormFieldName(beginErrorMessage, formFieldName string) error {
+	// Check that form field name isn't empty
+	if formFieldName == "" {
+		return errors.Errorf("%s must not be empty", beginErrorMessage)
+	}
+	// Check that form field name is valid UTF-8 as clients send field names as UTF-8
+	if !utf8.ValidString(formFieldName) {
+		return errors.Errorf("%s must be a valid UTF-8 string", beginErrorMessage)
+	}
+	// Check that form field name doesn't contain any whitespace or non printable character
+	if strings.ContainsFunc(formFieldName, func(r rune) bool { return unicode.IsSpace(r) || !unicode.IsPrint(r) }) {
+		return errors.Errorf("%s must not contain whitespace or non printable characters", beginErrorMessage)
+	}
+	// Check that form field name doesn't contain characters that clients escape inconsistently in multipart headers
+	if strings.ContainsAny(formFieldName, `"\`) {
+		return errors.Errorf("%s must not contain double quote or backslash characters", beginErrorMessage)
+	}
+
 	return nil
 }
 
