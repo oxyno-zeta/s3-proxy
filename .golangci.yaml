@@ -183,7 +183,8 @@ formatters:
     gofumpt:
       # Choose whether to use the extra rules.
       # Default: false
-      extra-rules: true
+      extra:
+        group-params: true
     gofmt:
       simplify: true
       # Apply the rewrite rules to the source before reformatting.
