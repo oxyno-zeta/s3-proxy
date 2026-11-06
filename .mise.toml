@@ -3,7 +3,7 @@
 [tools]
 "node" = "26.13.0"
 "npm:oxfmt" = "0.77.0"
-pre-commit = '4.6.2'
+pre-commit = '4.7.0'
 go = '1.27.3'
 golangci-lint = "2.13.2"
 # renovate: datasource=github-tags depName=gotestyourself/gotestsum
