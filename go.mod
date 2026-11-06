@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/dimiro1/health v0.0.0-20231118160444-e388c68d7d7e
-	github.com/dustin/go-humanize v1.0.1
+	github.com/dustin/go-humanize v1.1.0
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-chi/chi/v5 v5.4.0
 	github.com/go-chi/cors v1.2.2
