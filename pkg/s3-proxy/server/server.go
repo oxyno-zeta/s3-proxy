@@ -2,7 +2,6 @@ package server
 
 import (
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 
@@ -306,11 +305,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
 
 						// Get request path
-						requestPath := chi.URLParam(req, "*")
-
-						// Unescape it
-						// Found a bug where sometimes the request path isn't unescaped
-						requestPath, err := url.PathUnescape(requestPath)
+						requestPath, err := getObjectRequestPath(req)
 						// Check error
 						if err != nil {
 							resHan.InternalServerError(brctx.LoadFileContent, errors.WithStack(err))
@@ -387,11 +382,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
 
 						// Get request path
-						requestPath := chi.URLParam(req, "*")
-
-						// Unescape it
-						// Found a bug where sometimes the request path isn't unescaped
-						requestPath, err := url.PathUnescape(requestPath)
+						requestPath, err := getObjectRequestPath(req)
 						// Check error
 						if err != nil {
 							resHan.InternalServerError(brctx.LoadFileContent, errors.WithStack(err))
@@ -468,10 +459,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
 
 						// Get request path
-						requestPath := chi.URLParam(req, "*")
-						// Unescape it
-						// Found a bug where sometimes the request path isn't unescaped
-						requestPath, err := url.PathUnescape(requestPath)
+						requestPath, err := getObjectRequestPath(req)
 						// Check error
 						if err != nil {
 							resHan.InternalServerError(brctx.LoadFileContent, errors.WithStack(err))
@@ -535,10 +523,7 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 						// Get response handler
 						resHan := responsehandler.GetResponseHandlerFromContext(req.Context())
 						// Get request path
-						requestPath := chi.URLParam(req, "*")
-						// Unescape it
-						// Found a bug where sometimes the request path isn't unescaped
-						requestPath, err := url.PathUnescape(requestPath)
+						requestPath, err := getObjectRequestPath(req)
 						// Check error
 						if err != nil {
 							resHan.InternalServerError(brctx.LoadFileContent, errors.WithStack(err))

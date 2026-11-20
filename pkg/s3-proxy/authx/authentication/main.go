@@ -48,13 +48,15 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 			}
 
 			// Get request data
-			requestURI := r.URL.RequestURI()
+			// URL.Path is already decoded once, just like the S3 object path.
+			// Do not include the query string in resource matching.
+			requestPath := r.URL.Path
 			httpMethod := r.Method
 
 			// Get bucket request context
 			brctx := bucket.GetBucketRequestContextFromContext(r.Context())
 			// Find resource
-			res, err := findResource(resources, requestURI, httpMethod)
+			res, err := findResource(resources, requestPath, httpMethod)
 			if err != nil {
 				// Check if bucket request context doesn't exist to use local default files
 				if brctx == nil {
@@ -70,7 +72,7 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 			if res == nil {
 				// In this case, resource isn't found because not path not declared
 				// So access is forbidden
-				err2 := fmt.Errorf("no resource found for path %s and method %s => Forbidden access", requestURI, httpMethod)
+				err2 := fmt.Errorf("no resource found for path %s and method %s => Forbidden access", requestPath, httpMethod)
 				// Add stack trace
 				err2 = errors.WithStack(err2)
 				// Check if bucket request context doesn't exist to use local default files
@@ -134,7 +136,7 @@ func (s *service) Middleware(resources []*config.Resource) func(http.Handler) ht
 	}
 }
 
-func findResource(resL []*config.Resource, requestURI, httpMethod string) (*config.Resource, error) {
+func findResource(resL []*config.Resource, requestPath, httpMethod string) (*config.Resource, error) {
 	// Loop over the list
 	for _, res := range resL {
 		// Check if http method is declared in resource
@@ -150,7 +152,7 @@ func findResource(resL []*config.Resource, requestURI, httpMethod string) (*conf
 			return nil, errors.WithStack(err)
 		}
 		// Check if request uri match glob pattern declared in resource
-		if g.Match(requestURI) {
+		if g.Match(requestPath) {
 			return res, nil
 		}
 	}

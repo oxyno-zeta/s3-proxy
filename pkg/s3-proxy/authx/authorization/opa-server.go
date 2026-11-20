@@ -53,7 +53,7 @@ func isOPAServerAuthorized(req *http.Request, oidcUser any, resource *config.Res
 		headers[strings.ToLower(k)] = v[0]
 	}
 	// Parse path
-	parsedPath := deleteEmpty(strings.Split(req.RequestURI, "/"))
+	parsedPath := deleteEmpty(strings.Split(req.URL.Path, "/"))
 	// Calculate scheme
 	scheme := "http"
 	if req.TLS != nil {
@@ -72,7 +72,7 @@ func isOPAServerAuthorized(req *http.Request, oidcUser any, resource *config.Res
 				Scheme:     scheme,
 				Host:       utils.GetRequestHost(req),
 				ParsedPath: parsedPath,
-				Path:       req.RequestURI,
+				Path:       req.URL.Path,
 			},
 		},
 	}
