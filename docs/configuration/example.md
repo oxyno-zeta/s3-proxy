@@ -22,10 +22,22 @@ metrics:
   # Disable router path save in HTTP metrics
   disableRouterPath: false
 
+# Internal server configurations
+# internalServer:
+#   # Configured independently from server.trustedIPPrefixes (same format and behavior).
+#   trustedIPPrefixes: []
+
 # Server configurations
 # server:
 #   listenAddr: ""
 #   port: 8080
+#   # Trusted reverse proxy CIDR ranges for X-Forwarded-For parsing.
+#   # Empty or omitted: skip the X-Forwarded-For middleware.
+#   # Use only your proxy's actual IPv4/IPv6 CIDR ranges; invalid CIDRs fail startup.
+#   # Later client-IP middlewares can override the XFF result (see configuration docs).
+#   # Example for a reverse proxy connecting over loopback:
+#   # trustedIPPrefixes: ["127.0.0.1/32", "::1/128"]
+#   trustedIPPrefixes: []
 #   # Server timeout options
 #   timeouts:
 #     readTimeout: ""

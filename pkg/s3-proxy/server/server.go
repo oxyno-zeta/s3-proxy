@@ -155,7 +155,11 @@ func (svr *Server) generateRouter() (http.Handler, error) {
 	}
 
 	r.Use(middleware.RequestID)
-	r.Use(middleware.ClientIPFromXFF())
+
+	if len(cfg.Server.TrustedIPPrefixes) != 0 {
+		r.Use(middleware.ClientIPFromXFF(cfg.Server.TrustedIPPrefixes...))
+	}
+
 	r.Use(middleware.ClientIPFromRemoteAddr)
 	r.Use(middleware.ClientIPFromHeader("X-Real-IP"))
 	// Manage tracing

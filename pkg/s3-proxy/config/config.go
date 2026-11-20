@@ -269,13 +269,14 @@ type TemplateConfig struct {
 
 // ServerConfig Server configuration.
 type ServerConfig struct {
-	Timeouts   *ServerTimeoutsConfig `mapstructure:"timeouts"   validate:"required"  json:"timeouts"`
-	CORS       *ServerCorsConfig     `mapstructure:"cors"       validate:"omitempty" json:"cors"`
-	Cache      *CacheConfig          `mapstructure:"cache"      validate:"omitempty" json:"cache"`
-	Compress   *ServerCompressConfig `mapstructure:"compress"   validate:"omitempty" json:"compress"`
-	SSL        *ServerSSLConfig      `mapstructure:"ssl"        validate:"omitempty" json:"ssl"`
-	ListenAddr string                `mapstructure:"listenAddr"                      json:"listenAddr"`
-	Port       int                   `mapstructure:"port"       validate:"required"  json:"port"`
+	Timeouts          *ServerTimeoutsConfig `mapstructure:"timeouts"          validate:"required"  json:"timeouts"`
+	CORS              *ServerCorsConfig     `mapstructure:"cors"              validate:"omitempty" json:"cors"`
+	Cache             *CacheConfig          `mapstructure:"cache"             validate:"omitempty" json:"cache"`
+	Compress          *ServerCompressConfig `mapstructure:"compress"          validate:"omitempty" json:"compress"`
+	SSL               *ServerSSLConfig      `mapstructure:"ssl"               validate:"omitempty" json:"ssl"`
+	ListenAddr        string                `mapstructure:"listenAddr"                             json:"listenAddr"`
+	Port              int                   `mapstructure:"port"              validate:"required"  json:"port"`
+	TrustedIPPrefixes []string              `mapstructure:"trustedIPPrefixes"                      json:"trustedIPPrefixes"`
 }
 
 // ServerTimeoutsConfig Server timeouts configuration.

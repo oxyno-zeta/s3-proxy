@@ -111,7 +111,11 @@ func (svr *InternalServer) generateInternalRouter() http.Handler {
 	}
 
 	r.Use(middleware.RequestID)
-	r.Use(middleware.ClientIPFromXFF())
+
+	if len(cfg.InternalServer.TrustedIPPrefixes) != 0 {
+		r.Use(middleware.ClientIPFromXFF(cfg.InternalServer.TrustedIPPrefixes...))
+	}
+
 	r.Use(middleware.ClientIPFromRemoteAddr)
 	r.Use(middleware.ClientIPFromHeader("X-Real-IP"))
 	r.Use(log.NewStructuredLogger(

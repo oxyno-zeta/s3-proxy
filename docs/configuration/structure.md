@@ -37,13 +37,35 @@ You can see a full example in the [Example section](./example.md)
 
 ## ServerConfiguration
 
-| Key        | Type                                    | Required | Default | Description                                               |
-| ---------- | --------------------------------------- | -------- | ------- | --------------------------------------------------------- |
-| listenAddr | String                                  | No       | `""`    | Listen Address (Important: Cannot be hot reloaded)        |
-| port       | Integer                                 | No       | `8080`  | Listening Port (Important: Cannot be hot reloaded)        |
-| cors       | [ServerCorsConfig](#servercorsconfig)   | No       | None    | CORS configuration                                        |
-| cache      | [ServerCacheConfig](#servercacheconfig) | No       | None    | Cache configuration                                       |
-| ssl        | [ServerSSLConfig](#serversslconfig)     | No       | None    | SSL/TLS configuration (Important: Cannot be hot reloaded) |
+| Key               | Type                                    | Required | Default | Description                                                                                                                                                                                                  |
+| ----------------- | --------------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| listenAddr        | String                                  | No       | `""`    | Listen Address (Important: Cannot be hot reloaded)                                                                                                                                                           |
+| port              | Integer                                 | No       | `8080`  | Listening Port (Important: Cannot be hot reloaded)                                                                                                                                                           |
+| cors              | [ServerCorsConfig](#servercorsconfig)   | No       | None    | CORS configuration                                                                                                                                                                                           |
+| cache             | [ServerCacheConfig](#servercacheconfig) | No       | None    | Cache configuration                                                                                                                                                                                          |
+| ssl               | [ServerSSLConfig](#serversslconfig)     | No       | None    | SSL/TLS configuration (Important: Cannot be hot reloaded)                                                                                                                                                    |
+| trustedIPPrefixes | [String]                                | No       | `[]`    | Trusted reverse proxy CIDR ranges passed to the `X-Forwarded-For` middleware. An empty list skips that middleware. See [trusted proxy IP prefixes](#trusted-proxy-ip-prefixes) for behavior and limitations. |
+
+### Trusted proxy IP prefixes
+
+`server.trustedIPPrefixes` and `internalServer.trustedIPPrefixes` are configured independently. Each accepts a list of IPv4 or IPv6 CIDR ranges belonging to trusted reverse proxies. The default is an empty list (`[]`); omitting the option or leaving it empty skips the `X-Forwarded-For` middleware.
+
+When the list is non-empty, the XFF middleware checks the connecting peer against these ranges. An untrusted peer is treated as the client and its `X-Forwarded-For` header is ignored. For a trusted peer, the middleware walks the header from right to left, skipping trusted proxy addresses and selecting the first untrusted address. Entries must use valid CIDR notation, such as `127.0.0.1/32` or `::1/128`; invalid entries cause a panic when the router is initialized.
+
+For a reverse proxy connecting over loopback:
+
+```yaml
+server:
+  trustedIPPrefixes:
+    - "127.0.0.1/32"
+    - "::1/128"
+internalServer:
+  trustedIPPrefixes: []
+```
+
+Replace the loopback ranges with your proxy's actual ranges when it runs on another host. Trust only ranges reserved for your proxies.
+
+**Current limitation:** both routers run the remote-address and `X-Real-IP` middlewares after the XFF middleware, so those can overwrite its selected client IP. This setting applies only to XFF parsing; it does not restrict which peers may supply `X-Real-IP` or change the separate client-IP lookup used by request logging.
 
 ## ServerTimeoutsConfig
 
@@ -393,23 +415,23 @@ This authentication method should be used only with a software like [Oauth2-prox
 
 ## OIDCAuthConfiguration
 
-| Key           | Type                                                | Required | Default                          | Description                                                                                                                                                                                                |
-| ------------- | --------------------------------------------------- | -------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| clientID      | String                                              | Yes      | None                             | Client ID                                                                                                                                                                                                  |
-| clientSecret  | [CredentialConfiguration](#credentialconfiguration) | No       | None                             | Client Secret                                                                                                                                                                                              |
-| issuerUrl     | String                                              | Yes      | None                             | Issuer URL (example: https://fake.com/realm/fake-realm                                                                                                                                                     |
-| redirectUrl   | String                                              | No       | `""`                             | Redirect URL (this is the service url). Without this being set, the redirect url will be calculated from input host automatically by S3-Proxy                                                              |
-| scopes        | [String]                                            | No       | `["openid", "profile", "email"]` | Scopes                                                                                                                                                                                                     |
-| state         | String                                              | Yes      | None                             | Random string to have a secure connection with oidc provider                                                                                                                                               |
-| uidClaim      | String                                              | No       | `""`             | Claim used to build OIDC user identifier (`GenericUser.GetIdentifier()`). If not configured, it default to `preferred_username`, then falls back to `email`                                                           |
+| Key          | Type                                                | Required | Default                          | Description                                                                                                                                                 |
+| ------------ | --------------------------------------------------- | -------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| clientID     | String                                              | Yes      | None                             | Client ID                                                                                                                                                   |
+| clientSecret | [CredentialConfiguration](#credentialconfiguration) | No       | None                             | Client Secret                                                                                                                                               |
+| issuerUrl    | String                                              | Yes      | None                             | Issuer URL (example: https://fake.com/realm/fake-realm                                                                                                      |
+| redirectUrl  | String                                              | No       | `""`                             | Redirect URL (this is the service url). Without this being set, the redirect url will be calculated from input host automatically by S3-Proxy               |
+| scopes       | [String]                                            | No       | `["openid", "profile", "email"]` | Scopes                                                                                                                                                      |
+| state        | String                                              | Yes      | None                             | Random string to have a secure connection with oidc provider                                                                                                |
+| uidClaim     | String                                              | No       | `""`                             | Claim used to build OIDC user identifier (`GenericUser.GetIdentifier()`). If not configured, it default to `preferred_username`, then falls back to `email` |
 
-| groupClaim    | String                                              | No       | `groups`                         | Groups claim path in token (`groups` must be a list of strings containing user groups)                                                                                                                     |
-| emailVerified | Boolean                                             | No       | `false`                          | Check that user email is verified in user token (field `email_verified`)                                                                                                                                   |
-| cookieName    | String                                              | No       | `oidc`                           | Cookie generated name                                                                                                                                                                                      |
-| cookieSecure  | Boolean                                             | No       | `false`                          | Is the cookie generated secure ?                                                                                                                                                                           |
-| cookieDomains | [String]                                            | No       | `nil`                            | Cookie domains affected to generated cookie. If request host is matching one of the cookie domains defined, generated cookie will use the matching domain, otherwise, the domain will be the request host. |
-| loginPath     | String                                              | No       | `""`                             | Override login path for authentication. If not defined, `/auth/PROVIDER_NAME` will be used                                                                                                                 |
-| callbackPath  | String                                              | No       | `""`                             | Override callback path for authentication callback. If not defined,`/auth/PROVIDER_NAME/callback` will be used                                                                                             |
+| groupClaim | String | No | `groups` | Groups claim path in token (`groups` must be a list of strings containing user groups) |
+| emailVerified | Boolean | No | `false` | Check that user email is verified in user token (field `email_verified`) |
+| cookieName | String | No | `oidc` | Cookie generated name |
+| cookieSecure | Boolean | No | `false` | Is the cookie generated secure ? |
+| cookieDomains | [String] | No | `nil` | Cookie domains affected to generated cookie. If request host is matching one of the cookie domains defined, generated cookie will use the matching domain, otherwise, the domain will be the request host. |
+| loginPath | String | No | `""` | Override login path for authentication. If not defined, `/auth/PROVIDER_NAME` will be used |
+| callbackPath | String | No | `""` | Override callback path for authentication callback. If not defined,`/auth/PROVIDER_NAME/callback` will be used |
 
 ## BasicAuthConfiguration
 
