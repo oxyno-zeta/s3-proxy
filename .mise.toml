@@ -2,7 +2,7 @@
 
 [tools]
 "node" = "26.13.1"
-"npm:oxfmt" = "0.77.0"
+"npm:oxfmt" = "0.79.0"
 pre-commit = '4.7.0'
 go = '1.27.4'
 golangci-lint = "2.15.0"
