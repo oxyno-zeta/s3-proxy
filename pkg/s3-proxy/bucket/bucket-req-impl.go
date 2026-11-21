@@ -36,7 +36,7 @@ type bucketReqImpl struct {
 // OIDC users without a preferred_username claim still get a usable folder
 // (their email). It returns an empty string for admins or when isolation is
 // off, and errUserIsolationForbidden if isolation is enabled but no user is
-// authenticated.
+// authenticated or their identifier is empty or has surrounding whitespace.
 func (bri *bucketReqImpl) userIsolationSegment(ctx context.Context) (string, error) {
 	if !bri.isUserIsolationEnabled() {
 		return "", nil
@@ -48,6 +48,13 @@ func (bri *bucketReqImpl) userIsolationSegment(ctx context.Context) (string, err
 	}
 
 	identifier := user.GetIdentifier()
+
+	// Enforce the identity contract for every authentication provider before
+	// admin lookup. Never trim into another user's namespace or admin identity.
+	if identifier == "" || identifier != strings.TrimSpace(identifier) {
+		return "", errUserIsolationForbidden
+	}
+
 	if bri.isUserIsolationAdmin(identifier) {
 		return "", nil
 	}

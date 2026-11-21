@@ -423,7 +423,20 @@ func (s *service) oidcAuthMiddleware(res *config.Resource) func(http.Handler) ht
 				ouser.PreferredUsername, _ = claims["preferred_username"].(string)
 			}
 
-			ouser.UID = buildOIDCUID(oidcAuthCfg, claims, ouser.PreferredUsername, ouser.Email)
+			// Manage OIDC UID
+			uid, err := buildOIDCUID(oidcAuthCfg, claims, ouser.PreferredUsername, ouser.Email)
+			if err != nil {
+				// Manage error
+				if brctx == nil {
+					responsehandler.GeneralUnauthorizedError(r, w, s.cfgManager, err)
+				} else {
+					resHan.UnauthorizedError(brctx.LoadFileContent, err)
+				}
+
+				return
+			}
+			// Save UID
+			ouser.UID = uid
 
 			// Add user to request context by creating a new context
 			ctx = models.SetAuthenticatedUserInContext(ctx, ouser)
@@ -485,22 +498,29 @@ func buildOIDCUID(
 	claims map[string]any,
 	preferredUsername string,
 	email string,
-) string {
-	if oidcAuthCfg.UIDClaim == "" {
-		if preferredUsername != "" {
-			return preferredUsername
-		}
+) (string, error) {
+	var uid string
 
-		return email
+	switch {
+	case oidcAuthCfg.UIDClaim != "":
+		uid, _ = claims[oidcAuthCfg.UIDClaim].(string)
+	case preferredUsername != "":
+		uid = preferredUsername
+	default:
+		uid = email
 	}
 
-	if claims[oidcAuthCfg.UIDClaim] != nil {
-		uid, _ := claims[oidcAuthCfg.UIDClaim].(string)
-
-		return uid
+	// Reject unusable identities before they can enter authenticated context.
+	if uid == "" {
+		return "", errors.New("oidc user identifier is missing or empty")
+	}
+	// Reject padding instead of removing it: normalization could turn a distinct
+	// identity into another user's S3 prefix or a configured isolation admin.
+	if uid != strings.TrimSpace(uid) {
+		return "", errors.New("oidc user identifier must not have leading or trailing whitespace")
 	}
 
-	return ""
+	return uid, nil
 }
 
 func getJWTToken(logEntry log.Logger, r *http.Request, cookieName string) (string, error) {

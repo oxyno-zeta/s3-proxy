@@ -1597,6 +1597,23 @@ func Test_validateSSL(t *testing.T) {
 // receiver, and the empty-list cases. This is the per-request hot path so
 // every branch matters.
 func Test_GetActionConfigConfig_IsUserIsolationAdmin(t *testing.T) {
+	t.Run("invalid identifiers cannot be admins before or after indexing", func(t *testing.T) {
+		c := &GetActionConfigConfig{UserIsolationAdmins: []string{"", " \t\n", " admin ", "admin"}}
+		for _, indexed := range []bool{false, true} {
+			if indexed {
+				c.indexUserIsolationAdmins()
+			}
+			for _, identifier := range []string{"", " \t\n", " admin", "admin ", " admin ", "\u00a0admin\u00a0"} {
+				if c.IsUserIsolationAdmin(identifier) {
+					t.Fatalf("invalid identifier must not grant admin access (indexed=%t)", indexed)
+				}
+			}
+			if !c.IsUserIsolationAdmin("admin") {
+				t.Fatal("valid admin must remain recognized")
+			}
+		}
+	})
+
 	t.Run("nil receiver returns false", func(t *testing.T) {
 		var c *GetActionConfigConfig
 		if c.IsUserIsolationAdmin("anyone") {
@@ -1658,6 +1675,32 @@ func Test_GetActionConfigConfig_IsUserIsolationAdmin(t *testing.T) {
 			t.Fatal("repeated indexing must not lose entries")
 		}
 	})
+}
+
+func Test_validateUserIsolation_RejectsInvalidAdmins(t *testing.T) {
+	for _, identifier := range []string{"", " \t\n", " admin", "admin ", "\u00a0admin\u00a0"} {
+		t.Run(identifier, func(t *testing.T) {
+			cfg := &GetActionConfigConfig{
+				UserIsolation:       true,
+				UserIsolationAdmins: []string{"admin", identifier},
+			}
+			target := &TargetConfig{
+				Resources: []*Resource{{OIDC: &ResourceHeaderOIDC{}}},
+				Actions:   &ActionsConfig{GET: &GetActionConfig{Config: cfg}},
+			}
+			err := validateUserIsolation("t1", target)
+			expectedError := "userIsolationAdmins entry 1 must not be empty or whitespace-only"
+			if strings.TrimSpace(identifier) != "" {
+				expectedError = "userIsolationAdmins entry 1 must not have leading or trailing whitespace"
+			}
+			if err == nil || !strings.Contains(err.Error(), expectedError) {
+				t.Fatalf("expected invalid admin entry error, got %v", err)
+			}
+			if cfg.userIsolationAdminsSet != nil {
+				t.Fatal("invalid admin configuration must not be indexed")
+			}
+		})
+	}
 }
 
 // Test_validateUserIsolation_PopulatesAdminSet verifies that the

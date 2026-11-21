@@ -248,6 +248,7 @@ func Test_buildOIDCUID(t *testing.T) {
 		preferredUsername string
 		email             string
 		want              string
+		wantErr           bool
 	}{
 		{
 			name: "default claim uses preferred username when present",
@@ -282,7 +283,7 @@ func Test_buildOIDCUID(t *testing.T) {
 			want:              "123456",
 		},
 		{
-			name: "custom claim missing returns empty",
+			name: "custom claim missing is rejected without fallback",
 			oidcAuthCfg: &config.OIDCAuthConfig{
 				UIDClaim: "sub",
 			},
@@ -290,9 +291,10 @@ func Test_buildOIDCUID(t *testing.T) {
 			preferredUsername: "alice",
 			email:             "alice@example.com",
 			want:              "",
+			wantErr:           true,
 		},
 		{
-			name: "custom claim non string returns empty",
+			name: "custom claim non string is rejected without fallback",
 			oidcAuthCfg: &config.OIDCAuthConfig{
 				UIDClaim: "sub",
 			},
@@ -302,12 +304,80 @@ func Test_buildOIDCUID(t *testing.T) {
 			preferredUsername: "alice",
 			email:             "alice@example.com",
 			want:              "",
+			wantErr:           true,
+		},
+		{
+			name:        "missing default identity is rejected",
+			oidcAuthCfg: &config.OIDCAuthConfig{},
+			claims:      map[string]any{"sub": "valid-subject"},
+			wantErr:     true,
+		},
+		{
+			name:              "blank preferred username is rejected without switching to email",
+			oidcAuthCfg:       &config.OIDCAuthConfig{},
+			preferredUsername: " \t\n",
+			email:             "alice@example.com",
+			wantErr:           true,
+		},
+		{
+			name:        "blank fallback email is rejected",
+			oidcAuthCfg: &config.OIDCAuthConfig{},
+			email:       " \t\n",
+			wantErr:     true,
+		},
+		{
+			name:              "empty configured claim is rejected without fallback",
+			oidcAuthCfg:       &config.OIDCAuthConfig{UIDClaim: "tenant_uid"},
+			claims:            map[string]any{"tenant_uid": ""},
+			preferredUsername: "alice",
+			email:             "alice@example.com",
+			wantErr:           true,
+		},
+		{
+			name:        "whitespace configured claim is rejected",
+			oidcAuthCfg: &config.OIDCAuthConfig{UIDClaim: "tenant_uid"},
+			claims:      map[string]any{"tenant_uid": " \t\n"},
+			wantErr:     true,
+		},
+		{
+			name:        "padded configured identity is rejected rather than normalized",
+			oidcAuthCfg: &config.OIDCAuthConfig{UIDClaim: "tenant_uid"},
+			claims:      map[string]any{"tenant_uid": " alice "},
+			wantErr:     true,
+		},
+		{
+			name:              "padded default username is rejected without email fallback",
+			oidcAuthCfg:       &config.OIDCAuthConfig{},
+			preferredUsername: " alice",
+			email:             "alice@example.com",
+			wantErr:           true,
+		},
+		{
+			name:        "padded fallback email is rejected",
+			oidcAuthCfg: &config.OIDCAuthConfig{},
+			email:       "alice@example.com\t",
+			wantErr:     true,
+		},
+		{
+			name:        "unicode padded admin identity is rejected",
+			oidcAuthCfg: &config.OIDCAuthConfig{UIDClaim: "tenant_uid"},
+			claims:      map[string]any{"tenant_uid": "\u00a0admin\u00a0"},
+			wantErr:     true,
+		},
+		{
+			name:        "internal spaces are preserved",
+			oidcAuthCfg: &config.OIDCAuthConfig{UIDClaim: "tenant_uid"},
+			claims:      map[string]any{"tenant_uid": "alice smith"},
+			want:        "alice smith",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := buildOIDCUID(tt.oidcAuthCfg, tt.claims, tt.preferredUsername, tt.email)
+			got, err := buildOIDCUID(tt.oidcAuthCfg, tt.claims, tt.preferredUsername, tt.email)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("buildOIDCUID() error = %v, wantErr %v", err, tt.wantErr)
+			}
 			if got != tt.want {
 				t.Errorf("buildOIDCUID() = %v, want %v", got, tt.want)
 			}

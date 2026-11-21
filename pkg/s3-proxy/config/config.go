@@ -482,7 +482,9 @@ type GetActionConfigConfig struct {
 // behaviour is correct even if the config is constructed by hand
 // in tests that bypass validation.
 func (c *GetActionConfigConfig) IsUserIsolationAdmin(identifier string) bool {
-	if c == nil {
+	// Fail closed even when callers bypass validation. Reject surrounding
+	// whitespace rather than normalizing an identity into a configured admin.
+	if c == nil || identifier == "" || identifier != strings.TrimSpace(identifier) {
 		return false
 	}
 

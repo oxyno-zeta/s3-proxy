@@ -183,6 +183,18 @@ func validateUserIsolation(targetKey string, target *TargetConfig) error {
 		)
 	}
 
+	// Validate admin entries before indexing. Apply the same whitespace contract
+	// as authenticated identities without silently changing configured values.
+	for i, identifier := range target.Actions.GET.Config.UserIsolationAdmins {
+		if strings.TrimSpace(identifier) == "" {
+			return errors.Errorf("target %s userIsolationAdmins entry %d must not be empty or whitespace-only", targetKey, i)
+		}
+
+		if identifier != strings.TrimSpace(identifier) {
+			return errors.Errorf("target %s userIsolationAdmins entry %d must not have leading or trailing whitespace", targetKey, i)
+		}
+	}
+
 	// Precompute admin lookup set so request-time checks are O(1).
 	target.Actions.GET.Config.indexUserIsolationAdmins()
 

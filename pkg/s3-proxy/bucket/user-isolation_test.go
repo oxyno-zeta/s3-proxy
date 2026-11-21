@@ -172,6 +172,39 @@ func Test_isUserIsolationAdmin(t *testing.T) {
 	}
 }
 
+// Invalid identities must not share a prefix or match an admin after normalization.
+func Test_userIsolationRejectsInvalidIdentifiers(t *testing.T) {
+	for _, identifier := range []string{"", " \t\n", " alice", "alice ", " admin ", "\u00a0admin\u00a0"} {
+		t.Run(identifier, func(t *testing.T) {
+			users := map[string]models.GenericUser{
+				"oidc":   &models.OIDCUser{UID: identifier},
+				"basic":  &models.BasicAuthUser{Username: identifier},
+				"header": &models.HeaderUser{Username: identifier},
+			}
+			for name, user := range users {
+				t.Run(name, func(t *testing.T) {
+					bri := &bucketReqImpl{targetCfg: &config.TargetConfig{
+						Bucket: &config.BucketConfig{Prefix: "data/"},
+						Actions: &config.ActionsConfig{GET: &config.GetActionConfig{
+							Config: &config.GetActionConfigConfig{
+								UserIsolation:       true,
+								UserIsolationAdmins: []string{identifier, "admin", "alice"},
+							},
+						}},
+					}}
+					ctx := models.SetAuthenticatedUserInContext(context.Background(), user)
+					key, err := bri.generateStartKey(ctx, "/other-user/marker.txt")
+					require.ErrorIs(t, err, errUserIsolationForbidden)
+					assert.Empty(t, key)
+					prefix, err := bri.displayPrefix(ctx)
+					require.ErrorIs(t, err, errUserIsolationForbidden)
+					assert.Empty(t, prefix)
+				})
+			}
+		})
+	}
+}
+
 // Test_generateStartKey_UserIsolation_AcrossUserTypes verifies that the
 // folder segment used for isolation is taken from GenericUser.GetIdentifier()
 // across user types — basic auth, OIDC (with and without preferred_username),
