@@ -313,7 +313,7 @@ type ServerSSLCertificate struct {
 	Certificate          *string       `mapstructure:"certificate"          json:"certificate"`
 	CertificateURL       *string       `mapstructure:"certificateUrl"       json:"certificateUrl"`
 	CertificateURLConfig *SSLURLConfig `mapstructure:"certificateUrlConfig" json:"certificateUrlConfig"`
-	PrivateKey           *string       `mapstructure:"privateKey"           json:"privateKey"`
+	PrivateKey           *string       `mapstructure:"privateKey"           json:"-"`
 	PrivateKeyURL        *string       `mapstructure:"privateKeyUrl"        json:"privateKeyUrl"`
 	PrivateKeyURLConfig  *SSLURLConfig `mapstructure:"privateKeyUrlConfig"  json:"privateKeyUrlConfig"`
 }
