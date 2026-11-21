@@ -105,11 +105,6 @@ func validateBusinessConfig(out *Config) error {
 	// Validate authentication providers
 	if out.AuthProviders != nil && out.AuthProviders.OIDC != nil {
 		for prov, authProviderCfg := range out.AuthProviders.OIDC {
-			// Check that state doesn't contain ":"
-			if strings.Contains(authProviderCfg.State, ":") {
-				return errors.Errorf("provider %s state can't contain ':' character", prov)
-			}
-
 			// Build redirect url
 			u, err := url.Parse(authProviderCfg.RedirectURL)
 			// Check if error exists

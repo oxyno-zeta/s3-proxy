@@ -2,11 +2,17 @@ package authentication
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"net/url"
 	"path"
+	"strconv"
 	"strings"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/go-chi/chi/v5"
@@ -60,8 +66,12 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 		mainRedirectURLCallbackPath = mainRedirectURLObject.Path
 	}
 
-	// Store state
-	state := oidcCfg.State
+	// Keep the browser binding provider-specific and host-only. All replicas
+	// validate it from the request; no shared transaction storage is required.
+	stateCookieName := fmt.Sprintf("s3_proxy_oidc_state_%x", sha256.Sum256([]byte(providerKey)))
+	if oidcCfg.CookieSecure {
+		stateCookieName = "__Host-" + stateCookieName
+	}
 
 	// Store provider verifier in map
 	s.allVerifiers[providerKey] = verifier
@@ -71,9 +81,24 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 		qs := r.URL.Query()
 		// Get redirect query from query params
 		rdVal := qs.Get(redirectQueryKey)
-		// Build new state with redirect value
-		// Same solution as here: https://github.com/oauth2-proxy/oauth2-proxy/blob/3fa42edb7350219d317c4bd47faf5da6192dc70f/oauthproxy.go#L751
-		newState := state + stateRedirectSeparator + rdVal
+		// Limit how long the callback can complete this login attempt.
+		expires := time.Now().Add(oidcCfg.StateLifetime)
+		// Give each login a cryptographically random nonce and carry its expiry
+		// and redirect in state so any replica can process the callback.
+		newState := rand.Text() + stateRedirectSeparator + strconv.FormatInt(expires.Unix(), 10) + stateRedirectSeparator + rdVal
+		// Store a fixed-size hash in the browser cookie to bind all state fields
+		// to this browser. Changing any field makes the callback check fail.
+		stateHash := sha256.Sum256([]byte(newState))
+		http.SetCookie(w, &http.Cookie{ //nolint:gosec
+			Name:     stateCookieName,
+			Value:    hex.EncodeToString(stateHash[:]),
+			Path:     "/",
+			Expires:  expires,
+			MaxAge:   int(oidcCfg.StateLifetime.Seconds()),
+			HttpOnly: true,
+			Secure:   oidcCfg.CookieSecure,
+			SameSite: http.SameSiteLaxMode,
+		})
 
 		// Create OIDC configuration
 		config := generateOIDCConfig(
@@ -108,42 +133,81 @@ func (s *service) OIDCEndpoints(providerKey string, oidcCfg *config.OIDCAuthConf
 			return
 		}
 
-		// Split request query state to get redirect url and original state
-		split := strings.SplitN(reqQueryState, stateRedirectSeparator, 2) //nolint: mnd // Ignoring because create by app just before
-		// Prepare and affect values
-		reqState := split[0]
-		rdVal := ""
-		// Check if length is ok to include a redirect url
-		if len(split) == 2 { //nolint: mnd // No constant for that
-			rdVal = split[1]
+		// Require the binding cookie set in the browser that initiated login.
+		stateCookie, err := r.Cookie(stateCookieName)
+		// Check no cookie
+		if errors.Is(err, http.ErrNoCookie) {
+			responsehandler.GeneralBadRequestError(r, w, s.cfgManager, errors.New("state cookie not found in request"))
+
+			return
+		}
+		// Check error
+		if err != nil {
+			responsehandler.GeneralBadRequestError(r, w, s.cfgManager, errors.Wrap(err, "failed to read state cookie"))
+
+			return
 		}
 
-		// Check state
-		if reqState != state {
+		// Hash the complete returned state to check that its nonce, expiry and
+		// redirect match the browser's cookie without a replica-local lookup.
+		stateHash := sha256.Sum256([]byte(reqQueryState))
+		// Compare in constant time to avoid leaking matching hash prefixes.
+		if subtle.ConstantTimeCompare([]byte(stateCookie.Value), []byte(hex.EncodeToString(stateHash[:]))) != 1 {
 			// Create error
-			err := errors.New("state did not match")
+			err = errors.New("state did not match")
 			// Answer
 			responsehandler.GeneralBadRequestError(r, w, s.cfgManager, err)
 
 			return
 		}
 
+		// Consume the browser binding before exchanging the single-use code.
+		http.SetCookie(w, &http.Cookie{ //nolint:gosec
+			Name:     stateCookieName,
+			Path:     "/",
+			Expires:  time.Unix(1, 0),
+			MaxAge:   -1,
+			HttpOnly: true,
+			Secure:   oidcCfg.CookieSecure,
+			SameSite: http.SameSiteLaxMode,
+		})
+
+		// Enforce expiry on the server as well as in the browser. The cookie
+		// hash above binds the timestamp and redirect to the original login.
+		split := strings.SplitN(reqQueryState, stateRedirectSeparator, 3) //nolint:mnd
+		if len(split) != 3 {                                              //nolint:mnd
+			responsehandler.GeneralBadRequestError(r, w, s.cfgManager, errors.New("invalid state format"))
+
+			return
+		}
+
+		expires, err := strconv.ParseInt(split[1], 10, 64)
+		// Check error or if state is expired
+		if err != nil || !time.Now().Before(time.Unix(expires, 0)) {
+			responsehandler.GeneralBadRequestError(r, w, s.cfgManager, errors.New("state expired or invalid"))
+
+			return
+		}
+
+		// Get redirect value
+		rdVal := split[2]
+
 		// Check if rdVal exists and that redirect url value is valid
 		if rdVal != "" {
-			isValid, err := isValidRedirect(rdVal, utils.GetRequestURI(r))
+			isValid, err2 := isValidRedirect(rdVal, utils.GetRequestURI(r))
 			// Check error
-			if err != nil {
+			if err2 != nil {
 				// Answer
-				responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err)
+				responsehandler.GeneralInternalServerError(r, w, s.cfgManager, err2)
 
 				return
 			}
 			// Check if it is invalid
 			if !isValid {
 				// Create error
-				err = errors.New("redirect url is invalid")
+				err2 = errors.New("redirect url is invalid")
 				// Answer
-				responsehandler.GeneralBadRequestError(r, w, s.cfgManager, err)
+				responsehandler.GeneralBadRequestError(r, w, s.cfgManager, err2)
 
 				return
 			}

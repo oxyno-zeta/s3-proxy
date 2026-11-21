@@ -233,8 +233,8 @@ metrics:
 #       clientID: client-id
 #       clientSecret:
 #         path: client-secret-in-file # client secret file
-#       state: my-secret-state-key # do not use this in production ! put something random here
 #       issuerUrl: https://issuer-url/
+#       stateLifetime: 10m # Maximum time to complete an OIDC login (minimum: 1s).
 #       redirectUrl: http://localhost:8080/ # /auth/oidc/callback will be added automatically
 #       scopes: # OIDC Scopes (defaults: openid, email, profile)
 #         - openid

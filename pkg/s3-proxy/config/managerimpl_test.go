@@ -6,9 +6,28 @@ import (
 	"reflect"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func Test_loadBusinessDefaultValues_invalidOIDCStateLifetime(t *testing.T) {
+	for _, lifetime := range []string{"invalid", "0s", "-1m", "500ms"} {
+		t.Run(lifetime, func(t *testing.T) {
+			cfg := &Config{
+				AuthProviders: &AuthProviderConfig{
+					OIDC: map[string]*OIDCAuthConfig{
+						"provider1": {StateLifetimeString: lifetime},
+					},
+				},
+			}
+
+			err := loadBusinessDefaultValues(cfg)
+			assert.ErrorContains(t, err, "provider provider1")
+			assert.ErrorContains(t, err, "stateLifetime")
+		})
+	}
+}
 
 func Test_loadBusinessDefaultValues(t *testing.T) {
 	type args struct {
@@ -94,11 +113,12 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 				AuthProviders: &AuthProviderConfig{
 					OIDC: map[string]*OIDCAuthConfig{
 						"provider1": {
-							Scopes:       DefaultOIDCScopes,
-							GroupClaim:   DefaultOIDCGroupClaim,
-							CookieName:   DefaultOIDCCookieName,
-							LoginPath:    "/auth/provider1",
-							CallbackPath: "/auth/provider1/callback",
+							Scopes:        DefaultOIDCScopes,
+							GroupClaim:    DefaultOIDCGroupClaim,
+							CookieName:    DefaultOIDCCookieName,
+							StateLifetime: DefaultOIDCStateLifetime,
+							LoginPath:     "/auth/provider1",
+							CallbackPath:  "/auth/provider1/callback",
 						},
 					},
 				},
@@ -119,11 +139,12 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 					AuthProviders: &AuthProviderConfig{
 						OIDC: map[string]*OIDCAuthConfig{
 							"provider1": {
-								Scopes:       []string{"test"},
-								GroupClaim:   "test",
-								CookieName:   "test",
-								LoginPath:    "/test",
-								CallbackPath: "/test/callback",
+								Scopes:              []string{"test"},
+								GroupClaim:          "test",
+								CookieName:          "test",
+								StateLifetimeString: "5m",
+								LoginPath:           "/test",
+								CallbackPath:        "/test/callback",
 							},
 						},
 					},
@@ -141,12 +162,14 @@ func Test_loadBusinessDefaultValues(t *testing.T) {
 				AuthProviders: &AuthProviderConfig{
 					OIDC: map[string]*OIDCAuthConfig{
 						"provider1": {
-							Scopes:       []string{"test"},
-							UIDClaim:     "",
-							GroupClaim:   "test",
-							CookieName:   "test",
-							LoginPath:    "/test",
-							CallbackPath: "/test/callback",
+							Scopes:              []string{"test"},
+							UIDClaim:            "",
+							GroupClaim:          "test",
+							CookieName:          "test",
+							StateLifetimeString: "5m",
+							StateLifetime:       5 * time.Minute,
+							LoginPath:           "/test",
+							CallbackPath:        "/test/callback",
 						},
 					},
 				},

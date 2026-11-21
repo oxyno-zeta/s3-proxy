@@ -697,13 +697,14 @@ func Test_validateBusinessConfig(t *testing.T) {
 			errorString: "path 0 in list targets must ends with /",
 		},
 		{
-			name: "OIDC provider with wrong state",
+			name: "OIDC provider without configured state",
 			args: args{
 				out: &Config{
 					AuthProviders: &AuthProviderConfig{
 						OIDC: map[string]*OIDCAuthConfig{
 							"provider1": {
-								State: "fake:fake",
+								LoginPath:    "/auth/provider1",
+								CallbackPath: "/auth/provider1/callback",
 							},
 						},
 					},
@@ -734,8 +735,7 @@ func Test_validateBusinessConfig(t *testing.T) {
 					},
 				},
 			},
-			wantErr:     true,
-			errorString: "provider provider1 state can't contain ':' character",
+			wantErr: false,
 		},
 		{
 			name: "OIDC provider with wrong callback path",

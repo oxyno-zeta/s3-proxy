@@ -119,6 +119,9 @@ const DefaultOIDCGroupClaim = "groups"
 // DefaultOIDCCookieName Default OIDC Cookie name.
 const DefaultOIDCCookieName = "oidc"
 
+// DefaultOIDCStateLifetime Default lifetime of an OIDC login attempt.
+const DefaultOIDCStateLifetime = 10 * time.Minute
+
 // RegexTargetKeyRewriteTargetType Regex target key rewrite Target type.
 const RegexTargetKeyRewriteTargetType = "REGEX"
 
@@ -202,20 +205,21 @@ type AuthProviderConfig struct {
 
 // OIDCAuthConfig OpenID Connect authentication configurations.
 type OIDCAuthConfig struct {
-	ClientSecret  *CredentialConfig `mapstructure:"clientSecret"  validate:"omitempty"     json:"clientSecret"`
-	UIDClaim      string            `mapstructure:"uidClaim"                               json:"uidClaim"`
-	GroupClaim    string            `mapstructure:"groupClaim"                             json:"groupClaim"`
-	IssuerURL     string            `mapstructure:"issuerUrl"     validate:"required,url"  json:"issuerUrl"`
-	RedirectURL   string            `mapstructure:"redirectUrl"   validate:"omitempty,url" json:"redirectUrl"`
-	State         string            `mapstructure:"state"         validate:"required"      json:"state"`
-	ClientID      string            `mapstructure:"clientID"      validate:"required"      json:"clientID"`
-	CookieName    string            `mapstructure:"cookieName"                             json:"cookieName"`
-	LoginPath     string            `mapstructure:"loginPath"                              json:"loginPath"`
-	CallbackPath  string            `mapstructure:"callbackPath"                           json:"callbackPath"`
-	Scopes        []string          `mapstructure:"scopes"                                 json:"scopes"`
-	CookieDomains []string          `mapstructure:"cookieDomains"                          json:"cookieDomains"`
-	EmailVerified bool              `mapstructure:"emailVerified"                          json:"emailVerified"`
-	CookieSecure  bool              `mapstructure:"cookieSecure"                           json:"cookieSecure"`
+	StateLifetimeString string            `mapstructure:"stateLifetime" json:"stateLifetime"`
+	StateLifetime       time.Duration     `mapstructure:"-"             json:"-"`
+	ClientSecret        *CredentialConfig `mapstructure:"clientSecret"  json:"clientSecret"  validate:"omitempty"`
+	UIDClaim            string            `mapstructure:"uidClaim"      json:"uidClaim"`
+	GroupClaim          string            `mapstructure:"groupClaim"    json:"groupClaim"`
+	IssuerURL           string            `mapstructure:"issuerUrl"     json:"issuerUrl"     validate:"required,url"`
+	RedirectURL         string            `mapstructure:"redirectUrl"   json:"redirectUrl"   validate:"omitempty,url"`
+	ClientID            string            `mapstructure:"clientID"      json:"clientID"      validate:"required"`
+	CookieName          string            `mapstructure:"cookieName"    json:"cookieName"`
+	LoginPath           string            `mapstructure:"loginPath"     json:"loginPath"`
+	CallbackPath        string            `mapstructure:"callbackPath"  json:"callbackPath"`
+	Scopes              []string          `mapstructure:"scopes"        json:"scopes"`
+	CookieDomains       []string          `mapstructure:"cookieDomains" json:"cookieDomains"`
+	EmailVerified       bool              `mapstructure:"emailVerified" json:"emailVerified"`
+	CookieSecure        bool              `mapstructure:"cookieSecure"  json:"cookieSecure"`
 }
 
 // HeaderOIDCAuthorizationAccess OpenID Connect or Header authorization accesses.

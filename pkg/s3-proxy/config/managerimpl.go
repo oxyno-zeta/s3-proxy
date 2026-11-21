@@ -708,6 +708,20 @@ func loadBusinessDefaultValues(out *Config) error {
 	// Manage default values for auth providers
 	if out.AuthProviders != nil && out.AuthProviders.OIDC != nil {
 		for k, v := range out.AuthProviders.OIDC {
+			// Parse the login transaction lifetime, or use the default when omitted.
+			v.StateLifetime = DefaultOIDCStateLifetime
+			if v.StateLifetimeString != "" {
+				lifetime, err := time.ParseDuration(v.StateLifetimeString)
+				if err != nil {
+					return errors.Wrapf(err, "provider %s has an invalid stateLifetime", k)
+				}
+				// Cookies and the state timestamp use whole seconds.
+				if lifetime < time.Second {
+					return errors.Errorf("provider %s stateLifetime must be at least 1s", k)
+				}
+
+				v.StateLifetime = lifetime
+			}
 			// Manage default scopes
 			if len(v.Scopes) == 0 {
 				v.Scopes = DefaultOIDCScopes
